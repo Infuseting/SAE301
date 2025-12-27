@@ -1,5 +1,5 @@
 # Stage 1: Build Frontend Assets
-FROM node:20 as frontend
+FROM node:20 AS frontend
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -7,10 +7,10 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Build Backend Dependencies
-FROM composer:2 as backend
+FROM composer:2 AS backend
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --ignore-platform-reqs --no-interaction --prefer-dist
+RUN composer install --no-dev --ignore-platform-reqs --no-interaction --prefer-dist --no-scripts
 
 # Stage 3: Production Image
 FROM php:8.2-apache
@@ -39,7 +39,7 @@ COPY --from=frontend /app/public/build /var/www/html/public/build
 COPY --from=backend /app/vendor /var/www/html/vendor
 
 # Configure Apache Document Root
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 

@@ -6,10 +6,7 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: self-hosted  # Changed from ubuntu-latest to self-hosted to reuse the runner or separate it?
-    # Actually, for building docker images, ubuntu-latest is often faster/easier unless the self-hosted has docker.
-    # The user said "je vais utilisé le systeme d'auto-heberger". And logs show the runner has docker.
-    # So we can build on self-hosted too.
+    runs-on: self-hosted  
 
     permissions:
       contents: read
