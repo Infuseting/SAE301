@@ -5,50 +5,57 @@ on:
     branches: [ "main" ]
 
 jobs:
-  deploy:
-    runs-on: self-hosted
+  build-and-push:
+    runs-on: self-hosted  # Changed from ubuntu-latest to self-hosted to reuse the runner or separate it?
+    # Actually, for building docker images, ubuntu-latest is often faster/easier unless the self-hosted has docker.
+    # The user said "je vais utilisé le systeme d'auto-heberger". And logs show the runner has docker.
+    # So we can build on self-hosted too.
+
+    permissions:
+      contents: read
+      packages: write
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Setup PHP (Optional if pre-installed)
-      # Usually self-hosted runners on the web server use the system PHP. 
-      # If you need specific version validation, uncomment:
-      # uses: shivammathur/setup-php@v2
-      # with:
-      #   php-version: '8.2'
-      run: php -v
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Install Composer Dependencies
-      run: composer install --no-dev --optimize-autoloader --prefer-dist --no-progress
+    - name: Build and Push Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/infuseting/sae301:latest
 
-    - name: Install NPM Dependencies
-      run: npm ci
+  deploy:
+    needs: build-and-push
+    runs-on: self-hosted
+    
+    steps:
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build Assets
-      run: npm run build
+    - name: Pull Latest Image
+      run: docker pull ghcr.io/infuseting/sae301:latest
 
-    - name: Sync Files to Production Directory
-      # Rsync to the deployment path defined in repository secrets
-      # Excludes .git, node_modules (if you want to re-install on target or just use built assets? 
-      # usually we sync the built assets but maybe not node_modules if we want to save space/time, 
-      # BUT vite build needs them? No, only for build. production doesn't need node_modules for Laravel/Inertia usually, 
-      # unless using SSR with Node. We will exclude node_modules to keep it clean, as assets are in public/build)
+    - name: Restart/Update Container
+      # Assuming docker-compose.yml is already present on the server or we can pull it too?
+      # If the runner is inside the repo checkout, it has the docker-compose.yml.
+      # We need to make sure we are in the right directory or checkout the code again in deploy job.
       run: |
-        rsync -av --delete --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.env' ./ ${{ secrets.DEPLOY_PATH }}
+        docker compose pull sae301
+        docker compose up -d sae301
+        docker image prune -f
 
-    - name: Set Permissions
-      run: |
-        cd ${{ secrets.DEPLOY_PATH }}
-        sudo chown -R www-data:www-data .
-        sudo chmod -R 775 storage bootstrap/cache
-
-    - name: Run Post-Deployment Commands
-      run: |
-        cd ${{ secrets.DEPLOY_PATH }}
-        php artisan migrate --force
-        php artisan config:cache
-        php artisan route:cache
-        php artisan view:cache
-        php artisan optimize
+    - name: Run Migrations
+      run: docker exec sae301 php artisan migrate --force
