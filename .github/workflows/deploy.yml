@@ -1,0 +1,54 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP (Optional if pre-installed)
+      # Usually self-hosted runners on the web server use the system PHP. 
+      # If you need specific version validation, uncomment:
+      # uses: shivammathur/setup-php@v2
+      # with:
+      #   php-version: '8.2'
+      run: php -v
+
+    - name: Install Composer Dependencies
+      run: composer install --no-dev --optimize-autoloader --prefer-dist --no-progress
+
+    - name: Install NPM Dependencies
+      run: npm ci
+
+    - name: Build Assets
+      run: npm run build
+
+    - name: Sync Files to Production Directory
+      # Rsync to the deployment path defined in repository secrets
+      # Excludes .git, node_modules (if you want to re-install on target or just use built assets? 
+      # usually we sync the built assets but maybe not node_modules if we want to save space/time, 
+      # BUT vite build needs them? No, only for build. production doesn't need node_modules for Laravel/Inertia usually, 
+      # unless using SSR with Node. We will exclude node_modules to keep it clean, as assets are in public/build)
+      run: |
+        rsync -av --delete --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.env' ./ ${{ secrets.DEPLOY_PATH }}
+
+    - name: Set Permissions
+      run: |
+        cd ${{ secrets.DEPLOY_PATH }}
+        sudo chown -R www-data:www-data .
+        sudo chmod -R 775 storage bootstrap/cache
+
+    - name: Run Post-Deployment Commands
+      run: |
+        cd ${{ secrets.DEPLOY_PATH }}
+        php artisan migrate --force
+        php artisan config:cache
+        php artisan route:cache
+        php artisan view:cache
+        php artisan optimize
