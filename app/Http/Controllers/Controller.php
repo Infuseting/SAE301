@@ -17,7 +17,7 @@ use Inertia\Inertia;
  * )
  *
  * @OA\Server(
- *      url=APP_URL,
+ *      url=L5_SWAGGER_CONST_HOST,
  *      description="Production API Server"
  * 
  * )
