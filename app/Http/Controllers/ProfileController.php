@@ -48,10 +48,7 @@ class ProfileController extends Controller
         return $this->respondWith($user, 'Profile/Edit', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
-            // 'connectedAccounts' => $user->connectedAccounts, // Assumption: removed or not needed for basic API? Keeping it safe.
-            // Warning: strict match needed. Or just pass what is needed.
-            // Current strict replacement might miss imports if I am not careful with strict matching.
-            // I will try to keep it clean.
+            'connectedAccounts' => $user->connectedAccounts,
             'hasPassword' => $user->password_is_set ?? false, // Safe fallback
         ]);
     }
