@@ -3,9 +3,7 @@ name: Sync to GitLab
 on:
   push:
     branches:
-      - stable
-      - main
-      - master
+      - '**'
 
 jobs:
   sync-to-gitlab:
