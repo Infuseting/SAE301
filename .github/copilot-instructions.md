@@ -54,6 +54,12 @@ Your goal is to write clean, maintainable, and secure code following the specifi
 *   Run `php artisan test` after modifying backend logic.
 *   Run `npm run dev` after modifying frontend logic.
 *   Create commit messages that are clear and concise using https://github.com/Infuseting/SAE301/wiki/Workflow-Git
+*   Document your code using OpenAPI annotations for API and code comments for business logic. Comment also functions and classes.
+*   Each function need to do only one thing. And function name need to be descriptive.
+*   Code and comment need to be in English.
+*   Use camelCase for functions and variables.
+*   Use PascalCase for classes.
+
 
 ### ⚠️ Ask First
 *   Before installing **any** new Composer or NPM package.
