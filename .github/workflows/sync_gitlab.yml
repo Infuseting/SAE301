@@ -1,0 +1,38 @@
+name: Sync to GitLab
+
+on:
+  push:
+    branches:
+      - stable
+      - main
+      - master
+
+jobs:
+  sync-to-gitlab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to GitLab
+        env:
+          GITLAB_SSH_KEY: ${{ secrets.GITLAB_SSH_KEY }}
+          GITLAB_REPO_URL: ${{ secrets.GITLAB_REPO_URL }}
+        run: |
+          if [ -z "$GITLAB_SSH_KEY" ] || [ -z "$GITLAB_REPO_URL" ]; then
+            echo "Error: Secrets GITLAB_SSH_KEY and GITLAB_REPO_URL must be set."
+            exit 1
+          fi
+          
+          mkdir -p ~/.ssh
+          echo "$GITLAB_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # Add Gitlab host to known hosts (assuming gitlab.com or extracting logic, using strict=no for ease of setup with private instances)
+          echo "StrictHostKeyChecking no" >> ~/.ssh/config
+          
+          git remote add gitlab "$GITLAB_REPO_URL"
+          git push gitlab --all --force
+          git push gitlab --tags --force
