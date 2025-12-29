@@ -70,5 +70,6 @@ jobs:
           docker exec sae301 php artisan config:cache
           docker exec sae301 php artisan route:cache
           docker exec sae301 php artisan view:cache
+          docker exec sae301 php artisan l5-swagger:generate
           
           echo "=== Deployment completed successfully! ==="

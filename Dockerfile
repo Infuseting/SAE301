@@ -13,7 +13,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --ignore-platform-reqs --no-interaction --prefer-dist --no-scripts
 
 # Stage 3: Production Image
-FROM php:8.2-apache
+FROM php:8.4-apache
 
 # Install System Dependencies
 RUN apt-get update && apt-get install -y \
@@ -45,6 +45,12 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
 # Set Permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Generate Swagger Documentation
+RUN cp .env.example .env \
+    && php artisan key:generate \
+    && php artisan l5-swagger:generate \
+    && rm .env
 
 # Expose Port
 EXPOSE 80

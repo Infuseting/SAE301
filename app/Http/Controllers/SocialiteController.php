@@ -8,10 +8,30 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
+use OpenApi\Annotations as OA;
+
 class SocialiteController extends Controller
 {
     /**
      * Redirect the user to the provider authentication page.
+     *
+     * @OA\Get(
+     *     path="/auth/{provider}/redirect",
+     *     tags={"Auth"},
+     *     summary="Social Login Redirect",
+     *     description="Redirects the user to the OAuth provider (google, github, discord)",
+     *     @OA\Parameter(
+     *         name="provider",
+     *         in="path",
+     *         required=true,
+     *         description="The social provider",
+     *         @OA\Schema(type="string", enum={"google", "github", "discord"})
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Redirect to provider"
+     *     )
+     * )
      */
     public function redirect(Request $request, $provider)
     {
@@ -20,6 +40,24 @@ class SocialiteController extends Controller
 
     /**
      * Obtain the user information from the provider.
+     *
+     * @OA\Get(
+     *     path="/auth/{provider}/callback",
+     *     tags={"Auth"},
+     *     summary="Social Login Callback",
+     *     description="Handle the callback from the OAuth provider",
+     *     @OA\Parameter(
+     *         name="provider",
+     *         in="path",
+     *         required=true,
+     *         description="The social provider",
+     *         @OA\Schema(type="string", enum={"google", "github", "discord"})
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Redirect to dashboard or login"
+     *     )
+     * )
      */
     public function callback(Request $request, $provider)
     {
