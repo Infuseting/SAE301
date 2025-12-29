@@ -9,3 +9,4 @@ Ce wiki a pour objectif de centraliser toutes les informations techniques néces
 - [Structure du Projet](Project_Structure.md) : Où créer ses fichiers (Modèles, Contrôleurs, Vues).
 - [Documentation et Swagger](Swagger_And_Comments.md) : Comment commenter son code pour générer la documentation API.
 - [Création de Pages et Routage](Routing_And_Pages.md) : Comment ajouter une nouvelle page et définir sa route.
+- [Frontend React & Inertia](React_And_Frontend.md) : Créer des composants, des pages et gérer le frontend.
