@@ -37,6 +37,7 @@ php artisan serve
 ## API
 
 API of project is build with OpenAPI Format. You can find it on [API](https://sae301.infuseting.fr/api) 
+
 You can find Swagger UI on [Swagger](https://sae301.infuseting.fr/api/documentation) 
 
 ## Wiki
@@ -53,8 +54,11 @@ You can find Swagger UI on [Swagger](https://sae301.infuseting.fr/api/documentat
 Manager & Supervisor : [Infuseting](https://github.com/Infuseting/)
 
 Duo 1 : [Antoine Matter](https://github.com/Antoin9-e) - [Rémy Leber](https://github.com/Remynder0) 
+
 Duo 2 : [Marin Jabet](https://github.com/Mzrbt) - [Nathan Le Biez](https://github.com/nathan-lbz) 
+
 Duo 3 : [Arthur Langlois](https://github.com/FxBam) - [ar7dx](https://github.com/aR7dx) 
+
 Duo 4 : [Come GP](https://github.com/come-gp) - [Ewen Babin](https://github.com/EwenBabin) 
 
 ## License
