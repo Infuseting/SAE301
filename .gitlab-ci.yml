@@ -18,6 +18,8 @@ deploy_production:
     - "npm_changed=`git log --oneline --name-only $prev..HEAD@{0} -- package.json | wc -l`"
     - "comp_changed=`git log --oneline --name-only $prev..HEAD@{0} -- composer.json | wc -l`"
     - git log --oneline --name-only $prev..HEAD@{0}
+    # Ajout de l'exception de sécurité pour git
+    - git config --global --add safe.directory /users/g4/laravel
     # 2. On fait le déploiement Laravel en tant que git-runner
     - cd /users/g4/laravel
     - "if [ -d database/database.sqlite ]; then no_db=0; else no_db=1; fi"
@@ -26,7 +28,8 @@ deploy_production:
     # It must be created once in /users/g4/laravel/ and will be preserved by rsync --exclude
     - "if [ ! -f .env ]; then echo \"ERROR: .env file missing on server! Please create it manually.\"; exit 1; fi"
     - "if [ $npm_changed -ne 0 ]; then npm install; fi"
-    - "if [ $comp_changed -ne 0 ]; then composer install; fi"
+    # Utilisation de --no-scripts pour éviter les erreurs si l'autoloader est instable pendant l'install
+    - "if [ $comp_changed -ne 0 ]; then composer install --no-scripts; fi"
     - npm run build
     - php artisan migrate
     - php artisan config:cache
