@@ -1,11 +1,15 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Link } from '@inertiajs/react';
+import Dropdown from '@/Components/Dropdown';
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import { Link, usePage } from '@inertiajs/react';
 
 export default function GuestLayout({ children }) {
+    const locale = usePage().props.locale || 'en';
+    const messages = usePage().props.translations?.messages || {};
     return (
         <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
             {/* Left Side - Visual */}
-            <div className="relative hidden lg:flex flex-col justify-end p-12 bg-gray-900 overflow-hidden">
+            <div className="relative hidden lg:flex flex-col justify-end p-12 bg-[#18181b] overflow-hidden">
                 <div className="absolute inset-0">
                     <img
                         src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop"
@@ -19,21 +23,24 @@ export default function GuestLayout({ children }) {
                     <blockquote className="text-3xl font-bold text-white tracking-tight">
                         "La sécurité et l'efficacité au cœur de votre expérience."
                     </blockquote>
-                    <p className="mt-4 text-gray-300 font-medium tracking-wide">SAE R.3.01 - Secure Framework</p>
+                    <p className="mt-4 text-gray-300 font-medium tracking-wide">SAE 3.01 - Secure Framework</p>
                 </div>
             </div>
 
             {/* Right Side - Form */}
-            <div className="flex flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24 bg-white relative">
+            <div className="flex flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24 bg-white dark:shadow-[0px_10px_30px_rgba(147,51,234,0.06)] dark:bg-[#18181b] relative">
+                <div className="absolute top-8 end-8">
+                    <LanguageSwitcher />
+                </div>
                 <div className="absolute top-8 left-8">
-                    <Link href="/" className="flex items-center text-purple-600 hover:text-purple-800 transition-colors">
+                    <Link href="/" className="flex items-center text-[#9333ea] hover:text-[#7a2ce6] transition-colors">
                         <span className="mr-2">←</span> Retour à l'accueil
                     </Link>
                 </div>
                 <div className="mx-auto w-full max-w-sm lg:w-96">
                     <div>
                         <Link href="/" className="flex justify-center lg:justify-start">
-                            <ApplicationLogo className="h-16 w-16 text-purple-600" />
+                            <ApplicationLogo className="block h-16 w-16 fill-current text-gray-800 dark:text-gray-100 hover:text-[#9333ea] dark:hover:text-[#9333ea] transition-colors" />
                         </Link>
                     </div>
 

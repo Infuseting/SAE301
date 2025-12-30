@@ -1,0 +1,90 @@
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Líneas de idioma de autenticación
+    |--------------------------------------------------------------------------
+    |
+    | Las siguientes líneas de idioma se utilizan durante la autenticación para diversos
+    | mensajes que debemos mostrar al usuario. Puede modificar
+    | estas líneas de idioma según los requisitos de su aplicación.
+    |
+    */
+
+    'language_name' => 'Español',
+    'dashboard' => 'Panel de control',
+    'profile' => 'Perfil',
+    'logout' => 'Cerrar sesión',
+    'login' => 'Iniciar sesión',
+    'register' => 'Registrarse',
+    'documentation' => 'Documentación',
+    'laracasts' => 'Laracasts',
+    'laravel_news' => 'Noticias de Laravel',
+    'vibrant_ecosystem' => 'Ecosistema vibrante',
+    'welcome_title' => 'Bienvenido',
+    'logged_in' => '¡Has iniciado sesión!',
+    'profile_information' => 'Información del perfil',
+    'profile_update_subtext' => 'Actualiza la información de tu cuenta y la dirección de correo electrónico.',
+    'name' => 'Nombre',
+    'email' => 'Correo electrónico',
+    'email_unverified' => 'Tu dirección de correo electrónico no está verificada.',
+    'resend_verification' => 'Haz clic aquí para reenviar el correo de verificación.',
+    'verification_link_sent' => 'Se ha enviado un nuevo enlace de verificación a tu correo electrónico.',
+    'save' => 'Guardar',
+    'saved' => 'Guardado.',
+    'update_password' => 'Actualizar contraseña',
+    'update_password_subtext' => 'Asegúrate de que tu cuenta use una contraseña larga y aleatoria para mantenerla segura.',
+    'current_password' => 'Contraseña actual',
+    'new_password' => 'Nueva contraseña',
+    'confirm_password' => 'Confirmar contraseña',
+    'confirm_password_content' => 'Por seguridad, confirma tu contraseña antes de continuar.',
+    'delete_account' => 'Eliminar cuenta',
+    'delete_account_warning_title' => '¿Estás seguro de que deseas eliminar tu cuenta?',
+    'delete_account_warning_text' => 'Una vez eliminada la cuenta, todos sus recursos y datos serán eliminados permanentemente. Introduce tu contraseña para confirmar que deseas eliminar permanentemente tu cuenta.',
+    'password' => 'Contraseña',
+    'cancel' => 'Cancelar',
+    'email_verification' => 'Verificación de correo electrónico',
+    'verify_instructions' => 'Gracias por registrarte. Antes de comenzar, ¿podrías verificar tu dirección de correo electrónico haciendo clic en el enlace que te enviamos? Si no recibiste el correo, con gusto te enviaremos otro.',
+    'resend_verification_button' => 'Reenviar correo de verificación',
+    'login_title' => 'Iniciar sesión',
+    'welcome_back' => 'Bienvenido de nuevo',
+    'create_account' => 'crear una nueva cuenta',
+    'continue_with_email' => 'O continuar con correo electrónico',
+    'email_address' => 'Dirección de correo',
+    'remember_me' => 'Recuérdame',
+    'forgot_password' => '¿Olvidaste tu contraseña?',
+    'login_button' => 'Iniciar sesión',
+    'register' => 'Registrarse',
+    'register_button' => 'Registrarse',
+    'set_password_title' => 'Establecer una contraseña',
+    'set_password_subtext' => 'Establece una contraseña para acceder a tu cuenta sin usar proveedores sociales.',
+    'forgot_password_title' => 'Olvidé mi contraseña',
+    'forgot_password_subtext' => 'No hay problema. Indícanos tu correo electrónico y te enviaremos un enlace para restablecer la contraseña.',
+    'send_reset_link_button' => 'Enviar enlace de restablecimiento',
+    'reset_password_title' => 'Restablecer contraseña',
+    'reset_password_button' => 'Restablecer contraseña',
+    'twofactor_title' => 'Confirmación en dos pasos',
+    'two_factor_authentication' => 'Autenticación en dos pasos',
+    'twofactor_required' => 'Confirma el acceso a tu cuenta introduciendo el código proporcionado por tu aplicación de autenticación.',
+    'twofactor_recovery_text' => 'Confirma el acceso a tu cuenta introduciendo uno de tus códigos de recuperación de emergencia.',
+    'twofactor_use_recovery' => 'Usar un código de recuperación',
+    'twofactor_use_code' => 'Usar un código de autenticación',
+    'twofactor_login_button' => 'Iniciar sesión',
+    'add_additional_security' => 'Añade seguridad adicional a tu cuenta usando la autenticación en dos pasos.',
+    'twofactor_confirm_text' => 'La autenticación en dos pasos está habilitada. Confirma la configuración introduciendo el código de tu aplicación de autenticación.',
+    'twofactor_not_enabled' => 'No has habilitado la autenticación en dos pasos.',
+    'twofactor_enable_button' => 'Habilitar',
+    'twofactor_confirm_button' => 'Confirmar',
+    'twofactor_regenerate_button' => 'Regenerar códigos de recuperación',
+    'twofactor_disable_button' => 'Desactivar',
+    'connected_accounts' => 'Cuentas conectadas',
+    'manage_connected_accounts' => 'Gestiona tus cuentas sociales conectadas.',
+    'connect_github' => 'Conectar con GitHub',
+    'connect_google' => 'Conectar con Google',
+    'connect_discord' => 'Conectar con Discord',
+    'confirm_button' => 'Confirmar',
+    'close' => 'Cerrar',
+
+];

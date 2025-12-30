@@ -11,6 +11,7 @@ export default function UpdateProfileInformation({
     className = '',
 }) {
     const user = usePage().props.auth.user;
+    const messages = usePage().props.translations?.messages || {};
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
         useForm({
@@ -27,18 +28,18 @@ export default function UpdateProfileInformation({
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Profile Information
+                <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    {messages.profile_information || 'Profile Information'}
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-600">
-                    Update your account's profile information and email address.
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    {messages.profile_update_subtext || "Update your account's profile information and email address."}
                 </p>
             </header>
 
             <form onSubmit={submit} className="mt-6 space-y-6">
                 <div>
-                    <InputLabel htmlFor="name" value="Name" />
+                    <InputLabel htmlFor="name" value={messages.name || 'Name'} />
 
                     <TextInput
                         id="name"
@@ -54,7 +55,7 @@ export default function UpdateProfileInformation({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <InputLabel htmlFor="email" value={messages.email || 'Email'} />
 
                     <TextInput
                         id="email"
@@ -71,29 +72,28 @@ export default function UpdateProfileInformation({
 
                 {mustVerifyEmail && user.email_verified_at === null && (
                     <div>
-                        <p className="mt-2 text-sm text-gray-800">
-                            Your email address is unverified.
+                        <p className="mt-2 text-sm text-gray-800 dark:text-gray-100">
+                            {messages.email_unverified || 'Your email address is unverified.'}
                             <Link
                                 href={route('verification.send')}
                                 method="post"
                                 as="button"
-                                className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                className="rounded-md text-sm text-gray-600 dark:text-gray-300 underline hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-[#9333ea] focus:ring-offset-2"
                             >
-                                Click here to re-send the verification email.
+                                {messages.resend_verification || 'Click here to re-send the verification email.'}
                             </Link>
                         </p>
 
                         {status === 'verification-link-sent' && (
                             <div className="mt-2 text-sm font-medium text-green-600">
-                                A new verification link has been sent to your
-                                email address.
+                                {messages.verification_link_sent || 'A new verification link has been sent to your email address.'}
                             </div>
                         )}
                     </div>
                 )}
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <PrimaryButton disabled={processing}>{messages.save || 'Save'}</PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}
@@ -102,8 +102,8 @@ export default function UpdateProfileInformation({
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600">
-                            Saved.
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {messages.saved || 'Saved.'}
                         </p>
                     </Transition>
                 </div>

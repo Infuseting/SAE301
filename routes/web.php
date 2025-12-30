@@ -29,3 +29,20 @@ require __DIR__ . '/auth.php';
 
 Route::get('/auth/{provider}/redirect', [\App\Http\Controllers\SocialiteController::class, 'redirect'])->name('socialite.redirect');
 Route::get('/auth/{provider}/callback', [\App\Http\Controllers\SocialiteController::class, 'callback'])->name('socialite.callback');
+
+// Language switcher
+Route::get('/lang/{locale}', function ($locale) {
+    $available = ['en', 'es', 'fr'];
+    if (! in_array($locale, $available)) {
+        $locale = config('app.locale');
+    }
+
+    session(['locale' => $locale]);
+
+    // If this is an Inertia request, force a full-location redirect so the client reloads with the new locale
+    if (request()->header('X-Inertia')) {
+        return Inertia::location(url()->previous());
+    }
+
+    return redirect()->back();
+})->name('lang.switch');

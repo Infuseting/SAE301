@@ -4,7 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function TwoFactorChallenge() {
     const [recovery, setRecovery] = useState(false);
@@ -36,18 +36,18 @@ export default function TwoFactorChallenge() {
         }
     };
 
+    const messages = usePage().props.translations?.messages || {};
+
     return (
         <GuestLayout>
-            <Head title="Two-factor Confirmation" />
+            <Head title={messages.twofactor_title || 'Two-factor Confirmation'} />
 
             <div className="mb-6">
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-                    Authentification Requise
+                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+                    {messages.twofactor_title || 'Two-factor Confirmation'}
                 </h2>
-                <p className="mt-2 text-sm text-gray-600">
-                    {recovery
-                        ? 'Veuillez confirmer l\'accès à votre compte en entrant l\'un de vos codes de récupération d\'urgence.'
-                        : 'Veuillez confirmer l\'accès à votre compte en entrant le code d\'authentification fourni par votre application.'}
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    {recovery ? (messages.twofactor_recovery_text || "Please confirm access to your account by entering one of your emergency recovery codes.") : (messages.twofactor_required || "Please confirm access to your account by entering the authentication code provided by your authenticator application.")}
                 </p>
             </div>
 
@@ -55,14 +55,14 @@ export default function TwoFactorChallenge() {
             <form onSubmit={submit} className="space-y-6">
                 {recovery ? (
                     <div>
-                        <InputLabel htmlFor="recovery_code" value="Code de récupération" className="text-gray-700" />
+                        <InputLabel htmlFor="recovery_code" value="Code de récupération" className="text-gray-700 dark:text-gray-200" />
                         <TextInput
                             id="recovery_code"
                             ref={recoveryCodeInput}
                             type="text"
                             name="recovery_code"
                             value={data.recovery_code}
-                            className="mt-1 block w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500 rounded-md shadow-sm"
+                            className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
                             autoComplete="one-time-code"
                             isFocused={true}
                             onChange={(e) => setData('recovery_code', e.target.value)}
@@ -71,14 +71,14 @@ export default function TwoFactorChallenge() {
                     </div>
                 ) : (
                     <div>
-                        <InputLabel htmlFor="code" value="Code" className="text-gray-700" />
+                        <InputLabel htmlFor="code" value="Code" className="text-gray-700 dark:text-gray-200" />
                         <TextInput
                             id="code"
                             ref={codeInput}
                             type="text"
                             name="code"
                             value={data.code}
-                            className="mt-1 block w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500 rounded-md shadow-sm"
+                            className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
                             inputMode="numeric"
                             autoComplete="one-time-code"
                             isFocused={true}
@@ -91,16 +91,16 @@ export default function TwoFactorChallenge() {
                 <div className="flex items-center justify-between">
                     <button
                         type="button"
-                        className="text-sm text-gray-600 hover:text-gray-900 underline cursor-pointer"
+                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white underline cursor-pointer"
                         onClick={toggleRecovery}
                     >
-                        {recovery ? 'Utiliser un code d\'authentification' : 'Utiliser un code de récupération'}
+                        {recovery ? (messages.twofactor_use_code || 'Use an authentication code') : (messages.twofactor_use_recovery || 'Use a recovery code')}
                     </button>
                 </div>
 
                 <div className="flex justify-end mt-4">
-                    <PrimaryButton className="w-full flex justify-center bg-purple-600 hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-800 py-3" disabled={processing}>
-                        Se connecter
+                    <PrimaryButton className="w-full flex justify-center py-3" disabled={processing}>
+                        {messages.twofactor_login_button || 'Log in'}
                     </PrimaryButton>
                 </div>
             </form>

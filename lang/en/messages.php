@@ -1,0 +1,90 @@
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines are used during authentication for various
+    | messages that we need to display to the user. You are free to modify
+    | these language lines according to your application's requirements.
+    |
+    */
+
+    'language_name' => 'English',
+    'dashboard' => 'Dashboard',
+    'profile' => 'Profile',
+    'logout' => 'Log Out',
+    'login' => 'Log in',
+    'register' => 'Register',
+    'documentation' => 'Documentation',
+    'laracasts' => 'Laracasts',
+    'laravel_news' => 'Laravel News',
+    'vibrant_ecosystem' => 'Vibrant Ecosystem',
+    'welcome_title' => 'Welcome',
+    'logged_in' => "You're logged in!",
+    'profile_information' => 'Profile Information',
+    'profile_update_subtext' => "Update your account's profile information and email address.",
+    'name' => 'Name',
+    'email' => 'Email',
+    'email_unverified' => 'Your email address is unverified.',
+    'resend_verification' => 'Click here to re-send the verification email.',
+    'verification_link_sent' => 'A new verification link has been sent to your email address.',
+    'save' => 'Save',
+    'saved' => 'Saved.',
+    'update_password' => 'Update Password',
+    'update_password_subtext' => "Ensure your account is using a long, random password to stay secure.",
+    'current_password' => 'Current Password',
+    'new_password' => 'New Password',
+    'confirm_password' => 'Confirm Password',
+    'confirm_password_content' => 'For your security, please confirm your password before continuing.',
+    'delete_account' => 'Delete Account',
+    'delete_account_warning_title' => 'Are you sure you want to delete your account?',
+    'delete_account_warning_text' => 'Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.',
+    'password' => 'Password',
+    'cancel' => 'Cancel',
+    'email_verification' => 'Email Verification',
+    'verify_instructions' => "Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn't receive the email, we will gladly send you another.",
+    'resend_verification_button' => 'Resend Verification Email',
+    'login_title' => 'Sign in',
+    'welcome_back' => 'Welcome back',
+    'create_account' => 'create a new account',
+    'continue_with_email' => 'Or continue with email',
+    'email_address' => 'Email address',
+    'remember_me' => 'Remember me',
+    'forgot_password' => 'Forgot your password?',
+    'login_button' => 'Log in',
+    'register' => 'Register',
+    'register_button' => 'Register',
+    'set_password_title' => 'Set a password',
+    'set_password_subtext' => 'Set a password to access your account without using social providers.',
+    'forgot_password_title' => 'Forgot Password',
+    'forgot_password_subtext' => "No problem. Just let us know your email address and we'll send you a password reset link that will allow you to choose a new one.",
+    'send_reset_link_button' => 'Send password reset link',
+    'reset_password_title' => 'Reset Password',
+    'reset_password_button' => 'Reset Password',
+    'twofactor_title' => 'Two-factor Confirmation',
+    'two_factor_authentication' => 'Two Factor Authentication',
+    'twofactor_required' => 'Please confirm access to your account by entering the authentication code provided by your authenticator application.',
+    'twofactor_recovery_text' => 'Please confirm access to your account by entering one of your emergency recovery codes.',
+    'twofactor_use_recovery' => 'Use a recovery code',
+    'twofactor_use_code' => 'Use an authentication code',
+    'twofactor_login_button' => 'Log in',
+    'add_additional_security' => 'Add additional security to your account using two factor authentication.',
+    'twofactor_confirm_text' => 'Two factor authentication is now enabled. Please confirm your setup by entering the authentication code provided by your authenticator application.',
+    'twofactor_not_enabled' => 'You have not enabled two factor authentication.',
+    'twofactor_enable_button' => 'Enable',
+    'twofactor_confirm_button' => 'Confirm',
+    'twofactor_regenerate_button' => 'Regenerate Recovery Codes',
+    'twofactor_disable_button' => 'Disable',
+    'connected_accounts' => 'Connected Accounts',
+    'manage_connected_accounts' => 'Manage your connected social accounts.',
+    'connect_github' => 'Connect GitHub',
+    'connect_google' => 'Connect Google',
+    'connect_discord' => 'Connect Discord',
+    'confirm_button' => 'Confirm',
+    'close' => 'Close',
+
+];

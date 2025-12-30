@@ -2,7 +2,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { useRef } from 'react';
 import { Transition } from '@headlessui/react';
 
@@ -30,19 +30,21 @@ export default function SetPasswordForm({ className = '' }) {
         });
     };
 
+    const messages = usePage().props.translations?.messages || {};
+
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">Définir un mot de passe</h2>
+                <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">{messages.set_password_title || 'Set a password'}</h2>
 
-                <p className="mt-1 text-sm text-gray-600">
-                    Définissez un mot de passe pour accéder à votre compte sans passer par les réseaux sociaux.
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    {messages.set_password_subtext || 'Set a password to access your account without using social providers.'}
                 </p>
             </header>
 
             <form onSubmit={updatePassword} className="mt-6 space-y-6">
                 <div>
-                    <InputLabel htmlFor="password_set_password" value="Nouveau mot de passe" />
+                    <InputLabel htmlFor="password_set_password" value={messages.new_password || 'New Password'} />
 
                     <TextInput
                         id="password_set_password"
@@ -58,7 +60,7 @@ export default function SetPasswordForm({ className = '' }) {
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="password_set_password_confirmation" value="Confirmer le mot de passe" />
+                    <InputLabel htmlFor="password_set_password_confirmation" value={messages.confirm_password || 'Confirm Password'} />
 
                     <TextInput
                         id="password_set_password_confirmation"
@@ -73,7 +75,7 @@ export default function SetPasswordForm({ className = '' }) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Enregistrer</PrimaryButton>
+                    <PrimaryButton disabled={processing}>{messages.save || 'Save'}</PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}
@@ -82,7 +84,7 @@ export default function SetPasswordForm({ className = '' }) {
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600">Enregistré.</p>
+                        <p className="text-sm text-gray-600">{messages.saved || 'Saved.'}</p>
                     </Transition>
                 </div>
             </form>

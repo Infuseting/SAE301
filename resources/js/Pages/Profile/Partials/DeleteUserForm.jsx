@@ -4,7 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 
 export default function DeleteUserForm({ className = '' }) {
@@ -45,42 +45,38 @@ export default function DeleteUserForm({ className = '' }) {
         reset();
     };
 
+    const messages = usePage().props.translations?.messages || {};
+
     return (
         <section className={`space-y-6 ${className}`}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Delete Account
+                <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    {messages.delete_account || 'Delete Account'}
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-600">
-                    Once your account is deleted, all of its resources and data
-                    will be permanently deleted. Before deleting your account,
-                    please download any data or information that you wish to
-                    retain.
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    {messages.delete_account_warning_text || 'Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.'}
                 </p>
             </header>
 
             <DangerButton onClick={confirmUserDeletion}>
-                Delete Account
+                {messages.delete_account || 'Delete Account'}
             </DangerButton>
 
             <Modal show={confirmingUserDeletion} onClose={closeModal}>
                 <form onSubmit={deleteUser} className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Are you sure you want to delete your account?
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        {messages.delete_account_warning_title || 'Are you sure you want to delete your account?'}
                     </h2>
 
-                    <p className="mt-1 text-sm text-gray-600">
-                        Once your account is deleted, all of its resources and
-                        data will be permanently deleted. Please enter your
-                        password to confirm you would like to permanently delete
-                        your account.
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                        {messages.delete_account_warning_text || 'Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.'}
                     </p>
 
                     <div className="mt-6">
                         <InputLabel
                             htmlFor="password"
-                            value="Password"
+                            value={messages.password || 'Password'}
                             className="sr-only"
                         />
 
@@ -95,7 +91,7 @@ export default function DeleteUserForm({ className = '' }) {
                             }
                             className="mt-1 block w-3/4"
                             isFocused
-                            placeholder="Password"
+                            placeholder={messages.password || 'Password'}
                         />
 
                         <InputError
@@ -106,11 +102,11 @@ export default function DeleteUserForm({ className = '' }) {
 
                     <div className="mt-6 flex justify-end">
                         <SecondaryButton onClick={closeModal}>
-                            Cancel
+                            {messages.cancel || 'Cancel'}
                         </SecondaryButton>
 
                         <DangerButton className="ms-3" disabled={processing}>
-                            Delete Account
+                            {messages.delete_account || 'Delete Account'}
                         </DangerButton>
                     </div>
                 </form>

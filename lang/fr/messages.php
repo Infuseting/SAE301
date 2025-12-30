@@ -1,0 +1,90 @@
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lignes de langue pour l'authentification
+    |--------------------------------------------------------------------------
+    |
+    | Les lignes de langue suivantes sont utilisées lors des opérations
+    | d'authentification pour afficher divers messages à l'utilisateur.
+    | Vous pouvez les adapter aux besoins de votre application.
+    |
+    */
+
+    'language_name' => 'Français',
+    'dashboard' => 'Tableau de bord',
+    'profile' => 'Profil',
+    'logout' => 'Se déconnecter',
+    'login' => 'Se connecter',
+    'register' => "S'inscrire",
+    'documentation' => 'Documentation',
+    'laracasts' => 'Laracasts',
+    'laravel_news' => 'Nouveautés Laravel',
+    'vibrant_ecosystem' => 'Écosystème dynamique',
+    'welcome_title' => 'Bienvenue',
+    'logged_in' => "Vous êtes connecté !",
+    'profile_information' => 'Informations du profil',
+    'profile_update_subtext' => "Mettez à jour les informations de profil et l'adresse e-mail de votre compte.",
+    'name' => 'Nom',
+    'email' => 'E-mail',
+    'email_unverified' => "Votre adresse e-mail n'est pas vérifiée.",
+    'resend_verification' => "Cliquez ici pour renvoyer l'e-mail de vérification.",
+    'verification_link_sent' => "Un nouveau lien de vérification a été envoyé à votre adresse e-mail.",
+    'save' => 'Enregistrer',
+    'saved' => 'Enregistré.',
+    'update_password' => 'Mettre à jour le mot de passe',
+    'update_password_subtext' => "Assurez-vous que votre compte utilise un mot de passe long et aléatoire pour rester sécurisé.",
+    'current_password' => 'Mot de passe actuel',
+    'new_password' => 'Nouveau mot de passe',
+    'confirm_password' => 'Confirmer le mot de passe',
+    'confirm_password_content' => 'Pour une question de sécurité, veuillez confirmer votre mot de passe avant de continuer.',
+    'delete_account' => 'Supprimer le compte',
+    'delete_account_warning_title' => 'Êtes-vous sûr de vouloir supprimer votre compte ?',
+    'delete_account_warning_text' => "Une fois votre compte supprimé, toutes ses ressources et données seront définitivement supprimées. Veuillez saisir votre mot de passe pour confirmer que vous souhaitez supprimer définitivement votre compte.",
+    'password' => 'Mot de passe',
+    'cancel' => 'Annuler',
+    'email_verification' => 'Vérification de l\'e-mail',
+    'verify_instructions' => "Merci pour votre inscription ! Avant de commencer, pouvez-vous vérifier votre adresse e-mail en cliquant sur le lien que nous venons de vous envoyer ? Si vous n'avez pas reçu l'e-mail, nous vous en renverrons volontiers un autre.",
+    'resend_verification_button' => "Renvoyer l'e-mail de vérification",
+    'login_title' => 'Connexion',
+    'welcome_back' => 'Bon retour',
+    'create_account' => 'créez un nouveau compte',
+    'continue_with_email' => "Ou continuer avec l'e-mail",
+    'email_address' => "Adresse e-mail",
+    'remember_me' => "Se souvenir de moi",
+    'forgot_password' => 'Mot de passe oublié ?',
+    'login_button' => 'Se connecter',
+    'register' => "S'inscrire",
+    'register_button' => "S'inscrire",
+    'set_password_title' => 'Définir un mot de passe',
+    'set_password_subtext' => 'Définissez un mot de passe pour accéder à votre compte sans passer par les réseaux sociaux.',
+    'forgot_password_title' => 'Mot de passe oublié',
+    'forgot_password_subtext' => "Pas de problème. Indiquez simplement votre adresse email et nous vous enverrons un lien de réinitialisation de mot de passe qui vous permettra d'en choisir un nouveau.",
+    'send_reset_link_button' => 'Envoyer le lien de réinitialisation',
+    'reset_password_title' => 'Réinitialiser le mot de passe',
+    'reset_password_button' => 'Réinitialiser le mot de passe',
+    'twofactor_title' => 'Confirmation à deux facteurs',
+    'two_factor_authentication' => 'Authentification à deux facteurs',
+    'twofactor_required' => "Veuillez confirmer l'accès à votre compte en entrant le code d'authentification fourni par votre application.",
+    'twofactor_recovery_text' => "Veuillez confirmer l'accès à votre compte en entrant l'un de vos codes de récupération d'urgence.",
+    'twofactor_use_recovery' => "Utiliser un code d'authentification",
+    'twofactor_use_code' => "Utiliser un code de récupération",
+    'twofactor_login_button' => 'Se connecter',
+    'add_additional_security' => 'Ajoutez une sécurité supplémentaire à votre compte en utilisant l\'authentification à deux facteurs.',
+    'twofactor_confirm_text' => "L'authentification à deux facteurs est maintenant activée. Veuillez confirmer votre configuration en entrant le code d'authentification fourni par votre application d'authentification.",
+    'twofactor_not_enabled' => "L'authentification à deux facteurs n'est pas activée.",
+    'twofactor_enable_button' => 'Activer',
+    'twofactor_confirm_button' => 'Confirmer',
+    'twofactor_disable_button' => 'Désactiver',
+    'twofactor_regenerate_button' => 'Régénérer les codes de récupération',
+    'connected_accounts' => 'Comptes connectés',
+    'manage_connected_accounts' => 'Gérez vos comptes sociaux connectés.',
+    'connect_github' => 'Connecter GitHub',
+    'connect_google' => 'Connecter Google',
+    'connect_discord' => 'Connecter Discord',
+    'confirm_button' => 'Confirmer',
+    'close' => 'Fermer',
+
+];

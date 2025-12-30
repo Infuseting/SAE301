@@ -3,7 +3,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function ResetPassword({ token, email }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -21,26 +21,28 @@ export default function ResetPassword({ token, email }) {
         });
     };
 
+    const messages = usePage().props.translations?.messages || {};
+
     return (
         <GuestLayout>
-            <Head title="Reset Password" />
+            <Head title={messages.reset_password_title || 'Reset Password'} />
 
             <div className="mb-6">
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-                    Réinitialiser le mot de passe
+                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+                    {messages.reset_password_title || 'Reset Password'}
                 </h2>
             </div>
 
             <form onSubmit={submit} className="space-y-6">
                 <div>
-                    <InputLabel htmlFor="email" value="Email" className="text-gray-700" />
+                    <InputLabel htmlFor="email" value={messages.email_address || 'Email address'} className="text-gray-700 dark:text-gray-200" />
 
                     <TextInput
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500 rounded-md shadow-sm"
+                        className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
                         autoComplete="username"
                         onChange={(e) => setData('email', e.target.value)}
                     />
@@ -49,14 +51,14 @@ export default function ResetPassword({ token, email }) {
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="password" value="Nouveau mot de passe" className="text-gray-700" />
+                    <InputLabel htmlFor="password" value={messages.new_password || 'New password'} className="text-gray-700 dark:text-gray-200" />
 
                     <TextInput
                         id="password"
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 block w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500 rounded-md shadow-sm"
+                        className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
                         autoComplete="new-password"
                         isFocused={true}
                         onChange={(e) => setData('password', e.target.value)}
@@ -68,8 +70,8 @@ export default function ResetPassword({ token, email }) {
                 <div>
                     <InputLabel
                         htmlFor="password_confirmation"
-                        value="Confirmer le mot de passe"
-                        className="text-gray-700"
+                        value={messages.confirm_password || 'Confirm Password'}
+                        className="text-gray-700 dark:text-gray-200"
                     />
 
                     <TextInput
@@ -77,7 +79,7 @@ export default function ResetPassword({ token, email }) {
                         id="password_confirmation"
                         name="password_confirmation"
                         value={data.password_confirmation}
-                        className="mt-1 block w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500 rounded-md shadow-sm"
+                        className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
                         autoComplete="new-password"
                         onChange={(e) =>
                             setData('password_confirmation', e.target.value)
@@ -91,8 +93,8 @@ export default function ResetPassword({ token, email }) {
                 </div>
 
                 <div className="flex items-center justify-end mt-4">
-                    <PrimaryButton className="w-full flex justify-center bg-purple-600 hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-800 py-3" disabled={processing}>
-                        Réinitialiser le mot de passe
+                    <PrimaryButton className="w-full flex justify-center py-3" disabled={processing}>
+                        {messages.reset_password_button || 'Reset Password'}
                     </PrimaryButton>
                 </div>
             </form>

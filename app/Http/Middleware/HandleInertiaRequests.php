@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Support\Arr;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -29,11 +30,32 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $parent = parent::share($request);
+
+        $locale = app()->getLocale();
+
+        $translations = [];
+
+        $langPath = base_path('lang/' . $locale);
+
+        if (is_dir($langPath)) {
+            foreach (glob($langPath . '/*.php') as $file) {
+                $key = basename($file, '.php');
+                try {
+                    $translations[$key] = require $file;
+                } catch (\Throwable $e) {
+                    $translations[$key] = [];
+                }
+            }
+        }
+
         return [
-            ...parent::share($request),
+            ...$parent,
             'auth' => [
                 'user' => $request->user(),
             ],
+            'locale' => $locale,
+            'translations' => $translations,
         ];
     }
 }

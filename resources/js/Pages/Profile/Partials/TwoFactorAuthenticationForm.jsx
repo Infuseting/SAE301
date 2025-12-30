@@ -22,6 +22,8 @@ export default function TwoFactorAuthenticationForm({ className = '', hasPasswor
     const [confirmationCode, setConfirmationCode] = useState('');
     const [errors, setErrors] = useState({});
 
+    const messages = usePage().props.translations?.messages || {};
+
     const enableTwoFactorAuthentication = () => {
         setEnabling(true);
 
@@ -87,9 +89,9 @@ export default function TwoFactorAuthenticationForm({ className = '', hasPasswor
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">Two Factor Authentication</h2>
-                <p className="mt-1 text-sm text-gray-600">
-                    Add additional security to your account using two factor authentication.
+                <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">{messages.two_factor_authentication || 'Two Factor Authentication'}</h2>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    {messages.add_additional_security || 'Add additional security to your account using two factor authentication.'}
                 </p>
             </header>
 
@@ -98,10 +100,10 @@ export default function TwoFactorAuthenticationForm({ className = '', hasPasswor
                     <div>
                         {qrCode && (
                             <div>
-                                <p className="font-semibold text-sm text-gray-900 mb-4">
+                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-4">
                                     {confirming
-                                        ? "To finish enabling two factor authentication, scan the following QR code using your phone's authenticator application or enter the setup key and provide the generated OTP code."
-                                        : "Two factor authentication is now enabled. Scan the following QR code using your phone's authenticator application or enter the setup key."}
+                                        ? messages.twofactor_confirm_text || "Two factor authentication is now enabled. Please confirm your setup by entering the authentication code provided by your authenticator application."
+                                        : messages.twofactor_scan_text || "Two factor authentication is now enabled. Scan the following QR code using your phone's authenticator application or enter the setup key."}
                                 </p>
 
                                 <div dangerouslySetInnerHTML={{ __html: qrCode }} />
@@ -127,10 +129,10 @@ export default function TwoFactorAuthenticationForm({ className = '', hasPasswor
 
                         {recoveryCodes.length > 0 && !confirming && (
                             <div className="mt-4">
-                                <p className="font-semibold text-sm text-gray-900 mb-4">
-                                    Store these recovery codes in a secure password manager. They can be used to recover access to your account if your two factor authentication device is lost.
+                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-4">
+                                    {messages.twofactor_store_codes || "Store these recovery codes in a secure password manager. They can be used to recover access to your account if your two factor authentication device is lost."}
                                 </p>
-                                <div className="grid gap-1 max-w-xl mt-4 px-4 py-4 font-mono text-sm bg-gray-100 rounded-lg">
+                                <div className="grid gap-1 max-w-xl mt-4 px-4 py-4 font-mono text-sm bg-gray-100 dark:bg-zinc-800 rounded-lg">
                                     {recoveryCodes.map(code => (
                                         <div key={code}>{code}</div>
                                     ))}
@@ -140,8 +142,8 @@ export default function TwoFactorAuthenticationForm({ className = '', hasPasswor
                     </div>
                 ) : (
                     <div>
-                        <p className="text-sm text-gray-600">
-                            You have not enabled two factor authentication.
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {messages.twofactor_not_enabled || "You have not enabled two factor authentication."}
                         </p>
                     </div>
                 )}
@@ -152,12 +154,12 @@ export default function TwoFactorAuthenticationForm({ className = '', hasPasswor
                             {hasPassword ? (
                                 <ConfirmsPassword onConfirm={enableTwoFactorAuthentication}>
                                     <PrimaryButton type="button">
-                                        Activer
+                                        {messages.twofactor_enable_button || "Enable"}
                                     </PrimaryButton>
                                 </ConfirmsPassword>
                             ) : (
                                 <PrimaryButton type="button" onClick={() => setShowSetPassword(true)}>
-                                    Activer
+                                    {messages.twofactor_enable_button || "Enable"}
                                 </PrimaryButton>
                             )}
                         </>
@@ -166,25 +168,25 @@ export default function TwoFactorAuthenticationForm({ className = '', hasPasswor
                             {confirming ? (
                                 <ConfirmsPassword onConfirm={confirmTwoFactorAuthentication}>
                                     <PrimaryButton className={enabling ? 'opacity-25' : ''} disabled={enabling}>
-                                        Confirmer
+                                        {messages.twofactor_confirm_button || "Confirm"}
                                     </PrimaryButton>
                                 </ConfirmsPassword>
                             ) : (
                                 <ConfirmsPassword onConfirm={regenerateRecoveryCodes}>
                                     <SecondaryButton className="mr-3">
-                                        Régénérer les codes
+                                        {messages.twofactor_regenerate_button || "Regenerate Recovery Codes"}
                                     </SecondaryButton>
                                 </ConfirmsPassword>
                             )}
 
                             {confirming ? (
                                 <SecondaryButton onClick={() => { setEnabling(false); setConfirming(false); }}>
-                                    Annuler
+                                    {messages.cancel || "Cancel"}
                                 </SecondaryButton>
                             ) : (
                                 <ConfirmsPassword onConfirm={disableTwoFactorAuthentication}>
                                     <DangerButton className={enabling ? 'opacity-25' : ''} disabled={enabling}>
-                                        Désactiver
+                                        {messages.twofactor_disable_button || "Disable"}
                                     </DangerButton>
                                 </ConfirmsPassword>
                             )}
@@ -198,7 +200,7 @@ export default function TwoFactorAuthenticationForm({ className = '', hasPasswor
                     <SetPasswordForm />
                     <div className="mt-6 flex justify-end">
                         <SecondaryButton onClick={() => setShowSetPassword(false)}>
-                            Fermer
+                            {messages.close || "Close"}
                         </SecondaryButton>
                     </div>
                 </div>

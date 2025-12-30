@@ -3,7 +3,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function ForgotPassword({ status }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -16,16 +16,18 @@ export default function ForgotPassword({ status }) {
         post(route('password.email'));
     };
 
+    const messages = usePage().props.translations?.messages || {};
+
     return (
         <GuestLayout>
-            <Head title="Forgot Password" />
+            <Head title={messages.forgot_password_title || 'Forgot Password'} />
 
             <div className="mb-6">
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-                    Mot de passe oublié ?
+                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+                    {messages.forgot_password_title || 'Forgot Password'}
                 </h2>
                 <div className="mt-2 text-sm text-gray-600">
-                    Pas de problème. Indiquez simplement votre adresse email et nous vous enverrons un lien de réinitialisation de mot de passe qui vous permettra d'en choisir un nouveau.
+                    {messages.forgot_password_subtext || "No problem. Just let us know your email address and we'll send you a password reset link that will allow you to choose a new one."}
                 </div>
             </div>
 
@@ -37,13 +39,13 @@ export default function ForgotPassword({ status }) {
 
             <form onSubmit={submit} className="space-y-6">
                 <div>
-                    <InputLabel htmlFor="email" value="Adresse email" className="text-gray-700" />
+                    <InputLabel htmlFor="email" value={messages.email_address || 'Email address'} className="text-gray-700 dark:text-gray-200" />
                     <TextInput
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full border-gray-300 focus:border-purple-500 focus:ring-purple-500 rounded-md shadow-sm"
+                                className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
                         isFocused={true}
                         onChange={(e) => setData('email', e.target.value)}
                     />
@@ -51,8 +53,8 @@ export default function ForgotPassword({ status }) {
                 </div>
 
                 <div className="flex items-center justify-end mt-4">
-                    <PrimaryButton className="w-full flex justify-center bg-purple-600 hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-800 py-3" disabled={processing}>
-                        Envoyer le lien de réinitialisation
+                    <PrimaryButton className="w-full flex justify-center py-3" disabled={processing}>
+                        {messages.send_reset_link_button || 'Send password reset link'}
                     </PrimaryButton>
                 </div>
             </form>

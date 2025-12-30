@@ -18,14 +18,14 @@ export default function Error({ status, message }) {
     }[status] || message;
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 text-gray-800">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 dark:bg-[#18181b] text-gray-800 dark:text-gray-100">
             <Head title={title} />
             <div className="flex flex-col items-center space-y-4 text-center sm:flex-row sm:space-x-8 sm:space-y-0 sm:text-left">
-                <div className="text-6xl font-bold text-gray-400">{status}</div>
-                <div className="border-l-2 border-gray-400 pl-8">
-                    <h1 className="text-3xl font-bold">{title}</h1>
-                    <p className="mt-2 text-lg text-gray-500">{description}</p>
-                    <a href="/" className="mt-6 inline-block rounded bg-indigo-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring">
+                <div className="text-6xl font-bold text-gray-400 dark:text-gray-500">{status}</div>
+                <div className="border-l-2 border-gray-400 dark:border-gray-700 pl-8">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{title}</h1>
+                    <p className="mt-2 text-lg text-gray-500 dark:text-gray-300">{description}</p>
+                    <a href="/" className="mt-6 inline-block rounded bg-[#9333ea] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#7a2ce6] focus:outline-none focus:ring focus:ring-[#9333ea]/40">
                         Go Home
                     </a>
                 </div>
