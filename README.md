@@ -14,15 +14,27 @@ composer install
 ```bash
 npm install
 ```
-```bash
-npm run dev
-```
+</br>
+
+> [!NOTE]
+> Then copy the .env.example to .env and configure your database access.
+
+</br>
+
 ```bash
 php artisan migrate
 ```
 ```bash
-php artisan serve
+php artisan key:generate
 ```
+```bash
+php artisan run
+```
+
+</br>
+
+> [!TIP]
+> ```php artisan run``` is a custom command that launch both Laravel server and React dev server.
 
 ## How Contribute
 
