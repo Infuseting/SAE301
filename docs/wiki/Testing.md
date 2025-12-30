@@ -4,6 +4,10 @@ Ce guide répertorie les outils et assertions disponibles pour tester l'applicat
 
 ## 1. Structure et Commandes
 
+```bash
+npm run build
+```
+
 ### Création
 ```bash
 php artisan make:test UserTest          # Feature (dossier tests/Feature)
