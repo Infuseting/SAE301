@@ -54,7 +54,7 @@ Exemple : `resources/views/pages/ma-page.blade.php`.
 
 ## Vérification
 
-1. Lancez le serveur : `php artisan serve`
+1. Lancez le serveur : `php artisan run`
 2. Accédez à `http://127.0.0.1:8000/ma-page`
 
 ## Cas des Routes API

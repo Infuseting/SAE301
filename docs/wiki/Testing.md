@@ -4,10 +4,6 @@ Ce guide répertorie les outils et assertions disponibles pour tester l'applicat
 
 ## 1. Structure et Commandes
 
-```bash
-npm run build
-```
-
 ### Création
 ```bash
 php artisan make:test UserTest          # Feature (dossier tests/Feature)
@@ -16,10 +12,36 @@ php artisan make:test HelperTest --unit # Unit (dossier tests/Unit)
 
 ### Exécution
 ```bash
+php artisan test:build                        # Tout lancer
+php artisan test:build --filter UserTest      # Un seul fichier
+php artisan test:build --filter test_login    # Une seule méthode
+php artisan test:build --stop-on-failure      # Stop au premier échec
+php artisan test:build --coverage             # Rapport de couverture
+```
+
+</br>
+
+> [!TIP]
+> ```php artisan test:build``` cette commande lance `npm run build` avant d'exécuter les tests. La commande standard est simplement `php artisan test`.
+
+</br>
+
+### Exécution sans build
+
+> [!NOTE]
+> Si vous n'avez pas envie de lancer la commande de build à chaque fois, utilisez `php artisan test` au lieu de `php artisan test:build`.
+
+</br>
+
+```bash
 php artisan test                        # Tout lancer
 php artisan test --filter UserTest      # Un seul fichier
 php artisan test --filter test_login    # Une seule méthode
+php artisan test --stop-on-failure      # Stop au premier échec
+php artisan test --coverage             # Rapport de couverture
 ```
+
+
 
 ---
 
@@ -178,7 +200,7 @@ $response = $this->get('/mon-controller-qui-appelle-google');
 
 | Action | Commande / Méthode |
 | :--- | :--- |
-| **Lancer les tests** | `php artisan test` |
+| **Lancer les tests** | `php artisan test:build` |
 | **Créer un test** | `php artisan make:test NomTest` |
 | **Vérifier égalité** | `$this->assertEquals($a, $b)` |
 | **Vérifier BDD** | `$this->assertDatabaseHas('table', [...])` |

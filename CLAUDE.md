@@ -10,8 +10,8 @@ Your goal is to write clean, maintainable, and secure code following the specifi
 
 *   **Setup Project**: `composer run setup` (Installs dependencies, migrates DB, builds assets)
 *   **Run Dev Server**: `composer run dev` (Runs Laravel Server + Vite + Queue + Logs)
+*   **Build Production**: `npm run build` (Builds optimized frontend assets)
 *   **Run Tests**: `php artisan test` (Must pass before committing)
-*   **Build Production**: `npm run build`
 
 ## 🧠 Project Knowledge
 

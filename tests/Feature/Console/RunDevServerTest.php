@@ -3,7 +3,7 @@
 namespace Tests\Feature\Console;
 
 use Tests\TestCase;
-use App\Console\RunDevServer;
+use App\Console\Commands\RunDevServer;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Artisan;
 use Mockery;
@@ -40,6 +40,7 @@ class RunDevServerTest extends TestCase
         foreach ([$npmMock, $artisanMock] as $mock) {
             $mock->shouldReceive('setWorkingDirectory')->andReturnSelf();
             $mock->shouldReceive('setTimeout')->andReturnSelf();
+            $mock->shouldReceive('setTty')->andReturnSelf();
             $mock->shouldReceive('start')->once();
             $mock->shouldReceive('isRunning')->andReturn(false); // Stop the loop immediately
         }

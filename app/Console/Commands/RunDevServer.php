@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console;
+namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
@@ -41,13 +41,13 @@ class RunDevServer extends Command
 
         $npm->setWorkingDirectory(base_path());
         $npm->setTimeout(null);
+        $npm->setTty(Process::isTtySupported());
         $npm->start();
 
         $artisan->setWorkingDirectory(base_path());
         $artisan->setTimeout(null);
+        $artisan->setTty(Process::isTtySupported());
         $artisan->start();
-
-        $urlDisplayed = false;
 
         // Loop while processes are running
         while ($npm->isRunning() || $artisan->isRunning()) {
@@ -66,12 +66,6 @@ class RunDevServer extends Command
                 $output = $artisan->getIncrementalOutput();
                 if ($output) {
                     $this->output->write($output);
-                    
-                    // Display accessible URL once
-                    if (!$urlDisplayed && preg_match('/http:\/\/\S+:\d+/', $output, $matches)) {
-                        $this->info("\nApp is accessible at: {$matches[0]}\n");
-                        $urlDisplayed = true;
-                    }
                 }
             }
             

@@ -34,13 +34,13 @@ php artisan run
 </br>
 
 > [!TIP]
-> ```php artisan run``` is a custom command that launch both Laravel server and React dev server.
+> ```php artisan run``` is a homemade custom command that launch both Laravel server and React dev server.
 
 ## How Contribute
 
 1. Create new branch for each feature you want to add.
 2. Do your features
-3. Launch tests with `php artisan test`. If tests are not passed, fix your code.
+3. Launch tests with `php artisan test:build`. If tests are not passed, fix your code.
 4. Let your duo review your code. And create test related to your feature if needed.
 5. Tell manager your branch is ready to merge.
 6. Manager will merge your branch and launch tests on it. 
