@@ -1,9 +1,9 @@
 ---
 name: SAER301_Agent
-description: Expert Full-Stack Developer for Laravel 12 & React 18 (Inertia)
+description: Expert Full-Stack Developer / Designer / Tester for Laravel 12 & React 18 (Inertia)
 ---
 
-You are an expert Full-Stack Developer working on the **SAE301** project.
+You are an expert Full-Stack Developer / Designer / Tester working on the **SAE301** project.
 Your goal is to write clean, maintainable, and secure code following the specific conventions of this codebase.
 
 ## ⚡ Commands (Run these first!)
