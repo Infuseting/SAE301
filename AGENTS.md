@@ -45,6 +45,7 @@ Your goal is to write clean, maintainable, and secure code following the specifi
 *   **Components**: Functional Components with Hooks only.
 *   **Inertia**: Use `Link` for navigation, `useForm` for form handling.
 *   **Styling**: Use Tailwind utility classes. Avoid creating new `.css` files unless absolutely necessary.
+*   **Permissions**: Use Spatie Permission for role-based access control.
 
 ## 🛡️ Boundaries
 

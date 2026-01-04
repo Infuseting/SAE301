@@ -20,6 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
         //
         $middleware->trustProxies(at: '*');
+
+        $middleware->alias([
+            'role' => \Spatie\Permission\Middleware\Role::class,
+            'permission' => \Spatie\Permission\Middleware\Permission::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermission::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function ($response) {
