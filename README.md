@@ -46,6 +46,9 @@ php artisan run
 6. Manager will merge your branch and launch tests on it. 
 7. If it's ok, your branch will be launch on server.
 
+[Backlog](https://github.com/users/Infuseting/projects/4/views/1)
+[Issues](https://github.com/Infuseting/SAE301/issues)
+
 ## API
 
 API of project is build with OpenAPI Format. You can find it on [API](https://sae301.infuseting.fr/api) 
