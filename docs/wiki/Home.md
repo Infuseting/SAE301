@@ -10,3 +10,5 @@ Ce wiki a pour objectif de centraliser toutes les informations techniques néces
 - [Documentation et Swagger](Swagger_And_Comments.md) : Comment commenter son code pour générer la documentation API.
 - [Création de Pages et Routage](Routing_And_Pages.md) : Comment ajouter une nouvelle page et définir sa route.
 - [Frontend React & Inertia](React_And_Frontend.md) : Créer des composants, des pages et gérer le frontend.
+- [Système de Traduction (i18n)](Translation_System.md) : Gérer les langues et les traductions.
+- [Logs d'Activité](Activity_Logging.md) : Suivre et enregistrer les actions utilisateurs.

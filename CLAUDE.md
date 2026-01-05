@@ -46,6 +46,8 @@ Your goal is to write clean, maintainable, and secure code following the specifi
 *   **Inertia**: Use `Link` for navigation, `useForm` for form handling.
 *   **Styling**: Use Tailwind utility classes. Avoid creating new `.css` files unless absolutely necessary.
 *   **Permissions**: Use Spatie Permission for role-based access control.
+*   **Logging**: Use Spatie ActivityLog for tracking user actions.
+*   **Translations**: Use Spatie i18n for internationalization.
 
 ## 🛡️ Boundaries
 
@@ -61,6 +63,26 @@ Your goal is to write clean, maintainable, and secure code following the specifi
 *   Use camelCase for functions and variables.
 *   Use PascalCase for classes.
 
+## Permissions (Spatie/Laravel-Permission)
+
+*   **Middleware**: Use `role:admin`, `permission:edit-posts` in routes.
+*   **Backend Check**: `$user->can('edit-posts')` or `$user->hasRole('admin')`.
+*   **Frontend Check**: Shared via Inertia. Check `usePage().props.auth.user.permissions` or similar logic if implemented.
+*   **Seeding**: Always use `DatabaseSeeder` to create roles/permissions.
+
+## Logging (Spatie/Laravel-Activitylog)
+
+*   **Auto-Logging**: Use `use LogsActivity;` trait on Models.
+*   **Manual Logging**: Use `activity()->log('message')` for critical actions not tied to a model event.
+*   **Context**: Always add `causedBy($user)` and `performedOn($model)` when possible.
+*   **Security**: **NEVER** log sensitive data (passwords, tokens). Configure `$logAttributes` or `getActivitylogOptions` carefully.
+
+## Translations (Lang/i18n)
+
+*   **Structure**: Files in `lang/{locale}/*.php`.
+*   **Backend Usage**: Use `__('messages.welcome')` or `trans('messages.welcome')`.
+*   **Frontend Usage**: Passed via Inertia `HandleInertiaRequests`. Access via `usePage().props.translations`.
+*   **Adding Keys**: Add to **ALL** languages (en, fr, es...). English is the fallback.
 
 ### ⚠️ Ask First
 *   Before installing **any** new Composer or NPM package.
