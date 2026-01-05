@@ -25,6 +25,14 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_public' => ['boolean'],
+            'birth_date' => ['nullable', 'date', 'before:today'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'license_number' => ['nullable', 'required_without:medical_certificate_code', 'string', 'max:50'],
+            'medical_certificate_code' => ['nullable', 'required_without:license_number', 'string', 'max:50'],
+            'photo' => ['nullable', 'file', 'max:2048', 'mimes:jpeg,jpg,png,webp'], // 2MB Max (Client compresses 8MB -> 2MB)
         ];
     }
 }

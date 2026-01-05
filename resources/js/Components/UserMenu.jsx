@@ -17,14 +17,18 @@ export default function UserMenu({ user }) {
                 <Dropdown.Trigger>
                     <button
                         type="button"
-                        className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 border border-black text-white font-bold focus:outline-none transition duration-150 ease-in-out hover:bg-blue-600"
+                        className="flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
                     >
-                        {user.name.charAt(0).toUpperCase()}
+                        <img
+                            className="h-10 w-10 rounded-full object-cover border-2 border-transparent hover:border-gray-300"
+                            src={user.profile_photo_url}
+                            alt={user.name}
+                        />
                     </button>
                 </Dropdown.Trigger>
 
                 <Dropdown.Content>
-                    <Dropdown.Link href={route('profile.edit')}>
+                    <Dropdown.Link href={route('profile.index')}>
                         {messages.profile || 'Profile'}
                     </Dropdown.Link>
 

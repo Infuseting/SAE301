@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 
+use App\Http\Requests\ProfileCompletionRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Services\ProfileService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -10,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Response;
 use OpenApi\Annotations as OA;
 
@@ -78,18 +80,83 @@ class ProfileController extends Controller
      *      )
      * )
      */
-    public function update(ProfileUpdateRequest $request)
+    public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $user = $this->profileService->update($request->user(), $request->validated());
+        $request->user()->fill($request->validated());
 
-        if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json([
-                'message' => __('messages.profile_updated'),
-                'data' => $user,
-            ]);
+        if ($request->user()->isDirty('email')) {
+            $request->user()->email_verified_at = null;
         }
 
+        // Handle Profile Photo
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($request->user()->profile_photo_path) {
+                Storage::disk('public')->delete($request->user()->profile_photo_path);
+            }
+            $path = $request->file('photo')->store('profile-photos', 'public');
+            $request->user()->profile_photo_path = $path;
+        }
+
+        // Handle Description and Public Toggle (if passed in request, strictly speaking validted by ProfileUpdateRequest)
+        // We might need to update ProfileUpdateRequest to include these rules.
+        if ($request->has('description')) {
+            $request->user()->description = $request->input('description');
+        }
+        if ($request->has('is_public')) {
+            $request->user()->is_public = $request->boolean('is_public');
+        }
+
+        $request->user()->save();
+
         return Redirect::route('profile.edit');
+    }
+
+    /**
+     * Complete the user's required profile information.
+     *
+     * @OA\Post(
+     *      path="/profile/complete",
+     *      operationId="completeProfile",
+     *      tags={"Profile"},
+     *      summary="Complete user profile",
+     *      description="Completes the user profile with required information (DOB, Address, Phone, License/Medical)",
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"birth_date", "address", "phone"},
+     *              @OA\Property(property="birth_date", type="string", format="date", example="1990-01-01"),
+     *              @OA\Property(property="address", type="string", example="123 Main St, Paris, France"),
+     *              @OA\Property(property="phone", type="string", example="+33612345678"),
+     *              @OA\Property(property="license_number", type="string", nullable=true, example="123456"),
+     *              @OA\Property(property="medical_certificate_code", type="string", nullable=true, example="PPS-123456")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Profile completed successfully",
+     *          @OA\JsonContent(ref="#/components/schemas/User")
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Validation error"
+     *      )
+     * )
+     */
+    public function complete(ProfileCompletionRequest $request)
+    {
+        $user = $request->user();
+        $data = $request->validated();
+
+        // Handle the mapping from input 'medical_certificate' to DB column 'medical_certificate_code'
+        if (isset($data['medical_certificate'])) {
+            $data['medical_certificate_code'] = $data['medical_certificate'];
+            unset($data['medical_certificate']);
+        }
+
+        $user->update($data);
+
+        return Redirect::route('dashboard')->with('status', 'profile-completed');
     }
 
     /**

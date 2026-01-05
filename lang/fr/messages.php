@@ -141,4 +141,40 @@ return [
     'back_to_home' => 'Retour à l\'accueil',
     'security_efficiency' => 'Course d\'orientation dans toute la France.',
 
+    // Homepage - Hero
+    'find_next_race' => 'Trouvez votre prochaine',
+    'orienteering' => 'Course d\'Orientation',
+    'hero_subtitle' => 'Explorez des centaines de cartes et de parcours à travers la France. Du sprint urbain à l\'ultra-longue distance en montagne.',
+    'search_where' => 'Où ?',
+    'search_when' => 'Quand ?',
+    'search_type' => 'Type',
+    'search_placeholder_where' => 'Ville, Région...',
+    'search_placeholder_when' => 'Toutes les dates',
+    'search_option_all_types' => 'Tous les types',
+    'search_button' => 'Rechercher',
+
+    // Homepage - Upcoming Races
+    'upcoming_races_title' => 'Prochaines Courses',
+    'upcoming_races_subtitle' => 'Ne manquez pas les événements à venir près de chez vous.',
+    'view_calendar' => 'Voir tout le calendrier',
+
+    // Homepage - How it Works
+    'how_it_works_title' => 'Comment ça marche ?',
+    'how_it_works_subtitle' => 'Rejoignez la plus grande communauté de course d\'orientation en France en quelques étapes.',
+    'step_1_title' => 'Trouvez une course',
+    'step_1_desc' => 'Utilisez nos filtres avancés pour trouver l\'épreuve qui correspond à votre niveau et vos envies.',
+    'step_2_title' => 'Inscrivez-vous',
+    'step_2_desc' => 'Créez votre compte, gérez vos licences et inscrivez-vous en quelques clics.',
+    'step_3_title' => 'Courez !',
+    'step_3_desc' => 'Participez à l\'événement, suivez vos résultats et comparez vos performances.',
+
+    // Auth Pages - Additional
+    'reg_title' => 'Explorez la France, une balise à la fois.',
+    'reg_subtext' => 'La plateforme de référence pour tous les passionnés de course d\'orientation.',
+    'hero_background_alt' => 'Arrière-plan héros',
+
+    'social_login_google' => 'Google',
+    'social_login_discord' => 'Discord',
+    'social_login_github' => 'GitHub',
+
 ];

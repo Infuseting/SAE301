@@ -70,48 +70,48 @@ export default function Login({ status, canResetPassword }) {
             <div className="mt-6">
                 {/* Social Login Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-3">
-                    <a href={route('socialite.redirect', 'google')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm  bg-white  text-sm font-medium text-gray-700  hover:bg-gray-50  transition-colors ">
+                    <a href={route('socialite.redirect', 'google')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
                         <span className="sr-only">{messages.connect_google || 'Connect Google'}</span>
                         <div className="flex items-center gap-2">
-                            <GoogleIcon /> <span>Google</span>
+                            <GoogleIcon /> <span>{messages.social_login_google || 'Google'}</span>
                         </div>
                     </a>
 
-                    <a href={route('socialite.redirect', 'discord')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm  bg-white  text-sm font-medium text-gray-700  hover:bg-gray-50  transition-colors ">
+                    <a href={route('socialite.redirect', 'discord')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
                         <span className="sr-only">{messages.connect_discord || 'Connect Discord'}</span>
                         <div className="flex items-center gap-2">
-                            <DiscordIcon /> <span>Discord</span>
+                            <DiscordIcon /> <span>{messages.social_login_discord || 'Discord'}</span>
                         </div>
                     </a>
                 </div>
                 <div>
-                    <a href={route('socialite.redirect', 'github')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm  bg-white  text-sm font-medium text-gray-700  hover:bg-gray-50  transition-colors ">
+                    <a href={route('socialite.redirect', 'github')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
                         <span className="sr-only">{messages.connect_github || 'Connect GitHub'}</span>
                         <div className="flex items-center gap-2">
-                            <GithubIcon /> <span>GitHub</span>
+                            <GithubIcon /> <span>{messages.social_login_github || 'GitHub'}</span>
                         </div>
                     </a>
                 </div>
 
                 <div className="relative mt-8">
                     <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                        <div className="w-full border-t border-gray-300" />
+                        <div className="w-full border-t border-gray-200" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="bg-white px-2 text-gray-500  ">{messages.continue_with_email || 'Or continue with email'}</span>
+                        <span className="bg-white px-4 text-gray-500 font-medium">{messages.continue_with_email || 'Ou avec votre email'}</span>
                     </div>
                 </div>
 
                 <div className="mt-8">
-                    <form onSubmit={submit} className="space-y-6">
-                        <div>
-                            <InputLabel htmlFor="email" value={messages.email_address || 'Email address'} className="text-gray-700 " />
+                    <form onSubmit={submit} className="space-y-5">
+                        <div className="space-y-1">
+                            <InputLabel htmlFor="email" value={messages.email_address || 'Adresse Email'} className="text-gray-700 font-semibold" />
                             <TextInput
                                 id="email"
                                 type="email"
                                 name="email"
                                 value={data.email}
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                                className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                 autoComplete="username"
                                 isFocused={true}
                                 onChange={(e) => setData('email', e.target.value)}
@@ -119,14 +119,14 @@ export default function Login({ status, canResetPassword }) {
                             <InputError message={errors.email} className="mt-2" />
                         </div>
 
-                        <div>
-                            <InputLabel htmlFor="password" value={messages.password || 'Password'} className="text-gray-700 " />
+                        <div className="space-y-1">
+                            <InputLabel htmlFor="password" value={messages.password || 'Mot de passe'} className="text-gray-700 font-semibold" />
                             <TextInput
                                 id="password"
                                 type="password"
                                 name="password"
                                 value={data.password}
-                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                                className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                 autoComplete="current-password"
                                 onChange={(e) => setData('password', e.target.value)}
                             />
@@ -134,29 +134,29 @@ export default function Login({ status, canResetPassword }) {
                         </div>
 
                         <div className="flex items-center justify-between">
-                            <label className="flex items-center">
+                            <label className="flex items-center cursor-pointer">
                                 <Checkbox
                                     name="remember"
                                     checked={data.remember}
                                     onChange={(e) => setData('remember', e.target.checked)}
-                                    className="text-important focus:ring-important border-gray-300"
+                                    className="text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
                                 />
-                                <span className="ms-2 text-sm text-gray-600 ">{messages.remember_me || 'Remember me'}</span>
+                                <span className="ms-2 text-sm text-gray-600">{messages.remember_me || 'Se souvenir de moi'}</span>
                             </label>
 
                             {canResetPassword && (
                                 <Link
                                     href={route('password.request')}
-                                    className="text-sm font-medium text-important hover:text-unimportant transition-colors"
+                                    className="text-sm font-medium text-emerald-600 hover:text-emerald-500 transition-colors"
                                 >
-                                    {messages.forgot_password || 'Forgot your password?'}
+                                    {messages.forgot_password || 'Mot de passe oublié ?'}
                                 </Link>
                             )}
                         </div>
 
                         <div>
-                            <PrimaryButton className="w-full flex justify-center py-3" disabled={processing}>
-                                {messages.login_button || 'Log in'}
+                            <PrimaryButton className="w-full flex justify-center py-3 bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500 transition-all duration-200 text-base font-bold shadow-lg shadow-emerald-900/10 rounded-xl" disabled={processing}>
+                                {messages.login_button || 'Se connecter'}
                             </PrimaryButton>
                         </div>
                     </form>
@@ -165,3 +165,4 @@ export default function Login({ status, canResetPassword }) {
         </GuestLayout>
     );
 }
+

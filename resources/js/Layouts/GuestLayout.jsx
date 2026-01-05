@@ -12,18 +12,23 @@ export default function GuestLayout({ children }) {
             <div className="relative hidden lg:flex flex-col justify-end p-12 bg-[#18181b] overflow-hidden">
                 <div className="absolute inset-0">
                     <img
-                        src="/login.png"
-                        alt="Background"
-                        className="h-full w-full object-cover opacity-80"
+                        src="/images/hero.png"
+                        alt={messages.hero_background_alt || "Arrière-plan"}
+                        className="h-full w-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-emerald-900/20 mix-blend-multiply"></div>
                 </div>
 
                 <div className="relative z-10 max-w-lg">
-                    <blockquote className="text-3xl font-bold text-white tracking-tight">
-                        {messages.reg_title || 'Course d\'orientation dans toute la France.'}
+                    <div className="mb-6">
+                        <ApplicationLogo className="h-12 w-auto fill-current text-emerald-400" />
+                    </div>
+                    <blockquote className="text-4xl font-extrabold text-white tracking-tight leading-tight drop-shadow-lg">
+                        {messages.reg_title || 'Explorez la France, une balise à la fois.'}
                     </blockquote>
-                    <p className="mt-4 text-gray-300 font-medium tracking-wide">{messages.reg_subtext || 'Readymapeo - SAE 3.01'}</p>
+                    <p className="mt-4 text-emerald-100/80 font-medium tracking-wide text-lg border-l-4 border-emerald-500 pl-4">
+                        {messages.reg_subtext || 'La plateforme de référence pour tous les passionnés de course d\'orientation.'}
+                    </p>
                 </div>
             </div>
 
@@ -34,7 +39,7 @@ export default function GuestLayout({ children }) {
                 </div>
                 <div className="absolute top-8 left-8">
                     <Link href="/" className="flex items-center text-important transition-colors">
-                        <span className="mr-2">←</span> {messages.back_to_home || 'Back to home'}
+                        <span className="mr-2">←</span> {messages.back_to_home || "Retour à l'accueil"}
                     </Link>
                 </div>
                 <div className="mx-auto w-full max-w-sm lg:w-96">

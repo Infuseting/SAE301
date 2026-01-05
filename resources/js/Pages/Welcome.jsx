@@ -2,283 +2,272 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import UserMenu from '@/Components/UserMenu';
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import ProfileCompletionModal from '@/Components/ProfileCompletionModal';
 
-export default function Welcome({ auth, laravelVersion, phpVersion }) {
+export default function Welcome({ auth }) {
     const messages = usePage().props.translations?.messages || {};
 
-    const handleImageError = () => {
-        document
-            .getElementById('screenshot-container')
-            ?.classList.add('!hidden');
-        document.getElementById('docs-card')?.classList.add('!row-span-1');
-        document
-            .getElementById('docs-card-content')
-            ?.classList.add('!flex-row');
-        document.getElementById('background')?.classList.add('!hidden');
-    };
+    const upcomingRaces = [
+        {
+            id: 1,
+            title: "La Boussole de la Forêt",
+            date: "12 Oct 2026",
+            location: "Fontainebleau, FR",
+            type: "Moyenne Distance",
+            image: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+        },
+        {
+            id: 2,
+            title: "Sprint Urbain de Paris",
+            date: "25 Oct 2026",
+            location: "Paris, FR",
+            type: "Sprint",
+            image: "https://images.unsplash.com/photo-1552674605-5d226a5beb38?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+        },
+        {
+            id: 3,
+            title: "Nocturne des Vosges",
+            date: "05 Nov 2026",
+            location: "Gerardmer, FR",
+            type: "Nuit",
+            image: "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+        }
+    ];
 
     return (
         <>
-            <Head title={messages.welcome_title || 'Welcome'} />
-            <div className="relative bg-[#18181b] text-white">
-                <img
-                    id="background"
-                    className="absolute -left-20 top-0 max-w-[877px] opacity-20"
-                    src="https://laravel.com/assets/img/welcome/background.svg"
-                />
-                <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#9333ea]/25 via-[#6a22cc]/12 to-transparent mix-blend-overlay" />
-                <div className="relative flex min-h-screen flex-col items-center justify-center selection:bg-[#9333ea] selection:text-white">
-                    <div className="relative w-full max-w-2xl px-6 lg:max-w-7xl">
-                        <header className="grid grid-cols-2 items-center gap-2 py-10 lg:grid-cols-3">
-                            <div className="flex lg:col-start-2 lg:justify-center">
-                                <ApplicationLogo className="h-12 w-auto text-white lg:h-16 lg:text-[#9333ea]" />
-                            </div>
-                            <nav className="-mx-3 flex flex-1 justify-end items-center gap-3">
-                                <div>
-                                    <LanguageSwitcher />
-                                </div>
+            <Head title={messages.welcome_title || 'Accueil'} />
+
+            {auth.user && <ProfileCompletionModal />}
+
+            <div className="min-h-screen bg-gray-50 text-gray-900 font-sans ">
+                {/* Hero Section */}
+                <div className="relative h-screen max-h-[900px]">
+                    <div className="absolute inset-0">
+                        <img
+                            src="/images/hero.png"
+                            alt="Orienteering Runner"
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/30 mix-blend-multiply" />
+                    </div>
+
+                    {/* Navigation Overlay */}
+                    <div className="absolute top-0 w-full z-20 p-6">
+                        <header className="max-w-7xl mx-auto flex items-center justify-between">
+                            <ApplicationLogo className="h-12 w-auto fill-current text-white" />
+
+                            <nav className="flex items-center gap-6">
+                                <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
 
                                 {auth.user ? (
-                                    <UserMenu user={auth.user} />
+                                    <UserMenu user={auth.user} className="text-white" />
                                 ) : (
-                                    <>
+                                    <div className="flex gap-4">
                                         <Link
                                             href={route('login')}
-                                            className="rounded-md px-3 py-2 text-white ring-1 ring-transparent transition hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-[#9333ea]"
+                                            className="px-4 py-2 text-white hover:text-emerald-400 transition font-medium cursor-pointer"
                                         >
-                                            {messages.login || 'Log in'}
+                                            {messages.login || 'Se connecter'}
                                         </Link>
                                         <Link
                                             href={route('register')}
-                                            className="rounded-md px-3 py-2 text-white ring-1 ring-transparent transition hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-[#9333ea]"
+                                            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition font-bold shadow-lg shadow-emerald-900/20 cursor-pointer"
                                         >
-                                            {messages.register || 'Register'}
+                                            {messages.register || 'S\'inscrire'}
                                         </Link>
-                                    </>
+                                    </div>
                                 )}
                             </nav>
                         </header>
+                    </div>
 
-                        <main className="mt-6">
-                            <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
-                                <a
-                                    href="https://laravel.com/docs"
-                                    id="docs-card"
-                                    className="flex flex-col items-start gap-6 overflow-hidden rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)]  ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] md:row-span-3 lg:p-10 lg:pb-10 text-[#1b1b18]      "
-                                >
-                                    <div
-                                        id="screenshot-container"
-                                        className="relative flex w-full flex-1 items-stretch"
-                                    >
-                                        <img
-                                            src="https://laravel.com/assets/img/welcome/docs-light.svg"
-                                            alt="Laravel documentation screenshot"
-                                            className="aspect-video h-full w-full flex-1 rounded-[10px] object-cover object-top drop-shadow-[0px_4px_34px_rgba(0,0,0,0.06)] "
-                                            onError={handleImageError}
-                                        />
-                                        <img
-                                            src="https://laravel.com/assets/img/welcome/docs-dark.svg"
-                                            alt="Laravel documentation screenshot"
-                                            className="hidden aspect-video h-full w-full flex-1 rounded-[10px] object-cover object-top drop-shadow-[0px_4px_34px_rgba(0,0,0,0.25)] "
-                                        />
-                                        <div className="absolute -bottom-16 -left-16 h-40 w-[calc(100%+8rem)] bg-gradient-to-b from-transparent via-white to-white  "></div>
-                                    </div>
+                    {/* Hero Content */}
+                    <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 text-center">
+                        <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
+                            <span className="block">{messages.find_next_race || "Trouvez votre prochaine"}</span>
+                            <span className="block text-emerald-400">{messages.orienteering || "Course d'Orientation"}</span>
+                        </h1>
+                        <p className="mt-4 max-w-2xl text-xl text-gray-200 mb-10 drop-shadow-md">
+                            {messages.hero_subtitle || "Explorez des centaines de cartes et de parcours à travers la France. Du sprint urbain à l'ultra-longue distance en montagne."}
+                        </p>
 
-                                    <div className="relative flex items-center gap-6 lg:items-end">
-                                        <div
-                                            id="docs-card-content"
-                                            className="flex items-start gap-6 lg:flex-col"
-                                        >
-                                            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#9333ea]/10 sm:size-16">
-                                                <svg
-                                                    className="size-5 sm:size-6"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        fill="#9333ea"
-                                                        d="M23 4a1 1 0 0 0-1.447-.894L12.224 7.77a.5.5 0 0 1-.448 0L2.447 3.106A1 1 0 0 0 1 4v13.382a1.99 1.99 0 0 0 1.105 1.79l9.448 4.728c.14.065.293.1.447.1.154-.005.306-.04.447-.105l9.453-4.724a1.99 1.99 0 0 0 1.1-1.789V4ZM3 6.023a.25.25 0 0 1 .362-.223l7.5 3.75a.251.251 0 0 1 .138.223v11.2a.25.25 0 0 1-.362.224l-7.5-3.75a.25.25 0 0 1-.138-.22V6.023Zm18 11.2a.25.25 0 0 1-.138.224l-7.5 3.75a.249.249 0 0 1-.329-.099.249.249 0 0 1-.033-.12V9.772a.251.251 0 0 1 .138-.224l7.5-3.75a.25.25 0 0 1 .362.224v11.2Z"
-                                                    />
-                                                    <path
-                                                        fill="#9333ea"
-                                                        d="m3.55 1.893 8 4.048a1.008 1.008 0 0 0 .9 0l8-4.048a1 1 0 0 0-.9-1.785l-7.322 3.706a.506.506 0 0 1-.452 0L4.454.108a1 1 0 0 0-.9 1.785H3.55Z"
-                                                    />
-                                                </svg>
-                                            </div>
-
-                                            <div className="pt-3 sm:pt-5 lg:pt-0">
-                                                <h2 className="text-xl font-semibold text-[#1b1b18] ">
-                                                    Documentation
-                                                </h2>
-
-                                                <p className="mt-4 text-sm/relaxed">
-                                                    {messages.documentation_text || 'Laravel has wonderful documentation covering every aspect of the framework. Whether you are a newcomer or have prior experience with Laravel, we recommend reading our documentation from beginning to end.'}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <svg
-                                            className="size-6 shrink-0 stroke-[#9333ea]"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            strokeWidth="1.5"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"
-                                            />
-                                        </svg>
-                                    </div>
-                                </a>
-
-                                <a
-                                    href="https://laracasts.com"
-                                    className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)]  ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] lg:pb-10 text-[#1b1b18]      "
-                                >
-                                    <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#9333ea]/10 sm:size-16">
-                                        <svg
-                                            className="size-5 sm:size-6"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <g fill="#9333ea">
-                                                <path d="M24 8.25a.5.5 0 0 0-.5-.5H.5a.5.5 0 0 0-.5.5v12a2.5 2.5 0 0 0 2.5 2.5h19a2.5 2.5 0 0 0 2.5-2.5v-12Zm-7.765 5.868a1.221 1.221 0 0 1 0 2.264l-6.626 2.776A1.153 1.153 0 0 1 8 18.123v-5.746a1.151 1.151 0 0 1 1.609-1.035l6.626 2.776ZM19.564 1.677a.25.25 0 0 0-.177-.427H15.6a.106.106 0 0 0-.072.03l-4.54 4.543a.25.25 0 0 0 .177.427h3.783c.027 0 .054-.01.073-.03l4.543-4.543ZM22.071 1.318a.047.047 0 0 0-.045.013l-4.492 4.492a.249.249 0 0 0 .038.385.25.25 0 0 0 .14.042h5.784a.5.5 0 0 0 .5-.5v-2a2.5 2.5 0 0 0-1.925-2.432ZM13.014 1.677a.25.25 0 0 0-.178-.427H9.101a.106.106 0 0 0-.073.03l-4.54 4.543a.25.25 0 0 0 .177.427H8.4a.106.106 0 0 0 .073-.03l4.54-4.543ZM6.513 1.677a.25.25 0 0 0-.177-.427H2.5A2.5 2.5 0 0 0 0 3.75v2a.5.5 0 0 0 .5.5h1.4a.106.106 0 0 0 .073-.03l4.54-4.543Z" />
-                                            </g>
-                                        </svg>
-                                    </div>
-
-                                    <div className="pt-3 sm:pt-5">
-                                        <h2 className="text-xl font-semibold text-[#1b1b18] ">
-                                            Laracasts
-                                        </h2>
-
-                                        <p className="mt-4 text-sm/relaxed">
-                                            {messages.laracasts_text || 'Laracasts offers thousands of video tutorials on Laravel, PHP, and JavaScript development. Check them out, see for yourself, and massively level up your development skills in the process.'}
-                                        </p>
-                                    </div>
-
-                                    <svg
-                                        className="size-6 shrink-0 self-center stroke-[#9333ea]"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"
-                                        />
-                                    </svg>
-                                </a>
-
-                                <a
-                                    href="https://laravel-news.com"
-                                    className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)]  ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] lg:pb-10 text-[#1b1b18]      "
-                                >
-                                    <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#9333ea]/10 sm:size-16">
-                                        <svg
-                                            className="size-5 sm:size-6"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <g fill="#9333ea">
-                                                <path d="M8.75 4.5H5.5c-.69 0-1.25.56-1.25 1.25v4.75c0 .69.56 1.25 1.25 1.25h3.25c.69 0 1.25-.56 1.25-1.25V5.75c0-.69-.56-1.25-1.25-1.25Z" />
-                                                <path d="M24 10a3 3 0 0 0-3-3h-2V2.5a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2V20a3.5 3.5 0 0 0 3.5 3.5h17A3.5 3.5 0 0 0 24 20V10ZM3.5 21.5A1.5 1.5 0 0 1 2 20V3a.5.5 0 0 1 .5-.5h14a.5.5 0 0 1 .5.5v17c0 .295.037.588.11.874a.5.5 0 0 1-.484.625L3.5 21.5ZM22 20a1.5 1.5 0 1 1-3 0V9.5a.5.5 0 0 1 .5-.5H21a1 1 0 0 1 1 1v10Z" />
-                                                <path d="M12.751 6.047h2a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75h-2A.75.75 0 0 1 12 7.3v-.5a.75.75 0 0 1 .751-.753ZM12.751 10.047h2a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75h-2A.75.75 0 0 1 12 11.3v-.5a.75.75 0 0 1 .751-.753ZM4.751 14.047h10a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75h-10A.75.75 0 0 1 4 15.3v-.5a.75.75 0 0 1 .751-.753ZM4.75 18.047h7.5a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75h-7.5A.75.75 0 0 1 4 19.3v-.5a.75.75 0 0 1 .75-.753Z" />
-                                            </g>
-                                        </svg>
-                                    </div>
-
-                                    <div className="pt-3 sm:pt-5">
-                                        <h2 className="text-xl font-semibold text-[#1b1b18] ">
-                                            Laravel News
-                                        </h2>
-
-                                        <p className="mt-4 text-sm/relaxed">
-                                            {messages.laravel_news_text || 'Laravel News is a community driven portal and newsletter aggregating all of the latest and most important news in the Laravel ecosystem, including new package releases and tutorials.'}
-                                        </p>
-                                    </div>
-
-                                    <svg
-                                        className="size-6 shrink-0 self-center stroke-[#9333ea]"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth="1.5"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"
-                                        />
-                                    </svg>
-                                </a>
-
-                                <div className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)]  ring-1 ring-white/[0.05] lg:pb-10 text-[#1b1b18]   ">
-                                    <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#9333ea]/10 sm:size-16">
-                                        <svg
-                                            className="size-5 sm:size-6"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <g fill="#9333ea">
-                                                <path d="M16.597 12.635a.247.247 0 0 0-.08-.237 2.234 2.234 0 0 1-.769-1.68c.001-.195.03-.39.084-.578a.25.25 0 0 0-.09-.267 8.8 8.8 0 0 0-4.826-1.66.25.25 0 0 0-.268.181 2.5 2.5 0 0 1-2.4 1.824.045.045 0 0 0-.045.037 12.255 12.255 0 0 0-.093 3.86.251.251 0 0 0 .208.214c2.22.366 4.367 1.08 6.362 2.118a.252.252 0 0 0 .32-.079 10.09 10.09 0 0 0 1.597-3.733ZM13.616 17.968a.25.25 0 0 0-.063-.407A19.697 19.697 0 0 0 8.91 15.98a.25.25 0 0 0-.287.325c.151.455.334.898.548 1.328.437.827.981 1.594 1.619 2.28a.249.249 0 0 0 .32.044 29.13 29.13 0 0 0 2.506-1.99ZM6.303 14.105a.25.25 0 0 0 .265-.274 13.048 13.048 0 0 1 .205-4.045.062.062 0 0 0-.022-.07 2.5 2.5 0 0 1-.777-.982.25.25 0 0 0-.271-.149 11 11 0 0 0-5.6 2.815.255.255 0 0 0-.075.163c-.008.135-.02.27-.02.406.002.8.084 1.598.246 2.381a.25.25 0 0 0 .303.193 19.924 19.924 0 0 1 5.746-.438ZM9.228 20.914a.25.25 0 0 0 .1-.393 11.53 11.53 0 0 1-1.5-2.22 12.238 12.238 0 0 1-.91-2.465.248.248 0 0 0-.22-.187 18.876 18.876 0 0 0-5.69.33.249.249 0 0 0-.179.336c.838 2.142 2.272 4 4.132 5.353a.254.254 0 0 0 .15.048c1.41-.01 2.807-.282 4.117-.802ZM18.93 12.957l-.005-.008a.25.25 0 0 0-.268-.082 2.21 2.21 0 0 1-.41.081.25.25 0 0 0-.217.2c-.582 2.66-2.127 5.35-5.75 7.843a.248.248 0 0 0-.09.299.25.25 0 0 0 .065.091 28.703 28.703 0 0 0 2.662 2.12.246.246 0 0 0 .209.037c2.579-.701 4.85-2.242 6.456-4.378a.25.25 0 0 0 .048-.189 13.51 13.51 0 0 0-2.7-6.014ZM5.702 7.058a.254.254 0 0 0 .2-.165A2.488 2.488 0 0 1 7.98 5.245a.093.093 0 0 0 .078-.062 19.734 19.734 0 0 1 3.055-4.74.25.25 0 0 0-.21-.41 12.009 12.009 0 0 0-10.4 8.558.25.25 0 0 0 .373.281 12.912 12.912 0 0 1 4.826-1.814ZM10.773 22.052a.25.25 0 0 0-.28-.046c-.758.356-1.55.635-2.365.833a.25.25 0 0 0-.022.48c1.252.43 2.568.65 3.893.65.1 0 .2 0 .3-.008a.25.25 0 0 0 .147-.444c-.526-.424-1.1-.917-1.673-1.465ZM18.744 8.436a.249.249 0 0 0 .15.228 2.246 2.246 0 0 1 1.352 2.054c0 .337-.08.67-.23.972a.25.25 0 0 0 .042.28l.007.009a15.016 15.016 0 0 1 2.52 4.6.25.25 0 0 0 .37.132.25.25 0 0 0 .096-.114c.623-1.464.944-3.039.945-4.63a12.005 12.005 0 0 0-5.78-10.258.25.25 0 0 0-.373.274c.547 2.109.85 4.274.901 6.453ZM9.61 5.38a.25.25 0 0 0 .08.31c.34.24.616.561.8.935a.25.25 0 0 0 .3.127.631.631 0 0 1 .206-.034c2.054.078 4.036.772 5.69 1.991a.251.251 0 0 0 .267.024c.046-.024.093-.047.141-.067a.25.25 0 0 0 .151-.23A29.98 29.98 0 0 0 15.957.764a.25.25 0 0 0-.16-.164 11.924 11.924 0 0 0-2.21-.518.252.252 0 0 0-.215.076A22.456 22.456 0 0 0 9.61 5.38Z" />
-                                            </g>
-                                        </svg>
-                                    </div>
-
-                                    <div className="pt-3 sm:pt-5">
-                                        <h2 className="text-xl font-semibold text-[#1b1b18] ">
-                                            Vibrant Ecosystem
-                                        </h2>
-
-                                        <p className="mt-4 text-sm/relaxed">
-                                            {messages.vibrant_ecosystem_text?.split(/(:[\w]+)/g).map((part, index) => {
-                                                const links = {
-                                                    ':forge': { href: 'https://forge.laravel.com', label: 'Forge' },
-                                                    ':vapor': { href: 'https://vapor.laravel.com', label: 'Vapor' },
-                                                    ':nova': { href: 'https://nova.laravel.com', label: 'Nova' },
-                                                    ':envoyer': { href: 'https://envoyer.io', label: 'Envoyer' },
-                                                    ':herd': { href: 'https://herd.laravel.com', label: 'Herd' },
-                                                    ':cashier': { href: 'https://laravel.com/docs/billing', label: 'Cashier' },
-                                                    ':dusk': { href: 'https://laravel.com/docs/dusk', label: 'Dusk' },
-                                                    ':echo': { href: 'https://laravel.com/docs/broadcasting', label: 'Echo' },
-                                                    ':horizon': { href: 'https://laravel.com/docs/horizon', label: 'Horizon' },
-                                                    ':sanctum': { href: 'https://laravel.com/docs/sanctum', label: 'Sanctum' },
-                                                    ':telescope': { href: 'https://laravel.com/docs/telescope', label: 'Telescope' },
-                                                };
-
-                                                if (links[part]) {
-                                                    return (
-                                                        <a
-                                                            key={index}
-                                                            href={links[part].href}
-                                                            className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] "
-                                                        >
-                                                            {links[part].label}
-                                                        </a>
-                                                    );
-                                                }
-                                                return part;
-                                            })}
-                                        </p>
-                                    </div>
-                                </div>
+                        {/* Search Bar Component */}
+                        <div className="w-full max-w-4xl bg-white rounded-2xl p-2 shadow-2xl flex flex-col md:flex-row gap-2">
+                            <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">{messages.search_where || "Où ?"}</label>
+                                <input
+                                    type="text"
+                                    placeholder={messages.search_placeholder_where || "Ville, Région..."}
+                                    className="w-full bg-transparent border-none p-0 text-gray-800 placeholder-gray-400 focus:ring-0 font-medium"
+                                />
                             </div>
-                        </main>
-
-                        <footer className="py-16 text-center text-sm text-white/70">
-                            {messages.footer_text ? messages.footer_text.replace(':laravel', laravelVersion).replace(':php', phpVersion) : `Laravel v${laravelVersion} (PHP v${phpVersion})`}
-                        </footer>
+                            <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">{messages.search_when || "Quand ?"}</label>
+                                <input
+                                    type="text"
+                                    placeholder={messages.search_placeholder_when || "Toutes les dates"}
+                                    className="w-full bg-transparent border-none p-0 text-gray-800 placeholder-gray-400 focus:ring-0 font-medium"
+                                />
+                            </div>
+                            <div className="flex-1 px-4 py-3">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">{messages.search_type || "Type"}</label>
+                                <select className="w-full bg-transparent border-none p-0 text-gray-800 focus:ring-0 font-medium cursor-pointer">
+                                    <option>{messages.search_option_all_types || "Tous les types"}</option>
+                                    <option>Sprint</option>
+                                    <option>Moyenne Distance</option>
+                                    <option>Longue Distance</option>
+                                    <option>Relais</option>
+                                    <option>Nuit</option>
+                                </select>
+                            </div>
+                            <button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-8 py-4 font-bold transition flex items-center justify-center gap-2 md:w-auto w-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                </svg>
+                                {messages.search_button || "Rechercher"}
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                {/* Upcoming Races Section */}
+                <section className="py-24 bg-white">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="flex justify-between items-end mb-12">
+                            <div>
+                                <h2 className="text-3xl font-bold text-gray-900">{messages.upcoming_races_title || "Prochaines Courses"}</h2>
+                                <p className="mt-2 text-gray-600">{messages.upcoming_races_subtitle || "Ne manquez pas les événements à venir près de chez vous."}</p>
+                            </div>
+                            <a href="#" className="hidden md:flex text-emerald-600 font-bold items-center hover:underline">
+                                {messages.view_calendar || "Voir tout le calendrier"}
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 ml-1">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                </svg>
+                            </a>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {upcomingRaces.map((race) => (
+                                <div key={race.id} className="group relative bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                                    <div className="aspect-[4/3] overflow-hidden">
+                                        <img
+                                            src={race.image}
+                                            alt={race.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                        />
+                                    </div>
+                                    <div className="p-6">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                                                {race.type}
+                                            </span>
+                                            <span className="flex items-center text-gray-500 text-sm font-medium">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0h18M5.25 12h13.5h-13.5Zm0 3.75h13.5h-13.5Z" />
+                                                </svg>
+                                                {race.date}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition">
+                                            {race.title}
+                                        </h3>
+                                        <div className="flex items-center text-gray-500 text-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                            </svg>
+                                            {race.location}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-8 text-center md:hidden">
+                            <a href="#" className="inline-flex text-emerald-600 font-bold items-center hover:underline">
+                                {messages.view_calendar || "Voir tout le calendrier"}
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 ml-1">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                {/* How it Works */}
+                <section className="py-24 bg-gray-50">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center max-w-3xl mx-auto mb-16">
+                            <h2 className="text-3xl font-bold text-gray-900 mb-4">{messages.how_it_works_title || "Comment ça marche ?"}</h2>
+                            <p className="text-gray-600 text-lg">{messages.how_it_works_subtitle || "Rejoignez la plus grande communauté de course d'orientation en France en quelques étapes."}</p>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-12">
+                            <div className="text-center">
+                                <div className="bg-white w-20 h-20 mx-auto rounded-3xl shadow-lg flex items-center justify-center mb-6 text-emerald-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-3">{messages.step_1_title || "1. Trouvez une course"}</h3>
+                                <p className="text-gray-500">{messages.step_1_desc || "Utilisez nos filtres avancés pour trouver l'épreuve qui correspond à votre niveau et vos envies."}</p>
+                            </div>
+                            <div className="text-center">
+                                <div className="bg-white w-20 h-20 mx-auto rounded-3xl shadow-lg flex items-center justify-center mb-6 text-emerald-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-3">{messages.step_2_title || "2. Inscrivez-vous"}</h3>
+                                <p className="text-gray-500">{messages.step_2_desc || "Créez votre compte, gérez vos licences et inscrivez-vous en quelques clics."}</p>
+                            </div>
+                            <div className="text-center">
+                                <div className="bg-white w-20 h-20 mx-auto rounded-3xl shadow-lg flex items-center justify-center mb-6 text-emerald-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-3">{messages.step_3_title || "3. Courez !"}</h3>
+                                <p className="text-gray-500">{messages.step_3_desc || "Participez à l'événement, suivez vos résultats et comparez vos performances."}</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <footer className="bg-gray-900 text-white py-12 border-t border-gray-800">
+                    <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-8">
+                        <div>
+                            <ApplicationLogo className="h-8 w-auto fill-current text-emerald-500 mb-4" />
+                            <p className="text-gray-400 text-sm">
+                                La référence pour la course d'orientation en France.
+                            </p>
+                        </div>
+                        <div>
+                            <h4 className="font-bold mb-4">Navigation</h4>
+                            <ul className="space-y-2 text-gray-400 text-sm">
+                                <li><a href="#" className="hover:text-emerald-400">Calendrier</a></li>
+                                <li><a href="#" className="hover:text-emerald-400">Clubs</a></li>
+                                <li><a href="#" className="hover:text-emerald-400">Résultats</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-bold mb-4">Légal</h4>
+                            <ul className="space-y-2 text-gray-400 text-sm">
+                                <li><a href="#" className="hover:text-emerald-400">Mentions légales</a></li>
+                                <li><a href="#" className="hover:text-emerald-400">Confidentialité</a></li>
+                                <li><a href="#" className="hover:text-emerald-400">CGU</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-bold mb-4">Contact</h4>
+                            <p className="text-gray-400 text-sm">contact@sae301.fr</p>
+                        </div>
+                    </div>
+                    <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
+                        &copy; {new Date().getFullYear()} SAE301. Tous droits réservés.
+                    </div>
+                </footer>
             </div>
         </>
     );

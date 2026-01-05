@@ -52,6 +52,14 @@ class User extends Authenticatable
         'email',
         'password',
         'password_is_set',
+        'birth_date',
+        'address',
+        'phone',
+        'license_number',
+        'medical_certificate_code',
+        'is_public',
+        'description',
+        'profile_photo_path',
     ];
 
     /**
@@ -67,6 +75,16 @@ class User extends Authenticatable
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'has_completed_profile',
+        'profile_photo_url',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -77,7 +95,43 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'password_is_set' => 'boolean',
+            'birth_date' => 'date',
+            'is_public' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the URL to the user's profile photo.
+     *
+     * @return \Illuminate\Database\Eloquent\Casts\Attribute
+     */
+    public function profilePhotoUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::get(function () {
+            return $this->profile_photo_path
+                ? \Illuminate\Support\Facades\Storage::url($this->profile_photo_path)
+                : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+        });
+    }
+
+    /**
+     * Check if the user has completed their profile.
+     * 
+     * Verifies that birth_date, address, and phone are present,
+     * AND either license_number OR medical_certificate_code is provided.
+     *
+     * @return \Illuminate\Database\Eloquent\Casts\Attribute<bool, never>
+     */
+    protected function hasCompletedProfile(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: function () {
+                return !empty($this->birth_date) &&
+                    !empty($this->address) &&
+                    !empty($this->phone) &&
+                    (!empty($this->license_number) || !empty($this->medical_certificate_code));
+            }
+        );
     }
 
     public function connectedAccounts()

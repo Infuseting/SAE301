@@ -139,6 +139,42 @@ return [
     'login_successful' => 'Login successful',
     'user_registered' => 'User registered successfully',
     'back_to_home' => 'Back to home',
-    'security_efficiency' => 'Security and efficiency at the heart of your experience.',
+    'security_efficiency' => 'Orienteering throughout France.',
+
+    // Homepage - Hero
+    'find_next_race' => 'Find your next',
+    'orienteering' => 'Orienteering Race',
+    'hero_subtitle' => 'Explore hundreds of maps and courses across France. From urban sprints to ultra-long distance in the mountains.',
+    'search_where' => 'Where?',
+    'search_when' => 'When?',
+    'search_type' => 'Type',
+    'search_placeholder_where' => 'City, Region...',
+    'search_placeholder_when' => 'All dates',
+    'search_option_all_types' => 'All types',
+    'search_button' => 'Search',
+
+    // Homepage - Upcoming Races
+    'upcoming_races_title' => 'Upcoming Races',
+    'upcoming_races_subtitle' => 'Don\'t miss upcoming events near you.',
+    'view_calendar' => 'View full calendar',
+
+    // Homepage - How it Works
+    'how_it_works_title' => 'How it works?',
+    'how_it_works_subtitle' => 'Join the largest orienteering community in France in just a few steps.',
+    'step_1_title' => 'Find a race',
+    'step_1_desc' => 'Use our advanced filters to find the event that matches your level and desires.',
+    'step_2_title' => 'Register',
+    'step_2_desc' => 'Create your account, manage your licenses, and register in a few clicks.',
+    'step_3_title' => 'Run!',
+    'step_3_desc' => 'Participate in the event, track your results, and compare your performances.',
+
+    // Auth Pages - Additional
+    'reg_title' => 'Explore France, one checkpoint at a time.',
+    'reg_subtext' => 'The reference platform for all orienteering enthusiasts.',
+    'hero_background_alt' => 'Hero Background',
+
+    'social_login_google' => 'Google',
+    'social_login_discord' => 'Discord',
+    'social_login_github' => 'GitHub',
 
 ];

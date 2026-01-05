@@ -52,7 +52,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...$parent,
             'auth' => [
-                'user' => $request->user() ? $request->user()->load('roles', 'permissions') : null,
+                'user' => $request->user() ? $request->user()->load('roles', 'permissions')->append(['has_completed_profile', 'profile_photo_url']) : null,
             ],
             'locale' => $locale,
             'translations' => $translations,

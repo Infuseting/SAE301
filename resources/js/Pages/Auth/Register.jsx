@@ -64,47 +64,47 @@ export default function Register() {
             <div className="mt-6">
                 {/* Social Login Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-3">
-                    <a href={route('socialite.redirect', 'google')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm  bg-white  text-sm font-medium text-gray-700  hover:bg-gray-50  transition-colors ">
+                    <a href={route('socialite.redirect', 'google')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
                         <span className="sr-only">{messages.connect_google || 'Connect Google'}</span>
                         <div className="flex items-center gap-2">
-                            <GoogleIcon /> <span>Google</span>
+                            <GoogleIcon /> <span>{messages.social_login_google || 'Google'}</span>
                         </div>
                     </a>
 
-                    <a href={route('socialite.redirect', 'discord')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm  bg-white  text-sm font-medium text-gray-700  hover:bg-gray-50  transition-colors ">
+                    <a href={route('socialite.redirect', 'discord')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
                         <span className="sr-only">{messages.connect_discord || 'Connect Discord'}</span>
                         <div className="flex items-center gap-2">
-                            <DiscordIcon /> <span>Discord</span>
+                            <DiscordIcon /> <span>{messages.social_login_discord || 'Discord'}</span>
                         </div>
                     </a>
                 </div>
                 <div>
-                    <a href={route('socialite.redirect', 'github')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm  bg-white  text-sm font-medium text-gray-700  hover:bg-gray-50  transition-colors ">
+                    <a href={route('socialite.redirect', 'github')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
                         <span className="sr-only">{messages.connect_github || 'Connect GitHub'}</span>
                         <div className="flex items-center gap-2">
-                            <GithubIcon /> <span>GitHub</span>
+                            <GithubIcon /> <span>{messages.social_login_github || 'GitHub'}</span>
                         </div>
                     </a>
                 </div>
 
                 <div className="relative mt-8">
                     <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                        <div className="w-full border-t border-gray-300" />
+                        <div className="w-full border-t border-gray-200" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="bg-white px-2 text-gray-500  ">{messages.continue_with_email || "Or continue with email"}</span>
+                        <span className="bg-white px-4 text-gray-500 font-medium">{messages.continue_with_email || "Ou avec votre email"}</span>
                     </div>
                 </div>
 
                 <div className="mt-8">
-                    <form onSubmit={submit} className="space-y-6">
-                        <div>
-                            <InputLabel htmlFor="name" value={messages.name || 'Full name'} className="text-gray-700 " />
+                    <form onSubmit={submit} className="space-y-5">
+                        <div className="space-y-1">
+                            <InputLabel htmlFor="name" value={messages.name || 'Nom complet'} className="text-gray-700 font-semibold" />
                             <TextInput
                                 id="name"
                                 name="name"
                                 value={data.name}
-                                className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
+                                className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                 autoComplete="name"
                                 isFocused={true}
                                 onChange={(e) => setData('name', e.target.value)}
@@ -113,14 +113,14 @@ export default function Register() {
                             <InputError message={errors.name} className="mt-2" />
                         </div>
 
-                        <div>
-                            <InputLabel htmlFor="email" value={messages.email_address || 'Email address'} className="text-gray-700 " />
+                        <div className="space-y-1">
+                            <InputLabel htmlFor="email" value={messages.email_address || 'Adresse Email'} className="text-gray-700 font-semibold" />
                             <TextInput
                                 id="email"
                                 type="email"
                                 name="email"
                                 value={data.email}
-                                className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
+                                className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                 autoComplete="username"
                                 onChange={(e) => setData('email', e.target.value)}
                                 required
@@ -128,14 +128,14 @@ export default function Register() {
                             <InputError message={errors.email} className="mt-2" />
                         </div>
 
-                        <div>
-                            <InputLabel htmlFor="password" value={messages.password || 'Password'} className="text-gray-700 " />
+                        <div className="space-y-1">
+                            <InputLabel htmlFor="password" value={messages.password || 'Mot de passe'} className="text-gray-700 font-semibold" />
                             <TextInput
                                 id="password"
                                 type="password"
                                 name="password"
                                 value={data.password}
-                                className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
+                                className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                 autoComplete="new-password"
                                 onChange={(e) => setData('password', e.target.value)}
                                 required
@@ -143,18 +143,18 @@ export default function Register() {
                             <InputError message={errors.password} className="mt-2" />
                         </div>
 
-                        <div>
+                        <div className="space-y-1">
                             <InputLabel
                                 htmlFor="password_confirmation"
-                                value={messages.confirm_password || 'Confirm Password'}
-                                className="text-gray-700 "
+                                value={messages.confirm_password || 'Confirmer le mot de passe'}
+                                className="text-gray-700 font-semibold"
                             />
                             <TextInput
                                 id="password_confirmation"
                                 type="password"
                                 name="password_confirmation"
                                 value={data.password_confirmation}
-                                className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
+                                className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                 autoComplete="new-password"
                                 onChange={(e) =>
                                     setData('password_confirmation', e.target.value)
@@ -168,8 +168,8 @@ export default function Register() {
                         </div>
 
                         <div>
-                            <PrimaryButton className="w-full flex justify-center py-3" disabled={processing}>
-                                {messages.register_button || "Register"}
+                            <PrimaryButton className="w-full flex justify-center py-3 bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500 transition-all duration-200 text-base font-bold shadow-lg shadow-emerald-900/10 rounded-xl" disabled={processing}>
+                                {messages.register_button || "S'inscrire"}
                             </PrimaryButton>
                         </div>
                     </form>
