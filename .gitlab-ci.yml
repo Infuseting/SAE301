@@ -22,7 +22,7 @@ deploy_production:
     - git config --global --add safe.directory /users/g4/laravel
     # 2. On fait le déploiement Laravel en tant que git-runner
     - cd /users/g4/laravel
-    - "if [ -d database/database.sqlite ]; then no_db=0; else no_db=1; fi"
+    - "if [ -f database/database.sqlite ]; then no_db=0; else no_db=1; fi"
     - "if [ $no_db -eq 1 ]; then touch database/database.sqlite; fi"
     # Note: .env is managed manually on the server.
     # It must be created once in /users/g4/laravel/ and will be preserved by rsync --exclude
