@@ -80,7 +80,7 @@ class ProfileController extends Controller
      *      )
      * )
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $request->user()->fill($request->validated());
 
@@ -108,6 +108,10 @@ class ProfileController extends Controller
         }
 
         $request->user()->save();
+
+        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+            return response()->json(['data' => $request->user()], 200);
+        }
 
         return Redirect::route('profile.edit');
     }

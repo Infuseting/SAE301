@@ -14,9 +14,11 @@ class PublicProfileController extends Controller
      * @param  \App\Models\User  $user
      * @return \Inertia\Response
      */
-    public function show(User $user)
+    public function show(Request $request, User $user)
     {
-        if (!$user->is_public) {
+        $isOwner = $request->user() && $request->user()->id === $user->id;
+
+        if (!$user->is_public && !$isOwner) {
             // Option 1: 404
             // Option 2: Show "Private Profile" page
             // We'll show a limited view with "Private Profile" message
@@ -47,6 +49,10 @@ class PublicProfileController extends Controller
      */
     public function myProfile(Request $request)
     {
-        return $this->show($request->user());
+        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+            return response()->json($request->user());
+        }
+
+        return $this->show($request, $request->user());
     }
 }

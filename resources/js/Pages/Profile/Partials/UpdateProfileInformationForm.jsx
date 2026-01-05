@@ -4,6 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
+import UserAvatar from '@/Components/UserAvatar';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -53,10 +54,10 @@ export default function UpdateProfileInformation({
                 {/* Profile Photo */}
                 <div className="flex items-center gap-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
                     <div className="shrink-0 relative">
-                        <img
-                            className="h-20 w-20 object-cover rounded-full border-2 border-white shadow-md"
-                            src={data.photo ? URL.createObjectURL(data.photo) : user.profile_photo_url}
-                            alt="Current profile photo"
+                        <UserAvatar
+                            user={user}
+                            src={data.photo ? URL.createObjectURL(data.photo) : null}
+                            className="h-20 w-20 border-2 border-white shadow-md text-2xl"
                         />
                         <div className="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow-sm border border-gray-100">
                             <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -180,7 +181,7 @@ export default function UpdateProfileInformation({
                             id="birth_date"
                             type="date"
                             className="mt-1 block w-full"
-                            value={data.birth_date}
+                            defaultValue={data.birth_date}
                             onChange={(e) => setData('birth_date', e.target.value)}
                         />
                         <InputError className="mt-2" message={errors.birth_date} />

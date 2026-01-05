@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
+import UserAvatar from '@/Components/UserAvatar';
 
 export default function Show({ user }) {
     if (!user.is_public) {
@@ -11,10 +12,9 @@ export default function Show({ user }) {
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                         <div className="bg-white p-4 shadow-sm border border-gray-200 sm:rounded-lg sm:p-8 text-center">
-                            <img
-                                src={user.profile_photo_url}
-                                alt={user.name}
-                                className="h-20 w-20 rounded-full object-cover mx-auto mb-4 opacity-50"
+                            <UserAvatar
+                                user={user}
+                                className="h-20 w-20 mx-auto mb-4 opacity-50 text-2xl"
                             />
                             <h3 className="text-lg font-medium text-gray-900">{user.name}</h3>
                             <p className="mt-2 text-gray-600">Ce profil est privé.</p>
@@ -35,10 +35,9 @@ export default function Show({ user }) {
                     <div className="bg-white p-6 shadow-sm border border-gray-200 sm:rounded-lg">
                         <div className="flex flex-col items-center sm:flex-row sm:items-start sm:space-x-8">
                             <div className="flex-shrink-0">
-                                <img
-                                    src={user.profile_photo_url}
-                                    alt={user.name}
-                                    className="h-32 w-32 rounded-full object-cover border-4 border-gray-100"
+                                <UserAvatar
+                                    user={user}
+                                    className="h-32 w-32 border-4 border-gray-100 text-5xl"
                                 />
                             </div>
                             <div className="mt-4 sm:mt-0 flex-1 text-center sm:text-left">

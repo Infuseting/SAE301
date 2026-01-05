@@ -30,8 +30,8 @@ class ProfileUpdateRequest extends FormRequest
             'birth_date' => ['nullable', 'date', 'before:today'],
             'address' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'license_number' => ['nullable', 'required_without:medical_certificate_code', 'string', 'max:50'],
-            'medical_certificate_code' => ['nullable', 'required_without:license_number', 'string', 'max:50'],
+            'license_number' => ['sometimes', 'nullable', 'required_without:medical_certificate_code', 'string', 'max:50'],
+            'medical_certificate_code' => ['sometimes', 'nullable', 'required_without:license_number', 'string', 'max:50'],
             'photo' => ['nullable', 'file', 'max:2048', 'mimes:jpeg,jpg,png,webp'], // 2MB Max (Client compresses 8MB -> 2MB)
         ];
     }

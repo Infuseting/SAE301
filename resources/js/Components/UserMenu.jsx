@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import Dropdown from '@/Components/Dropdown';
+import UserAvatar from '@/Components/UserAvatar';
 
 export default function UserMenu({ user }) {
     const messages = usePage().props.translations?.messages || {};
@@ -19,10 +20,9 @@ export default function UserMenu({ user }) {
                         type="button"
                         className="flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
                     >
-                        <img
-                            className="h-10 w-10 rounded-full object-cover border-2 border-transparent hover:border-gray-300"
-                            src={user.profile_photo_url}
-                            alt={user.name}
+                        <UserAvatar
+                            user={user}
+                            className="h-10 w-10 border-2 border-transparent hover:border-gray-300"
                         />
                     </button>
                 </Dropdown.Trigger>

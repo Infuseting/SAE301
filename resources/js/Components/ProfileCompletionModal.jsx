@@ -84,7 +84,7 @@ export default function ProfileCompletionModal() {
                                     id="birth_date"
                                     type="date"
                                     className="mt-1 block w-full"
-                                    value={data.birth_date}
+                                    defaultValue={data.birth_date}
                                     onChange={(e) => setData('birth_date', e.target.value)}
                                     required
                                 />

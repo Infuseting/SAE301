@@ -34,7 +34,7 @@ class ProfileRedesignTest extends TestCase
             dump(session('errors')->all());
         }
         $response->assertSessionHasNoErrors();
-        $response->assertRedirect('/profile');
+        $response->assertRedirect('/profile/edit');
 
         $user->refresh();
 

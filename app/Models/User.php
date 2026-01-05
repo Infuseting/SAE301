@@ -110,7 +110,7 @@ class User extends Authenticatable
         return \Illuminate\Database\Eloquent\Casts\Attribute::get(function () {
             return $this->profile_photo_path
                 ? \Illuminate\Support\Facades\Storage::url($this->profile_photo_path)
-                : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+                : null;
         });
     }
 
