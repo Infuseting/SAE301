@@ -31,7 +31,7 @@ deploy_production:
     # Force composer install to repair potential vendor corruption and ensure state consistency
     - composer install --no-scripts --no-interaction --prefer-dist --optimize-autoloader
     - npm run build
-    - php artisan migrate --seed --force
+    - php artisan migrate
     
     - php artisan config:cache
     # 3. On corrige les droits gitlab-runner:gitlab-runner -> g4:www-data
