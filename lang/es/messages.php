@@ -140,5 +140,11 @@ return [
     'invalid_credentials' => 'Credenciales de inicio de sesión inválidas',
     'login_successful' => 'Inicio de sesión exitoso',
     'user_registered' => 'Usuario registrado correctamente',
+    'private_profile' => 'Perfil Privado',
+    'profile_is_private' => 'Este perfil es privado.',
+    'profile_of' => 'Perfil de :name',
+    'member_since' => 'Miembro desde el :date',
+    'description_bio' => 'Descripción / Bio',
+    'edit_profile' => 'Editar',
 
 ];

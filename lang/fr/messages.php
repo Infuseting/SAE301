@@ -176,5 +176,11 @@ return [
     'social_login_google' => 'Google',
     'social_login_discord' => 'Discord',
     'social_login_github' => 'GitHub',
+    'private_profile' => 'Profil Privé',
+    'profile_is_private' => 'Ce profil est privé.',
+    'profile_of' => 'Profil de :name',
+    'member_since' => 'Membre depuis le :date',
+    'description_bio' => 'Description / Bio',
+    'edit_profile' => 'Modifier',
 
 ];
