@@ -14,7 +14,12 @@ return [
     */
 
     'language_name' => 'Français',
+    
+    // Dashboard - Tabs
     'dashboard' => 'Tableau de bord',
+    'users' => 'Utilisateurs',
+    'logs' => "Activités",
+
     'profile' => 'Profil',
     'logout' => 'Se déconnecter',
     'login' => 'Se connecter',
@@ -86,5 +91,36 @@ return [
     'connect_discord' => 'Connecter Discord',
     'confirm_button' => 'Confirmer',
     'close' => 'Fermer',
+
+    // Admin - Users
+    'admin.users.title' => "Gestion des utilisateurs",
+    'admin.users.search_placeholder' => 'Recherche nom/email',
+    'admin.users.filter' => 'Filtrer',
+    'admin.users.reset' => 'Réinitialiser',
+    'admin.users.name' => 'Nom',
+    'admin.users.email' => 'E-mail',
+    'admin.users.active' => 'Actif',
+    'admin.users.created_at' => 'Créé le',
+    'admin.users.actions' => 'Actions',
+    'admin.users.edit' => 'Modifier',
+    'admin.users.activate' => 'Activer',
+    'admin.users.deactivate' => 'Désactiver',
+    'admin.users.delete' => 'Supprimer',
+    'admin.users.edit_title' => 'Modifier :name',
+    'admin.users.confirm_delete' => 'Supprimer définitivement :name ? Cette action est irréversible.',
+    'admin.users.confirm_toggle' => ':action l\'utilisateur :name ?',
+
+    // Admin - Logs
+    'admin.logs.title' => "Journal d'activité",
+    'admin.logs.search_placeholder' => 'Rechercher description...',
+    'admin.logs.level_all' => 'Tous niveaux',
+    'admin.logs.timestamp' => 'Timestamp',
+    'admin.logs.level' => 'Niveau',
+    'admin.logs.action' => 'Action',
+    'admin.logs.user' => 'Utilisateur',
+    'admin.logs.content' => 'Contenu',
+    'admin.logs.ip' => 'IP',
+    'admin.logs.no_activity' => 'Aucune activité pour le moment.',
+    'admin.logs.page_info' => 'Page :current / :last — :total entrées',
 
 ];

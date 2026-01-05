@@ -14,7 +14,12 @@ return [
     */
 
     'language_name' => 'Español',
+
+    // Dashboard - Tabs
     'dashboard' => 'Panel de control',
+    'users' => 'Usuarios',
+    'logs' => "Registros",
+
     'profile' => 'Perfil',
     'logout' => 'Cerrar sesión',
     'login' => 'Iniciar sesión',
@@ -86,5 +91,36 @@ return [
     'connect_discord' => 'Conectar con Discord',
     'confirm_button' => 'Confirmar',
     'close' => 'Cerrar',
+
+    // Admin - Users
+    'admin.users.title' => 'Gestión de usuarios',
+    'admin.users.search_placeholder' => 'Buscar nombre/correo...',
+    'admin.users.filter' => 'Filtrar',
+    'admin.users.reset' => 'Restablecer',
+    'admin.users.name' => 'Nombre',
+    'admin.users.email' => 'Correo',
+    'admin.users.active' => 'Activo',
+    'admin.users.created_at' => 'Creado el',
+    'admin.users.actions' => 'Acciones',
+    'admin.users.edit' => 'Editar',
+    'admin.users.activate' => 'Activar',
+    'admin.users.deactivate' => 'Desactivar',
+    'admin.users.delete' => 'Eliminar',
+    'admin.users.edit_title' => 'Editar :name',
+    'admin.users.confirm_delete' => '¿Eliminar permanentemente a :name? Esta acción no se puede deshacer.',
+    'admin.users.confirm_toggle' => ':action al usuario :name?',
+
+    // Admin - Logs
+    'admin.logs.title' => 'Registro de actividad',
+    'admin.logs.search_placeholder' => 'Buscar descripción...',
+    'admin.logs.level_all' => 'Todos los niveles',
+    'admin.logs.timestamp' => 'Timestamp',
+    'admin.logs.level' => 'Nivel',
+    'admin.logs.action' => 'Acción',
+    'admin.logs.user' => 'Usuario',
+    'admin.logs.content' => 'Contenido',
+    'admin.logs.ip' => 'IP',
+    'admin.logs.no_activity' => 'No hay actividad por el momento.',
+    'admin.logs.page_info' => 'Página :current / :last — :total entradas',
 
 ];

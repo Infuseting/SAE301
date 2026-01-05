@@ -108,7 +108,7 @@ class SocialiteController extends Controller
         if ($account) {
             Auth::login($account->user, true);
             $request->session()->regenerate();
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended(route('admin.dashboard'));
         }
 
         // Check if user with existing email exists
@@ -138,6 +138,6 @@ class SocialiteController extends Controller
         Auth::login($user, true);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard');
+        return redirect()->route('admin.dashboard');
     }
 }

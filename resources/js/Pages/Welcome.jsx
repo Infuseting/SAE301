@@ -48,7 +48,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
                                 {auth.user ? (
                                     <Link
-                                        href={route('dashboard')}
+                                        href={route('admin.dashboard')}
                                         className="rounded-md px-3 py-2 text-white ring-1 ring-transparent transition hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-[#9333ea]"
                                     >
                                         {messages.dashboard || 'Dashboard'}

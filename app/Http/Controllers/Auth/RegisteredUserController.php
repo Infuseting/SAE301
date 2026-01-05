@@ -42,10 +42,20 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Log user creation
+        activity()
+            ->causedBy($user)
+            ->withProperties([
+                'level' => 'info',
+                'action' => 'USER_CREATED',
+                'content' => ['name' => $user->name, 'email' => $user->email],
+                'ip' => $request->ip(),
+            ])
+            ->log('USER_CREATED');
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('admin.dashboard', absolute: false));
     }
 }

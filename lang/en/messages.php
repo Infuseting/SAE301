@@ -14,7 +14,12 @@ return [
     */
 
     'language_name' => 'English',
+
+    // Dashboard - Tabs
     'dashboard' => 'Dashboard',
+    'users' => 'Users',
+    'logs' => "Logs",
+
     'profile' => 'Profile',
     'logout' => 'Log Out',
     'login' => 'Log in',
@@ -86,5 +91,36 @@ return [
     'connect_discord' => 'Connect Discord',
     'confirm_button' => 'Confirm',
     'close' => 'Close',
+
+    // Admin - Users
+    'admin.users.title' => 'User management',
+    'admin.users.search_placeholder' => 'Search name/email...',
+    'admin.users.filter' => 'Filter',
+    'admin.users.reset' => 'Reset',
+    'admin.users.name' => 'Name',
+    'admin.users.email' => 'Email',
+    'admin.users.active' => 'Active',
+    'admin.users.created_at' => 'Created at',
+    'admin.users.actions' => 'Actions',
+    'admin.users.edit' => 'Edit',
+    'admin.users.activate' => 'Activate',
+    'admin.users.deactivate' => 'Deactivate',
+    'admin.users.delete' => 'Delete',
+    'admin.users.edit_title' => 'Edit :name',
+    'admin.users.confirm_delete' => 'Permanently delete :name? This action cannot be undone.',
+    'admin.users.confirm_toggle' => ':action user :name?',
+
+    // Admin - Logs
+    'admin.logs.title' => 'Activity log',
+    'admin.logs.search_placeholder' => 'Search description...',
+    'admin.logs.level_all' => 'All levels',
+    'admin.logs.timestamp' => 'Timestamp',
+    'admin.logs.level' => 'Level',
+    'admin.logs.action' => 'Action',
+    'admin.logs.user' => 'User',
+    'admin.logs.content' => 'Content',
+    'admin.logs.ip' => 'IP',
+    'admin.logs.no_activity' => 'No activity for now.',
+    'admin.logs.page_info' => 'Page :current / :last — :total entries',
 
 ];

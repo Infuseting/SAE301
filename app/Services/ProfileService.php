@@ -16,6 +16,19 @@ class ProfileService
      */
     public function update(User $user, array $data): User
     {
+        // Log user update
+        $before = $user->only(array_keys($data));
+
+        activity()
+            ->causedBy($user)
+            ->withProperties([
+                'level' => 'info',
+                'action' => 'USER_UPDATED',
+                'content' => ['before' => $before, 'after' => $user->only(array_keys($data))],
+                'ip' => request()->ip(),
+            ])
+            ->log('USER_UPDATED');
+
         $user->fill($data);
 
         if ($user->isDirty('email')) {
@@ -35,6 +48,17 @@ class ProfileService
      */
     public function deleteAccount(User $user): void
     {
+        // Log user deletion
+        activity()
+            ->causedBy($user)
+            ->withProperties([
+                'level' => 'critical',
+                'action' => 'USER_DELETED',
+                'content' => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email],
+                'ip' => request()->ip(),
+            ])
+            ->log('USER_DELETED');
+
         Auth::logout();
 
         $user->delete();

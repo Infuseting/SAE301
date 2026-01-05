@@ -161,7 +161,7 @@ $this->assertDatabaseCount('users', 5);
 $user = User::factory()->create();
 
 // Simuler la connexion de cet utilisateur
-$response = $this->actingAs($user)->get('/dashboard');
+$response = $this->actingAs($user)->get('/admin');
 ```
 
 ### Assertions de Session et Validation
