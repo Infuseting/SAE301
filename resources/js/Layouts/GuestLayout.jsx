@@ -12,7 +12,7 @@ export default function GuestLayout({ children }) {
             <div className="relative hidden lg:flex flex-col justify-end p-12 bg-[#18181b] overflow-hidden">
                 <div className="absolute inset-0">
                     <img
-                        src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop"
+                        src="/login.png"
                         alt="Background"
                         className="h-full w-full object-cover opacity-80"
                     />
@@ -21,9 +21,9 @@ export default function GuestLayout({ children }) {
 
                 <div className="relative z-10 max-w-lg">
                     <blockquote className="text-3xl font-bold text-white tracking-tight">
-                        {messages.security_efficiency || 'Security and efficiency at the heart of your experience.'}
+                        {messages.reg_title || 'Course d\'orientation dans toute la France.'}
                     </blockquote>
-                    <p className="mt-4 text-gray-300 font-medium tracking-wide">SAE 3.01 - Secure Framework</p>
+                    <p className="mt-4 text-gray-300 font-medium tracking-wide">{messages.reg_subtext || 'Readymapeo - SAE 3.01'}</p>
                 </div>
             </div>
 

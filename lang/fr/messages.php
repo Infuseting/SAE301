@@ -139,6 +139,6 @@ return [
     'login_successful' => 'Connexion réussie',
     'user_registered' => 'Utilisateur inscrit avec succès',
     'back_to_home' => 'Retour à l\'accueil',
-    'security_efficiency' => 'La sécurité et l\'efficacité au cœur de votre expérience.',
+    'security_efficiency' => 'Course d\'orientation dans toute la France.',
 
 ];
