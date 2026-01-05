@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "SAER301 API Documentation",
-        "description": "Auto-generated API documentation for SAER301 project",
+        "description": "Auto-generated API documentation for SAE301 project",
         "contact": {
             "email": "admin@example.com"
         },
@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "http://my-default-host.com",
+            "url": "http://localhost:8000",
             "description": "Production API Server"
         }
     ],
