@@ -14,8 +14,8 @@ export default function ConnectedAccountsForm({ className = '', connectedAccount
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">{messages.connected_accounts || 'Connected Accounts'}</h2>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <h2 className="text-lg font-medium text-gray-900 ">{messages.connected_accounts || 'Connected Accounts'}</h2>
+                <p className="mt-1 text-sm text-gray-600 ">
                     {messages.manage_connected_accounts || 'Manage your connected social accounts.'}
                 </p>
             </header>
@@ -28,7 +28,7 @@ export default function ConnectedAccountsForm({ className = '', connectedAccount
                     </div>
                     <div>
                         {hasAccount('github') ? (
-                            <span className="px-4 py-2 text-sm text-green-600 font-semibold bg-green-100 dark:bg-green-900 dark:text-green-300 rounded-lg">Connected</span>
+                            <span className="px-4 py-2 text-sm text-green-600 font-semibold bg-green-100   rounded-lg">Connected</span>
                         ) : (
                             <a href={route('socialite.redirect', 'github')}>
                                 <SecondaryButton>{messages.connect_github || 'Connect GitHub'}</SecondaryButton>
@@ -44,7 +44,7 @@ export default function ConnectedAccountsForm({ className = '', connectedAccount
                     </div>
                     <div>
                         {hasAccount('google') ? (
-                            <span className="px-4 py-2 text-sm text-green-600 font-semibold bg-green-100 dark:bg-green-900 dark:text-green-300 rounded-lg">Connected</span>
+                            <span className="px-4 py-2 text-sm text-green-600 font-semibold bg-green-100   rounded-lg">Connected</span>
                         ) : (
                             <a href={route('socialite.redirect', 'google')}>
                                 <SecondaryButton>{messages.connect_google || 'Connect Google'}</SecondaryButton>
@@ -60,7 +60,7 @@ export default function ConnectedAccountsForm({ className = '', connectedAccount
                     </div>
                     <div>
                         {hasAccount('discord') ? (
-                            <span className="px-4 py-2 text-sm text-green-600 font-semibold bg-green-100 dark:bg-green-900 dark:text-green-300 rounded-lg">Connected</span>
+                            <span className="px-4 py-2 text-sm text-green-600 font-semibold bg-green-100   rounded-lg">Connected</span>
                         ) : (
                             <a href={route('socialite.redirect', 'discord')}>
                                 <SecondaryButton>{messages.connect_discord || 'Connect Discord'}</SecondaryButton>

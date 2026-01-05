@@ -35,9 +35,9 @@ export default function SetPasswordForm({ className = '' }) {
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">{messages.set_password_title || 'Set a password'}</h2>
+                <h2 className="text-lg font-medium text-gray-900 ">{messages.set_password_title || 'Set a password'}</h2>
 
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-1 text-sm text-gray-600 ">
                     {messages.set_password_subtext || 'Set a password to access your account without using social providers.'}
                 </p>
             </header>

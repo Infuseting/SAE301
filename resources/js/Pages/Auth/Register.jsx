@@ -47,10 +47,10 @@ export default function Register() {
             <Head title={messages.register || 'Register'} />
 
             <div className="mb-6">
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 ">
                     {messages.register || 'Register'}
                 </h2>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm text-gray-600 ">
                     {messages.continue_with_email || "Or continue with email"}{' '}
                     <Link
                         href={route('login')}
@@ -64,14 +64,14 @@ export default function Register() {
             <div className="mt-6">
                 {/* Social Login Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-3">
-                    <a href={route('socialite.redirect', 'google')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm dark:shadow-[0px_8px_24px_rgba(147,51,234,0.06)] bg-white dark:bg-[#18181b] text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#272729] transition-colors dark:border-gray-600">
+                    <a href={route('socialite.redirect', 'google')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm  bg-white  text-sm font-medium text-gray-700  hover:bg-gray-50  transition-colors ">
                         <span className="sr-only">{messages.connect_google || 'Connect Google'}</span>
                         <div className="flex items-center gap-2">
                             <GoogleIcon /> <span>Google</span>
                         </div>
                     </a>
 
-                    <a href={route('socialite.redirect', 'discord')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm dark:shadow-[0px_8px_24px_rgba(147,51,234,0.06)] bg-white dark:bg-[#18181b] text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#272729] transition-colors dark:border-gray-600">
+                    <a href={route('socialite.redirect', 'discord')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm  bg-white  text-sm font-medium text-gray-700  hover:bg-gray-50  transition-colors ">
                         <span className="sr-only">{messages.connect_discord || 'Connect Discord'}</span>
                         <div className="flex items-center gap-2">
                             <DiscordIcon /> <span>Discord</span>
@@ -79,7 +79,7 @@ export default function Register() {
                     </a>
                 </div>
                 <div>
-                    <a href={route('socialite.redirect', 'github')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm dark:shadow-[0px_8px_24px_rgba(147,51,234,0.06)] bg-white dark:bg-[#18181b] text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#272729] transition-colors dark:border-gray-600">
+                    <a href={route('socialite.redirect', 'github')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm  bg-white  text-sm font-medium text-gray-700  hover:bg-gray-50  transition-colors ">
                         <span className="sr-only">{messages.connect_github || 'Connect GitHub'}</span>
                         <div className="flex items-center gap-2">
                             <GithubIcon /> <span>GitHub</span>
@@ -92,14 +92,14 @@ export default function Register() {
                         <div className="w-full border-t border-gray-300" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="bg-white px-2 text-gray-500 dark:bg-[#18181b] dark:text-gray-400">{messages.continue_with_email || "Or continue with email"}</span>
+                        <span className="bg-white px-2 text-gray-500  ">{messages.continue_with_email || "Or continue with email"}</span>
                     </div>
                 </div>
 
                 <div className="mt-8">
                     <form onSubmit={submit} className="space-y-6">
                         <div>
-                            <InputLabel htmlFor="name" value={messages.name || 'Full name'} className="text-gray-700 dark:text-gray-200" />
+                            <InputLabel htmlFor="name" value={messages.name || 'Full name'} className="text-gray-700 " />
                             <TextInput
                                 id="name"
                                 name="name"
@@ -114,7 +114,7 @@ export default function Register() {
                         </div>
 
                         <div>
-                            <InputLabel htmlFor="email" value={messages.email_address || 'Email address'} className="text-gray-700 dark:text-gray-200" />
+                            <InputLabel htmlFor="email" value={messages.email_address || 'Email address'} className="text-gray-700 " />
                             <TextInput
                                 id="email"
                                 type="email"
@@ -129,7 +129,7 @@ export default function Register() {
                         </div>
 
                         <div>
-                            <InputLabel htmlFor="password" value={messages.password || 'Password'} className="text-gray-700 dark:text-gray-200" />
+                            <InputLabel htmlFor="password" value={messages.password || 'Password'} className="text-gray-700 " />
                             <TextInput
                                 id="password"
                                 type="password"
@@ -147,7 +147,7 @@ export default function Register() {
                             <InputLabel
                                 htmlFor="password_confirmation"
                                 value={messages.confirm_password || 'Confirm Password'}
-                                className="text-gray-700 dark:text-gray-200"
+                                className="text-gray-700 "
                             />
                             <TextInput
                                 id="password_confirmation"

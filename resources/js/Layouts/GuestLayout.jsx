@@ -28,19 +28,19 @@ export default function GuestLayout({ children }) {
             </div>
 
             {/* Right Side - Form */}
-            <div className="flex flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24 bg-white dark:shadow-[0px_10px_30px_rgba(147,51,234,0.06)] dark:bg-[#18181b] relative">
+            <div className="flex flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24 bg-white   relative">
                 <div className="absolute top-8 end-8">
                     <LanguageSwitcher />
                 </div>
                 <div className="absolute top-8 left-8">
-                    <Link href="/" className="flex items-center text-[#9333ea] hover:text-[#7a2ce6] transition-colors">
+                    <Link href="/" className="flex items-center text-important transition-colors">
                         <span className="mr-2">←</span> {messages.back_to_home || 'Back to home'}
                     </Link>
                 </div>
                 <div className="mx-auto w-full max-w-sm lg:w-96">
                     <div>
                         <Link href="/" className="flex justify-center lg:justify-start">
-                            <ApplicationLogo className="block h-16 w-16 fill-current text-gray-800 dark:text-gray-100 hover:text-[#9333ea] dark:hover:text-[#9333ea] transition-colors" />
+                            <ApplicationLogo className="block h-16 w-16 fill-current text-gray-800  hover:text-[#9333ea]  transition-colors" />
                         </Link>
                     </div>
 

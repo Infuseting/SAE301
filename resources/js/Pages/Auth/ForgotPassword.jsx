@@ -23,7 +23,7 @@ export default function ForgotPassword({ status }) {
             <Head title={messages.forgot_password_title || 'Forgot Password'} />
 
             <div className="mb-6">
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 ">
                     {messages.forgot_password_title || 'Forgot Password'}
                 </h2>
                 <div className="mt-2 text-sm text-gray-600">
@@ -39,13 +39,13 @@ export default function ForgotPassword({ status }) {
 
             <form onSubmit={submit} className="space-y-6">
                 <div>
-                    <InputLabel htmlFor="email" value={messages.email_address || 'Email address'} className="text-gray-700 dark:text-gray-200" />
+                    <InputLabel htmlFor="email" value={messages.email_address || 'Email address'} className="text-gray-700 " />
                     <TextInput
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                                className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
+                        className="mt-1 block w-full border-gray-300 focus:border-[#9333ea] focus:ring-[#9333ea] rounded-md shadow-sm"
                         isFocused={true}
                         onChange={(e) => setData('email', e.target.value)}
                     />

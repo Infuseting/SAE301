@@ -13,7 +13,7 @@ export default function Edit({ mustVerifyEmail, status, connectedAccounts, hasPa
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-white">
+                <h2 className="text-xl font-semibold leading-tight text-gray-800 ">
                     {messages.profile || 'Profile'}
                 </h2>
             }
@@ -22,7 +22,7 @@ export default function Edit({ mustVerifyEmail, status, connectedAccounts, hasPa
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-                    <div className="bg-white p-4 shadow-sm dark:shadow-[0px_10px_30px_rgba(147,51,234,0.06)] border border-gray-200 dark:border-zinc-700 sm:rounded-lg sm:p-8 dark:bg-[#18181b]">
+                    <div className="bg-white p-4 shadow-sm  border border-gray-200  sm:rounded-lg sm:p-8 ">
                         <UpdateProfileInformationForm
                             mustVerifyEmail={mustVerifyEmail}
                             status={status}
@@ -31,26 +31,26 @@ export default function Edit({ mustVerifyEmail, status, connectedAccounts, hasPa
                     </div>
 
                     {!hasPassword && (
-                        <div className="bg-white p-4 shadow-sm dark:shadow-[0px_10px_30px_rgba(147,51,234,0.06)] border border-gray-200 dark:border-zinc-700 sm:rounded-lg sm:p-8 dark:bg-[#18181b]">
+                        <div className="bg-white p-4 shadow-sm  border border-gray-200  sm:rounded-lg sm:p-8 ">
                             <SetPasswordForm className="max-w-xl" />
                         </div>
                     )}
 
                     {hasPassword && (
-                        <div className="bg-white p-4 shadow-sm dark:shadow-[0px_10px_30px_rgba(147,51,234,0.06)] border border-gray-200 dark:border-zinc-700 sm:rounded-lg sm:p-8 dark:bg-[#18181b]">
+                        <div className="bg-white p-4 shadow-sm  border border-gray-200  sm:rounded-lg sm:p-8 ">
                             <UpdatePasswordForm className="max-w-xl" />
                         </div>
                     )}
 
-                    <div className="bg-white p-4 shadow-sm dark:shadow-[0px_10px_30px_rgba(147,51,234,0.06)] border border-gray-200 dark:border-zinc-700 sm:rounded-lg sm:p-8 dark:bg-[#18181b]">
+                    <div className="bg-white p-4 shadow-sm  border border-gray-200  sm:rounded-lg sm:p-8 ">
                         <ConnectedAccountsForm className="max-w-xl" connectedAccounts={connectedAccounts} />
                     </div>
 
-                    <div className="bg-white p-4 shadow-sm dark:shadow-[0px_10px_30px_rgba(147,51,234,0.06)] border border-gray-200 dark:border-zinc-700 sm:rounded-lg sm:p-8 dark:bg-[#18181b]">
+                    <div className="bg-white p-4 shadow-sm  border border-gray-200  sm:rounded-lg sm:p-8 ">
                         <TwoFactorAuthenticationForm className="max-w-xl" hasPassword={hasPassword} />
                     </div>
 
-                    <div className="bg-white p-4 shadow-sm dark:shadow-[0px_10px_30px_rgba(147,51,234,0.06)] border border-gray-200 dark:border-zinc-700 sm:rounded-lg sm:p-8 dark:bg-[#18181b]">
+                    <div className="bg-white p-4 shadow-sm  border border-gray-200  sm:rounded-lg sm:p-8 ">
                         <DeleteUserForm className="max-w-xl" />
                     </div>
                 </div>

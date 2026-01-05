@@ -21,7 +21,7 @@ export default function ConfirmsPassword({ title, content, button, onConfirm, ch
     });
 
     const passwordInput = useRef();
-    
+
 
     const startConfirmingPassword = () => {
         axios.get('/user/confirmed-password-status').then(response => {
@@ -67,11 +67,11 @@ export default function ConfirmsPassword({ title, content, button, onConfirm, ch
 
             <Modal show={confirmingPassword} onClose={closeModal}>
                 <form onSubmit={confirmPassword} className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    <h2 className="text-lg font-medium text-gray-900 ">
                         {finalTitle}
                     </h2>
 
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    <p className="mt-1 text-sm text-gray-600 ">
                         {finalContent}
                     </p>
 

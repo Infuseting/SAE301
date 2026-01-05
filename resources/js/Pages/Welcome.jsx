@@ -64,7 +64,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 <a
                                     href="https://laravel.com/docs"
                                     id="docs-card"
-                                    className="flex flex-col items-start gap-6 overflow-hidden rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] md:row-span-3 lg:p-10 lg:pb-10 text-[#1b1b18] dark:text-white dark:bg-[#18181b] dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#9333ea]"
+                                    className="flex flex-col items-start gap-6 overflow-hidden rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)]  ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] md:row-span-3 lg:p-10 lg:pb-10 text-[#1b1b18]      "
                                 >
                                     <div
                                         id="screenshot-container"
@@ -73,15 +73,15 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                         <img
                                             src="https://laravel.com/assets/img/welcome/docs-light.svg"
                                             alt="Laravel documentation screenshot"
-                                            className="aspect-video h-full w-full flex-1 rounded-[10px] object-cover object-top drop-shadow-[0px_4px_34px_rgba(0,0,0,0.06)] dark:hidden"
+                                            className="aspect-video h-full w-full flex-1 rounded-[10px] object-cover object-top drop-shadow-[0px_4px_34px_rgba(0,0,0,0.06)] "
                                             onError={handleImageError}
                                         />
                                         <img
                                             src="https://laravel.com/assets/img/welcome/docs-dark.svg"
                                             alt="Laravel documentation screenshot"
-                                            className="hidden aspect-video h-full w-full flex-1 rounded-[10px] object-cover object-top drop-shadow-[0px_4px_34px_rgba(0,0,0,0.25)] dark:block"
+                                            className="hidden aspect-video h-full w-full flex-1 rounded-[10px] object-cover object-top drop-shadow-[0px_4px_34px_rgba(0,0,0,0.25)] "
                                         />
-                                        <div className="absolute -bottom-16 -left-16 h-40 w-[calc(100%+8rem)] bg-gradient-to-b from-transparent via-white to-white dark:via-[#18181b] dark:to-[#18181b]"></div>
+                                        <div className="absolute -bottom-16 -left-16 h-40 w-[calc(100%+8rem)] bg-gradient-to-b from-transparent via-white to-white  "></div>
                                     </div>
 
                                     <div className="relative flex items-center gap-6 lg:items-end">
@@ -108,7 +108,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                             </div>
 
                                             <div className="pt-3 sm:pt-5 lg:pt-0">
-                                                <h2 className="text-xl font-semibold text-[#1b1b18] dark:text-white">
+                                                <h2 className="text-xl font-semibold text-[#1b1b18] ">
                                                     Documentation
                                                 </h2>
 
@@ -136,7 +136,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
                                 <a
                                     href="https://laracasts.com"
-                                    className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] lg:pb-10 text-[#1b1b18] dark:text-white dark:bg-[#18181b] dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#9333ea]"
+                                    className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)]  ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] lg:pb-10 text-[#1b1b18]      "
                                 >
                                     <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#9333ea]/10 sm:size-16">
                                         <svg
@@ -152,7 +152,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     </div>
 
                                     <div className="pt-3 sm:pt-5">
-                                        <h2 className="text-xl font-semibold text-[#1b1b18] dark:text-white">
+                                        <h2 className="text-xl font-semibold text-[#1b1b18] ">
                                             Laracasts
                                         </h2>
 
@@ -178,7 +178,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
                                 <a
                                     href="https://laravel-news.com"
-                                    className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] lg:pb-10 text-[#1b1b18] dark:text-white dark:bg-[#18181b] dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#9333ea]"
+                                    className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)]  ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] lg:pb-10 text-[#1b1b18]      "
                                 >
                                     <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#9333ea]/10 sm:size-16">
                                         <svg
@@ -196,7 +196,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     </div>
 
                                     <div className="pt-3 sm:pt-5">
-                                        <h2 className="text-xl font-semibold text-[#1b1b18] dark:text-white">
+                                        <h2 className="text-xl font-semibold text-[#1b1b18] ">
                                             Laravel News
                                         </h2>
 
@@ -220,7 +220,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     </svg>
                                 </a>
 
-                                <div className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] lg:pb-10 text-[#1b1b18] dark:text-white dark:bg-[#18181b] dark:ring-zinc-800">
+                                <div className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)]  ring-1 ring-white/[0.05] lg:pb-10 text-[#1b1b18]   ">
                                     <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#9333ea]/10 sm:size-16">
                                         <svg
                                             className="size-5 sm:size-6"
@@ -235,7 +235,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     </div>
 
                                     <div className="pt-3 sm:pt-5">
-                                        <h2 className="text-xl font-semibold text-[#1b1b18] dark:text-white">
+                                        <h2 className="text-xl font-semibold text-[#1b1b18] ">
                                             Vibrant Ecosystem
                                         </h2>
 
@@ -260,7 +260,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                                         <a
                                                             key={index}
                                                             href={links[part].href}
-                                                            className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
+                                                            className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] "
                                                         >
                                                             {links[part].label}
                                                         </a>

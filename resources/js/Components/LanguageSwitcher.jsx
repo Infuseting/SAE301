@@ -30,7 +30,7 @@ export default function LanguageSwitcher({ mobile = false }) {
                     <span className="inline-flex rounded-md">
                         <button
                             type="button"
-                            className="inline-flex items-center rounded-md border border-transparent bg-white dark:bg-[#18181b] px-3 py-2 text-xl leading-4 text-gray-500 dark:text-gray-200 transition duration-150 ease-in-out hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#272729] focus:outline-none"
+                            className="inline-flex items-center rounded-md border border-transparent bg-white  px-3 py-2 text-xl leading-4 text-gray-500  transition duration-150 ease-in-out hover:text-gray-700  hover:bg-gray-100  focus:outline-none"
                         >
                             {currentFlag}
 

@@ -10,7 +10,7 @@ export default function Modal({
     show = false,
     maxWidth = '2xl',
     closeable = true,
-    onClose = () => {},
+    onClose = () => { },
 }) {
     const close = () => {
         if (closeable) {
@@ -54,7 +54,7 @@ export default function Modal({
                     leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 >
                     <DialogPanel
-                        className={`mb-6 transform overflow-hidden rounded-lg bg-white dark:shadow-[0px_14px_40px_rgba(147,51,234,0.06)] dark:bg-[#18181b] shadow-xl border border-gray-200 dark:border-zinc-700 transition-all sm:mx-auto sm:w-full ${maxWidthClass}`}
+                        className={`mb-6 transform overflow-hidden rounded-lg bg-white   shadow-xl border border-gray-200  transition-all sm:mx-auto sm:w-full ${maxWidthClass}`}
                     >
                         {children}
                     </DialogPanel>

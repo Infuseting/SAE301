@@ -43,10 +43,10 @@ export default function TwoFactorChallenge() {
             <Head title={messages.twofactor_title || 'Two-factor Confirmation'} />
 
             <div className="mb-6">
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 ">
                     {messages.twofactor_title || 'Two-factor Confirmation'}
                 </h2>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm text-gray-600 ">
                     {recovery ? (messages.twofactor_recovery_text || "Please confirm access to your account by entering one of your emergency recovery codes.") : (messages.twofactor_required || "Please confirm access to your account by entering the authentication code provided by your authenticator application.")}
                 </p>
             </div>
@@ -55,7 +55,7 @@ export default function TwoFactorChallenge() {
             <form onSubmit={submit} className="space-y-6">
                 {recovery ? (
                     <div>
-                        <InputLabel htmlFor="recovery_code" value={messages.recovery_code_label || 'Recovery Code'} className="text-gray-700 dark:text-gray-200" />
+                        <InputLabel htmlFor="recovery_code" value={messages.recovery_code_label || 'Recovery Code'} className="text-gray-700 " />
                         <TextInput
                             id="recovery_code"
                             ref={recoveryCodeInput}
@@ -71,7 +71,7 @@ export default function TwoFactorChallenge() {
                     </div>
                 ) : (
                     <div>
-                        <InputLabel htmlFor="code" value={messages.code_label || 'Code'} className="text-gray-700 dark:text-gray-200" />
+                        <InputLabel htmlFor="code" value={messages.code_label || 'Code'} className="text-gray-700 " />
                         <TextInput
                             id="code"
                             ref={codeInput}
@@ -91,7 +91,7 @@ export default function TwoFactorChallenge() {
                 <div className="flex items-center justify-between">
                     <button
                         type="button"
-                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white underline cursor-pointer"
+                        className="text-sm text-gray-600  hover:text-gray-900  underline cursor-pointer"
                         onClick={toggleRecovery}
                     >
                         {recovery ? (messages.twofactor_use_code || 'Use an authentication code') : (messages.twofactor_use_recovery || 'Use a recovery code')}

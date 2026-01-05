@@ -24,7 +24,7 @@ export default function ConfirmPassword() {
         <GuestLayout>
             <Head title={messages.confirm_password || 'Confirm Password'} />
 
-            <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+            <div className="mb-4 text-sm text-gray-600 ">
                 {messages.confirm_password_content || 'For your security, please confirm your password before continuing.'}
             </div>
 

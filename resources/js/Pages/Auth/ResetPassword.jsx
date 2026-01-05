@@ -28,14 +28,14 @@ export default function ResetPassword({ token, email }) {
             <Head title={messages.reset_password_title || 'Reset Password'} />
 
             <div className="mb-6">
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 ">
                     {messages.reset_password_title || 'Reset Password'}
                 </h2>
             </div>
 
             <form onSubmit={submit} className="space-y-6">
                 <div>
-                    <InputLabel htmlFor="email" value={messages.email_address || 'Email address'} className="text-gray-700 dark:text-gray-200" />
+                    <InputLabel htmlFor="email" value={messages.email_address || 'Email address'} className="text-gray-700 " />
 
                     <TextInput
                         id="email"
@@ -51,7 +51,7 @@ export default function ResetPassword({ token, email }) {
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="password" value={messages.new_password || 'New password'} className="text-gray-700 dark:text-gray-200" />
+                    <InputLabel htmlFor="password" value={messages.new_password || 'New password'} className="text-gray-700 " />
 
                     <TextInput
                         id="password"
@@ -71,7 +71,7 @@ export default function ResetPassword({ token, email }) {
                     <InputLabel
                         htmlFor="password_confirmation"
                         value={messages.confirm_password || 'Confirm Password'}
-                        className="text-gray-700 dark:text-gray-200"
+                        className="text-gray-700 "
                     />
 
                     <TextInput

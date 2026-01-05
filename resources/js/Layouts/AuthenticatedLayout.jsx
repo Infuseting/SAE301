@@ -24,14 +24,14 @@ export default function AuthenticatedLayout({ header, children }) {
         user.permissions?.some(perm => ['view users', 'edit users', 'delete users', 'view logs'].includes(perm.name || perm));
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-[#18181b]">
-            <nav className="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-[#18181b]">
+        <div className="min-h-screen bg-gray-100 ">
+            <nav className="border-b border-gray-100 bg-white  ">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
                                 <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800 dark:text-gray-100 hover:text-[#9333ea] dark:hover:text-[#9333ea] transition-colors" />
+                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800  hover:text-[#9333ea]  transition-colors" />
                                 </Link>
                             </div>
 
@@ -83,7 +83,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             (previousState) => !previousState,
                                         )
                                     }
-                                    className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 dark:text-gray-300 transition duration-150 ease-in-out hover:bg-gray-100 dark:hover:bg-[#272729] hover:text-gray-500 dark:hover:text-gray-200 focus:bg-gray-100 dark:focus:bg-[#272729] focus:text-gray-500 dark:focus:text-gray-200 focus:outline-none"
+                                    className="inline-flex items-center justify-center rounded-md p-2 text-gray-400  transition duration-150 ease-in-out hover:bg-gray-100  hover:text-gray-500  focus:bg-gray-100  focus:text-gray-500  focus:outline-none"
                                 >
                                     <svg
                                         className="h-6 w-6"
@@ -155,12 +155,12 @@ export default function AuthenticatedLayout({ header, children }) {
                         )}
                     </div>
 
-                    <div className="border-t border-gray-200 dark:border-gray-700 pb-1 pt-4">
+                    <div className="border-t border-gray-200  pb-1 pt-4">
                         <div className="px-4">
-                            <div className="text-base font-medium text-gray-800 dark:text-gray-100">
+                            <div className="text-base font-medium text-gray-800 ">
                                 {user.name}
                             </div>
-                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <div className="text-sm font-medium text-gray-500 ">
                                 {user.email}
                             </div>
                         </div>
@@ -182,7 +182,7 @@ export default function AuthenticatedLayout({ header, children }) {
             </nav>
 
             {header && (
-                <header className="bg-white dark:bg-[#18181b] shadow dark:shadow-[0_8px_20px_rgba(147,51,234,0.06)]">
+                <header className="bg-white  shadow ">
                     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {header}
                     </div>
