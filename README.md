@@ -63,6 +63,9 @@ You can find Swagger UI on [Swagger](https://sae301.infuseting.fr/api/documentat
 - [Documentation et Swagger](https://github.com/Infuseting/SAE301/wiki/Swagger-And-Comments) : Comment commenter son code pour générer la documentation API.
 - [Création de Pages et Routage](https://github.com/Infuseting/SAE301/wiki/Routing-And-Page) : Comment ajouter une nouvelle page et définir sa route.
 - [React et Page](https://github.com/Infuseting/SAE301/wiki/React-And-Page) : Comment ajouter une nouvelle page et définir sa route.
+- [Système de Traduction (i18n)](https://github.com/Infuseting/SAE301/wiki/Translations-Systems) : Gérer les langues et les traductions.
+- [Logs d'Activité](https://github.com/Infuseting/SAE301/wiki/Activity-Logging) : Suivre et enregistrer les actions utilisateurs.
+
 
 ## Teams
 
