@@ -50,7 +50,7 @@ export default function Register() {
                 <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
                     {messages.register || 'Register'}
                 </h2>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     {messages.continue_with_email || "Or continue with email"}{' '}
                     <Link
                         href={route('login')}
@@ -65,14 +65,14 @@ export default function Register() {
                 {/* Social Login Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-3">
                     <a href={route('socialite.redirect', 'google')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm dark:shadow-[0px_8px_24px_rgba(147,51,234,0.06)] bg-white dark:bg-[#18181b] text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#272729] transition-colors dark:border-gray-600">
-                        <span className="sr-only">Sign in with Google</span>
+                        <span className="sr-only">{messages.connect_google || 'Connect Google'}</span>
                         <div className="flex items-center gap-2">
                             <GoogleIcon /> <span>Google</span>
                         </div>
                     </a>
 
                     <a href={route('socialite.redirect', 'discord')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm dark:shadow-[0px_8px_24px_rgba(147,51,234,0.06)] bg-white dark:bg-[#18181b] text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#272729] transition-colors dark:border-gray-600">
-                        <span className="sr-only">Sign in with Discord</span>
+                        <span className="sr-only">{messages.connect_discord || 'Connect Discord'}</span>
                         <div className="flex items-center gap-2">
                             <DiscordIcon /> <span>Discord</span>
                         </div>
@@ -80,7 +80,7 @@ export default function Register() {
                 </div>
                 <div>
                     <a href={route('socialite.redirect', 'github')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm dark:shadow-[0px_8px_24px_rgba(147,51,234,0.06)] bg-white dark:bg-[#18181b] text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#272729] transition-colors dark:border-gray-600">
-                        <span className="sr-only">Sign in with GitHub</span>
+                        <span className="sr-only">{messages.connect_github || 'Connect GitHub'}</span>
                         <div className="flex items-center gap-2">
                             <GithubIcon /> <span>GitHub</span>
                         </div>

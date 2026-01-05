@@ -15,7 +15,7 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
-});
+})->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -24,21 +24,21 @@ Route::middleware('auth')->group(function () {
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
 });
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
     // dashboard
     Route::get('/', [AdminController::class, 'index'])->name('dashboard');
 
     // users
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::post('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle');
-    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::get('/users', [UserController::class, 'index'])->name('users.index')->middleware('can:view users');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('can:edit users');
+    Route::post('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle')->middleware('can:edit users');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('can:delete users');
 
     // logs
-    Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+    Route::get('/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 Route::get('/auth/{provider}/redirect', [\App\Http\Controllers\SocialiteController::class, 'redirect'])->name('socialite.redirect');
 Route::get('/auth/{provider}/callback', [\App\Http\Controllers\SocialiteController::class, 'callback'])->name('socialite.callback');
@@ -46,7 +46,7 @@ Route::get('/auth/{provider}/callback', [\App\Http\Controllers\SocialiteControll
 // Language switcher
 Route::get('/lang/{locale}', function ($locale) {
     $available = ['en', 'es', 'fr'];
-    if (! in_array($locale, $available)) {
+    if (!in_array($locale, $available)) {
         $locale = config('app.locale');
     }
 

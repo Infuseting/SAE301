@@ -4,29 +4,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Lignes de langue pour l'authentification
+    | Lignes de langue d'authentification
     |--------------------------------------------------------------------------
     |
-    | Les lignes de langue suivantes sont utilisées lors des opérations
-    | d'authentification pour afficher divers messages à l'utilisateur.
-    | Vous pouvez les adapter aux besoins de votre application.
+    | Les lignes de langue suivantes sont utilisées lors de l'authentification pour divers
+    | messages que nous devons afficher à l'utilisateur. Vous êtes libre de modifier
+    | ces lignes de langue selon les besoins de votre application.
     |
     */
 
     'language_name' => 'Français',
-    
+
     // Dashboard - Tabs
     'dashboard' => 'Tableau de bord',
     'users' => 'Utilisateurs',
-    'logs' => "Activités",
+    'logs' => "Journaux",
 
     'profile' => 'Profil',
     'logout' => 'Se déconnecter',
-    'login' => 'Se connecter',
-    'register' => "S'inscrire",
+    'login' => 'Connexion',
+    'register' => 'S\'inscrire',
     'documentation' => 'Documentation',
     'laracasts' => 'Laracasts',
-    'laravel_news' => 'Nouveautés Laravel',
+    'laravel_news' => 'Actualités Laravel',
     'vibrant_ecosystem' => 'Écosystème dynamique',
     'welcome_title' => 'Bienvenue',
     'logged_in' => "Vous êtes connecté !",
@@ -34,9 +34,9 @@ return [
     'profile_update_subtext' => "Mettez à jour les informations de profil et l'adresse e-mail de votre compte.",
     'name' => 'Nom',
     'email' => 'E-mail',
-    'email_unverified' => "Votre adresse e-mail n'est pas vérifiée.",
-    'resend_verification' => "Cliquez ici pour renvoyer l'e-mail de vérification.",
-    'verification_link_sent' => "Un nouveau lien de vérification a été envoyé à votre adresse e-mail.",
+    'email_unverified' => 'Votre adresse e-mail n\'est pas vérifiée.',
+    'resend_verification' => 'Cliquez ici pour renvoyer l\'e-mail de vérification.',
+    'verification_link_sent' => 'Un nouveau lien de vérification a été envoyé à votre adresse e-mail.',
     'save' => 'Enregistrer',
     'saved' => 'Enregistré.',
     'update_password' => 'Mettre à jour le mot de passe',
@@ -44,46 +44,47 @@ return [
     'current_password' => 'Mot de passe actuel',
     'new_password' => 'Nouveau mot de passe',
     'confirm_password' => 'Confirmer le mot de passe',
-    'confirm_password_content' => 'Pour une question de sécurité, veuillez confirmer votre mot de passe avant de continuer.',
+    'confirm_password_content' => 'Pour votre sécurité, veuillez confirmer votre mot de passe avant de continuer.',
     'delete_account' => 'Supprimer le compte',
     'delete_account_warning_title' => 'Êtes-vous sûr de vouloir supprimer votre compte ?',
-    'delete_account_warning_text' => "Une fois votre compte supprimé, toutes ses ressources et données seront définitivement supprimées. Veuillez saisir votre mot de passe pour confirmer que vous souhaitez supprimer définitivement votre compte.",
+    'delete_account_warning_text' => 'Une fois votre compte supprimé, toutes ses ressources et données seront définitivement supprimées. Veuillez entrer votre mot de passe pour confirmer que vous souhaitez supprimer définitivement votre compte.',
     'password' => 'Mot de passe',
     'cancel' => 'Annuler',
     'email_verification' => 'Vérification de l\'e-mail',
-    'verify_instructions' => "Merci pour votre inscription ! Avant de commencer, pouvez-vous vérifier votre adresse e-mail en cliquant sur le lien que nous venons de vous envoyer ? Si vous n'avez pas reçu l'e-mail, nous vous en renverrons volontiers un autre.",
-    'resend_verification_button' => "Renvoyer l'e-mail de vérification",
-    'login_title' => 'Connexion',
-    'welcome_back' => 'Bon retour',
-    'create_account' => 'créez un nouveau compte',
-    'continue_with_email' => "Ou continuer avec l'e-mail",
-    'email_address' => "Adresse e-mail",
-    'remember_me' => "Se souvenir de moi",
+    'verify_instructions' => "Merci de vous être inscrit ! Avant de commencer, pourriez-vous vérifier votre adresse e-mail en cliquant sur le lien que nous venons de vous envoyer ? Si vous n'avez pas reçu l'e-mail, nous vous en enverrons un autre avec plaisir.",
+    'resend_verification_button' => 'Renvoyer l\'e-mail de vérification',
+    'login_title' => 'Se connecter',
+    'welcome_back' => 'Ravi de vous revoir',
+    'create_account' => 'créer un nouveau compte',
+    'continue_with_email' => 'Ou continuer avec un e-mail',
+    'email_address' => 'Adresse e-mail',
+    'remember_me' => 'Se souvenir de moi',
     'forgot_password' => 'Mot de passe oublié ?',
     'login_button' => 'Se connecter',
-    'register' => "S'inscrire",
-    'register_button' => "S'inscrire",
+    'register_button' => 'S\'inscrire',
     'set_password_title' => 'Définir un mot de passe',
-    'set_password_subtext' => 'Définissez un mot de passe pour accéder à votre compte sans passer par les réseaux sociaux.',
+    'set_password_subtext' => 'Définissez un mot de passe pour accéder à votre compte sans utiliser les fournisseurs sociaux.',
     'forgot_password_title' => 'Mot de passe oublié',
-    'forgot_password_subtext' => "Pas de problème. Indiquez simplement votre adresse email et nous vous enverrons un lien de réinitialisation de mot de passe qui vous permettra d'en choisir un nouveau.",
+    'forgot_password_subtext' => "Pas de problème. Indiquez-nous simplement votre adresse e-mail et nous vous enverrons un lien de réinitialisation de mot de passe qui vous permettra d'en choisir un nouveau.",
     'send_reset_link_button' => 'Envoyer le lien de réinitialisation',
     'reset_password_title' => 'Réinitialiser le mot de passe',
     'reset_password_button' => 'Réinitialiser le mot de passe',
     'twofactor_title' => 'Confirmation à deux facteurs',
     'two_factor_authentication' => 'Authentification à deux facteurs',
-    'twofactor_required' => "Veuillez confirmer l'accès à votre compte en entrant le code d'authentification fourni par votre application.",
-    'twofactor_recovery_text' => "Veuillez confirmer l'accès à votre compte en entrant l'un de vos codes de récupération d'urgence.",
-    'twofactor_use_recovery' => "Utiliser un code d'authentification",
-    'twofactor_use_code' => "Utiliser un code de récupération",
+    'twofactor_required' => 'Veuillez confirmer l\'accès à votre compte en entrant le code d\'authentification fourni par votre application d\'authentification.',
+    'twofactor_recovery_text' => 'Veuillez confirmer l\'accès à votre compte en entrant l\'un de vos codes de récupération d\'urgence.',
+    'twofactor_use_recovery' => 'Utiliser un code de récupération',
+    'twofactor_use_code' => 'Utiliser un code d\'authentification',
     'twofactor_login_button' => 'Se connecter',
     'add_additional_security' => 'Ajoutez une sécurité supplémentaire à votre compte en utilisant l\'authentification à deux facteurs.',
-    'twofactor_confirm_text' => "L'authentification à deux facteurs est maintenant activée. Veuillez confirmer votre configuration en entrant le code d'authentification fourni par votre application d'authentification.",
-    'twofactor_not_enabled' => "L'authentification à deux facteurs n'est pas activée.",
+    'twofactor_confirm_text' => 'L\'authentification à deux facteurs est maintenant activée. Veuillez confirmer votre configuration en entrant le code d\'authentification fourni par votre application d\'authentification.',
+    'twofactor_not_enabled' => 'Vous n\'avez pas activé l\'authentification à deux facteurs.',
     'twofactor_enable_button' => 'Activer',
     'twofactor_confirm_button' => 'Confirmer',
-    'twofactor_disable_button' => 'Désactiver',
     'twofactor_regenerate_button' => 'Régénérer les codes de récupération',
+    'twofactor_disable_button' => 'Désactiver',
+    'recovery_code_label' => 'Code de récupération',
+    'code_label' => 'Code',
     'connected_accounts' => 'Comptes connectés',
     'manage_connected_accounts' => 'Gérez vos comptes sociaux connectés.',
     'connect_github' => 'Connecter GitHub',
@@ -93,8 +94,8 @@ return [
     'close' => 'Fermer',
 
     // Admin - Users
-    'admin.users.title' => "Gestion des utilisateurs",
-    'admin.users.search_placeholder' => 'Recherche nom/email',
+    'admin.users.title' => 'Gestion des utilisateurs',
+    'admin.users.search_placeholder' => 'Rechercher nom/e-mail...',
     'admin.users.filter' => 'Filtrer',
     'admin.users.reset' => 'Réinitialiser',
     'admin.users.name' => 'Nom',
@@ -111,10 +112,10 @@ return [
     'admin.users.confirm_toggle' => ':action l\'utilisateur :name ?',
 
     // Admin - Logs
-    'admin.logs.title' => "Journal d'activité",
+    'admin.logs.title' => 'Journal d\'activité',
     'admin.logs.search_placeholder' => 'Rechercher description...',
-    'admin.logs.level_all' => 'Tous niveaux',
-    'admin.logs.timestamp' => 'Timestamp',
+    'admin.logs.level_all' => 'Tous les niveaux',
+    'admin.logs.timestamp' => 'Horodatage',
     'admin.logs.level' => 'Niveau',
     'admin.logs.action' => 'Action',
     'admin.logs.user' => 'Utilisateur',
@@ -122,5 +123,22 @@ return [
     'admin.logs.ip' => 'IP',
     'admin.logs.no_activity' => 'Aucune activité pour le moment.',
     'admin.logs.page_info' => 'Page :current / :last — :total entrées',
+
+    // Welcome Page
+    'documentation_text' => 'Laravel dispose d\'une documentation merveilleuse couvrant tous les aspects du framework. Que vous soyez un nouveau venu ou que vous ayez une expérience préalable avec Laravel, nous vous recommandons de lire notre documentation du début à la fin.',
+    'laracasts_text' => 'Laracasts propose des milliers de tutoriels vidéo sur le développement Laravel, PHP et JavaScript. Consultez-les, voyez par vous-même et améliorez considérablement vos compétences en développement au passage.',
+    'laravel_news_text' => 'Laravel News est un portail et une newsletter gérés par la communauté regroupant toutes les dernières et plus importantes nouvelles de l\'écosystème Laravel, y compris les nouvelles versions de packages et les tutoriels.',
+    'vibrant_ecosystem_text' => "La bibliothèque robuste d'outils et de bibliothèques internes de Laravel, tels que :forge, :vapor, :nova, :envoyer et :herd, vous aide à faire passer vos projets au niveau supérieur. Associez-les à de puissantes bibliothèques open source comme :cashier, :dusk, :echo, :horizon, :sanctum, :telescope et plus encore.",
+    'footer_text' => 'Laravel v:laravel (PHP v:php)',
+
+    // Profile & Auth
+    'profile_updated' => 'Profil mis à jour avec succès',
+    'account_deleted' => 'Compte supprimé',
+    'password_updated' => 'Mot de passe mis à jour avec succès',
+    'invalid_credentials' => 'Identifiants de connexion invalides',
+    'login_successful' => 'Connexion réussie',
+    'user_registered' => 'Utilisateur inscrit avec succès',
+    'back_to_home' => 'Retour à l\'accueil',
+    'security_efficiency' => 'La sécurité et l\'efficacité au cœur de votre expérience.',
 
 ];

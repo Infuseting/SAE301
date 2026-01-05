@@ -46,7 +46,7 @@ class SetPasswordController extends Controller
 
         $profileService->setPassword($request->user(), $request->password);
 
-        return $this->respondWith(['message' => 'Password updated successfully'], 'Profile/Edit', [
+        return $this->respondWith(['message' => __('messages.password_updated')], 'Profile/Edit', [
             'status' => 'password-updated'
         ]);
     }

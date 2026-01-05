@@ -61,7 +61,6 @@ return [
     'remember_me' => 'Remember me',
     'forgot_password' => 'Forgot your password?',
     'login_button' => 'Log in',
-    'register' => 'Register',
     'register_button' => 'Register',
     'set_password_title' => 'Set a password',
     'set_password_subtext' => 'Set a password to access your account without using social providers.',
@@ -84,6 +83,8 @@ return [
     'twofactor_confirm_button' => 'Confirm',
     'twofactor_regenerate_button' => 'Regenerate Recovery Codes',
     'twofactor_disable_button' => 'Disable',
+    'recovery_code_label' => 'Recovery Code',
+    'code_label' => 'Code',
     'connected_accounts' => 'Connected Accounts',
     'manage_connected_accounts' => 'Manage your connected social accounts.',
     'connect_github' => 'Connect GitHub',
@@ -122,5 +123,22 @@ return [
     'admin.logs.ip' => 'IP',
     'admin.logs.no_activity' => 'No activity for now.',
     'admin.logs.page_info' => 'Page :current / :last — :total entries',
+
+    // Welcome Page
+    'documentation_text' => 'Laravel has wonderful documentation covering every aspect of the framework. Whether you are a newcomer or have prior experience with Laravel, we recommend reading our documentation from beginning to end.',
+    'laracasts_text' => 'Laracasts offers thousands of video tutorials on Laravel, PHP, and JavaScript development. Check them out, see for yourself, and massively level up your development skills in the process.',
+    'laravel_news_text' => 'Laravel News is a community driven portal and newsletter aggregating all of the latest and most important news in the Laravel ecosystem, including new package releases and tutorials.',
+    'vibrant_ecosystem_text' => "Laravel's robust library of first-party tools and libraries, such as :forge, :vapor, :nova, :envoyer, and :herd help you take your projects to the next level. Pair them with powerful open source libraries like :cashier, :dusk, :echo, :horizon, :sanctum, :telescope, and more.",
+    'footer_text' => 'Laravel v:laravel (PHP v:php)',
+
+    // Profile & Auth
+    'profile_updated' => 'Profile updated successfully',
+    'account_deleted' => 'Account deleted',
+    'password_updated' => 'Password updated successfully',
+    'invalid_credentials' => 'Invalid login credentials',
+    'login_successful' => 'Login successful',
+    'user_registered' => 'User registered successfully',
+    'back_to_home' => 'Back to home',
+    'security_efficiency' => 'Security and efficiency at the heart of your experience.',
 
 ];

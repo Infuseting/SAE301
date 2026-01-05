@@ -3,14 +3,22 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { usePage } from '@inertiajs/react';
 
 export default function LanguageSwitcher({ mobile = false }) {
-    const messages = usePage().props.translations?.messages || {};
+    const { locale } = usePage().props;
+
+    const flags = {
+        en: '🇺🇸',
+        es: '🇪🇸',
+        fr: '🇫🇷',
+    };
+
+    const currentFlag = flags[locale] || flags['en'];
 
     if (mobile) {
         return (
             <>
-                <ResponsiveNavLink href={route('lang.switch', 'en')}>English</ResponsiveNavLink>
-                <ResponsiveNavLink href={route('lang.switch', 'es')}>Español</ResponsiveNavLink>
-                <ResponsiveNavLink href={route('lang.switch', 'fr')}>Français</ResponsiveNavLink>
+                <ResponsiveNavLink href={route('lang.switch', 'en')}>{flags.en}</ResponsiveNavLink>
+                <ResponsiveNavLink href={route('lang.switch', 'es')}>{flags.es}</ResponsiveNavLink>
+                <ResponsiveNavLink href={route('lang.switch', 'fr')}>{flags.fr}</ResponsiveNavLink>
             </>
         );
     }
@@ -22,9 +30,9 @@ export default function LanguageSwitcher({ mobile = false }) {
                     <span className="inline-flex rounded-md">
                         <button
                             type="button"
-                            className="inline-flex items-center rounded-md border border-transparent bg-white dark:bg-[#18181b] px-3 py-2 text-sm font-medium leading-4 text-gray-500 dark:text-gray-200 transition duration-150 ease-in-out hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#272729] focus:outline-none"
+                            className="inline-flex items-center rounded-md border border-transparent bg-white dark:bg-[#18181b] px-3 py-2 text-xl leading-4 text-gray-500 dark:text-gray-200 transition duration-150 ease-in-out hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#272729] focus:outline-none"
                         >
-                            {messages.language_name || 'English'}
+                            {currentFlag}
 
                             <svg
                                 className="-me-0.5 ms-2 h-4 w-4"
@@ -42,15 +50,15 @@ export default function LanguageSwitcher({ mobile = false }) {
                     </span>
                 </Dropdown.Trigger>
 
-                <Dropdown.Content>
+                <Dropdown.Content width="w-min">
                     <Dropdown.Link href={route('lang.switch', 'en')}>
-                        English
+                        {flags.en}
                     </Dropdown.Link>
                     <Dropdown.Link href={route('lang.switch', 'es')}>
-                        Español
+                        {flags.es}
                     </Dropdown.Link>
                     <Dropdown.Link href={route('lang.switch', 'fr')}>
-                        Français
+                        {flags.fr}
                     </Dropdown.Link>
                 </Dropdown.Content>
             </Dropdown>

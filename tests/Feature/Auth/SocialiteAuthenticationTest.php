@@ -46,7 +46,7 @@ class SocialiteAuthenticationTest extends TestCase
             'provider' => 'google',
             'provider_id' => '1234567890',
         ]);
-        $response->assertRedirect(route('admin.dashboard'));
+        $response->assertRedirect(route('home'));
     }
 
     public function test_callback_logs_in_existing_user(): void
@@ -76,7 +76,7 @@ class SocialiteAuthenticationTest extends TestCase
             'provider' => 'google',
             'provider_id' => '1234567890',
         ]);
-        $response->assertRedirect(route('admin.dashboard'));
+        $response->assertRedirect(route('home'));
     }
 
     public function test_callback_links_account_authenticated(): void

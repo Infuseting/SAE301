@@ -122,5 +122,23 @@ return [
     'admin.logs.ip' => 'IP',
     'admin.logs.no_activity' => 'No hay actividad por el momento.',
     'admin.logs.page_info' => 'Página :current / :last — :total entradas',
+    'back_to_home' => 'Retorno al inicio',
+    'security_efficiency' => 'Seguridad y eficiencia al corazón de su experiencia.',
+
+
+    // Welcome Page
+    'documentation_text' => 'Laravel tiene una maravillosa documentación cubriendo cada aspecto del framework. Ya sea un principiante o alguien con experiencia previa con Laravel, recomendamos leer nuestra documentación desde el principio hasta el final.',
+    'laracasts_text' => 'Laracasts ofrece miles de tutoriales de video sobre el desarrollo de Laravel, PHP y JavaScript. Consulte los mismos, vea por usted mismo y aumente considerablemente sus habilidades de desarrollo en el proceso.',
+    'laravel_news_text' => 'Laravel News es un portal y boletín de noticias impulsado por la comunidad que agrupa todas las últimas y más importantes noticias en el ecosistema de Laravel, incluyendo nuevas versiones de paquetes y tutoriales.',
+    'vibrant_ecosystem_text' => "Laravel tiene una robusta biblioteca de herramientas y bibliotecas de primera parte, como :forge, :vapor, :nova, :envoyer, y :herd ayudarte a llevar tus proyectos al siguiente nivel. Páralas con potentes bibliotecas de código abierto como :cashier, :dusk, :echo, :horizon, :sanctum, :telescope, y más.",
+    'footer_text' => 'Laravel v:laravel (PHP v:php)',
+
+    // Profile & Auth
+    'profile_updated' => 'Perfil actualizado correctamente',
+    'account_deleted' => 'Cuenta eliminada',
+    'password_updated' => 'Contraseña actualizada correctamente',
+    'invalid_credentials' => 'Credenciales de inicio de sesión inválidas',
+    'login_successful' => 'Inicio de sesión exitoso',
+    'user_registered' => 'Usuario registrado correctamente',
 
 ];

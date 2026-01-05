@@ -51,7 +51,7 @@ class AuthController extends Controller
 
         if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
-                'message' => 'Invalid login credentials'
+                'message' => __('messages.invalid_credentials')
             ], 401);
         }
 
@@ -59,7 +59,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Login successful',
+            'message' => __('messages.login_successful'),
             'token' => $token,
         ]);
     }
@@ -110,7 +110,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'User registered successfully',
+            'message' => __('messages.user_registered'),
             'user' => $user,
             'token' => $token,
         ], 201);

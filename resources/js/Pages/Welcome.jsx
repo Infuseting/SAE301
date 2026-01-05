@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import UserMenu from '@/Components/UserMenu';
 
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
     const messages = usePage().props.translations?.messages || {};
@@ -47,12 +48,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 </div>
 
                                 {auth.user ? (
-                                    <Link
-                                        href={route('admin.dashboard')}
-                                        className="rounded-md px-3 py-2 text-white ring-1 ring-transparent transition hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-[#9333ea]"
-                                    >
-                                        {messages.dashboard || 'Dashboard'}
-                                    </Link>
+                                    <UserMenu user={auth.user} />
                                 ) : (
                                     <>
                                         <Link
@@ -77,7 +73,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 <a
                                     href="https://laravel.com/docs"
                                     id="docs-card"
-                                    className="flex flex-col items-start gap-6 overflow-hidden rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] md:row-span-3 lg:p-10 lg:pb-10 dark:bg-[#18181b] dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#9333ea]"
+                                    className="flex flex-col items-start gap-6 overflow-hidden rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] md:row-span-3 lg:p-10 lg:pb-10 text-[#1b1b18] dark:text-white dark:bg-[#18181b] dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#9333ea]"
                                 >
                                     <div
                                         id="screenshot-container"
@@ -121,19 +117,12 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                             </div>
 
                                             <div className="pt-3 sm:pt-5 lg:pt-0">
-                                                <h2 className="text-xl font-semibold text-white">
+                                                <h2 className="text-xl font-semibold text-[#1b1b18] dark:text-white">
                                                     Documentation
                                                 </h2>
 
                                                 <p className="mt-4 text-sm/relaxed">
-                                                    Laravel has wonderful
-                                                    documentation covering every
-                                                    aspect of the framework.
-                                                    Whether you are a newcomer
-                                                    or have prior experience
-                                                    with Laravel, we recommend
-                                                    reading our documentation
-                                                    from beginning to end.
+                                                    {messages.documentation_text || 'Laravel has wonderful documentation covering every aspect of the framework. Whether you are a newcomer or have prior experience with Laravel, we recommend reading our documentation from beginning to end.'}
                                                 </p>
                                             </div>
                                         </div>
@@ -156,7 +145,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
                                 <a
                                     href="https://laracasts.com"
-                                    className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] lg:pb-10 dark:bg-[#18181b] dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#9333ea]"
+                                    className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] lg:pb-10 text-[#1b1b18] dark:text-white dark:bg-[#18181b] dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#9333ea]"
                                 >
                                     <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#9333ea]/10 sm:size-16">
                                         <svg
@@ -172,17 +161,12 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     </div>
 
                                     <div className="pt-3 sm:pt-5">
-                                        <h2 className="text-xl font-semibold text-white">
+                                        <h2 className="text-xl font-semibold text-[#1b1b18] dark:text-white">
                                             Laracasts
                                         </h2>
 
                                         <p className="mt-4 text-sm/relaxed">
-                                            Laracasts offers thousands of video
-                                            tutorials on Laravel, PHP, and
-                                            JavaScript development. Check them
-                                            out, see for yourself, and massively
-                                            level up your development skills in
-                                            the process.
+                                            {messages.laracasts_text || 'Laracasts offers thousands of video tutorials on Laravel, PHP, and JavaScript development. Check them out, see for yourself, and massively level up your development skills in the process.'}
                                         </p>
                                     </div>
 
@@ -203,7 +187,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
                                 <a
                                     href="https://laravel-news.com"
-                                    className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] lg:pb-10 dark:bg-[#18181b] dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#9333ea]"
+                                    className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] transition duration-300 hover:text-[#9333ea]/80 hover:ring-black/20 focus:outline-none focus-visible:ring-[#9333ea] lg:pb-10 text-[#1b1b18] dark:text-white dark:bg-[#18181b] dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#9333ea]"
                                 >
                                     <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#9333ea]/10 sm:size-16">
                                         <svg
@@ -221,21 +205,16 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     </div>
 
                                     <div className="pt-3 sm:pt-5">
-                                        <h2 className="text-xl font-semibold text-white">
+                                        <h2 className="text-xl font-semibold text-[#1b1b18] dark:text-white">
                                             Laravel News
                                         </h2>
 
                                         <p className="mt-4 text-sm/relaxed">
-                                            Laravel News is a community driven
-                                            portal and newsletter aggregating
-                                            all of the latest and most important
-                                            news in the Laravel ecosystem,
-                                            including new package releases and
-                                            tutorials.
+                                            {messages.laravel_news_text || 'Laravel News is a community driven portal and newsletter aggregating all of the latest and most important news in the Laravel ecosystem, including new package releases and tutorials.'}
                                         </p>
                                     </div>
 
-                                        <svg
+                                    <svg
                                         className="size-6 shrink-0 self-center stroke-[#9333ea]"
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
@@ -250,7 +229,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     </svg>
                                 </a>
 
-                                <div className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] lg:pb-10 dark:bg-[#18181b] dark:ring-zinc-800">
+                                <div className="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] dark:shadow-[0px_8px_30px_rgba(147,51,234,0.06)] ring-1 ring-white/[0.05] lg:pb-10 text-[#1b1b18] dark:text-white dark:bg-[#18181b] dark:ring-zinc-800">
                                     <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#9333ea]/10 sm:size-16">
                                         <svg
                                             className="size-5 sm:size-6"
@@ -265,93 +244,39 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     </div>
 
                                     <div className="pt-3 sm:pt-5">
-                                        <h2 className="text-xl font-semibold text-white">
+                                        <h2 className="text-xl font-semibold text-[#1b1b18] dark:text-white">
                                             Vibrant Ecosystem
                                         </h2>
 
                                         <p className="mt-4 text-sm/relaxed">
-                                            Laravel's robust library of
-                                            first-party tools and libraries,
-                                            such as{' '}
-                                            <a
-                                                href="https://forge.laravel.com"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white dark:focus-visible:ring-[#9333ea]"
-                                            >
-                                                Forge
-                                            </a>
-                                            ,{' '}
-                                            <a
-                                                href="https://vapor.laravel.com"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
-                                            >
-                                                Vapor
-                                            </a>
-                                            ,{' '}
-                                            <a
-                                                href="https://nova.laravel.com"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
-                                            >
-                                                Nova
-                                            </a>
-                                            ,{' '}
-                                            <a
-                                                href="https://envoyer.io"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
-                                            >
-                                                Envoyer
-                                            </a>
-                                            , and{' '}
-                                            <a
-                                                href="https://herd.laravel.com"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
-                                            >
-                                                Herd
-                                            </a>{' '}
-                                            help you take your projects to the
-                                            next level. Pair them with powerful
-                                            open source libraries like{' '}
-                                            <a
-                                                href="https://laravel.com/docs/billing"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
-                                            >
-                                                Cashier
-                                            </a>
-                                            ,{' '}
-                                            <a
-                                                href="https://laravel.com/docs/dusk"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
-                                            >
-                                                Dusk
-                                            </a>
-                                            ,{' '}
-                                            <a
-                                                href="https://laravel.com/docs/broadcasting"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
-                                            >
-                                                Echo
-                                            </a>
-                                            ,{' '}
-                                            <a
-                                                href="https://laravel.com/docs/horizon"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
-                                            >
-                                                Horizon
-                                            </a>
-                                            ,{' '}
-                                            <a
-                                                href="https://laravel.com/docs/sanctum"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
-                                            >
-                                                Sanctum
-                                            </a>
-                                            ,{' '}
-                                            <a
-                                                href="https://laravel.com/docs/telescope"
-                                                className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
-                                            >
-                                                Telescope
-                                            </a>
-                                            , and more.
+                                            {messages.vibrant_ecosystem_text?.split(/(:[\w]+)/g).map((part, index) => {
+                                                const links = {
+                                                    ':forge': { href: 'https://forge.laravel.com', label: 'Forge' },
+                                                    ':vapor': { href: 'https://vapor.laravel.com', label: 'Vapor' },
+                                                    ':nova': { href: 'https://nova.laravel.com', label: 'Nova' },
+                                                    ':envoyer': { href: 'https://envoyer.io', label: 'Envoyer' },
+                                                    ':herd': { href: 'https://herd.laravel.com', label: 'Herd' },
+                                                    ':cashier': { href: 'https://laravel.com/docs/billing', label: 'Cashier' },
+                                                    ':dusk': { href: 'https://laravel.com/docs/dusk', label: 'Dusk' },
+                                                    ':echo': { href: 'https://laravel.com/docs/broadcasting', label: 'Echo' },
+                                                    ':horizon': { href: 'https://laravel.com/docs/horizon', label: 'Horizon' },
+                                                    ':sanctum': { href: 'https://laravel.com/docs/sanctum', label: 'Sanctum' },
+                                                    ':telescope': { href: 'https://laravel.com/docs/telescope', label: 'Telescope' },
+                                                };
+
+                                                if (links[part]) {
+                                                    return (
+                                                        <a
+                                                            key={index}
+                                                            href={links[part].href}
+                                                            className="rounded-sm underline hover:text-[#9333ea]/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#9333ea] dark:hover:text-white"
+                                                        >
+                                                            {links[part].label}
+                                                        </a>
+                                                    );
+                                                }
+                                                return part;
+                                            })}
                                         </p>
                                     </div>
                                 </div>
@@ -359,7 +284,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                         </main>
 
                         <footer className="py-16 text-center text-sm text-white/70">
-                            Laravel v{laravelVersion} (PHP v{phpVersion})
+                            {messages.footer_text ? messages.footer_text.replace(':laravel', laravelVersion).replace(':php', phpVersion) : `Laravel v${laravelVersion} (PHP v${phpVersion})`}
                         </footer>
                     </div>
                 </div>

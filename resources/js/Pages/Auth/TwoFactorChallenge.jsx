@@ -43,7 +43,7 @@ export default function TwoFactorChallenge() {
             <Head title={messages.twofactor_title || 'Two-factor Confirmation'} />
 
             <div className="mb-6">
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
                     {messages.twofactor_title || 'Two-factor Confirmation'}
                 </h2>
                 <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -55,7 +55,7 @@ export default function TwoFactorChallenge() {
             <form onSubmit={submit} className="space-y-6">
                 {recovery ? (
                     <div>
-                        <InputLabel htmlFor="recovery_code" value="Code de récupération" className="text-gray-700 dark:text-gray-200" />
+                        <InputLabel htmlFor="recovery_code" value={messages.recovery_code_label || 'Recovery Code'} className="text-gray-700 dark:text-gray-200" />
                         <TextInput
                             id="recovery_code"
                             ref={recoveryCodeInput}
@@ -71,7 +71,7 @@ export default function TwoFactorChallenge() {
                     </div>
                 ) : (
                     <div>
-                        <InputLabel htmlFor="code" value="Code" className="text-gray-700 dark:text-gray-200" />
+                        <InputLabel htmlFor="code" value={messages.code_label || 'Code'} className="text-gray-700 dark:text-gray-200" />
                         <TextInput
                             id="code"
                             ref={codeInput}

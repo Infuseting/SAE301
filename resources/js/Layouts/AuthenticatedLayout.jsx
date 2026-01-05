@@ -1,8 +1,8 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import UserMenu from '@/Components/UserMenu';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -12,6 +12,16 @@ export default function AuthenticatedLayout({ header, children }) {
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
+
+    const hasPermission = (permission) => {
+        return user.roles?.some(role => (role.name === 'admin' || role === 'admin')) ||
+            user.permissions?.some(perm => (perm.name === permission || perm === permission));
+    }
+
+    const canViewUsers = hasPermission('view users');
+    const canViewLogs = hasPermission('view logs');
+    const hasAdminAccess = user.roles?.some(role => (role.name === 'admin' || role === 'admin')) ||
+        user.permissions?.some(perm => ['view users', 'edit users', 'delete users', 'view logs'].includes(perm.name || perm));
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-[#18181b]">
@@ -26,29 +36,32 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                {/* Dashboard */}
-                                <NavLink
-                                    href={route('admin.dashboard')}
-                                    active={route().current('admin.dashboard')}
-                                >
-                                    {messages.dashboard || 'Dashboard'}
-                                </NavLink>
+                                {hasAdminAccess && (
+                                    <NavLink
+                                        href={route('admin.dashboard')}
+                                        active={route().current('admin.dashboard')}
+                                    >
+                                        {messages.dashboard || 'Dashboard'}
+                                    </NavLink>
+                                )}
 
-                                {/* Users */}
-                                <NavLink
-                                    href={route('admin.users.index')}
-                                    active={route().current('admin.users.index')}
-                                >
-                                    {messages.users || 'Users'}
-                                </NavLink>
+                                {canViewUsers && (
+                                    <NavLink
+                                        href={route('admin.users.index')}
+                                        active={route().current('admin.users.index')}
+                                    >
+                                        {messages.users || 'Users'}
+                                    </NavLink>
+                                )}
 
-                                {/* Logs */}
-                                <NavLink
-                                    href={route('admin.logs.index')}
-                                    active={route().current('admin.logs.index')}
-                                >
-                                    {messages.logs || 'Logs'}
-                                </NavLink>
+                                {canViewLogs && (
+                                    <NavLink
+                                        href={route('admin.logs.index')}
+                                        active={route().current('admin.logs.index')}
+                                    >
+                                        {messages.logs || 'Logs'}
+                                    </NavLink>
+                                )}
                             </div>
                         </div>
 
@@ -59,46 +72,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
                             <div className="hidden sm:flex sm:items-center">
                                 <div className="relative ms-3">
-                                    <Dropdown>
-                                        <Dropdown.Trigger>
-                                            <span className="inline-flex rounded-md">
-                                                <button
-                                                    type="button"
-                                                    className="inline-flex items-center rounded-md border border-transparent bg-white dark:bg-[#18181b] px-3 py-2 text-sm font-medium leading-4 text-gray-500 dark:text-gray-200 transition duration-150 ease-in-out hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#272729] focus:outline-none"
-                                                >
-                                                    {user.name}
-
-                                                    <svg
-                                                        className="-me-0.5 ms-2 h-4 w-4"
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        viewBox="0 0 20 20"
-                                                        fill="currentColor"
-                                                    >
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                            clipRule="evenodd"
-                                                        />
-                                                    </svg>
-                                                </button>
-                                            </span>
-                                        </Dropdown.Trigger>
-
-                                        <Dropdown.Content>
-                                            <Dropdown.Link
-                                                href={route('profile.edit')}
-                                            >
-                                                {messages.profile || 'Profile'}
-                                            </Dropdown.Link>
-                                            <Dropdown.Link
-                                                href={route('logout')}
-                                                method="post"
-                                                as="button"
-                                            >
-                                                {messages.logout || 'Log Out'}
-                                            </Dropdown.Link>
-                                        </Dropdown.Content>
-                                    </Dropdown>
+                                    <UserMenu user={user} />
                                 </div>
                             </div>
 
@@ -153,30 +127,32 @@ export default function AuthenticatedLayout({ header, children }) {
                     }
                 >
                     <div className="space-y-1 pb-3 pt-2">
-                        {/* Dashboard */}
-                        <ResponsiveNavLink
-                            href={route('admin.dashboard')}
-                            active={route().current('admin.dashboard')}
-                        >
-                            {messages.dashboard || 'Dashboard'}
-                        </ResponsiveNavLink>
+                        {hasAdminAccess && (
+                            <ResponsiveNavLink
+                                href={route('admin.dashboard')}
+                                active={route().current('admin.dashboard')}
+                            >
+                                {messages.dashboard || 'Dashboard'}
+                            </ResponsiveNavLink>
+                        )}
 
-                        {/* Users */}
-                        <ResponsiveNavLink
-                            href={route('admin.users.index')}
-                            active={route().current('admin.users.index')}
-                        >
-                            {messages.users || 'Users'}
-                        </ResponsiveNavLink>
+                        {canViewUsers && (
+                            <ResponsiveNavLink
+                                href={route('admin.users.index')}
+                                active={route().current('admin.users.index')}
+                            >
+                                {messages.users || 'Users'}
+                            </ResponsiveNavLink>
+                        )}
 
-                        {/* Logs */}
-                        <ResponsiveNavLink
-                            href={route('admin.logs.index')}
-                            active={route().current('admin.logs.index')}
-                        >
-                            {messages.logs || 'Logs'}
-                        </ResponsiveNavLink>
-
+                        {canViewLogs && (
+                            <ResponsiveNavLink
+                                href={route('admin.logs.index')}
+                                active={route().current('admin.logs.index')}
+                            >
+                                {messages.logs || 'Logs'}
+                            </ResponsiveNavLink>
+                        )}
                     </div>
 
                     <div className="border-t border-gray-200 dark:border-gray-700 pb-1 pt-4">

@@ -21,7 +21,7 @@ export default function GuestLayout({ children }) {
 
                 <div className="relative z-10 max-w-lg">
                     <blockquote className="text-3xl font-bold text-white tracking-tight">
-                        "La sécurité et l'efficacité au cœur de votre expérience."
+                        {messages.security_efficiency || 'Security and efficiency at the heart of your experience.'}
                     </blockquote>
                     <p className="mt-4 text-gray-300 font-medium tracking-wide">SAE 3.01 - Secure Framework</p>
                 </div>
@@ -34,7 +34,7 @@ export default function GuestLayout({ children }) {
                 </div>
                 <div className="absolute top-8 left-8">
                     <Link href="/" className="flex items-center text-[#9333ea] hover:text-[#7a2ce6] transition-colors">
-                        <span className="mr-2">←</span> Retour à l'accueil
+                        <span className="mr-2">←</span> {messages.back_to_home || 'Back to home'}
                     </Link>
                 </div>
                 <div className="mx-auto w-full max-w-sm lg:w-96">

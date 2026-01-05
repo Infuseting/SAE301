@@ -84,7 +84,7 @@ class ProfileController extends Controller
 
         if ($request->wantsJson() && !$request->header('X-Inertia')) {
             return response()->json([
-                'message' => 'Profile updated successfully',
+                'message' => __('messages.profile_updated'),
                 'data' => $user,
             ]);
         }
@@ -123,7 +123,7 @@ class ProfileController extends Controller
         $this->profileService->deleteAccount($request->user());
 
         if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json(['message' => 'Account deleted'], 204);
+            return response()->json(['message' => __('messages.account_deleted')], 204);
         }
 
         return Redirect::to('/');

@@ -19,7 +19,7 @@ class PermissionTest extends TestCase
         $user->assignRole('admin');
 
         $this->assertTrue($user->hasRole('admin'));
-        $this->assertTrue($user->can('manage users'));
+        $this->assertTrue($user->can('view users'));
     }
 
     public function test_user_can_have_multiple_roles()

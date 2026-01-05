@@ -52,7 +52,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...$parent,
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? $request->user()->load('roles', 'permissions') : null,
             ],
             'locale' => $locale,
             'translations' => $translations,

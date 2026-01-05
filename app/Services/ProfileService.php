@@ -19,6 +19,8 @@ class ProfileService
         // Log user update
         $before = $user->only(array_keys($data));
 
+        $user->fill($data);
+
         activity()
             ->causedBy($user)
             ->withProperties([
@@ -28,8 +30,6 @@ class ProfileService
                 'ip' => request()->ip(),
             ])
             ->log('USER_UPDATED');
-
-        $user->fill($data);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
