@@ -7,8 +7,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\TeamAgeController;
-use App\Http\Controllers\RaidController;
+
+use App\Http\Controllers\Race\NewRaceController;
+use App\Http\Controllers\Race\VisuRaceController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -18,6 +19,8 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 })->name('home');
+
+Route::get('/race', [VisuRaceController::class, 'show'])->name('race.view');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
@@ -31,21 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
-
-    // Team age validation page
-    Route::get('/team/age-validation', [TeamAgeController::class, 'index'])->name('team.age-validation');
-
-    // Raid - Actions requiring authentication
-    Route::get('/raids/create', [RaidController::class, 'create'])->name('raids.create');
-    Route::post('/raids', [RaidController::class, 'store'])->name('raids.store');
-    Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
-    Route::put('/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
-    Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
 });
-
-// Raid - Public routes
-Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
-Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show');
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
     // dashboard
@@ -61,6 +50,8 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
     Route::get('/roles', [UserController::class, 'getRoles'])->name('roles.index')->middleware('can:grant role');
     Route::post('/users/{user}/role', [UserController::class, 'assignRole'])->name('users.assignRole')->middleware('can:grant role');
     Route::delete('/users/{user}/role', [UserController::class, 'removeRole'])->name('users.removeRole')->middleware('can:grant role');
+
+    
 
     // logs
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
@@ -87,3 +78,8 @@ Route::get('/lang/{locale}', function ($locale) {
 
     return redirect()->back();
 })->name('lang.switch');
+
+
+
+// Route::get('race/{idRace}', [VisuRaceController::class, 'show'])->name('register');
+
