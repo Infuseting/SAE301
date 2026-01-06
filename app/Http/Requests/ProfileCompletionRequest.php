@@ -25,8 +25,6 @@ class ProfileCompletionRequest extends FormRequest
             'birth_date' => ['required', 'date', 'before:today'],
             'address' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
-            'license_number' => ['nullable', 'required_without:medical_certificate', 'string', 'max:50'],
-            'medical_certificate' => ['nullable', 'required_without:license_number', 'string', 'max:50'],
         ];
     }
 }

@@ -53,7 +53,7 @@ return [
     'email_verification' => 'Vérification de l\'e-mail',
     'verify_instructions' => "Merci de vous être inscrit ! Avant de commencer, pourriez-vous vérifier votre adresse e-mail en cliquant sur le lien que nous venons de vous envoyer ? Si vous n'avez pas reçu l'e-mail, nous vous en enverrons un autre avec plaisir.",
     'resend_verification_button' => 'Renvoyer l\'e-mail de vérification',
-    'login_title' => 'Se connecter',
+    'login_title' => 'se connecter',
     'welcome_back' => 'Ravi de vous revoir',
     'create_account' => 'créer un nouveau compte',
     'continue_with_email' => 'Ou continuer avec un e-mail',
@@ -144,7 +144,7 @@ return [
     // Homepage - Hero
     'find_next_race' => 'Trouvez votre prochaine',
     'orienteering' => 'Course d\'Orientation',
-    'hero_subtitle' => 'Explorez des centaines de cartes et de parcours à travers la France. Du sprint urbain à l\'ultra-longue distance en montagne.',
+    'hero_subtitle' => 'Explorez et inscrivez-vous à des courses d\'orientation.',
     'search_where' => 'Où ?',
     'search_when' => 'Quand ?',
     'search_type' => 'Type',
@@ -152,11 +152,72 @@ return [
     'search_placeholder_when' => 'Toutes les dates',
     'search_option_all_types' => 'Tous les types',
     'search_button' => 'Rechercher',
+    'search_category' => 'Type',
+    'all' => 'Tout',
+    'leisure' => 'Loisir',
+    'competition' => 'Compétition',
+    'search_age' => 'Âge',
+    'all_ages' => 'Tous âges',
 
     // Homepage - Upcoming Races
     'upcoming_races_title' => 'Prochaines Courses',
     'upcoming_races_subtitle' => 'Ne manquez pas les événements à venir près de chez vous.',
+    'upcoming_raids_title' => 'Raids à la une',
+    'upcoming_raids_subtitle' => 'Les meilleurs raids d\'orientation sélectionnés pour vous.',
     'view_calendar' => 'Voir tout le calendrier',
+    'upcoming_races_list' => [
+        [
+            'id' => 1,
+            'title' => "La Boussole de la Forêt",
+            'date' => "12 Oct 2026",
+            'location' => "Fontainebleau, FR",
+            'type' => "Moyenne Distance",
+            'image' => "https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+        ],
+        [
+            'id' => 2,
+            'title' => "Sprint Urbain de Paris",
+            'date' => "25 Oct 2026",
+            'location' => "Paris, FR",
+            'type' => "Sprint",
+            'image' => "https://images.unsplash.com/photo-1767520832109-aee2a0d72f49?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        ],
+        [
+            'id' => 3,
+            'title' => "Nocturne des Vosges",
+            'date' => "05 Nov 2026",
+            'location' => "Gerardmer, FR",
+            'type' => "Nuit",
+            'image' => "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+        ]
+    ],
+
+    // Age Categories
+    'age_categories' => [
+        'benjamins' => 'Benjamins (12 ans et -)',
+        'minimes' => 'Minimes (13 - 14 ans)',
+        'cadets' => 'Cadets (15 - 16 ans)',
+        'juniors' => 'Juniors (17 - 18 ans)',
+        'espoirs' => 'Espoirs (19 - 20 ans)',
+        'seniors' => 'Séniors (21 - 39 ans)',
+        'veterans1' => 'Vétérans 1 (40 - 49 ans)',
+        'veterans2' => 'Vétérans 2 (50 - 59 ans)',
+        'veterans3' => 'Vétérans 3 (60 - 69 ans)',
+        'veterans4' => 'Vétérans 4 (70 ans et +)',
+    ],
+
+    // Footer
+    'footer_tagline' => 'La référence pour la course d\'orientation en France.',
+    'footer_navigation' => 'Navigation',
+    'footer_links_calendar' => 'Calendrier',
+    'footer_links_clubs' => 'Clubs',
+    'footer_links_results' => 'Résultats',
+    'footer_legal' => 'Légal',
+    'footer_links_legal_notice' => 'Mentions légales',
+    'footer_links_privacy' => 'Confidentialité',
+    'footer_links_terms' => 'CGU',
+    'footer_contact' => 'Contact',
+    'footer_copyright' => 'Tous droits réservés.',
 
     // Homepage - How it Works
     'how_it_works_title' => 'Comment ça marche ?',

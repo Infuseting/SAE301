@@ -25,7 +25,7 @@ class SocialiteController extends Controller
      *         in="path",
      *         required=true,
      *         description="The social provider",
-     *         @OA\Schema(type="string", enum={"google", "github", "discord"})
+     *         @OA\Schema(type="string", enum={"google"})
      *     ),
      *     @OA\Response(
      *         response=302,
@@ -51,7 +51,7 @@ class SocialiteController extends Controller
      *         in="path",
      *         required=true,
      *         description="The social provider",
-     *         @OA\Schema(type="string", enum={"google", "github", "discord"})
+     *         @OA\Schema(type="string", enum={"google"})
      *     ),
      *     @OA\Response(
      *         response=302,

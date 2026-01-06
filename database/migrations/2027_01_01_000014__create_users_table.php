@@ -12,7 +12,10 @@ return new class extends Migration {
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->unsignedBigInteger('doc_id');
+            $table->unsignedBigInteger('adh_id');
+            $table->string('last_name');
+            $table->string('first_name');
             $table->string('email')->unique();
             $table->boolean('active')->default(true);
             $table->timestamp('email_verified_at')->nullable();
@@ -21,6 +24,8 @@ return new class extends Migration {
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
             $table->timestamps();
+            $table->foreign('doc_id')->references('doc_id')->on('medical_docs')->onDelete('cascade');
+            $table->foreign('adh_id')->references('adh_id')->on('members')->onDelete('cascade');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
