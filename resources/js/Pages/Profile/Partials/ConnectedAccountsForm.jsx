@@ -31,21 +31,6 @@ export default function ConnectedAccountsForm({ className = '', connectedAccount
                     </div>
                 </div>
 
-                {/* Discord */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                        <InputLabel value="Discord" className="text-lg" />
-                    </div>
-                    <div>
-                        {hasAccount('discord') ? (
-                            <span className="px-4 py-2 text-sm text-green-600 font-semibold bg-green-100   rounded-lg">Connected</span>
-                        ) : (
-                            <a href={route('socialite.redirect', 'discord')}>
-                                <SecondaryButton>{messages.connect_discord || 'Connect Discord'}</SecondaryButton>
-                            </a>
-                        )}
-                    </div>
-                </div>
             </div>
         </section>
     );

@@ -5,7 +5,6 @@ import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import TwoFactorAuthenticationForm from './Partials/TwoFactorAuthenticationForm';
 import ConnectedAccountsForm from './Partials/ConnectedAccountsForm';
-import SetPasswordForm from './Partials/SetPasswordForm';
 
 export default function Edit({ mustVerifyEmail, status, connectedAccounts, hasPassword }) {
     const messages = usePage().props.translations?.messages || {};
@@ -54,6 +53,8 @@ export default function Edit({ mustVerifyEmail, status, connectedAccounts, hasPa
                                             </h3>
                                             {hasPassword ? (
                                                 <UpdatePasswordForm className="max-w-xl" />
+                                            ) : null}
+
                                         </div>
                                     </div>
 
@@ -68,10 +69,7 @@ export default function Edit({ mustVerifyEmail, status, connectedAccounts, hasPa
                                         </div>
                                     </div>
                                 </div>
-<<<<<<< HEAD
-=======
-                            </div>
->>>>>>> origin/infos
+
                             )}
 
                             <div className="space-y-6">
@@ -97,25 +95,10 @@ export default function Edit({ mustVerifyEmail, status, connectedAccounts, hasPa
                                     </div>
                                 </div>
                             </div>
-<<<<<<< HEAD
-
-    {/* Danger Zone */ }
-    <div className="bg-red-50 rounded-2xl border border-red-100 overflow-hidden">
-        <div className="p-6">
-            <h3 className="text-lg font-semibold text-red-700 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                Zone de danger
-            </h3>
-            <DeleteUserForm className="max-w-xl" hasPassword={hasPassword} />
-        </div>
-    </div>
-
-=======
->>>>>>> origin/infos
-                        </div >
-                    </div >
-                </div >
-            </div >
+                        </div>
+                    </div>
+                </div>
+            </div>
         </AuthenticatedLayout >
     );
 }
