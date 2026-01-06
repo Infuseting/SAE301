@@ -31,15 +31,31 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $member = \App\Models\Member::create([
+            'adh_license' => 'PENDING-' . \Illuminate\Support\Str::random(8),
+            'adh_end_validity' => now()->addYear(),
+            'adh_date_added' => now(),
+        ]);
+
+        $medicalDoc = \App\Models\MedicalDoc::create([
+            'doc_num_pps' => 'PENDING',
+            'doc_end_validity' => now()->addYear(),
+            'doc_date_added' => now(),
+        ]);
+
         $user = User::create([
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'adh_id' => $member->adh_id,
+            'doc_id' => $medicalDoc->doc_id,
         ]);
 
         // Log user creation

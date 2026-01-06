@@ -22,7 +22,8 @@ class ProfileRedesignTest extends TestCase
         $response = $this->actingAs($user)
             ->post('/profile', [ // Use POST but with _method PATCH logic in controller interaction or just follow route definition
                 '_method' => 'PATCH',
-                'name' => 'Updated Name',
+                'first_name' => 'Updated',
+                'last_name' => 'Name',
                 'email' => 'test@example.com',
                 'description' => 'My new bio',
                 'license_number' => 'TEST-LIC-123',
@@ -39,6 +40,8 @@ class ProfileRedesignTest extends TestCase
         $user->refresh();
 
         $this->assertEquals('Updated Name', $user->name);
+        $this->assertEquals('Updated', $user->first_name);
+        $this->assertEquals('Name', $user->last_name);
         $this->assertEquals('My new bio', $user->description);
         $this->assertTrue((bool) $user->is_public);
         $this->assertNotNull($user->profile_photo_path);
@@ -51,7 +54,8 @@ class ProfileRedesignTest extends TestCase
     {
         $user = User::factory()->create([
             'is_public' => true,
-            'name' => 'John Public',
+            'first_name' => 'John',
+            'last_name' => 'Public',
             'description' => 'Hello World',
         ]);
 
@@ -73,7 +77,8 @@ class ProfileRedesignTest extends TestCase
     {
         $user = User::factory()->create([
             'is_public' => false,
-            'name' => 'Jane Private',
+            'first_name' => 'Jane',
+            'last_name' => 'Private',
         ]);
 
         $viewer = User::factory()->create();

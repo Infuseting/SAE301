@@ -26,7 +26,8 @@ const GithubIcon = () => (
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
+        first_name: '',
+        last_name: '',
         email: '',
         password: '',
         password_confirmation: '',
@@ -54,7 +55,7 @@ export default function Register() {
                     {messages.continue_with_email || "Or continue with email"}{' '}
                     <Link
                         href={route('login')}
-                        className="font-medium text-[#9333ea] hover:text-[#7a2ce6]"
+                        className="font-medium text-important hover:text-unimportant"
                     >
                         {messages.login_title || 'Sign in'}
                     </Link>
@@ -62,27 +63,11 @@ export default function Register() {
             </div>
 
             <div className="mt-6">
-                {/* Social Login Grid */}
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
                     <a href={route('socialite.redirect', 'google')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
                         <span className="sr-only">{messages.connect_google || 'Connect Google'}</span>
                         <div className="flex items-center gap-2">
                             <GoogleIcon /> <span>{messages.social_login_google || 'Google'}</span>
-                        </div>
-                    </a>
-
-                    <a href={route('socialite.redirect', 'discord')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
-                        <span className="sr-only">{messages.connect_discord || 'Connect Discord'}</span>
-                        <div className="flex items-center gap-2">
-                            <DiscordIcon /> <span>{messages.social_login_discord || 'Discord'}</span>
-                        </div>
-                    </a>
-                </div>
-                <div>
-                    <a href={route('socialite.redirect', 'github')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
-                        <span className="sr-only">{messages.connect_github || 'Connect GitHub'}</span>
-                        <div className="flex items-center gap-2">
-                            <GithubIcon /> <span>{messages.social_login_github || 'GitHub'}</span>
                         </div>
                     </a>
                 </div>
@@ -98,19 +83,35 @@ export default function Register() {
 
                 <div className="mt-8">
                     <form onSubmit={submit} className="space-y-5">
-                        <div className="space-y-1">
-                            <InputLabel htmlFor="name" value={messages.name || 'Nom complet'} className="text-gray-700 font-semibold" />
-                            <TextInput
-                                id="name"
-                                name="name"
-                                value={data.name}
-                                className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                autoComplete="name"
-                                isFocused={true}
-                                onChange={(e) => setData('name', e.target.value)}
-                                required
-                            />
-                            <InputError message={errors.name} className="mt-2" />
+                        <div className="flex gap-4">
+                            <div className="space-y-1 w-1/2">
+                                <InputLabel htmlFor="first_name" value={messages.first_name || 'Prénom'} className="text-gray-700 font-semibold" />
+                                <TextInput
+                                    id="first_name"
+                                    name="first_name"
+                                    value={data.first_name}
+                                    className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                    autoComplete="given-name"
+                                    isFocused={true}
+                                    onChange={(e) => setData('first_name', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.first_name} className="mt-2" />
+                            </div>
+
+                            <div className="space-y-1 w-1/2">
+                                <InputLabel htmlFor="last_name" value={messages.last_name || 'Nom'} className="text-gray-700 font-semibold" />
+                                <TextInput
+                                    id="last_name"
+                                    name="last_name"
+                                    value={data.last_name}
+                                    className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                    autoComplete="family-name"
+                                    onChange={(e) => setData('last_name', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.last_name} className="mt-2" />
+                            </div>
                         </div>
 
                         <div className="space-y-1">

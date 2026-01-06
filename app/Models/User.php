@@ -11,6 +11,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use OpenApi\Annotations as OA;
+use App\Models\Member;
+use App\Models\MedicalDoc;
 
 /**
  * @OA\Schema(
@@ -48,19 +50,46 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
         'password_is_set',
+        'doc_id',
+        'adh_id',
         'birth_date',
         'address',
         'phone',
-        'license_number',
-        'medical_certificate_code',
         'is_public',
         'description',
         'profile_photo_path',
     ];
+
+    /**
+     * Get the user's member details.
+     */
+    public function member()
+    {
+        return $this->belongsTo(Member::class, 'adh_id', 'adh_id');
+    }
+
+    /**
+     * Get the user's medical document details.
+     */
+    public function medicalDoc()
+    {
+        return $this->belongsTo(MedicalDoc::class, 'doc_id', 'doc_id');
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => "{$this->first_name} {$this->last_name}",
+        );
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -82,6 +111,7 @@ class User extends Authenticatable
     protected $appends = [
         'has_completed_profile',
         'profile_photo_url',
+        'name',
     ];
 
     /**
@@ -128,8 +158,7 @@ class User extends Authenticatable
             get: function () {
                 return !empty($this->birth_date) &&
                     !empty($this->address) &&
-                    !empty($this->phone) &&
-                    (!empty($this->license_number) || !empty($this->medical_certificate_code));
+                    !empty($this->phone);
             }
         );
     }
