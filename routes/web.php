@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\RaidController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -29,6 +30,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
+
+    // Raid routes
+    Route::resource('raids', RaidController::class);
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
