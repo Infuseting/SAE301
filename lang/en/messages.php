@@ -90,6 +90,8 @@ return [
     'connect_github' => 'Connect GitHub',
     'connect_google' => 'Connect Google',
     'connect_discord' => 'Connect Discord',
+    'connect_strava' => 'Connect Strava',
+    'social_login_strava' => 'Strava',
     'confirm_button' => 'Confirm',
     'close' => 'Close',
 
