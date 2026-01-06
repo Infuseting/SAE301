@@ -12,10 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('has_participate', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
-            $table->unsignedBigInteger('equ_id');
-            $table->foreign('id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('equ_id')->references('equ_id')->on('teams')->onDelete('cascade');
+            $table->id();
+            $table->unsignedBigInteger('race_id');
+            $table->unsignedBigInteger('adh_id');
+            $table->unsignedBigInteger('reg_id')->nullable();
+            $table->time('par_time')->nullable();
+            $table->foreign('race_id')->references('race_id')->on('races')->onDelete('cascade');
+            $table->foreign('adh_id')->references('adh_id')->on('members')->onDelete('cascade');
             $table->timestamps();
         });
     }
