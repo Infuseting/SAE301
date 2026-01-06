@@ -116,12 +116,32 @@ class SocialiteController extends Controller
 
         if (!$user) {
             // Create new user (Generate random password)
+            // Create new user (Generate random password)
+            $nameParts = explode(' ', $socialUser->getName() ?? $socialUser->getNickname() ?? 'User');
+            $firstName = $nameParts[0];
+            $lastName = isset($nameParts[1]) ? implode(' ', array_slice($nameParts, 1)) : $firstName;
+
+            $member = \App\Models\Member::create([
+                'adh_license' => 'PENDING-' . \Illuminate\Support\Str::random(8),
+                'adh_end_validity' => now()->addYear(),
+                'adh_date_added' => now(),
+            ]);
+
+            $medicalDoc = \App\Models\MedicalDoc::create([
+                'doc_num_pps' => 'PENDING',
+                'doc_end_validity' => now()->addYear(),
+                'doc_date_added' => now(),
+            ]);
+
             $user = User::create([
-                'name' => $socialUser->getName() ?? $socialUser->getNickname(),
+                'first_name' => $firstName,
+                'last_name' => $lastName,
                 'email' => $socialUser->getEmail(),
                 'password' => bcrypt(str()->random(32)),
                 'password_is_set' => false,
                 'email_verified_at' => now(), // Assume verified by provider
+                'adh_id' => $member->adh_id,
+                'doc_id' => $medicalDoc->doc_id,
             ]);
         }
 

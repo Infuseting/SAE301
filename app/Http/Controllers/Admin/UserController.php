@@ -18,7 +18,8 @@ class UserController extends Controller
 
         if ($q) {
             $query->where(function ($sub) use ($q) {
-                $sub->where('name', 'like', "%{$q}%")
+                $sub->where('first_name', 'like', "%{$q}%")
+                    ->orWhere('last_name', 'like', "%{$q}%")
                     ->orWhere('email', 'like', "%{$q}%");
             });
         }
@@ -30,16 +31,17 @@ class UserController extends Controller
         ]);
     }
 
-    // Update user (name, email, active)
+    // Update user (first_name, last_name, email, active)
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'active' => 'sometimes|boolean',
         ]);
 
-        $before = $user->only(['name', 'email', 'active']);
+        $before = $user->only(['first_name', 'last_name', 'email', 'active']);
 
         $user->fill($data);
         $user->save();
@@ -49,7 +51,7 @@ class UserController extends Controller
             ->withProperties([
                 'level' => 'info',
                 'action' => 'ADMIN_UPDATED_USER',
-                'content' => ['before' => $before, 'after' => $user->only(['name', 'email', 'active'])],
+                'content' => ['before' => $before, 'after' => $user->only(['first_name', 'last_name', 'email', 'active'])],
                 'ip' => $request->ip(),
             ])
             ->log('ADMIN_UPDATED_USER');
@@ -78,7 +80,7 @@ class UserController extends Controller
     // Delete user
     public function destroy(Request $request, User $user)
     {
-        $info = $user->only(['id', 'name', 'email']);
+        $info = $user->only(['id', 'first_name', 'last_name', 'email']);
 
         $user->delete();
 

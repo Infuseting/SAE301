@@ -50,7 +50,8 @@ class AuthenticationTest extends TestCase
     public function test_api_register(): void
     {
         $response = $this->postJson('/api/register', [
-            'name' => 'Test User',
+            'first_name' => 'Test',
+            'last_name' => 'User',
             'email' => 'newuser@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
@@ -63,7 +64,11 @@ class AuthenticationTest extends TestCase
                 'token',
             ]);
 
-        $this->assertDatabaseHas('users', ['email' => 'newuser@example.com']);
+        $this->assertDatabaseHas('users', [
+            'email' => 'newuser@example.com',
+            'first_name' => 'Test',
+            'last_name' => 'User',
+        ]);
     }
 
     public function test_access_protected_route(): void
