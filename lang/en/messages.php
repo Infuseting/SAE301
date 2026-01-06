@@ -110,6 +110,18 @@ return [
     'admin.users.edit_title' => 'Edit :name',
     'admin.users.confirm_delete' => 'Permanently delete :name? This action cannot be undone.',
     'admin.users.confirm_toggle' => ':action user :name?',
+    'admin.users.roles' => 'Roles',
+    'admin.users.manage_roles_title' => 'Manage roles for :name',
+    'admin.users.current_roles' => 'Current roles:',
+    'admin.users.select_role' => 'Click to add a role:',
+    'admin.users.current' => 'Current',
+    'admin.users.remove_role' => 'Remove role',
+    'admin.users.requires_grant_admin' => 'Requires permission',
+    'admin.users.role_assigned' => 'Role ":role" assigned successfully!',
+    'admin.users.role_removed' => 'Role ":role" removed successfully!',
+    'admin.users.role_assign_failed' => 'Failed to assign role',
+    'admin.users.role_remove_failed' => 'Failed to remove role',
+    'loading' => 'Loading...',
 
     // Admin - Logs
     'admin.logs.title' => 'Activity log',
