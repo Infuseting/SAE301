@@ -7,9 +7,7 @@ export default function Show({ user }) {
 
     if (!user.is_public) {
         return (
-            <AuthenticatedLayout
-
-            >
+            <AuthenticatedLayout>
                 <Head title={messages.private_profile || 'Profil Privé'} />
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -30,9 +28,7 @@ export default function Show({ user }) {
     const formattedDate = new Date(user.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
     return (
-        <AuthenticatedLayout
-
-        >
+        <AuthenticatedLayout>
             <Head title={(messages.profile_of || 'Profil de :name').replace(':name', user.name)} />
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -73,6 +69,6 @@ export default function Show({ user }) {
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout >
+        </AuthenticatedLayout>
     );
 }
