@@ -54,7 +54,7 @@ export default function Register() {
                     {messages.continue_with_email || "Or continue with email"}{' '}
                     <Link
                         href={route('login')}
-                        className="font-medium text-[#9333ea] hover:text-[#7a2ce6]"
+                        className="font-medium text-important hover:text-unimportant"
                     >
                         {messages.login_title || 'Sign in'}
                     </Link>

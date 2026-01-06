@@ -152,11 +152,72 @@ return [
     'search_placeholder_when' => 'All dates',
     'search_option_all_types' => 'All types',
     'search_button' => 'Search',
+    'search_category' => 'Category',
+    'all' => 'All',
+    'leisure' => 'Leisure',
+    'competition' => 'Competition',
+    'search_age' => 'Age',
+    'all_ages' => 'All ages',
 
     // Homepage - Upcoming Races
     'upcoming_races_title' => 'Upcoming Races',
     'upcoming_races_subtitle' => 'Don\'t miss upcoming events near you.',
+    'upcoming_raids_title' => 'Featured Raids',
+    'upcoming_raids_subtitle' => 'The best orienteering raids selected for you.',
     'view_calendar' => 'View full calendar',
+    'upcoming_races_list' => [
+        [
+            'id' => 1,
+            'title' => "The Forest Compass",
+            'date' => "Oct 12, 2026",
+            'location' => "Fontainebleau, FR",
+            'type' => "Middle Distance",
+            'image' => "https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+        ],
+        [
+            'id' => 2,
+            'title' => "Paris Urban Sprint",
+            'date' => "Oct 25, 2026",
+            'location' => "Paris, FR",
+            'type' => "Sprint",
+            'image' => "https://images.unsplash.com/photo-1767520832109-aee2a0d72f49?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        ],
+        [
+            'id' => 3,
+            'title' => "Vosges Night Run",
+            'date' => "Nov 05, 2026",
+            'location' => "Gerardmer, FR",
+            'type' => "Night",
+            'image' => "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+        ]
+    ],
+
+    // Age Categories
+    'age_categories' => [
+        'benjamins' => 'Benjamins (12 yrs and -)',
+        'minimes' => 'Minimes (13 - 14 yrs)',
+        'cadets' => 'Cadets (15 - 16 yrs)',
+        'juniors' => 'Juniors (17 - 18 yrs)',
+        'espoirs' => 'Espoirs (19 - 20 yrs)',
+        'seniors' => 'Seniors (21 - 39 yrs)',
+        'veterans1' => 'Veterans 1 (40 - 49 yrs)',
+        'veterans2' => 'Veterans 2 (50 - 59 yrs)',
+        'veterans3' => 'Veterans 3 (60 - 69 yrs)',
+        'veterans4' => 'Veterans 4 (70 yrs and +)',
+    ],
+
+    // Footer
+    'footer_tagline' => 'The reference for orienteering in France.',
+    'footer_navigation' => 'Navigation',
+    'footer_links_calendar' => 'Calendar',
+    'footer_links_clubs' => 'Clubs',
+    'footer_links_results' => 'Results',
+    'footer_legal' => 'Legal',
+    'footer_links_legal_notice' => 'Legal Notice',
+    'footer_links_privacy' => 'Privacy',
+    'footer_links_terms' => 'Terms of Service',
+    'footer_contact' => 'Contact',
+    'footer_copyright' => 'All rights reserved.',
 
     // Homepage - How it Works
     'how_it_works_title' => 'How it works?',

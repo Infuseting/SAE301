@@ -125,6 +125,94 @@ return [
     'back_to_home' => 'Retorno al inicio',
     'security_efficiency' => 'Seguridad y eficiencia al corazón de su experiencia.',
 
+    // Homepage - Hero
+    'find_next_race' => 'Encuentra tu próxima',
+    'orienteering' => 'Carrera de Orientación',
+    'hero_subtitle' => 'Explora y encuentra cursos de orientación cerca de ti.',
+    'search_where' => '¿Dónde?',
+    'search_when' => '¿Cuándo?',
+    'search_type' => 'Tipo',
+    'search_placeholder_where' => 'Ciudad, Región...',
+    'search_placeholder_when' => 'Todas las fechas',
+    'search_option_all_types' => 'Todos los tipos',
+    'search_button' => 'Buscar',
+    'search_category' => 'Categoría',
+    'all' => 'Todo',
+    'leisure' => 'Ocio',
+    'competition' => 'Competición',
+    'search_age' => 'Edad',
+    'all_ages' => 'Todas las edades',
+
+    // Homepage - Upcoming Races
+    'upcoming_races_title' => 'Próximas Carreras',
+    'upcoming_races_subtitle' => 'No te pierdas los próximos eventos cerca de ti.',
+    'upcoming_raids_title' => 'Raids Destacados',
+    'upcoming_raids_subtitle' => 'Los mejores raids de orientación seleccionados para ti.',
+    'view_calendar' => 'Ver calendario completo',
+    'upcoming_races_list' => [
+        [
+            'id' => 1,
+            'title' => "La Brújula del Bosque",
+            'date' => "12 Oct 2026",
+            'location' => "Fontainebleau, FR",
+            'type' => "Media Distancia",
+            'image' => "https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+        ],
+        [
+            'id' => 2,
+            'title' => "Sprint Urbano de París",
+            'date' => "25 Oct 2026",
+            'location' => "París, FR",
+            'type' => "Sprint",
+            'image' => "https://images.unsplash.com/photo-1767520832109-aee2a0d72f49?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        ],
+        [
+            'id' => 3,
+            'title' => "Nocturna de los Vosgos",
+            'date' => "05 Nov 2026",
+            'location' => "Gerardmer, FR",
+            'type' => "Noche",
+            'image' => "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+        ]
+    ],
+
+    // Age Categories
+    'age_categories' => [
+        'benjamins' => 'Benjamines (12 años y -)',
+        'minimes' => 'Infantiles (13 - 14 años)',
+        'cadets' => 'Cadetes (15 - 16 años)',
+        'juniors' => 'Juniors (17 - 18 años)',
+        'espoirs' => 'Esperanzas (19 - 20 años)',
+        'seniors' => 'Seniors (21 - 39 años)',
+        'veterans1' => 'Veteranos 1 (40 - 49 años)',
+        'veterans2' => 'Veteranos 2 (50 - 59 años)',
+        'veterans3' => 'Veteranos 3 (60 - 69 años)',
+        'veterans4' => 'Veteranos 4 (70 años y +)',
+    ],
+
+    // Footer
+    'footer_tagline' => 'La referencia para la orientación en Francia.',
+    'footer_navigation' => 'Navegación',
+    'footer_links_calendar' => 'Calendario',
+    'footer_links_clubs' => 'Clubes',
+    'footer_links_results' => 'Resultados',
+    'footer_legal' => 'Legal',
+    'footer_links_legal_notice' => 'Aviso Legal',
+    'footer_links_privacy' => 'Privacidad',
+    'footer_links_terms' => 'Términos',
+    'footer_contact' => 'Contacto',
+    'footer_copyright' => 'Todos los derechos reservados.',
+
+    // Homepage - How it Works
+    'how_it_works_title' => '¿Cómo funciona?',
+    'how_it_works_subtitle' => 'Únete a la comunidad de orientación más grande de Francia en unos pocos pasos.',
+    'step_1_title' => 'Encuentra una carrera',
+    'step_1_desc' => 'Usa nuestros filtros avanzados para encontrar el evento que coincida con tu nivel y deseos.',
+    'step_2_title' => 'Regístrate',
+    'step_2_desc' => 'Crea tu cuenta, gestiona tus licencias e inscríbete en unos pocos clics.',
+    'step_3_title' => '¡Corre!',
+    'step_3_desc' => 'Participa en el evento, sigue tus resultados y compara tu rendimiento.',
+
 
     // Welcome Page
     'documentation_text' => 'Laravel tiene una maravillosa documentación cubriendo cada aspecto del framework. Ya sea un principiante o alguien con experiencia previa con Laravel, recomendamos leer nuestra documentación desde el principio hasta el final.',
