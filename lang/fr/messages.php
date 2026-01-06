@@ -144,7 +144,7 @@ return [
     // Homepage - Hero
     'find_next_race' => 'Trouvez votre prochaine',
     'orienteering' => 'Course d\'Orientation',
-    'hero_subtitle' => 'Explorez des centaines de cartes et de parcours à travers la France. Du sprint urbain à l\'ultra-longue distance en montagne.',
+    'hero_subtitle' => 'Explorez et inscrivez-vous à des courses d\'orientation.',
     'search_where' => 'Où ?',
     'search_when' => 'Quand ?',
     'search_type' => 'Type',

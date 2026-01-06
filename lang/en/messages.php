@@ -144,7 +144,7 @@ return [
     // Homepage - Hero
     'find_next_race' => 'Find your next',
     'orienteering' => 'Orienteering Race',
-    'hero_subtitle' => 'Explore hundreds of maps and courses across France. From urban sprints to ultra-long distance in the mountains.',
+    'hero_subtitle' => 'Explore and find orienteering courses near you.',
     'search_where' => 'Where?',
     'search_when' => 'When?',
     'search_type' => 'Type',

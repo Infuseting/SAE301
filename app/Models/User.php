@@ -128,8 +128,7 @@ class User extends Authenticatable
             get: function () {
                 return !empty($this->birth_date) &&
                     !empty($this->address) &&
-                    !empty($this->phone) &&
-                    (!empty($this->license_number) || !empty($this->medical_certificate_code));
+                    !empty($this->phone);
             }
         );
     }

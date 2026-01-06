@@ -1,4 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import UserMenu from '@/Components/UserMenu';
 import ApplicationLogo from '@/Components/ApplicationLogo';
@@ -6,6 +9,7 @@ import ProfileCompletionModal from '@/Components/ProfileCompletionModal';
 
 export default function Welcome({ auth }) {
     const messages = usePage().props.translations?.messages || {};
+    const [startDate, setStartDate] = useState(null);
 
     const upcomingRaces = [
         {
@@ -104,10 +108,12 @@ export default function Welcome({ auth }) {
                             </div>
                             <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100">
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">{messages.search_when || "Quand ?"}</label>
-                                <input
-                                    type="text"
-                                    placeholder={messages.search_placeholder_when || "Toutes les dates"}
+                                <DatePicker
+                                    selected={startDate}
+                                    onChange={(date) => setStartDate(date)}
+                                    placeholderText={messages.search_placeholder_when || "Toutes les dates"}
                                     className="w-full bg-transparent border-none p-0 text-gray-800 placeholder-gray-400 focus:ring-0 font-medium"
+                                    dateFormat="dd/MM/yyyy"
                                 />
                             </div>
                             <div className="flex-1 px-4 py-3">
