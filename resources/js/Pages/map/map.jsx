@@ -1,17 +1,31 @@
 import Footer from "@/Components/Footer";
+import InteractiveMap from "./InteractiveMap";
+import Header from "@/Components/Header";
+import React from "react";
 
-export default function Map() {
+export default function Map({ auth, raids }) {
+    const [center, setCenter] = React.useState([46.603354, 1.888334]);
+
     return (
-        <div className="min-h-screen flex flex-col">
-            <header className="bg-emerald-600 text-white p-6">
-                <h1 className="text-3xl font-bold">Carte Interactive</h1>
-            </header>
-            <main className="flex-grow p-6">
-                <div className="w-full h-96 bg-gray-200 flex items-center justify-center">
-                    <p className="text-gray-500">[Carte interactive ici]</p>
-                </div>
-            </main>
-            <Footer />
+        <div className="min-h-screen flex flex-col ">
+            <Header auth={auth} />
+            <div className=" mt-20">
+                <main className="flex flex-col flex-grow p-6 items-center">
+                    <div className="w-full md:w-[80%]">
+                        <p className="font-bold text-3xl ml-5">
+                            Liste des raids ({raids?.length || 0})
+                        </p>
+                    </div>
+                    <div className="w-full md:w-[80%] min-h-[600px] bg-gray-200 flex items-center justify-center rounded-xl shadow-md mt-6">
+                        <InteractiveMap
+                            center={center}
+                            onCenterChange={setCenter}
+                            raids={raids}
+                        />
+                    </div>
+                </main>
+                <Footer />
+            </div>
         </div>
     );
 }

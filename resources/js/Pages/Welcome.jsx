@@ -4,6 +4,7 @@ import UserMenu from "@/Components/UserMenu";
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import ProfileCompletionModal from "@/Components/ProfileCompletionModal";
 import Footer from "@/Components/Footer";
+import Header from "@/Components/Header";
 
 export default function Welcome({ auth }) {
     const messages = usePage().props.translations?.messages || {};
@@ -56,37 +57,7 @@ export default function Welcome({ auth }) {
                     </div>
 
                     {/* Navigation Overlay */}
-                    <div className="absolute top-0 w-full z-20 p-6">
-                        <header className="max-w-7xl mx-auto flex items-center justify-between">
-                            <ApplicationLogo className="h-12 w-auto fill-current text-white" />
-
-                            <nav className="flex items-center gap-6">
-                                <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
-
-                                {auth.user ? (
-                                    <UserMenu
-                                        user={auth.user}
-                                        className="text-white"
-                                    />
-                                ) : (
-                                    <div className="flex gap-4">
-                                        <Link
-                                            href={route("login")}
-                                            className="px-4 py-2 text-white hover:text-emerald-400 transition font-medium cursor-pointer"
-                                        >
-                                            {messages.login}
-                                        </Link>
-                                        <Link
-                                            href={route("register")}
-                                            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition font-bold shadow-lg shadow-emerald-900/20 cursor-pointer"
-                                        >
-                                            {messages.register}
-                                        </Link>
-                                    </div>
-                                )}
-                            </nav>
-                        </header>
-                    </div>
+                    <Header auth={auth} />
 
                     {/* Hero Content */}
                     <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 text-center">
