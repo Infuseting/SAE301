@@ -21,6 +21,8 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/race', [VisuRaceController::class, 'show'])->name('race.view');
+Route::get('/raids', [VisuRaceController::class, 'index'])->name('raids.index');
+Route::get('/raids/{race}', [VisuRaceController::class, 'show'])->name('raids.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
@@ -80,6 +82,9 @@ Route::get('/lang/{locale}', function ($locale) {
 })->name('lang.switch');
 
 
+// Test Error Route
+Route::get('/test-error', function () {
+    throw new \Exception('This is a test forced error for debugging purposes.', 500);
+});
 
 // Route::get('race/{idRace}', [VisuRaceController::class, 'show'])->name('register');
-
