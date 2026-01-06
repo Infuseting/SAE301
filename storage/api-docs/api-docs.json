@@ -90,15 +90,20 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name",
+                                    "first_name",
+                                    "last_name",
                                     "email",
                                     "password",
                                     "password_confirmation"
                                 ],
                                 "properties": {
-                                    "name": {
+                                    "first_name": {
                                         "type": "string",
-                                        "example": "John Doe"
+                                        "example": "John"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "example": "Doe"
                                     },
                                     "email": {
                                         "type": "string",
@@ -138,6 +143,25 @@
                                         },
                                         "user": {
                                             "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The email has already been taken."
+                                        },
+                                        "errors": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -281,6 +305,71 @@
                 }
             }
         },
+        "/profile/complete": {
+            "post": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Complete user profile",
+                "description": "Completes the user profile with required information (DOB, Address, Phone, License/Medical)",
+                "operationId": "completeProfile",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "birth_date",
+                                    "address",
+                                    "phone"
+                                ],
+                                "properties": {
+                                    "birth_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "1990-01-01"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "123 Main St, Paris, France"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+33612345678"
+                                    },
+                                    "license_number": {
+                                        "type": "string",
+                                        "example": "123456",
+                                        "nullable": true
+                                    },
+                                    "medical_certificate_code": {
+                                        "type": "string",
+                                        "example": "PPS-123456",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile completed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
         "/user/set-password": {
             "put": {
                 "tags": [
@@ -355,9 +444,7 @@
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "google",
-                                "github",
-                                "discord"
+                                "google"
                             ]
                         }
                     }
@@ -386,9 +473,7 @@
                         "schema": {
                             "type": "string",
                             "enum": [
-                                "google",
-                                "github",
-                                "discord"
+                                "google"
                             ]
                         }
                     }
@@ -396,6 +481,258 @@
                 "responses": {
                     "302": {
                         "description": "Redirect to dashboard or login"
+                    }
+                }
+            }
+        },
+        "/api/team/age-thresholds": {
+            "get": {
+                "tags": [
+                    "Team"
+                ],
+                "summary": "Get age thresholds",
+                "description": "Returns the current age thresholds (A, B, C) for team validation",
+                "operationId": "efd73c0a621ab9c964de0b500b8c8670",
+                "responses": {
+                    "200": {
+                        "description": "Age thresholds retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "thresholds": {
+                                            "properties": {
+                                                "min": {
+                                                    "type": "integer",
+                                                    "example": 12
+                                                },
+                                                "intermediate": {
+                                                    "type": "integer",
+                                                    "example": 16
+                                                },
+                                                "adult": {
+                                                    "type": "integer",
+                                                    "example": 18
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "rules": {
+                                            "type": "string",
+                                            "example": "Age requirements: All participants must be at least 12 years old..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/team/validate-ages": {
+            "post": {
+                "tags": [
+                    "Team"
+                ],
+                "summary": "Validate team ages",
+                "description": "Validates a team's age composition against the rules: all >= A, and if any < B then at least one >= C",
+                "operationId": "783a84e1d93e08b23fb0f2714626909b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "ages": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            14,
+                                            15,
+                                            20
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Validation result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "valid": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "details": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/api/team/validate-birthdates": {
+            "post": {
+                "tags": [
+                    "Team"
+                ],
+                "summary": "Validate team by birthdates",
+                "description": "Validates a team's composition by calculating ages from birthdates",
+                "operationId": "11b2cd18c88f7df40048d7acb3d4bc16",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "birthdates": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "date"
+                                        },
+                                        "example": [
+                                            "2010-05-15",
+                                            "2009-08-22",
+                                            "2004-01-10"
+                                        ]
+                                    },
+                                    "reference_date": {
+                                        "description": "Date to calculate ages from (defaults to today)",
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Validation result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "valid": {
+                                            "type": "boolean"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "details": {
+                                            "type": "object"
+                                        },
+                                        "calculated_ages": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/api/team/check-participant": {
+            "post": {
+                "tags": [
+                    "Team"
+                ],
+                "summary": "Check participant eligibility",
+                "description": "Checks if a single participant meets the minimum age requirement",
+                "operationId": "3ef95bb35152694ff20944acb5108c29",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "properties": {
+                                            "age": {
+                                                "type": "integer",
+                                                "example": 14
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    {
+                                        "properties": {
+                                            "birthdate": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2010-05-15"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Eligibility result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "eligible": {
+                                            "type": "boolean"
+                                        },
+                                        "age": {
+                                            "type": "integer"
+                                        },
+                                        "is_minor": {
+                                            "type": "boolean"
+                                        },
+                                        "is_adult": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -508,6 +845,10 @@
         {
             "name": "Profile",
             "description": "Profile"
+        },
+        {
+            "name": "Team",
+            "description": "Team"
         }
     ]
 }

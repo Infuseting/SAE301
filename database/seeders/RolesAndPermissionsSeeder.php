@@ -22,6 +22,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit users',
             'delete users',
             'view logs',
+            'grant role',
+            'grant admin',
+            'access-admin',
         ];
 
         foreach ($permissions as $permission) {

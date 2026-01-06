@@ -91,6 +91,14 @@ class AuthController extends Controller
      *             @OA\Property(property="token", type="string", example="1|AbCdEf123456..."),
      *              @OA\Property(property="user", ref="#/components/schemas/User")
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The email has already been taken."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
      *     )
      * )
      */
