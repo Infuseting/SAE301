@@ -26,7 +26,6 @@ class TeamController extends Controller
             'image' => 'nullable|image|max:2048',
             'leader_id' => 'required|exists:members,adh_id',
         ]);
-
         return redirect()->route('home')->with('success', 'Team created successfully!');
     }
 }
