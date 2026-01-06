@@ -40,21 +40,21 @@ class Race extends Model
 
     public function raid(): BelongsTo
     {
-        return $this->belongsTo(raid::class, 'raid_id', 'raid_id');
+        return $this->belongsTo(Raid::class, 'raid_id', 'raid_id');
     }
 
     public function leaderboard(): BelongsTo
     {
-        return $this->belongsTo(leaderboard::class, 'cla_id', 'cla_id');
+        return $this->belongsTo(Leaderboard::class, 'cla_id', 'cla_id');
     }
 
     public function leaderboardResults(): HasMany
     {
-        return $this->hasMany(leaderboardResult::class, 'race_id', 'race_id');
+        return $this->hasMany(LeaderboardResult::class, 'race_id', 'race_id');
     }
 
     public function leaderboardTeams(): HasMany
     {
-        return $this->hasMany(leaderboardTeam::class, 'race_id', 'race_id');
+        return $this->hasMany(LeaderboardTeam::class, 'race_id', 'race_id');
     }
 }
