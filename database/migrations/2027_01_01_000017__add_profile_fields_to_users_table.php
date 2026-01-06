@@ -14,8 +14,6 @@ return new class extends Migration {
             $table->date('birth_date')->nullable()->after('email');
             $table->string('address')->nullable()->after('birth_date');
             $table->string('phone')->nullable()->after('address');
-            $table->string('license_number')->nullable()->after('phone');
-            $table->string('medical_certificate_path')->nullable()->after('license_number');
         });
     }
 
@@ -29,8 +27,7 @@ return new class extends Migration {
                 'birth_date',
                 'address',
                 'phone',
-                'license_number',
-                'medical_certificate_path',
+                
             ]);
         });
     }

@@ -187,9 +187,11 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request)
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
+        if ($request->user()->password_is_set) {
+            $request->validate([
+                'password' => ['required', 'current_password'],
+            ]);
+        }
 
         $this->profileService->deleteAccount($request->user());
 

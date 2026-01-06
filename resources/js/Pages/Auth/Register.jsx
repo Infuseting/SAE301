@@ -54,7 +54,7 @@ export default function Register() {
                     {messages.continue_with_email || "Or continue with email"}{' '}
                     <Link
                         href={route('login')}
-                        className="font-medium text-[#9333ea] hover:text-[#7a2ce6]"
+                        className="font-medium text-important hover:text-unimportant"
                     >
                         {messages.login_title || 'Sign in'}
                     </Link>
@@ -62,27 +62,11 @@ export default function Register() {
             </div>
 
             <div className="mt-6">
-                {/* Social Login Grid */}
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
                     <a href={route('socialite.redirect', 'google')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
                         <span className="sr-only">{messages.connect_google || 'Connect Google'}</span>
                         <div className="flex items-center gap-2">
                             <GoogleIcon /> <span>{messages.social_login_google || 'Google'}</span>
-                        </div>
-                    </a>
-
-                    <a href={route('socialite.redirect', 'discord')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
-                        <span className="sr-only">{messages.connect_discord || 'Connect Discord'}</span>
-                        <div className="flex items-center gap-2">
-                            <DiscordIcon /> <span>{messages.social_login_discord || 'Discord'}</span>
-                        </div>
-                    </a>
-                </div>
-                <div>
-                    <a href={route('socialite.redirect', 'github')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
-                        <span className="sr-only">{messages.connect_github || 'Connect GitHub'}</span>
-                        <div className="flex items-center gap-2">
-                            <GithubIcon /> <span>{messages.social_login_github || 'GitHub'}</span>
                         </div>
                     </a>
                 </div>
