@@ -42,6 +42,7 @@ class PublicProfileController extends Controller
                 'medical_certificate_code' => $user->medical_certificate_code,
                 'birth_date' => $user->birth_date,
                 'address' => $user->address,
+                'city' => $user->city,
                 'phone' => $user->phone,
                 'email' => $user->email,
                 'created_at' => $user->created_at,

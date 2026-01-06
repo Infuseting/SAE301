@@ -187,11 +187,25 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request)
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
+        $user = $request->user();
 
-        $this->profileService->deleteAccount($request->user());
+        // If user has a password, validate the password
+        // If user doesn't have a password (social login), validate "CONFIRMER" confirmation text
+        if ($user->password_is_set) {
+            $request->validate([
+                'password' => ['required', 'current_password'],
+            ]);
+        } else {
+            $request->validate([
+                'password' => ['required', 'string', function ($attribute, $value, $fail) {
+                    if ($value !== 'CONFIRMER') {
+                        $fail(__('messages.invalid_confirmation_text'));
+                    }
+                }],
+            ]);
+        }
+
+        $this->profileService->deleteAccount($user);
 
         if ($request->wantsJson() && !$request->header('X-Inertia')) {
             return response()->json(['message' => __('messages.account_deleted')], 204);

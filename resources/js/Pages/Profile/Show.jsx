@@ -71,7 +71,7 @@ export default function Show({ user }) {
                                             <p className="text-s text-gray-500">{"Numéro de téléphone : " + user.phone}</p>
                                         </div>
                                         <div className="flex items-baseline space-x-2 justify-center sm:justify-start">
-                                            <p className="text-s text-gray-500">{"Adresse : " + user.address}</p>
+                                            <p className="text-s text-gray-500">{"Adresse : " + user.address + ", " + user.city}</p>
                                         </div>
                                     </div>
                                     {usePage().props.auth.user && usePage().props.auth.user.id === user.id && (

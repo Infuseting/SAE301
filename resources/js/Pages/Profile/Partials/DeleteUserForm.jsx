@@ -10,6 +10,8 @@ import { useRef, useState } from 'react';
 export default function DeleteUserForm({ className = '' }) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
     const passwordInput = useRef();
+    const user = usePage().props.auth.user;
+    const hasPassword = user?.password_is_set ?? false;
 
     const {
         data,
@@ -70,19 +72,22 @@ export default function DeleteUserForm({ className = '' }) {
                     </h2>
 
                     <p className="mt-1 text-sm text-gray-600 ">
-                        {messages.delete_account_warning_text || 'Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.'}
+                        {hasPassword 
+                            ? (messages.delete_account_warning_text || 'Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.')
+                            : (messages.delete_account_warning_text_no_password || 'Once your account is deleted, all of its resources and data will be permanently deleted. Please type "CONFIRMER" to confirm you would like to permanently delete your account.')
+                        }
                     </p>
 
                     <div className="mt-6">
                         <InputLabel
                             htmlFor="password"
-                            value={messages.password || 'Password'}
+                            value={hasPassword ? (messages.password || 'Password') : (messages.confirmation_text || 'Confirmation text')}
                             className="sr-only"
                         />
 
                         <TextInput
                             id="password"
-                            type="password"
+                            type={hasPassword ? 'password' : 'text'}
                             name="password"
                             ref={passwordInput}
                             value={data.password}
@@ -91,7 +96,7 @@ export default function DeleteUserForm({ className = '' }) {
                             }
                             className="mt-1 block w-3/4"
                             isFocused
-                            placeholder={messages.password || 'Password'}
+                            placeholder={hasPassword ? (messages.password || 'Password') : 'CONFIRMER'}
                         />
 
                         <InputError

@@ -212,6 +212,18 @@ export default function UpdateProfileInformation({
                         <InputError className="mt-2" message={errors.address} />
                     </div>
 
+                    <div className="md:col-span-2">
+                        <InputLabel htmlFor="city" value="Ville" className="text-gray-700 font-medium mb-1" />
+                        <TextInput
+                            id="city"
+                            className="mt-1 block w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-[#9333ea] focus:ring-[#9333ea] transition-all duration-200"
+                            value={data.city}
+                            onChange={(e) => setData('city', e.target.value)}
+                            placeholder="Votre ville"
+                        />
+                        <InputError className="mt-2" message={errors.city} />
+                    </div>
+
                     <div>
                         <InputLabel htmlFor="license_number" value="Numéro de Licence" className="text-gray-700 font-medium mb-1" />
                         <TextInput
