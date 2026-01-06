@@ -110,6 +110,18 @@ return [
     'admin.users.edit_title' => 'Modifier :name',
     'admin.users.confirm_delete' => 'Supprimer définitivement :name ? Cette action est irréversible.',
     'admin.users.confirm_toggle' => ':action l\'utilisateur :name ?',
+    'admin.users.roles' => 'Rôles',
+    'admin.users.manage_roles_title' => 'Gérer les rôles de :name',
+    'admin.users.current_roles' => 'Rôles actuels :',
+    'admin.users.select_role' => 'Cliquez pour ajouter un rôle :',
+    'admin.users.current' => 'Actuel',
+    'admin.users.remove_role' => 'Retirer le rôle',
+    'admin.users.requires_grant_admin' => 'Permission requise',
+    'admin.users.role_assigned' => 'Rôle ":role" attribué avec succès !',
+    'admin.users.role_removed' => 'Rôle ":role" retiré avec succès !',
+    'admin.users.role_assign_failed' => 'Échec de l\'attribution du rôle',
+    'admin.users.role_remove_failed' => 'Échec du retrait du rôle',
+    'loading' => 'Chargement...',
 
     // Admin - Logs
     'admin.logs.title' => 'Journal d\'activité',

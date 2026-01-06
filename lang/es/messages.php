@@ -109,6 +109,18 @@ return [
     'admin.users.edit_title' => 'Editar :name',
     'admin.users.confirm_delete' => '¿Eliminar permanentemente a :name? Esta acción no se puede deshacer.',
     'admin.users.confirm_toggle' => ':action al usuario :name?',
+    'admin.users.roles' => 'Roles',
+    'admin.users.manage_roles_title' => 'Gestionar roles de :name',
+    'admin.users.current_roles' => 'Roles actuales:',
+    'admin.users.select_role' => 'Haz clic para añadir un rol:',
+    'admin.users.current' => 'Actual',
+    'admin.users.remove_role' => 'Eliminar rol',
+    'admin.users.requires_grant_admin' => 'Permiso requerido',
+    'admin.users.role_assigned' => '¡Rol ":role" asignado correctamente!',
+    'admin.users.role_removed' => '¡Rol ":role" eliminado correctamente!',
+    'admin.users.role_assign_failed' => 'Error al asignar el rol',
+    'admin.users.role_remove_failed' => 'Error al eliminar el rol',
+    'loading' => 'Cargando...',
 
     // Admin - Logs
     'admin.logs.title' => 'Registro de actividad',
