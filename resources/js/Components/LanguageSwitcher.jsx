@@ -9,6 +9,7 @@ export default function LanguageSwitcher({ mobile = false }) {
         en: '🇺🇸',
         es: '🇪🇸',
         fr: '🇫🇷',
+        de: '🇩🇪'
     };
 
     const currentFlag = flags[locale] || flags['en'];
@@ -19,6 +20,7 @@ export default function LanguageSwitcher({ mobile = false }) {
                 <ResponsiveNavLink href={route('lang.switch', 'en')}>{flags.en}</ResponsiveNavLink>
                 <ResponsiveNavLink href={route('lang.switch', 'es')}>{flags.es}</ResponsiveNavLink>
                 <ResponsiveNavLink href={route('lang.switch', 'fr')}>{flags.fr}</ResponsiveNavLink>
+                <ResponsiveNavLink href={route('lang.switch', 'de')}>{flags.de}</ResponsiveNavLink>
             </>
         );
     }
@@ -59,6 +61,9 @@ export default function LanguageSwitcher({ mobile = false }) {
                     </Dropdown.Link>
                     <Dropdown.Link href={route('lang.switch', 'fr')}>
                         {flags.fr}
+                    </Dropdown.Link>
+                    <Dropdown.Link href={route('lang.switch', 'de')}>
+                        {flags.de}
                     </Dropdown.Link>
                 </Dropdown.Content>
             </Dropdown>
