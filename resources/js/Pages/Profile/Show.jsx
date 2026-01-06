@@ -1,6 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import UserAvatar from '@/Components/UserAvatar';
+import UserLastRaces from '@/Components/UserLastRaces';
+
 
 export default function Show({ user }) {
     const messages = usePage().props.translations?.messages || {};
@@ -34,6 +36,7 @@ export default function Show({ user }) {
                         </div>
                     </div>
                 </div>
+
             </AuthenticatedLayout>
         );
     }
@@ -106,6 +109,7 @@ export default function Show({ user }) {
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout>
+            <UserLastRaces />
+        </AuthenticatedLayout >
     );
 }
