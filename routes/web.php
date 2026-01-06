@@ -31,6 +31,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
 });
 
+Route::get('/createTeam', [App\Http\Controllers\TeamController::class, 'create'])->name('team.create');
+Route::post('/createTeam', [App\Http\Controllers\TeamController::class, 'store'])->name('team.store');
+Route::get('/users/search', [App\Http\Controllers\Api\UserController::class, 'search'])->name('users.search')->middleware('auth');
+
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
     // dashboard
     Route::get('/', [AdminController::class, 'index'])->name('dashboard')->middleware('can:access-admin');
