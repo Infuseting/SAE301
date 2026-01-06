@@ -43,7 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
 });
 
-// Raid - Public routes (no authentication required)
+// Raid - Public routes
 Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
 Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show');
 
