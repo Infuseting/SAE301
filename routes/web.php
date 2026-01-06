@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\MapController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -16,6 +17,8 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 })->name('home');
+
+Route::get('/map', [MapController::class, 'index'])->name('map');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
