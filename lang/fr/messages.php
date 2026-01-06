@@ -256,4 +256,22 @@ return [
     'description_bio' => 'Description / Bio',
     'edit_profile' => 'Modifier',
 
+    // Teams
+    'create_team' => 'Créer une équipe',
+    'create_team_subtext' => 'Créez une nouvelle équipe pour participer aux événements d\'orientation.',
+    'team_name' => 'Nom de l\'équipe',
+    'team_image' => 'Logo de l\'équipe',
+    'team_leader' => 'Chef d\'équipe',
+    'team_composed' => 'Équipe : ',
+    'select_leader' => 'Sélectionner une personne',
+    'select_mate' => 'Sélectionner une personne',
+    'search' => 'Rechercher',
+    'search_placeholder' => 'Rechercher par nom, email ou téléphone',
+    'teammates' => 'Coéquipiers',
+    'add_teammate' => 'Ajouter un coéquipier',
+    'remove_teammate' => 'Supprimer',
+    'no_teammates_added' => 'Aucun coéquipier ajouté pour le moment',
+    'teammate_added' => 'Coéquipier ajouté',
+    'teammate_removed' => 'Coéquipier supprimé',
+
 ];
