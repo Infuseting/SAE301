@@ -1,10 +1,16 @@
+import Footer from "@/Components/Footer";
+import Header from "@/Components/Header";
 import { Head, Link, usePage } from "@inertiajs/react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
 import LanguageSwitcher from "@/Components/LanguageSwitcher";
 import UserMenu from "@/Components/UserMenu";
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import ProfileCompletionModal from "@/Components/ProfileCompletionModal";
-import Footer from "@/Components/Footer";
-import Header from "@/Components/Header";
 
 export default function Welcome({ auth }) {
     const messages = usePage().props.translations?.messages || {};
