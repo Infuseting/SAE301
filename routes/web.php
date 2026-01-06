@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 
 use App\Http\Controllers\Race\NewRaceController;
 use App\Http\Controllers\Race\VisuRaceController;
+use App\Http\Controllers\RaidController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -34,6 +35,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
+
+    Route::resource('raids', RaidController::class);
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -81,5 +84,4 @@ Route::get('/lang/{locale}', function ($locale) {
 
 
 
-// Route::get('race/{idRace}', [VisuRaceController::class, 'show'])->name('register');
 
