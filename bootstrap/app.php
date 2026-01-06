@@ -30,6 +30,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function ($response) {
             \Illuminate\Support\Facades\Log::info('Response type: ' . get_class($response));
+
+            // Return original response (Ignition) if debug mode is on
+            if (app()->hasDebugModeEnabled() && app()->isLocal() && $response->getStatusCode() === 500) {
+                return $response;
+            }
+
             if (!in_array($response->getStatusCode(), [401, 403, 404, 419, 429, 500, 503])) {
                 return $response;
             }

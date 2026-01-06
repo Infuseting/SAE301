@@ -23,6 +23,11 @@ Route::get('/', function () {
 
 Route::get('/race', [VisuRaceController::class, 'show'])->name('race.view');
 
+// Create new race
+Route::get('/new-race', [NewRaceController::class, 'show'])->name('race.create');
+Route::post('/new-race', [NewRaceController::class, 'store'])->name('race.store');
+
+
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Welcome');
