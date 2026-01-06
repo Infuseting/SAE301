@@ -1,9 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link } from '@inertiajs/react';
 
-export default function VisuRace({ auth }) {
-    // Données fictives de la course
-    const race = {
+export default function VisuRace({ auth, race: raceData }) {
+    // Données du backend via props, ou données fictives pour dev
+    const race = raceData || {
         id: 1,
         title: "La Boussole de la Forêt",
         description: "Une course d'orientation passionnante à travers les sentiers de la forêt de Fontainebleau. Venez découvrir ce parcours exceptionnel avec des balises réparties sur 8 km de terrain varié. Idéal pour les amateurs comme pour les confirmés, cette épreuve vous offrira un défi technique et physique dans un cadre naturel magnifique.",
@@ -86,7 +87,7 @@ export default function VisuRace({ auth }) {
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
+            user={auth?.user}
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Détails de la Course</h2>}
         >
             <Head title={race.title} />

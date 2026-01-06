@@ -20,6 +20,8 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/race', [VisuRaceController::class, 'show'])->name('race.view');
+
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Welcome');
@@ -34,7 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
 
     Route::get('/new-race', [NewRaceController::class, 'show'])->name('race.show');
-    Route::get('/race/{race}', [VisuRaceController::class, 'show'])->name('race.view');
+    Route::post('/race', [NewRaceController::class, 'store'])->name('race.store');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -82,5 +84,5 @@ Route::get('/lang/{locale}', function ($locale) {
 
 
 
-Route::get('race/{idRace}', [VisuRaceController::class, 'show'])->name('register');
+// Route::get('race/{idRace}', [VisuRaceController::class, 'show'])->name('register');
 
