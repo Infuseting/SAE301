@@ -19,7 +19,7 @@ class SocialiteController extends Controller
      *     path="/auth/{provider}/redirect",
      *     tags={"Auth"},
      *     summary="Social Login Redirect",
-     *     description="Redirects the user to the OAuth provider (google, github, discord)",
+     *     description="Redirects the user to the OAuth provider (google, strava)",
      *     @OA\Parameter(
      *         name="provider",
      *         in="path",
@@ -112,10 +112,16 @@ class SocialiteController extends Controller
         }
 
         // Check if user with existing email exists
-        $user = User::where('email', $socialUser->getEmail())->first();
+        $email = $socialUser->getEmail();
+        
+        // For providers like Strava that don't always return email, generate one
+        if (empty($email)) {
+            $email = $provider . '_' . $socialUser->getId() . '@' . config('app.name', 'sae301') . '.local';
+        }
+        
+        $user = User::where('email', $email)->first();
 
         if (!$user) {
-            // Create new user (Generate random password)
             // Create new user (Generate random password)
             $nameParts = explode(' ', $socialUser->getName() ?? $socialUser->getNickname() ?? 'User');
             $firstName = $nameParts[0];
@@ -136,7 +142,7 @@ class SocialiteController extends Controller
             $user = User::create([
                 'first_name' => $firstName,
                 'last_name' => $lastName,
-                'email' => $socialUser->getEmail(),
+                'email' => $email,
                 'password' => bcrypt(str()->random(32)),
                 'password_is_set' => false,
                 'email_verified_at' => now(), // Assume verified by provider

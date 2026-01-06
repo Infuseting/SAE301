@@ -89,6 +89,8 @@ return [
     'connect_github' => 'Conectar con GitHub',
     'connect_google' => 'Conectar con Google',
     'connect_discord' => 'Conectar con Discord',
+    'connect_strava' => 'Conectar con Strava',
+    'social_login_strava' => 'Strava',
     'confirm_button' => 'Confirmar',
     'close' => 'Cerrar',
 
