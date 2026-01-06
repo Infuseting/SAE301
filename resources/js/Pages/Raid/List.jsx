@@ -30,7 +30,7 @@ export default function List({ raids }) {
             <div className="bg-green-500 py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between">
-                        <Link href={route('dashboard')} className="text-white hover:text-white/80">
+                        <Link href={route('home')} className="text-white hover:text-white/80">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
@@ -64,22 +64,22 @@ export default function List({ raids }) {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {raids.map((raid) => (
-                                <Link key={raid.id} href={route('raids.show', raid.id)}>
+                                <Link key={raid.raid_id} href={route('raids.show', raid.raid_id)}>
                                     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                                         <img
-                                            src={raid.image || '/images/default-raid.jpg'}
-                                            alt={raid.name}
+                                            src={raid.raid_image || '/images/default-raid.jpg'}
+                                            alt={raid.raid_name}
                                             className="w-full h-48 object-cover"
                                         />
                                         <div className="p-6">
                                             <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                                {raid.name}
+                                                {raid.raid_name}
                                             </h3>
                                             <p className="text-gray-600 text-sm mb-2">
-                                                {raid.address}, {raid.postal_code}
+                                                {raid.raid_street}, {raid.raid_city} {raid.raid_postal_code}
                                             </p>
                                             <p className="text-gray-500 text-sm">
-                                                {formatDate(raid.event_start_date)} - {formatDate(raid.event_end_date)}
+                                                {formatDate(raid.raid_date_start)} - {formatDate(raid.raid_date_end)}
                                             </p>
                                         </div>
                                     </div>

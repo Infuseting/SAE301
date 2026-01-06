@@ -215,17 +215,21 @@ export default function Welcome({ auth }) {
                                 <h2 className="text-3xl font-bold text-gray-900">{messages.upcoming_raids_title}</h2>
                                 <p className="mt-2 text-gray-600">{messages.upcoming_raids_subtitle}</p>
                             </div>
-                            <a href="#" className="hidden md:flex text-emerald-600 font-bold items-center hover:underline">
+                            <Link href={route('raids.index')} className="hidden md:flex text-emerald-600 font-bold items-center hover:underline">
                                 {messages.view_calendar}
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 ml-1">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                                 </svg>
-                            </a>
+                            </Link>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {(messages.upcoming_races_list || []).map((race) => (
-                                <div key={race.id} className="group relative bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                                <Link 
+                                    key={race.id} 
+                                    href={route('raids.show', race.id)}
+                                    className="group relative bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300 block"
+                                >
                                     <div className="aspect-[4/3] overflow-hidden">
                                         <img
                                             src={race.image}
@@ -256,17 +260,17 @@ export default function Welcome({ auth }) {
                                             {race.location}
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
 
                         <div className="mt-8 text-center md:hidden">
-                            <a href="#" className="inline-flex text-emerald-600 font-bold items-center hover:underline">
+                            <Link href={route('raids.index')} className="inline-flex text-emerald-600 font-bold items-center hover:underline">
                                 {messages.view_calendar}
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 ml-1">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                                 </svg>
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </section>

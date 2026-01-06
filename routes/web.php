@@ -31,9 +31,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
 
-    // Raid routes
-    Route::resource('raids', RaidController::class);
+    // Raid - Actions requiring authentication
+    Route::get('/raids/create', [RaidController::class, 'create'])->name('raids.create');
+    Route::post('/raids', [RaidController::class, 'store'])->name('raids.store');
+    Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
+    Route::put('/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
+    Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
 });
+
+// Raid - Public routes (no authentication required)
+Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
+Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show');
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
     // dashboard

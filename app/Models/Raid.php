@@ -26,25 +26,39 @@ class Raid extends Model
     use HasFactory;
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'raids';
+
+    /**
+     * The primary key associated with the table.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'raid_id';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'event_start_date',
-        'event_end_date',
-        'registration_start_date',
-        'registration_end_date',
-        'adherent_id',
-        'club_id',
-        'periode_inscription_id',
-        'contact',
-        'website_url',
-        'image',
-        'address',
-        'postal_code',
-        'number',
+        'raid_name',
+        'raid_description',
+        'adh_id',
+        'clu_id',
+        'ins_id',
+        'raid_date_start',
+        'raid_date_end',
+        'raid_contact',
+        'raid_site_url',
+        'raid_image',
+        'raid_street',
+        'raid_city',
+        'raid_postal_code',
+        'raid_number',
     ];
 
     /**
@@ -55,10 +69,8 @@ class Raid extends Model
     protected function casts(): array
     {
         return [
-            'event_start_date' => 'datetime',
-            'event_end_date' => 'datetime',
-            'registration_start_date' => 'datetime',
-            'registration_end_date' => 'datetime',
+            'raid_date_start' => 'datetime',
+            'raid_date_end' => 'datetime',
         ];
     }
 }

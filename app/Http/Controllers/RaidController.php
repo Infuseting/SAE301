@@ -33,9 +33,7 @@ class RaidController extends Controller
      */
     public function index(): Response
     {
-        // TODO: Replace with real data when DB is ready
-        // $raids = Raid::latest()->get();
-        $raids = [];
+        $raids = Raid::latest()->get();
         
         return Inertia::render('Raid/List', [
             'raids' => $raids,
@@ -82,11 +80,10 @@ class RaidController extends Controller
      */
     public function store(StoreRaidRequest $request): RedirectResponse
     {
-        // TODO: Uncomment when DB is ready
-        // $raid = Raid::create($request->validated());
+        $raid = Raid::create($request->validated());
         
         return redirect()->route('raids.index')
-            ->with('success', 'Raid will be created when database is ready.');
+            ->with('success', 'Raid created successfully.');
     }
 
     /**
@@ -170,11 +167,10 @@ class RaidController extends Controller
      */
     public function update(StoreRaidRequest $request, Raid $raid): RedirectResponse
     {
-        // TODO: Uncomment when DB is ready
-        // $raid->update($request->validated());
+        $raid->update($request->validated());
         
         return redirect()->route('raids.index')
-            ->with('success', 'Raid will be updated when database is ready.');
+            ->with('success', 'Raid updated successfully.');
     }
 
     /**
@@ -203,10 +199,9 @@ class RaidController extends Controller
      */
     public function destroy(Raid $raid): RedirectResponse
     {
-        // TODO: Uncomment when DB is ready
-        // $raid->delete();
+        $raid->delete();
         
         return redirect()->route('raids.index')
-            ->with('success', 'Raid will be deleted when database is ready.');
+            ->with('success', 'Raid deleted successfully.');
     }
 }

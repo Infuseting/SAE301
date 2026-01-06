@@ -42,19 +42,19 @@ export default function Index({ raid, courses = [] }) {
 
     return (
         <AuthenticatedLayout>
-            <Head title={raid?.name || messages.raid || 'Raid'} />
+            <Head title={raid?.raid_name || messages.raid || 'Raid'} />
 
             {/* Green Header */}
             <div className="bg-green-500 py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-center relative">
-                        <Link href={route('raids.index')} className="text-white hover:text-white/80 absolute left-0">
+                        <Link href={route('home')} className="text-white hover:text-white/80 absolute left-0">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </Link>
                         <h1 className="text-2xl font-bold text-white">
-                            {raid?.name || messages.raid || 'Raid'}
+                            {raid?.raid_name || messages.raid || 'Raid'}
                         </h1>
                     </div>
                 </div>
@@ -68,33 +68,34 @@ export default function Index({ raid, courses = [] }) {
                             {/* Left Column - Raid Information */}
                             <div className="lg:col-span-2 space-y-4">
                                 <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                                    {raid?.name}
+                                    {raid?.raid_name}
                                 </h1>
 
                                 <div className="space-y-2 text-sm">
                                     <p className="text-gray-700">
-                                        {raid?.address}, {raid?.postal_code}
+                                        {raid?.raid_street}, {raid?.raid_city} {raid?.raid_postal_code}
                                     </p>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mt-4">
                                         <div>
-                                            <span className="font-semibold">Responsable :</span>
-                                            <p className="text-gray-700">{raid?.organizer_name || 'N/A'}</p>
+                                            <span className="font-semibold">Contact :</span>
+                                            <p className="text-gray-700">{raid?.raid_contact || 'N/A'}</p>
                                         </div>
 
                                         <div>
-                                            <span className="font-semibold">Club :</span>
-                                            <p className="text-gray-700">{raid?.club_name || 'N/A'}</p>
+                                            <span className="font-semibold">Numéro :</span>
+                                            <p className="text-gray-700">{raid?.raid_number || 'N/A'}</p>
                                         </div>
 
                                         <div>
-                                            <span className="font-semibold">E-mail :</span>
-                                            <p className="text-gray-700">{raid?.contact || 'N/A'}</p>
-                                        </div>
-
-                                        <div>
-                                            <span className="font-semibold">Téléphone :</span>
-                                            <p className="text-gray-700">{raid?.phone || 'N/A'}</p>
+                                            <span className="font-semibold">Site Web :</span>
+                                            <p className="text-gray-700">
+                                                {raid?.raid_site_url ? (
+                                                    <a href={raid.raid_site_url} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">
+                                                        {raid.raid_site_url}
+                                                    </a>
+                                                ) : 'N/A'}
+                                            </p>
                                         </div>
 
                                         <div>

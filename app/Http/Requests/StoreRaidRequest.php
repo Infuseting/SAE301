@@ -22,24 +22,26 @@ class StoreRaidRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:128'],
-            'event_start_date' => ['required', 'date', 'after:now'],
-            'event_end_date' => ['required', 'date', 'after:event_start_date'],
-            'registration_start_date' => ['required', 'date', 'after:now'],
-            'registration_end_date' => ['required', 'date', 'after:registration_start_date', 'before:event_start_date'],
+            'raid_name' => ['required', 'string', 'max:100'],
+            'raid_description' => ['required', 'string'],
+            'raid_date_start' => ['required', 'date', 'after:now'],
+            'raid_date_end' => ['required', 'date', 'after:raid_date_start'],
             
-            // Placeholder fields (nullable until related tables are created)
-            'adherent_id' => ['nullable', 'integer'],
-            'club_id' => ['nullable', 'string', 'max:32'],
-            'periode_inscription_id' => ['nullable', 'integer'],
+            // Foreign keys (required)
+            'adh_id' => ['required', 'integer'],
+            'clu_id' => ['required', 'integer'],
+            'ins_id' => ['required', 'integer'],
             
-            // Contact and address fields (nullable as placeholders)
-            'contact' => ['nullable', 'string', 'max:255'],
-            'website_url' => ['nullable', 'url', 'max:255'],
-            'image' => ['nullable', 'string'], // Will be base64 or file path
-            'address' => ['nullable', 'string', 'max:128'],
-            'postal_code' => ['nullable', 'string', 'max:128'],
-            'number' => ['nullable', 'string', 'max:128'],
+            // Required fields
+            'raid_contact' => ['required', 'string', 'max:100'],
+            'raid_street' => ['required', 'string', 'max:100'],
+            'raid_city' => ['required', 'string', 'max:100'],
+            'raid_postal_code' => ['required', 'string', 'max:20'],
+            'raid_number' => ['required', 'integer'],
+            
+            // Optional fields
+            'raid_site_url' => ['nullable', 'url', 'max:255'],
+            'raid_image' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -51,20 +53,20 @@ class StoreRaidRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => 'raid name',
-            'event_start_date' => 'event start date',
-            'event_end_date' => 'event end date',
-            'registration_start_date' => 'registration start date',
-            'registration_end_date' => 'registration end date',
-            'adherent_id' => 'adherent',
-            'club_id' => 'club',
-            'periode_inscription_id' => 'registration period',
-            'contact' => 'contact',
-            'website_url' => 'website URL',
-            'image' => 'image',
-            'address' => 'address',
-            'postal_code' => 'postal code',
-            'number' => 'number',
+            'raid_name' => 'raid name',
+            'raid_description' => 'description',
+            'raid_date_start' => 'start date',
+            'raid_date_end' => 'end date',
+            'adh_id' => 'organizer',
+            'clu_id' => 'club',
+            'ins_id' => 'registration period',
+            'raid_contact' => 'contact',
+            'raid_site_url' => 'website URL',
+            'raid_image' => 'image',
+            'raid_street' => 'street',
+            'raid_city' => 'city',
+            'raid_postal_code' => 'postal code',
+            'raid_number' => 'number',
         ];
     }
 }

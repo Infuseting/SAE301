@@ -13,16 +13,20 @@ export default function Create() {
     const messages = usePage().props.translations?.messages || {};
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        location: '',
-        description: '',
-        event_start_date: '',
-        event_end_date: '',
-        contact: '',
-        organizer_id: '',
-        club_id: '',
-        website_url: '',
-        image: null,
+        raid_name: '',
+        raid_description: '',
+        raid_date_start: '',
+        raid_date_end: '',
+        raid_contact: '',
+        raid_street: '',
+        raid_city: '',
+        raid_postal_code: '',
+        raid_number: '',
+        adh_id: '',
+        clu_id: '',
+        ins_id: '',
+        raid_site_url: '',
+        raid_image: null,
     });
 
     /**
@@ -41,7 +45,7 @@ export default function Create() {
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setData('image', file);
+            setData('raid_image', file);
         }
     };
 
@@ -53,7 +57,7 @@ export default function Create() {
             <div className="bg-green-500 py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-center relative">
-                        <Link href={route('raids.index')} className="text-white hover:text-white/80 absolute left-0">
+                        <Link href={route('home')} className="text-white hover:text-white/80 absolute left-0">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
@@ -77,49 +81,34 @@ export default function Create() {
 
                                 {/* Raid Name */}
                                 <div>
-                                    <InputLabel htmlFor="name" value="Nom du raid" />
+                                    <InputLabel htmlFor="raid_name" value="Nom du raid" />
                                     <TextInput
-                                        id="name"
+                                        id="raid_name"
                                         type="text"
-                                        name="name"
-                                        value={data.name}
+                                        name="raid_name"
+                                        value={data.raid_name}
                                         className="mt-1 block w-full"
                                         autoComplete="off"
                                         isFocused={true}
-                                        onChange={(e) => setData('name', e.target.value)}
+                                        onChange={(e) => setData('raid_name', e.target.value)}
                                         required
                                     />
-                                    <InputError message={errors.name} className="mt-2" />
-                                </div>
-
-                                {/* Location */}
-                                <div>
-                                    <InputLabel htmlFor="location" value="Lieu" />
-                                    <TextInput
-                                        id="location"
-                                        type="text"
-                                        name="location"
-                                        value={data.location}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) => setData('location', e.target.value)}
-                                        required
-                                    />
-                                    <InputError message={errors.location} className="mt-2" />
+                                    <InputError message={errors.raid_name} className="mt-2" />
                                 </div>
 
                                 {/* Description */}
                                 <div>
-                                    <InputLabel htmlFor="description" value="Description" />
+                                    <InputLabel htmlFor="raid_description" value="Description" />
                                     <textarea
-                                        id="description"
-                                        name="description"
-                                        value={data.description}
-                                        onChange={(e) => setData('description', e.target.value)}
+                                        id="raid_description"
+                                        name="raid_description"
+                                        value={data.raid_description}
+                                        onChange={(e) => setData('raid_description', e.target.value)}
                                         rows={6}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                                         required
                                     />
-                                    <InputError message={errors.description} className="mt-2" />
+                                    <InputError message={errors.raid_description} className="mt-2" />
                                 </div>
 
                                 {/* Date Range */}
@@ -128,27 +117,85 @@ export default function Create() {
                                     <div className="grid grid-cols-2 gap-4 mt-2">
                                         <div>
                                             <TextInput
-                                                type="date"
-                                                name="event_start_date"
-                                                value={data.event_start_date}
+                                                type="datetime-local"
+                                                name="raid_date_start"
+                                                value={data.raid_date_start}
                                                 className="block w-full"
-                                                onChange={(e) => setData('event_start_date', e.target.value)}
+                                                onChange={(e) => setData('raid_date_start', e.target.value)}
                                                 required
                                             />
-                                            <InputError message={errors.event_start_date} className="mt-2" />
+                                            <InputError message={errors.raid_date_start} className="mt-2" />
                                         </div>
                                         <div>
                                             <TextInput
-                                                type="date"
-                                                name="event_end_date"
-                                                value={data.event_end_date}
+                                                type="datetime-local"
+                                                name="raid_date_end"
+                                                value={data.raid_date_end}
                                                 className="block w-full"
-                                                onChange={(e) => setData('event_end_date', e.target.value)}
+                                                onChange={(e) => setData('raid_date_end', e.target.value)}
                                                 required
                                             />
-                                            <InputError message={errors.event_end_date} className="mt-2" />
+                                            <InputError message={errors.raid_date_end} className="mt-2" />
                                         </div>
                                     </div>
+                                </div>
+
+                                {/* Address Fields */}
+                                <div>
+                                    <InputLabel htmlFor="raid_street" value="Rue" />
+                                    <TextInput
+                                        id="raid_street"
+                                        type="text"
+                                        name="raid_street"
+                                        value={data.raid_street}
+                                        className="mt-1 block w-full"
+                                        onChange={(e) => setData('raid_street', e.target.value)}
+                                        required
+                                    />
+                                    <InputError message={errors.raid_street} className="mt-2" />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <InputLabel htmlFor="raid_city" value="Ville" />
+                                        <TextInput
+                                            id="raid_city"
+                                            type="text"
+                                            name="raid_city"
+                                            value={data.raid_city}
+                                            className="mt-1 block w-full"
+                                            onChange={(e) => setData('raid_city', e.target.value)}
+                                            required
+                                        />
+                                        <InputError message={errors.raid_city} className="mt-2" />
+                                    </div>
+                                    <div>
+                                        <InputLabel htmlFor="raid_postal_code" value="Code postal" />
+                                        <TextInput
+                                            id="raid_postal_code"
+                                            type="text"
+                                            name="raid_postal_code"
+                                            value={data.raid_postal_code}
+                                            className="mt-1 block w-full"
+                                            onChange={(e) => setData('raid_postal_code', e.target.value)}
+                                            required
+                                        />
+                                        <InputError message={errors.raid_postal_code} className="mt-2" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <InputLabel htmlFor="raid_number" value="Numéro" />
+                                    <TextInput
+                                        id="raid_number"
+                                        type="number"
+                                        name="raid_number"
+                                        value={data.raid_number}
+                                        className="mt-1 block w-full"
+                                        onChange={(e) => setData('raid_number', e.target.value)}
+                                        required
+                                    />
+                                    <InputError message={errors.raid_number} className="mt-2" />
                                 </div>
                             </div>
 
@@ -156,52 +203,75 @@ export default function Create() {
                             <div className="space-y-8">
                                 {/* Contact Info */}
                                 <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                                        Contact et Organisation
+                                    </h2>
+
                                     {/* Contact */}
                                     <div>
-                                        <InputLabel htmlFor="contact" value="Téléphone ou adresse mail de contact" />
+                                        <InputLabel htmlFor="raid_contact" value="Téléphone ou adresse mail de contact" />
                                         <TextInput
-                                            id="contact"
+                                            id="raid_contact"
                                             type="text"
-                                            name="contact"
-                                            value={data.contact}
+                                            name="raid_contact"
+                                            value={data.raid_contact}
                                             className="mt-1 block w-full"
-                                            onChange={(e) => setData('contact', e.target.value)}
+                                            onChange={(e) => setData('raid_contact', e.target.value)}
                                             placeholder="email@example.com"
                                             required
                                         />
-                                        <InputError message={errors.contact} className="mt-2" />
+                                        <InputError message={errors.raid_contact} className="mt-2" />
                                     </div>
 
                                     {/* Organizer Selection */}
                                     <div>
-                                        <InputLabel htmlFor="organizer_id" value="Sélection du responsable" />
+                                        <InputLabel htmlFor="adh_id" value="Sélection du responsable" />
                                         <select
-                                            id="organizer_id"
-                                            name="organizer_id"
-                                            value={data.organizer_id}
-                                            onChange={(e) => setData('organizer_id', e.target.value)}
+                                            id="adh_id"
+                                            name="adh_id"
+                                            value={data.adh_id}
+                                            onChange={(e) => setData('adh_id', e.target.value)}
                                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                            required
                                         >
                                             <option value="">Sélectionner...</option>
                                             {/* TODO: Load organizers from backend */}
                                         </select>
-                                        <InputError message={errors.organizer_id} className="mt-2" />
+                                        <InputError message={errors.adh_id} className="mt-2" />
                                     </div>
 
                                     {/* Club Selection */}
                                     <div>
-                                        <InputLabel htmlFor="club_id" value="Club de rattachement" />
+                                        <InputLabel htmlFor="clu_id" value="Club de rattachement" />
                                         <select
-                                            id="club_id"
-                                            name="club_id"
-                                            value={data.club_id}
-                                            onChange={(e) => setData('club_id', e.target.value)}
+                                            id="clu_id"
+                                            name="clu_id"
+                                            value={data.clu_id}
+                                            onChange={(e) => setData('clu_id', e.target.value)}
                                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                            required
                                         >
                                             <option value="">Sélectionner...</option>
                                             {/* TODO: Load clubs from backend */}
                                         </select>
-                                        <InputError message={errors.club_id} className="mt-2" />
+                                        <InputError message={errors.clu_id} className="mt-2" />
+                                    </div>
+
+                                    {/* Registration Period Selection */}
+                                    <div>
+                                        <InputLabel htmlFor="ins_id" value="Période d'inscription" />
+                                        <select
+                                            id="ins_id"
+                                            name="ins_id"
+                                            value={data.ins_id}
+                                            onChange={(e) => setData('ins_id', e.target.value)}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                            required
+                                        >
+                                            <option value="">Sélectionner...</option>
+                                            {/* TODO: Load registration periods from backend */}
+                                        </select>
+                                        <InputError message={errors.ins_id} className="mt-2" />
                                     </div>
                                 </div>
 
@@ -213,17 +283,17 @@ export default function Create() {
 
                                     {/* Website URL */}
                                     <div>
-                                        <InputLabel htmlFor="website_url" value="Site Web" />
+                                        <InputLabel htmlFor="raid_site_url" value="Site Web" />
                                         <TextInput
-                                            id="website_url"
+                                            id="raid_site_url"
                                             type="url"
-                                            name="website_url"
-                                            value={data.website_url}
+                                            name="raid_site_url"
+                                            value={data.raid_site_url}
                                             className="mt-1 block w-full"
-                                            onChange={(e) => setData('website_url', e.target.value)}
+                                            onChange={(e) => setData('raid_site_url', e.target.value)}
                                             placeholder="https://example.com"
                                         />
-                                        <InputError message={errors.website_url} className="mt-2" />
+                                        <InputError message={errors.raid_site_url} className="mt-2" />
                                     </div>
 
                                     {/* Image Upload */}
@@ -240,7 +310,7 @@ export default function Create() {
                                                     <p className="text-xs text-gray-500">PNG, JPG (MAX. 5MB)</p>
                                                 </div>
                                                 <input
-                                                    id="image"
+                                                    id="raid_image"
                                                     type="file"
                                                     className="hidden"
                                                     accept="image/*"
@@ -248,12 +318,12 @@ export default function Create() {
                                                 />
                                             </label>
                                         </div>
-                                        {data.image && (
+                                        {data.raid_image && (
                                             <p className="mt-2 text-sm text-gray-600">
-                                                Fichier sélectionné : {data.image.name}
+                                                Fichier sélectionné : {data.raid_image.name}
                                             </p>
                                         )}
-                                        <InputError message={errors.image} className="mt-2" />
+                                        <InputError message={errors.raid_image} className="mt-2" />
                                     </div>
                                 </div>
                             </div>
