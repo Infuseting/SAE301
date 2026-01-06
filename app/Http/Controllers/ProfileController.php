@@ -82,7 +82,14 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
-        $request->user()->fill($request->validated());
+        $validated = $request->validated();
+        
+        // Ensure is_public is always set (false if not present, true if checked)
+        if (!isset($validated['is_public'])) {
+            $validated['is_public'] = false;
+        }
+        
+        $request->user()->fill($validated);
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
@@ -102,9 +109,6 @@ class ProfileController extends Controller
         // We might need to update ProfileUpdateRequest to include these rules.
         if ($request->has('description')) {
             $request->user()->description = $request->input('description');
-        }
-        if ($request->has('is_public')) {
-            $request->user()->is_public = $request->boolean('is_public');
         }
 
         $request->user()->save();

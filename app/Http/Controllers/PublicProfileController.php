@@ -24,10 +24,12 @@ class PublicProfileController extends Controller
             // We'll show a limited view with "Private Profile" message
             return Inertia::render('Profile/Show', [
                 'user' => [
+                    'id' => $user->id,
                     'name' => $user->name,
                     'profile_photo_url' => $user->profile_photo_url,
                     'is_public' => false,
                 ],
+                'isOwner' => false,
             ]);
         }
 
@@ -37,7 +39,7 @@ class PublicProfileController extends Controller
                 'name' => $user->name,
                 'description' => $user->description,
                 'profile_photo_url' => $user->profile_photo_url,
-                'is_public' => true,
+                'is_public' => $user->is_public,
                 'license_number' => $user->license_number,
                 'medical_certificate_code' => $user->medical_certificate_code,
                 'birth_date' => $user->birth_date,
@@ -47,6 +49,7 @@ class PublicProfileController extends Controller
                 'email' => $user->email,
                 'created_at' => $user->created_at,
             ],
+            'isOwner' => $isOwner,
         ]);
     }
 
