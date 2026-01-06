@@ -112,6 +112,7 @@ class User extends Authenticatable
         'has_completed_profile',
         'profile_photo_url',
         'name',
+        'license_number',
     ];
 
     /**
@@ -166,5 +167,13 @@ class User extends Authenticatable
     public function connectedAccounts()
     {
         return $this->hasMany(ConnectedAccount::class);
+    }
+
+    /**
+     * Get the user's license number from the associated member record.
+     */
+    public function getLicenseNumberAttribute()
+    {
+        return $this->member ? $this->member->adh_license : null;
     }
 }
