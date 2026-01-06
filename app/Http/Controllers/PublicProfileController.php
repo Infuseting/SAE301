@@ -38,7 +38,12 @@ class PublicProfileController extends Controller
                 'description' => $user->description,
                 'profile_photo_url' => $user->profile_photo_url,
                 'is_public' => true,
-                // Only share safe fields
+                'license_number' => $user->license_number,
+                'medical_certificate_code' => $user->medical_certificate_code,
+                'birth_date' => $user->birth_date,
+                'address' => $user->address,
+                'phone' => $user->phone,
+                'email' => $user->email,
                 'created_at' => $user->created_at,
             ],
         ]);
