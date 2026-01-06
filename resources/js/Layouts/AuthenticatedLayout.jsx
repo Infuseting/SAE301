@@ -16,18 +16,19 @@ export default function AuthenticatedLayout({ header, children }) {
         useState(false);
 
     const hasPermission = (permission) => {
+        if (!user) return false;
         return user.roles?.some(role => (role.name === 'admin' || role === 'admin')) ||
             user.permissions?.some(perm => (perm.name === permission || perm === permission));
     }
 
     const canViewUsers = hasPermission('view users');
     const canViewLogs = hasPermission('view logs');
-    const hasAdminAccess = user.roles?.some(role => (role.name === 'admin' || role === 'admin')) ||
-        user.permissions?.some(perm => ['view users', 'edit users', 'delete users', 'view logs'].includes(perm.name || perm));
+    const hasAdminAccess = user?.roles?.some(role => (role.name === 'admin' || role === 'admin')) ||
+        user?.permissions?.some(perm => ['view users', 'edit users', 'delete users', 'view logs'].includes(perm.name || perm));
 
     return (
         <div className="min-h-screen bg-gray-100 ">
-            <ProfileCompletionModal />
+            {user && <ProfileCompletionModal />}
             <nav className="border-b border-gray-100 bg-white  ">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
@@ -73,11 +74,28 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <LanguageSwitcher />
                             </div>
 
-                            <div className="hidden sm:flex sm:items-center">
-                                <div className="relative ms-3">
-                                    <UserMenu user={user} />
+                            {user ? (
+                                <div className="hidden sm:flex sm:items-center">
+                                    <div className="relative ms-3">
+                                        <UserMenu user={user} />
+                                    </div>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="hidden sm:flex sm:items-center sm:ms-6 space-x-4">
+                                    <Link
+                                        href={route('login')}
+                                        className="text-sm text-gray-700 hover:text-gray-900 transition"
+                                    >
+                                        {messages.login || 'Se connecter'}
+                                    </Link>
+                                    <Link
+                                        href={route('register')}
+                                        className="text-sm bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition"
+                                    >
+                                        {messages.register || "S'inscrire"}
+                                    </Link>
+                                </div>
+                            )}
 
                             <div className="-me-2 flex items-center sm:hidden">
                                 <button
@@ -158,29 +176,42 @@ export default function AuthenticatedLayout({ header, children }) {
                         )}
                     </div>
 
-                    <div className="border-t border-gray-200  pb-1 pt-4">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-gray-800 ">
-                                {user.name}
+                    {user ? (
+                        <div className="border-t border-gray-200  pb-1 pt-4">
+                            <div className="px-4">
+                                <div className="text-base font-medium text-gray-800 ">
+                                    {user.name}
+                                </div>
+                                <div className="text-sm font-medium text-gray-500 ">
+                                    {user.email}
+                                </div>
                             </div>
-                            <div className="text-sm font-medium text-gray-500 ">
-                                {user.email}
-                            </div>
-                        </div>
 
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
-                                {messages.profile || 'Profile'}
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route('logout')}
-                                as="button"
-                            >
-                                {messages.logout || 'Log Out'}
-                            </ResponsiveNavLink>
+                            <div className="mt-3 space-y-1">
+                                <ResponsiveNavLink href={route('profile.edit')}>
+                                    {messages.profile || 'Profile'}
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    method="post"
+                                    href={route('logout')}
+                                    as="button"
+                                >
+                                    {messages.logout || 'Log Out'}
+                                </ResponsiveNavLink>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="border-t border-gray-200 pb-1 pt-4">
+                            <div className="px-4 space-y-2">
+                                <ResponsiveNavLink href={route('login')}>
+                                    {messages.login || 'Se connecter'}
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink href={route('register')}>
+                                    {messages.register || "S'inscrire"}
+                                </ResponsiveNavLink>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </nav>
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\TeamAgeController;
+use App\Http\Controllers\RaidController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -33,7 +34,18 @@ Route::middleware('auth')->group(function () {
 
     // Team age validation page
     Route::get('/team/age-validation', [TeamAgeController::class, 'index'])->name('team.age-validation');
+
+    // Raid - Actions requiring authentication
+    Route::get('/raids/create', [RaidController::class, 'create'])->name('raids.create');
+    Route::post('/raids', [RaidController::class, 'store'])->name('raids.store');
+    Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
+    Route::put('/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
+    Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
 });
+
+// Raid - Public routes
+Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
+Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show');
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
     // dashboard
