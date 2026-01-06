@@ -16,7 +16,8 @@ export default function UpdateProfileInformation({
 
     const { data, setData, post, errors, processing, recentlySuccessful } =
         useForm({
-            name: user.name,
+            first_name: user.first_name,
+            last_name: user.last_name,
             email: user.email,
             description: user.description || '',
             birth_date: user.birth_date ? user.birth_date.split('T')[0] : '',
@@ -129,20 +130,33 @@ export default function UpdateProfileInformation({
                     </div>
                 </div>
 
-                <div>
-                    <InputLabel htmlFor="name" value={messages.name || 'Name'} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <InputLabel htmlFor="first_name" value={messages.first_name || 'Prénom'} />
+                        <TextInput
+                            id="first_name"
+                            className="mt-1 block w-full"
+                            value={data.first_name}
+                            onChange={(e) => setData('first_name', e.target.value)}
+                            required
+                            isFocused
+                            autoComplete="given-name"
+                        />
+                        <InputError className="mt-2" message={errors.first_name} />
+                    </div>
 
-                    <TextInput
-                        id="name"
-                        className="mt-1 block w-full"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                        isFocused
-                        autoComplete="name"
-                    />
-
-                    <InputError className="mt-2" message={errors.name} />
+                    <div>
+                        <InputLabel htmlFor="last_name" value={messages.last_name || 'Nom'} />
+                        <TextInput
+                            id="last_name"
+                            className="mt-1 block w-full"
+                            value={data.last_name}
+                            onChange={(e) => setData('last_name', e.target.value)}
+                            required
+                            autoComplete="family-name"
+                        />
+                        <InputError className="mt-2" message={errors.last_name} />
+                    </div>
                 </div>
 
                 <div>
@@ -211,6 +225,8 @@ export default function UpdateProfileInformation({
                         />
                         <InputError className="mt-2" message={errors.address} />
                     </div>
+
+
 
                     <div>
                         <InputLabel htmlFor="license_number" value="Numéro de Licence" className="text-gray-700 font-medium mb-1" />

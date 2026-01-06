@@ -13,15 +13,7 @@ export default function ConnectedAccountsForm({ className = '', connectedAccount
 
     return (
         <section className={className}>
-            <header>
-                <h2 className="text-lg font-medium text-gray-900 ">{messages.connected_accounts || 'Connected Accounts'}</h2>
-                <p className="mt-1 text-sm text-gray-600 ">
-                    {messages.manage_connected_accounts || 'Manage your connected social accounts.'}
-                </p>
-            </header>
-
             <div className="mt-6 space-y-6">
-
 
                 {/* Google */}
                 <div className="flex items-center justify-between">
@@ -38,7 +30,6 @@ export default function ConnectedAccountsForm({ className = '', connectedAccount
                         )}
                     </div>
                 </div>
-
 
             </div>
         </section>
