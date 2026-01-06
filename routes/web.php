@@ -43,7 +43,7 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
     Route::get('/', [AdminController::class, 'index'])->name('dashboard')->middleware('can:access-admin');
 
     // users
-    Route::get('/users', [UserController::class, 'index'])->name('users.index')->middleware('can:view users');
+    Route::match(['get', 'post'], '/users', [UserController::class, 'index'])->name('users.index')->middleware('can:view users');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('can:edit users');
     Route::post('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle')->middleware('can:edit users');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('can:delete users');
@@ -56,7 +56,7 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
     
 
     // logs
-    Route::get('/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
+    Route::match(['get', 'post'], '/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
 });
 
 require __DIR__ . '/auth.php';

@@ -12,11 +12,14 @@ class UserController extends Controller
 {
     /**
      * List users with pagination and optional search.
+     * Accepts filters via POST to avoid URL parameters.
      * Includes user roles for display.
      */
     public function index(Request $request)
     {
-        $q = $request->input('q');
+        // Get filters from POST body or fallback to GET (for initial page load)
+        $page = $request->input('page', 1);
+        $q = $request->input('q', '');
 
         $query = User::with('roles:id,name');
 
@@ -28,17 +31,28 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        // Manual pagination to avoid query string
+        $users = $query->orderBy('created_at', 'desc')->paginate(15, ['*'], 'page', $page);
 
         // Transform users to include role names as array
-        $usersArray = $users->toArray();
-        $usersArray['data'] = collect($usersArray['data'])->map(function ($user) {
-            $user['role_names'] = collect($user['roles'] ?? [])->pluck('name')->toArray();
-            return $user;
-        })->toArray();
+        $users->through(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'active' => $user->active,
+                'created_at' => $user->created_at,
+                'roles' => $user->roles,
+                'role_names' => $user->roles->pluck('name')->toArray(),
+            ];
+        });
 
         return Inertia::render('Admin/Users/Index', [
-            'users' => $usersArray,
+            'users' => $users,
+            'filters' => [
+                'q' => $q,
+                'page' => $page,
+            ],
         ]);
     }
 
