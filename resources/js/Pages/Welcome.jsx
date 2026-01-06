@@ -177,22 +177,16 @@ export default function Welcome({ auth }) {
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">{messages.search_age || "Âge"}</label>
                                 <select className="w-full bg-transparent border-none p-0 text-gray-800 focus:ring-0 font-medium cursor-pointer">
                                     <option value="">{messages.all_ages || "Tous âges"}</option>
-                                    <option value="H10">H10</option>
-                                    <option value="H12">H12</option>
-                                    <option value="H14">H14</option>
-                                    <option value="H16">H16</option>
-                                    <option value="H18">H18</option>
-                                    <option value="H20">H20</option>
-                                    <option value="H21">H21</option>
-                                    <option value="H35+">H35+</option>
-                                    <option value="D10">D10</option>
-                                    <option value="D12">D12</option>
-                                    <option value="D14">D14</option>
-                                    <option value="D16">D16</option>
-                                    <option value="D18">D18</option>
-                                    <option value="D20">D20</option>
-                                    <option value="D21">D21</option>
-                                    <option value="D35+">D35+</option>
+                                    <option value="benjamins">Benjamins (12 ans et -)</option>
+                                    <option value="minimes">Minimes (13 - 14 ans)</option>
+                                    <option value="cadets">Cadets (15 - 16 ans)</option>
+                                    <option value="juniors">Juniors (17 - 18 ans)</option>
+                                    <option value="espoirs">Espoirs (19 - 20 ans)</option>
+                                    <option value="seniors">Séniors (21 - 39 ans)</option>
+                                    <option value="veterans1">Vétérans 1 (40 - 49 ans)</option>
+                                    <option value="veterans2">Vétérans 2 (50 - 59 ans)</option>
+                                    <option value="veterans3">Vétérans 3 (60 - 69 ans)</option>
+                                    <option value="veterans4">Vétérans 4 (70 ans et +)</option>
                                 </select>
                             </div>
 
