@@ -57,6 +57,15 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </NavLink>
                                 )}
 
+                                {canViewUsers && (
+                                    <NavLink
+                                        href={route('admin.leaderboard.index')}
+                                        active={route().current('admin.leaderboard.*')}
+                                    >
+                                        {messages.leaderboard || 'Leaderboard'}
+                                    </NavLink>
+                                )}
+
                                 {canViewLogs && (
                                     <NavLink
                                         href={route('admin.logs.index')}
@@ -145,6 +154,15 @@ export default function AuthenticatedLayout({ header, children }) {
                                 active={route().current('admin.users.index')}
                             >
                                 {messages.users || 'Users'}
+                            </ResponsiveNavLink>
+                        )}
+
+                        {canViewUsers && (
+                            <ResponsiveNavLink
+                                href={route('admin.leaderboard.index')}
+                                active={route().current('admin.leaderboard.*')}
+                            >
+                                {messages.leaderboard || 'Leaderboard'}
                             </ResponsiveNavLink>
                         )}
 

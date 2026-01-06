@@ -7,7 +7,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\LeaderboardController as AdminLeaderboardController;
 use App\Http\Controllers\TeamAgeController;
+use App\Http\Controllers\LeaderboardController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -17,6 +19,9 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 })->name('home');
+
+// Public leaderboard page
+Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
@@ -52,6 +57,12 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
 
     // logs
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
+
+    // leaderboard management
+    Route::get('/leaderboard', [AdminLeaderboardController::class, 'index'])->name('leaderboard.index')->middleware('can:view users');
+    Route::post('/leaderboard/import', [AdminLeaderboardController::class, 'import'])->name('leaderboard.import')->middleware('can:edit users');
+    Route::get('/leaderboard/{raceId}/results', [AdminLeaderboardController::class, 'results'])->name('leaderboard.results')->middleware('can:view users');
+    Route::delete('/leaderboard/results/{resultId}', [AdminLeaderboardController::class, 'destroy'])->name('leaderboard.destroy')->middleware('can:delete users');
 });
 
 require __DIR__ . '/auth.php';
