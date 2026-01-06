@@ -37,8 +37,6 @@ class ProfileCompletionTest extends TestCase
             'birth_date' => '1990-01-01',
             'address' => '123 Main St',
             'phone' => '1234567890',
-            'license_number' => 'LIC-123',
-            'medical_certificate_code' => null,
         ]);
 
         $this->actingAs($user)

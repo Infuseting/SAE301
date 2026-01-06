@@ -54,7 +54,7 @@ class ProfileService
             ->withProperties([
                 'level' => 'critical',
                 'action' => 'USER_DELETED',
-                'content' => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email],
+                'content' => ['id' => $user->id, 'first_name' => $user->first_name, 'last_name' => $user->last_name, 'email' => $user->email],
                 'ip' => request()->ip(),
             ])
             ->log('USER_DELETED');

@@ -33,7 +33,8 @@ class ProfileApiTest extends TestCase
         $response = $this
             ->actingAs($user)
             ->patchJson('/profile', [
-                'name' => 'API User',
+                'first_name' => 'API',
+                'last_name' => 'User',
                 'email' => 'api@example.com',
             ]);
 
