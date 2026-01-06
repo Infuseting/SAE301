@@ -8,6 +8,9 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\UserController;
 
+use App\Http\Controllers\Race\NewRaceController;
+use App\Http\Controllers\Race\VisuRaceController;
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -29,6 +32,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
+
+    Route::get('/new-race', [NewRaceController::class, 'show'])->name('race.show');
+    Route::get('/race/{race}', [VisuRaceController::class, 'show'])->name('race.view');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -40,6 +46,8 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('can:edit users');
     Route::post('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle')->middleware('can:edit users');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('can:delete users');
+
+    
 
     // logs
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
@@ -66,3 +74,8 @@ Route::get('/lang/{locale}', function ($locale) {
 
     return redirect()->back();
 })->name('lang.switch');
+
+
+
+Route::get('race/{idRace}', [VisuRaceController::class, 'show'])->name('register');
+
