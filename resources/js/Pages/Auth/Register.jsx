@@ -26,7 +26,8 @@ const GithubIcon = () => (
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
+        first_name: '',
+        last_name: '',
         email: '',
         password: '',
         password_confirmation: '',
@@ -82,19 +83,35 @@ export default function Register() {
 
                 <div className="mt-8">
                     <form onSubmit={submit} className="space-y-5">
-                        <div className="space-y-1">
-                            <InputLabel htmlFor="name" value={messages.name || 'Nom complet'} className="text-gray-700 font-semibold" />
-                            <TextInput
-                                id="name"
-                                name="name"
-                                value={data.name}
-                                className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                autoComplete="name"
-                                isFocused={true}
-                                onChange={(e) => setData('name', e.target.value)}
-                                required
-                            />
-                            <InputError message={errors.name} className="mt-2" />
+                        <div className="flex gap-4">
+                            <div className="space-y-1 w-1/2">
+                                <InputLabel htmlFor="first_name" value={messages.first_name || 'Prénom'} className="text-gray-700 font-semibold" />
+                                <TextInput
+                                    id="first_name"
+                                    name="first_name"
+                                    value={data.first_name}
+                                    className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                    autoComplete="given-name"
+                                    isFocused={true}
+                                    onChange={(e) => setData('first_name', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.first_name} className="mt-2" />
+                            </div>
+
+                            <div className="space-y-1 w-1/2">
+                                <InputLabel htmlFor="last_name" value={messages.last_name || 'Nom'} className="text-gray-700 font-semibold" />
+                                <TextInput
+                                    id="last_name"
+                                    name="last_name"
+                                    value={data.last_name}
+                                    className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                    autoComplete="family-name"
+                                    onChange={(e) => setData('last_name', e.target.value)}
+                                    required
+                                />
+                                <InputError message={errors.last_name} className="mt-2" />
+                            </div>
                         </div>
 
                         <div className="space-y-1">
