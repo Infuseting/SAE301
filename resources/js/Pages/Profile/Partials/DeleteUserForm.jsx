@@ -7,9 +7,9 @@ import TextInput from '@/Components/TextInput';
 import { useForm, usePage } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 
-export default function DeleteUserForm({ className = '', hasPassword = true }) {
+export default function DeleteUserForm({ className = '' }) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
-    const passwordInput = useRef();
+    const confirmationInput = useRef();
 
     const {
         data,
@@ -20,7 +20,7 @@ export default function DeleteUserForm({ className = '', hasPassword = true }) {
         errors,
         clearErrors,
     } = useForm({
-        password: '',
+        confirmation: '',
     });
 
     const confirmUserDeletion = () => {
@@ -33,7 +33,7 @@ export default function DeleteUserForm({ className = '', hasPassword = true }) {
         destroy(route('profile.destroy'), {
             preserveScroll: true,
             onSuccess: () => closeModal(),
-            onError: () => passwordInput.current?.focus(),
+            onError: () => confirmationInput.current?.focus(),
             onFinish: () => reset(),
         });
     };
@@ -70,44 +70,45 @@ export default function DeleteUserForm({ className = '', hasPassword = true }) {
                     </h2>
 
                     <p className="mt-1 text-sm text-gray-600 ">
-                        {messages.delete_account_warning_text || 'Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.'}
+                        {messages.delete_account_warning_text_no_password || 'Once your account is deleted, all of its resources and data will be permanently deleted. Please type "CONFIRMER" to confirm you would like to permanently delete your account.'}
                     </p>
 
-                    {hasPassword && (
-                        <div className="mt-6">
-                            <InputLabel
-                                htmlFor="password"
-                                value={messages.password || 'Password'}
-                                className="sr-only"
-                            />
+                    <div className="mt-6">
+                        <InputLabel
+                            htmlFor="confirmation"
+                            value={messages.confirmation_text || 'Type "CONFIRMER" to confirm'}
+                            className="sr-only"
+                        />
 
-                            <TextInput
-                                id="password"
-                                type="password"
-                                name="password"
-                                ref={passwordInput}
-                                value={data.password}
-                                onChange={(e) =>
-                                    setData('password', e.target.value)
-                                }
-                                className="mt-1 block w-3/4"
-                                isFocused
-                                placeholder={messages.password || 'Password'}
-                            />
+                        <TextInput
+                            id="confirmation"
+                            type="text"
+                            name="confirmation"
+                            ref={confirmationInput}
+                            value={data.confirmation}
+                            onChange={(e) =>
+                                setData('confirmation', e.target.value)
+                            }
+                            className="mt-1 block w-3/4"
+                            isFocused
+                            placeholder="CONFIRMER"
+                        />
 
-                            <InputError
-                                message={errors.password}
-                                className="mt-2"
-                            />
-                        </div>
-                    )}
+                        <InputError
+                            message={errors.confirmation}
+                            className="mt-2"
+                        />
+                    </div>
 
                     <div className="mt-6 flex justify-end">
                         <SecondaryButton onClick={closeModal}>
                             {messages.cancel || 'Cancel'}
                         </SecondaryButton>
 
-                        <DangerButton className="ms-3" disabled={processing}>
+                        <DangerButton
+                            className="ms-3"
+                            disabled={processing || data.confirmation !== 'CONFIRMER'}
+                        >
                             {messages.delete_account || 'Delete Account'}
                         </DangerButton>
                     </div>

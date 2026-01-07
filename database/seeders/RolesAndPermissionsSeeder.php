@@ -22,6 +22,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit users',
             'delete users',
             'view logs',
+            'grant role',
+            'grant admin',
+            'access-admin',
+            // Club permissions
+            'accept-club',
+            'manage-own-club',
+            'view-clubs',
+            'create-club',
         ];
 
         foreach ($permissions as $permission) {
@@ -31,11 +39,15 @@ class RolesAndPermissionsSeeder extends Seeder
         // create roles and assign created permissions
 
         // User Role
-        $role = Role::firstOrCreate(['name' => 'user']);
-        // Users normally don't get admin perms by default
+        $userRole = Role::firstOrCreate(['name' => 'user']);
+        $userRole->givePermissionTo(['view-clubs', 'create-club']);
+
+        // Club Manager Role
+        $clubManagerRole = Role::firstOrCreate(['name' => 'club-manager']);
+        $clubManagerRole->givePermissionTo(['manage-own-club', 'view-clubs']);
 
         // Admin Role
-        $role = Role::firstOrCreate(['name' => 'admin']);
-        $role->givePermissionTo(Permission::all());
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $adminRole->givePermissionTo(Permission::all());
     }
 }
