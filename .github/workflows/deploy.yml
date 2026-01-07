@@ -68,6 +68,7 @@ jobs:
           docker exec sae301 php artisan migrate 
           docker exec sae301 php artisan optimize
           docker exec sae301 php artisan config:cache
+          docker exec sae301 php artisan storage:link
           docker exec sae301 php artisan route:cache
           docker exec sae301 php artisan view:cache
           

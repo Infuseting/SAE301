@@ -1,13 +1,12 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import LanguageSwitcher from '@/Components/LanguageSwitcher';
-import UserMenu from '@/Components/UserMenu';
-import ApplicationLogo from '@/Components/ApplicationLogo';
+import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
 import ProfileCompletionModal from '@/Components/ProfileCompletionModal';
 
 export default function Welcome({ auth }) {
@@ -36,37 +35,11 @@ export default function Welcome({ auth }) {
                     </div>
 
                     {/* Navigation Overlay */}
-                    <div className="absolute top-0 w-full z-20 p-6">
-                        <header className="max-w-7xl mx-auto flex items-center justify-between">
-                            <ApplicationLogo className="h-12 w-auto fill-current text-white" />
 
-                            <nav className="flex items-center gap-6">
-                                <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
-
-                                {auth.user ? (
-                                    <UserMenu user={auth.user} className="text-white" />
-                                ) : (
-                                    <div className="flex gap-4">
-                                        <Link
-                                            href={route('login')}
-                                            className="px-4 py-2 text-white hover:text-emerald-400 transition font-medium cursor-pointer"
-                                        >
-                                            {messages.login}
-                                        </Link>
-                                        <Link
-                                            href={route('register')}
-                                            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition font-bold shadow-lg shadow-emerald-900/20 cursor-pointer"
-                                        >
-                                            {messages.register}
-                                        </Link>
-                                    </div>
-                                )}
-                            </nav>
-                        </header>
-                    </div>
+                    <Header transparent />
 
                     {/* Hero Content */}
-                    <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 text-center">
+                    <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 pt-24 lg:pt-0 text-center">
                         <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
                             <span className="block">{messages.find_next_race}</span>
                             <span className="block text-emerald-400">{messages.orienteering}</span>
@@ -166,47 +139,6 @@ export default function Welcome({ auth }) {
                         </div>
                     </div>
                 </div>
-
-                {/* How it Works (Moved Up) */}
-                <section className="py-24 bg-white border-b border-gray-100">
-                    <div className="max-w-7xl mx-auto px-6">
-                        <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="text-3xl font-bold text-gray-900 mb-4">{messages.how_it_works_title}</h2>
-                            <p className="text-gray-600 text-lg">{messages.how_it_works_subtitle}</p>
-                        </div>
-
-                        <div className="grid md:grid-cols-3 gap-12">
-                            <div className="text-center">
-                                <div className="bg-emerald-50 w-20 h-20 mx-auto rounded-3xl shadow-sm flex items-center justify-center mb-6 text-emerald-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">{messages.step_1_title}</h3>
-                                <p className="text-gray-500">{messages.step_1_desc}</p>
-                            </div>
-                            <div className="text-center">
-                                <div className="bg-emerald-50 w-20 h-20 mx-auto rounded-3xl shadow-sm flex items-center justify-center mb-6 text-emerald-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">{messages.step_2_title}</h3>
-                                <p className="text-gray-500">{messages.step_2_desc}</p>
-                            </div>
-                            <div className="text-center">
-                                <div className="bg-emerald-50 w-20 h-20 mx-auto rounded-3xl shadow-sm flex items-center justify-center mb-6 text-emerald-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">{messages.step_3_title}</h3>
-                                <p className="text-gray-500">{messages.step_3_desc}</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
                 {/* Raids (Previously Upcoming Races) */}
                 <section className="py-24 bg-gray-50">
                     <div className="max-w-7xl mx-auto px-6">
@@ -225,8 +157,8 @@ export default function Welcome({ auth }) {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {(messages.upcoming_races_list || []).map((race) => (
-                                <Link 
-                                    key={race.id} 
+                                <Link
+                                    key={race.id}
                                     href={route('raids.show', race.id)}
                                     className="group relative bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300 block"
                                 >
@@ -275,39 +207,48 @@ export default function Welcome({ auth }) {
                     </div>
                 </section>
 
-                <footer className="bg-gray-900 text-white py-12 border-t border-gray-800">
-                    <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-8">
-                        <div>
-                            <ApplicationLogo className="h-8 w-auto fill-current text-emerald-500 mb-4" />
-                            <p className="text-gray-400 text-sm">
-                                {messages.footer_tagline}
-                            </p>
+                {/* How it Works (Moved Up) */}
+                <section className="py-24 bg-white border-b border-gray-100">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center max-w-3xl mx-auto mb-16">
+                            <h2 className="text-3xl font-bold text-gray-900 mb-4">{messages.how_it_works_title}</h2>
+                            <p className="text-gray-600 text-lg">{messages.how_it_works_subtitle}</p>
                         </div>
-                        <div>
-                            <h4 className="font-bold mb-4">{messages.footer_navigation}</h4>
-                            <ul className="space-y-2 text-gray-400 text-sm">
-                                <li><a href="#" className="hover:text-emerald-400">{messages.footer_links_calendar}</a></li>
-                                <li><a href="#" className="hover:text-emerald-400">{messages.footer_links_clubs}</a></li>
-                                <li><a href="#" className="hover:text-emerald-400">{messages.footer_links_results}</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-bold mb-4">{messages.footer_legal}</h4>
-                            <ul className="space-y-2 text-gray-400 text-sm">
-                                <li><a href="#" className="hover:text-emerald-400">{messages.footer_links_legal_notice}</a></li>
-                                <li><a href="#" className="hover:text-emerald-400">{messages.footer_links_privacy}</a></li>
-                                <li><a href="#" className="hover:text-emerald-400">{messages.footer_links_terms}</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-bold mb-4">{messages.footer_contact}</h4>
-                            <p className="text-gray-400 text-sm">contact@sae301.fr</p>
+
+                        <div className="grid md:grid-cols-3 gap-12">
+                            <div className="text-center">
+                                <div className="bg-emerald-50 w-20 h-20 mx-auto rounded-3xl shadow-sm flex items-center justify-center mb-6 text-emerald-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-3">{messages.step_1_title}</h3>
+                                <p className="text-gray-500">{messages.step_1_desc}</p>
+                            </div>
+                            <div className="text-center">
+                                <div className="bg-emerald-50 w-20 h-20 mx-auto rounded-3xl shadow-sm flex items-center justify-center mb-6 text-emerald-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-3">{messages.step_2_title}</h3>
+                                <p className="text-gray-500">{messages.step_2_desc}</p>
+                            </div>
+                            <div className="text-center">
+                                <div className="bg-emerald-50 w-20 h-20 mx-auto rounded-3xl shadow-sm flex items-center justify-center mb-6 text-emerald-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-3">{messages.step_3_title}</h3>
+                                <p className="text-gray-500">{messages.step_3_desc}</p>
+                            </div>
                         </div>
                     </div>
-                    <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-                        &copy; {new Date().getFullYear()} SAE301. {messages.footer_copyright}
-                    </div>
-                </footer>
+                </section>
+
+
+                <Footer />
             </div>
         </>
     );

@@ -18,6 +18,7 @@ class ProfileDeletionTest extends TestCase
 
         $response = $this->actingAs($user)->delete('/profile', [
             'password' => 'password',
+            'confirmation' => 'CONFIRMER',
         ]);
 
         $response->assertSessionHasNoErrors();
@@ -27,17 +28,18 @@ class ProfileDeletionTest extends TestCase
         $this->assertNull(User::find($user->id));
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account(): void
+    public function test_correct_confirmation_must_be_provided_to_delete_account(): void
     {
         $user = User::factory()->create([
             'password' => bcrypt('password'),
         ]);
 
         $response = $this->actingAs($user)->delete('/profile', [
-            'password' => 'wrong-password',
+            'password' => 'password',
+            'confirmation' => 'WRONG',
         ]);
 
-        $response->assertSessionHasErrors('password');
+        $response->assertSessionHasErrors('confirmation');
         $this->assertNotNull(User::find($user->id));
     }
 }

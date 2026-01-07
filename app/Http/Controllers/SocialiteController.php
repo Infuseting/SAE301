@@ -19,7 +19,7 @@ class SocialiteController extends Controller
      *     path="/auth/{provider}/redirect",
      *     tags={"Auth"},
      *     summary="Social Login Redirect",
-     *     description="Redirects the user to the OAuth provider (google, github, discord)",
+     *     description="Redirects the user to the OAuth provider (google, strava)",
      *     @OA\Parameter(
      *         name="provider",
      *         in="path",
@@ -112,37 +112,34 @@ class SocialiteController extends Controller
         }
 
         // Check if user with existing email exists
-        $user = User::where('email', $socialUser->getEmail())->first();
+        $email = $socialUser->getEmail();
+
+        // For providers like Strava that don't always return email, generate one
+        if (empty($email)) {
+            $email = $provider . '_' . $socialUser->getId() . '@' . config('app.name', 'sae301') . '.local';
+        }
+
+        $user = User::where('email', $email)->first();
 
         if (!$user) {
-            // Create new user (Generate random password)
             // Create new user (Generate random password)
             $nameParts = explode(' ', $socialUser->getName() ?? $socialUser->getNickname() ?? 'User');
             $firstName = $nameParts[0];
             $lastName = isset($nameParts[1]) ? implode(' ', array_slice($nameParts, 1)) : $firstName;
 
-            $member = \App\Models\Member::create([
-                'adh_license' => 'PENDING-' . \Illuminate\Support\Str::random(8),
-                'adh_end_validity' => now()->addYear(),
-                'adh_date_added' => now(),
-            ]);
-
-            $medicalDoc = \App\Models\MedicalDoc::create([
-                'doc_num_pps' => 'PENDING',
-                'doc_end_validity' => now()->addYear(),
-                'doc_date_added' => now(),
-            ]);
-
             $user = User::create([
                 'first_name' => $firstName,
                 'last_name' => $lastName,
-                'email' => $socialUser->getEmail(),
+                'email' => $email,
                 'password' => bcrypt(str()->random(32)),
                 'password_is_set' => false,
                 'email_verified_at' => now(), // Assume verified by provider
-                'adh_id' => $member->adh_id,
-                'doc_id' => $medicalDoc->doc_id,
+                'adh_id' => null,
+                'doc_id' => null,
             ]);
+
+            // Assign default 'user' role
+            $user->assignRole('user');
         }
 
         // Link account

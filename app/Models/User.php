@@ -87,7 +87,7 @@ class User extends Authenticatable
     protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(
-            get: fn () => "{$this->first_name} {$this->last_name}",
+            get: fn() => "{$this->first_name} {$this->last_name}",
         );
     }
 
@@ -112,6 +112,7 @@ class User extends Authenticatable
         'has_completed_profile',
         'profile_photo_url',
         'name',
+        'license_number',
     ];
 
     /**
@@ -166,6 +167,24 @@ class User extends Authenticatable
     public function connectedAccounts()
     {
         return $this->hasMany(ConnectedAccount::class);
+    }
+
+    /**
+     * Get the user's license number from the associated member record.
+     */
+    public function getLicenseNumberAttribute()
+    {
+        return $this->member ? $this->member->adh_license : null;
+    }
+
+    /**
+     * Get the clubs that the user belongs to.
+     */
+    public function clubs()
+    {
+        return $this->belongsToMany(Club::class, 'club_user', 'user_id', 'club_id')
+            ->withPivot('role', 'status')
+            ->withTimestamps();
     }
 
     /**
