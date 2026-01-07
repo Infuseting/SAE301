@@ -87,7 +87,7 @@ Route::get('/auth/{provider}/callback', [\App\Http\Controllers\SocialiteControll
 
 // Language switcher
 Route::get('/lang/{locale}', function ($locale) {
-    $available = ['en', 'es', 'fr'];
+    $available = ['en', 'es', 'fr', 'de'];
     if (!in_array($locale, $available)) {
         $locale = config('app.locale');
     }
