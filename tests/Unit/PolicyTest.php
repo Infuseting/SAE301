@@ -181,11 +181,13 @@ class PolicyTest extends TestCase
     }
 
     /**
-     * Test ClubPolicy::create - responsable-club can create
+     * Test ClubPolicy::create - responsable-club cannot create (only adherent and admin can)
      */
     public function test_club_policy_responsable_club_can_create(): void
     {
-        $this->assertTrue($this->clubPolicy->create($this->responsableClubUser));
+        // Note: ClubPolicy now only allows adherent and admin to create clubs
+        // responsable-club without adherent role cannot create
+        $this->assertFalse($this->clubPolicy->create($this->responsableClubUser));
     }
 
     // ===========================================

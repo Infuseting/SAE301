@@ -83,7 +83,7 @@ class ClubController extends Controller
      */
     public function create(): Response
     {
-        $this->authorize('create-club');
+        $this->authorize('create', Club::class);
 
         return Inertia::render('Clubs/Create');
     }
@@ -123,7 +123,7 @@ class ClubController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $this->authorize('create-club');
+        $this->authorize('create', Club::class);
 
         $validated = $request->validate([
             'club_name' => 'required|string|max:100',
@@ -196,7 +196,8 @@ class ClubController extends Controller
 
         $user = auth()->user();
         $isMember = $user && $club->hasMember($user);
-        $isManager = $user && $club->hasManager($user);
+        // Admin can manage all clubs, otherwise check if user is club manager
+        $isManager = $user && ($user->hasRole('admin') || $club->hasManager($user));
 
         // Only show members if user is a member
         if ($isMember) {

@@ -31,11 +31,22 @@ class ClubPolicy
 
     /**
      * Determine whether the user can create models.
+     * Only adherents (licensed members) and administrators can create clubs.
      */
     public function create(User $user): bool
     {
-        // Only users with responsable-club role can create clubs
-        return $user->hasPermissionTo('create-club') && $user->hasRole('responsable-club');
+        // Admin can always create clubs
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+        
+        // Adherents can create clubs (they have a valid licence)
+        if ($user->hasRole('adherent')) {
+            return true;
+        }
+        
+        // Simple users and other roles cannot create clubs
+        return false;
     }
 
     /**

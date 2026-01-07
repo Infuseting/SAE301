@@ -9,7 +9,7 @@ use App\Models\Race;
 use App\Models\Raid;
 use App\Models\ParamRunner;
 use App\Models\ParamTeam;
-
+use App\Models\ParamDifficulty;
 use App\Models\ParamType;
 use App\Models\RegistrationPeriod;
 use App\Models\User;
@@ -494,15 +494,9 @@ class RacePermissionsTest extends TestCase
 
     /**
      * Test that responsable-course cannot edit another user's race
-     * 
-     * @TODO: Implement ownership check in NewRaceController::show() for edit routes
-     * Currently the edit route uses the same controller method as create and doesn't
-     * check if the user owns the race being edited.
      */
     public function test_responsable_course_cannot_edit_other_users_race(): void
     {
-        $this->markTestSkipped('Race edit ownership check not yet implemented in controller');
-        
         // Create a race owned by another responsable-course
         $paramRunner = ParamRunner::create([
             'pac_nb_min' => 2,

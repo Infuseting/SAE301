@@ -249,7 +249,8 @@ class RaidController extends Controller
         $raid->load(['club', 'races.organizer.user', 'registrationPeriod']);
         
         $user = auth()->user();
-        $isRaidManager = $user && ($user->adh_id === $raid->adh_id || $raid->club->hasManager($user));
+        // Admin can manage all raids, otherwise check if user is raid manager or club manager
+        $isRaidManager = $user && ($user->hasRole('admin') || $user->adh_id === $raid->adh_id || $raid->club->hasManager($user));
         
         $courses = $raid->races->map(function($race) use ($user, $isRaidManager) {
             $isRaceManager = $user && ($user->adh_id === $race->adh_id || $isRaidManager);
@@ -297,7 +298,7 @@ class RaidController extends Controller
         // Check authorization - user must be able to update this raid
         $this->authorize('update', $raid);
 
-        // Load raid with registration period
+        // Load registration period for the form
         $raid->load('registrationPeriod');
 
         // Get the club of this raid
@@ -305,32 +306,17 @@ class RaidController extends Controller
             ->where('club_id', $raid->clu_id)
             ->first(['club_id', 'club_name']);
 
-        // Get members (adherents) of this club from club_user table
-        $clubMembers = [];
-        if ($userClub) {
-            $clubMembers = \DB::table('club_user')
-                ->join('users', 'club_user.user_id', '=', 'users.id')
-                ->where('club_user.club_id', $userClub->club_id)
-                ->whereNotNull('users.adh_id') // Ensure they have an adherent ID
-                ->select('users.id', 'users.adh_id', 'users.first_name', 'users.last_name', 'users.email')
-                ->orderBy('users.last_name')
-                ->orderBy('users.first_name')
-                ->get()
-                ->map(function ($user) {
-                    return [
-                        'id' => $user->id,
-                        'adh_id' => $user->adh_id,
-                        'name' => $user->first_name . ' ' . $user->last_name,
-                        'email' => $user->email,
-                    ];
-                });
-        }
-
-        // Prepare raid data with registration period dates
-        $raidData = $raid->toArray();
-        if ($raid->registrationPeriod) {
-            $raidData['ins_start_date'] = $raid->registrationPeriod->ins_start_date;
-            $raidData['ins_end_date'] = $raid->registrationPeriod->ins_end_date;
+        // Get adherents of the club for gestionnaire-raid assignment
+        $clubAdherents = [];
+        if ($raid->clu_id) {
+            $clubAdherents = User::whereHas('member')
+                ->whereHas('roles', function($q) {
+                    $q->where('name', 'adherent');
+                })
+                ->whereHas('clubs', function($q) use ($raid) {
+                    $q->where('clubs.club_id', $raid->clu_id);
+                })
+                ->get(['id', 'name', 'email']);
         }
 
         return Inertia::render('Raid/Edit', [

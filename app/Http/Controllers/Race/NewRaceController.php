@@ -31,12 +31,47 @@ class NewRaceController extends Controller
      */
     public function show(Request $request)
     {
-        $raidId = $request->query('raid_id');
-        $raid = $raidId ? Raid::find($raidId) : null;
-
-        // Authorize the user to create a race for this raid
-        $this->authorize('create', [Race::class, $raid]);
+        // Authorize the user to create a race
+        $this->authorize('create', Race::class);
         
+        return $this->renderRaceForm($request);
+    }
+
+    /**
+     * Show the form for editing an existing race.
+     * Only the race organizer (adh_id matches) or admin can edit.
+     *
+     * @param int $id The race ID
+     * @return \Inertia\Response
+     */
+    public function edit(int $id)
+    {
+        $race = Race::findOrFail($id);
+        
+        // Authorize the user to update this race (checks ownership)
+        $this->authorize('update', $race);
+        
+        return $this->renderRaceForm(request(), $race);
+    }
+
+    /**
+     * Render the race form (used for both create and edit)
+     *
+     * @param Request $request
+     * @param Race|null $race The race to edit (null for create)
+     * @return \Inertia\Response
+     */
+    /**
+     * Render the race form (used for both create and edit)
+     *
+     * @param Request $request
+     * @param Race|null $race The race to edit (null for create)
+     * @return \Inertia\Response
+     */
+    private function renderRaceForm(Request $request, ?Race $race = null)
+    {
+        $raidId = $race ? $race->raid_id : $request->query('raid_id');
+        $raid = null;
         $usersQuery = User::select('id', 'last_name', 'first_name', 'email', 'adh_id');
 
         if ($raid) {
@@ -73,6 +108,7 @@ class NewRaceController extends Controller
             'types' => $types,
             'raid_id' => $raidId,
             'raid' => $raid,
+            'race' => $race, // null for create, race data for edit
             'auth' => [
                 'user' => Auth::user(),
             ],
