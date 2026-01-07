@@ -6,9 +6,15 @@ use App\Models\Race;
 use App\Services\LicenceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use OpenApi\Annotations as OA;
 
 /**
  * Controller for managing race registrations
+ * 
+ * @OA\Tag(
+ *     name="Race Registration",
+ *     description="Endpoints for race registration and eligibility checks"
+ * )
  */
 class RaceRegistrationController extends Controller
 {
@@ -21,6 +27,35 @@ class RaceRegistrationController extends Controller
 
     /**
      * Check if user can register for a race
+     *
+     * @OA\Get(
+     *     path="/races/{race}/registration/check",
+     *     tags={"Race Registration"},
+     *     summary="Check registration eligibility",
+     *     description="Checks if the authenticated user is eligible to register for a specific race",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="race",
+     *         in="path",
+     *         description="Race ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Eligibility check result",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="can_register", type="boolean", example=true),
+     *             @OA\Property(property="has_valid_licence", type="boolean", example=true),
+     *             @OA\Property(property="has_valid_pps", type="boolean", example=false),
+     *             @OA\Property(property="needs_credentials", type="boolean", example=false),
+     *             @OA\Property(property="licence_expiry_date", type="string", format="date", example="2026-12-31"),
+     *             @OA\Property(property="pps_expiry_date", type="string", format="date", example=null)
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=404, description="Race not found")
+     * )
      *
      * @param Race $race
      * @return \Illuminate\Http\JsonResponse
@@ -53,6 +88,41 @@ class RaceRegistrationController extends Controller
 
     /**
      * Register a user for a race
+     *
+     * @OA\Post(
+     *     path="/races/{race}/register",
+     *     tags={"Race Registration"},
+     *     summary="Register for a race",
+     *     description="Registers the authenticated user for a specific race",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="race",
+     *         in="path",
+     *         description="Race ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Registration successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Registration successful")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad Request - Validation failed or credentials missing",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Valid licence or PPS code required"),
+     *             @OA\Property(property="needs_credentials", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Forbidden - Permission denied"),
+     *     @OA\Response(response=404, description="Race not found")
+     * )
      *
      * @param Request $request
      * @param Race $race
