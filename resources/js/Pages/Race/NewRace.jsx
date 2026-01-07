@@ -3,30 +3,66 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import UserSelect from '@/Components/UserSelect';
 
+/**
+ * Extract date and time from a datetime string
+ * @param {string} dateTimeStr - ISO datetime string or similar format
+ * @returns {{ date: string, time: string }} - Date in YYYY-MM-DD format and time in HH:mm format
+ */
+const extractDateTime = (dateTimeStr) => {
+    if (!dateTimeStr) return { date: '', time: '' };
+    try {
+        const dt = new Date(dateTimeStr);
+        if (isNaN(dt.getTime())) return { date: '', time: '' };
+        const date = dt.toISOString().split('T')[0];
+        const time = dt.toTimeString().slice(0, 5);
+        return { date, time };
+    } catch {
+        return { date: '', time: '' };
+    }
+};
+
 export default function NewRace({ auth, users = [], types = [], raid_id = null, raid = null }) {
-    const { data, setData, post, processing, errors } = useForm({
-        title: '',
-        description: '',
-        responsableId: '',
-        startDate: '',
-        startTime: '',
-        duration: '',
-        endDate: '',
-        endTime: '',
-        minParticipants: '',
-        maxParticipants: '',
-        maxPerTeam: '1',
-        minTeams: '1',
-        maxTeams: '1',
-        priceMajor: '',
-        priceMinor: '',
-        priceMajorAdherent: '',
-        priceMinorAdherent: '',
-        difficulty: '',
-        type: types.length > 0 ? types[0].id : '',
-        mealPrice: '',
+    // Extract raid date limits for validation
+    const raidStart = raid?.raid_date_start ? extractDateTime(raid.raid_date_start) : { date: '', time: '' };
+    const raidEnd = raid?.raid_date_end ? extractDateTime(raid.raid_date_end) : { date: '', time: '' };
+
+    // Helper to format duration minutes to H:mm
+    const formatDuration = (minutes) => {
+        if (!minutes) return '';
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        return `${h}:${m.toString().padStart(2, '0')}`;
+    };
+
+    // Find responsable user id from adh_id
+    const findUserIdByAdhId = (adhId) => {
+        const user = users.find(u => u.adh_id === adhId);
+        return user ? user.id : '';
+    };
+
+    const { data, setData, post, put, processing, errors } = useForm({
+        title: race?.race_name || '',
+        description: race?.race_description || '',
+        responsableId: race?.adh_id ? findUserIdByAdhId(race.adh_id) : '',
+        startDate: race?.race_date_start ? extractDateTime(race.race_date_start).date : raidStart.date,
+        startTime: race?.race_date_start ? extractDateTime(race.race_date_start).time : raidStart.time,
+        duration: race?.race_duration_minutes ? formatDuration(race.race_duration_minutes) : '',
+        endDate: race?.race_date_end ? extractDateTime(race.race_date_end).date : raidEnd.date,
+        endTime: race?.race_date_end ? extractDateTime(race.race_date_end).time : raidEnd.time,
+        minParticipants: race?.runner_params?.pac_nb_min || '',
+        maxParticipants: race?.runner_params?.pac_nb_max || '',
+        maxPerTeam: race?.team_params?.pae_team_count_max || '1',
+        minTeams: race?.team_params?.pae_nb_min || '1',
+        maxTeams: race?.team_params?.pae_nb_max || '1',
+        priceMajor: race?.price_major || '',
+        priceMinor: race?.price_minor || '',
+        priceMajorAdherent: race?.price_adherent || '',
+        priceMinorAdherent: race?.price_adherent || '',
+        difficulty: race?.race_difficulty || '',
+        type: race?.typ_id || (types.length > 0 ? types[0].id : ''),
+        mealPrice: race?.race_meal_price || '',
         image: null,
-        raid_id: raid_id || '',
+        raid_id: raid_id || race?.raid_id || '',
     });
 
     // Date validation state
@@ -54,13 +90,30 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
             }
         }
 
+        // Check race dates are within raid limits
+        if (raid && startDate && raidStart.date) {
+            if (startDate < raidStart.date) {
+                newErrors.startDate = `La date de début doit être après le ${raidStart.date}`;
+            } else if (startDate > raidEnd.date) {
+                newErrors.startDate = `La date de début doit être avant le ${raidEnd.date}`;
+            }
+        }
+
+        if (raid && endDate && raidEnd.date) {
+            if (endDate > raidEnd.date) {
+                newErrors.endDate = `La date de fin doit être avant le ${raidEnd.date}`;
+            } else if (endDate < raidStart.date) {
+                newErrors.endDate = `La date de fin doit être après le ${raidStart.date}`;
+            }
+        }
+
         // Check end date is after or equal to start date
         if (startDate && endDate) {
             const start = new Date(startDate);
             const end = new Date(endDate);
             if (end < start) {
                 newErrors.endDate = 'La date de fin doit être égale ou postérieure à la date de début';
-            } else {
+            } else if (!newErrors.endDate) {
                 delete newErrors.endDate;
             }
         }
@@ -100,7 +153,7 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
         setData(name, value);
     };
 
-    const [imagePreview, setImagePreview] = useState(null);
+    const [imagePreview, setImagePreview] = useState(race?.image_url || null);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -113,15 +166,23 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('races.store'));
+        if (race) {
+            // Use POST with _method: PUT for file upload support in Laravel/Inertia
+            post(route('races.update', race.race_id), {
+                _method: 'put',
+                forceFormData: true,
+            });
+        } else {
+            post(route('races.store'));
+        }
     };
 
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Créer une Nouvelle Course</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{race ? 'Modifier la Course' : 'Créer une Nouvelle Course'}</h2>}
         >
-            <Head title="Créer une Course" />
+            <Head title={race ? 'Modifier la Course' : 'Créer une Course'} />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -214,7 +275,8 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                                 name="startDate"
                                                 value={data.startDate}
                                                 onChange={handleDateChange}
-                                                min={new Date().toISOString().split('T')[0]}
+                                                min={raid ? raidStart.date : new Date().toISOString().split('T')[0]}
+                                                max={raid ? raidEnd.date : undefined}
                                                 className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.startDate ? 'border-red-500' : 'border-gray-300'}`}
                                                 required
                                             />
@@ -259,7 +321,8 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                                 name="endDate"
                                                 value={data.endDate}
                                                 onChange={handleDateChange}
-                                                min={data.startDate || new Date().toISOString().split('T')[0]}
+                                                min={data.startDate || (raid ? raidStart.date : new Date().toISOString().split('T')[0])}
+                                                max={raid ? raidEnd.date : undefined}
                                                 className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.endDate ? 'border-red-500' : 'border-gray-300'}`}
                                             />
                                             <input
@@ -364,90 +427,79 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                 <div className="mb-8">
                                     <h4 className="text-sm font-semibold text-gray-900 mb-4">Tarifs d'inscription :</h4>
 
-                                    {/* Prix Majeurs */}
+                                    {/* Prix Standard (Majeurs ou tous en mode non-compétitif) */}
                                     <div className="mb-4">
-                                        <label className="block text-xs font-medium text-gray-600 mb-2">Majeurs (18 ans et +)</label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label className="block text-xs text-gray-500 mb-1">Standard</label>
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="number"
-                                                        name="priceMajor"
-                                                        value={data.priceMajor}
-                                                        onChange={handleInputChange}
-                                                        placeholder="0.00"
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                        required
-                                                    />
-                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs text-gray-500 mb-1">Adhérent</label>
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="number"
-                                                        name="priceMajorAdherent"
-                                                        value={data.priceMajorAdherent}
-                                                        onChange={handleInputChange}
-                                                        placeholder="0.00"
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                    />
-                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
-                                                </div>
-                                            </div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-2">
+                                            {isCompetitive ? 'Tarif adulte (18 ans et +)' : 'Tarif majeur (18 ans et +)'}
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                name="priceMajor"
+                                                value={data.priceMajor}
+                                                onChange={handleInputChange}
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                min="0"
+                                                className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                required
+                                            />
+                                            <span className="text-gray-500 text-sm">€</span>
                                         </div>
                                         {errors.priceMajor && <p className="mt-1 text-sm text-red-600">{errors.priceMajor}</p>}
                                     </div>
 
-                                    {/* Prix Mineurs */}
-                                    <div className="mb-4">
-                                        <label className="block text-xs font-medium text-gray-600 mb-2">Mineurs (- de 18 ans)</label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label className="block text-xs text-gray-500 mb-1">Standard</label>
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="number"
-                                                        name="priceMinor"
-                                                        value={data.priceMinor}
-                                                        onChange={handleInputChange}
-                                                        placeholder="0.00"
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                        required
-                                                    />
-                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
-                                                </div>
+                                    {/* Prix Mineurs - Masqué en mode compétitif */}
+                                    {!isCompetitive && (
+                                        <div className="mb-4">
+                                            <label className="block text-xs font-medium text-gray-600 mb-2">
+                                                Tarif mineur (- de 18 ans)
+                                            </label>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    name="priceMinor"
+                                                    value={data.priceMinor}
+                                                    onChange={handleInputChange}
+                                                    placeholder="0.00"
+                                                    step="0.01"
+                                                    min="0"
+                                                    className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                    required={!isCompetitive}
+                                                />
+                                                <span className="text-gray-500 text-sm">€</span>
                                             </div>
-                                            <div>
-                                                <label className="block text-xs text-gray-500 mb-1">Adhérent</label>
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="number"
-                                                        name="priceMinorAdherent"
-                                                        value={data.priceMinorAdherent}
-                                                        onChange={handleInputChange}
-                                                        placeholder="0.00"
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                    />
-                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
-                                                </div>
-                                            </div>
+                                            {errors.priceMinor && <p className="mt-1 text-sm text-red-600">{errors.priceMinor}</p>}
                                         </div>
-                                        {errors.priceMinor && <p className="mt-1 text-sm text-red-600">{errors.priceMinor}</p>}
+                                    )}
+
+                                    {/* Réduction Adhérent - Un seul tarif pour tous */}
+                                    <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                        <label className="block text-xs font-medium text-emerald-700 mb-2">
+                                            Tarif adhérent (réduction appliquée à tous)
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                name="priceMajorAdherent"
+                                                value={data.priceMajorAdherent}
+                                                onChange={(e) => {
+                                                    handleInputChange(e);
+                                                    // Synchroniser le tarif adhérent mineur avec majeur
+                                                    setData('priceMinorAdherent', e.target.value);
+                                                }}
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                min="0"
+                                                className="w-28 px-3 py-2 border border-emerald-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                                            />
+                                            <span className="text-emerald-600 text-sm">€</span>
+                                        </div>
+                                        <p className="mt-1 text-xs text-emerald-600">
+                                            Ce tarif s'applique aux adhérents licenciés (majeurs et mineurs)
+                                        </p>
                                     </div>
                                 </div>
-
-                                {/* Nombre d'équipes */}
                                 <div className="mb-8">
                                     <h4 className="text-sm font-semibold text-gray-900 mb-3">Nombre d'équipes</h4>
                                     <div className="flex gap-2">
@@ -491,9 +543,9 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                 {/* Image */}
                                 <div className="mb-6">
                                     <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center mb-3">
-                                        {data.image ? (
+                                        {imagePreview ? (
                                             <img
-                                                src={URL.createObjectURL(data.image)}
+                                                src={imagePreview}
                                                 alt="Preview"
                                                 className="w-full h-full object-cover rounded-lg"
                                             />
@@ -523,7 +575,7 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                     className={`${processing ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-900'
                                         } text-white font-semibold py-3 px-12 rounded-lg transition`}
                                 >
-                                    {processing ? 'Création en cours...' : 'Créer la course'}
+                                    {processing ? 'Enregistrement...' : (race ? 'Mettre à jour' : 'Créer la course')}
                                 </button>
                             </div>
                         </form>

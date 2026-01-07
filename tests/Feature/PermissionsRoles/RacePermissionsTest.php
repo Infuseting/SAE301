@@ -592,13 +592,9 @@ class RacePermissionsTest extends TestCase
 
     /**
      * Test that admin can delete any race
-     * 
-     * @TODO: Implement races.destroy route and RaceController::destroy method
      */
     public function test_admin_can_delete_any_race(): void
     {
-        $this->markTestSkipped('Race delete route (races.destroy) not yet implemented');
-        
         // Create a race
         $paramRunner = ParamRunner::create([
             'pac_nb_min' => 2,
@@ -627,5 +623,134 @@ class RacePermissionsTest extends TestCase
         
         $response->assertRedirect();
         $this->assertDatabaseMissing('races', ['race_id' => $race->race_id]);
+    }
+
+    /**
+     * Test that responsable-club CANNOT edit race of their raid if they are NOT the raid responsible
+     */
+    public function test_responsable_club_cannot_edit_race_of_their_raid_if_not_responsible(): void
+    {
+        // Make someone else the raid responsible
+        $someoneElse = Member::factory()->create();
+        $this->raid->update(['adh_id' => $someoneElse->adh_id]);
+
+        // Create a race registered by someone else (e.g. regular responsable-course)
+        $paramRunner = ParamRunner::create(['pac_nb_min' => 2, 'pac_nb_max' => 10]);
+        $paramTeam = ParamTeam::create(['pae_nb_min' => 1, 'pae_nb_max' => 20, 'pae_team_count_max' => 5]);
+
+        $race = Race::create([
+            'race_name' => 'Member Race',
+            'race_date_start' => now()->addMonth(),
+            'race_date_end' => now()->addMonth(),
+            'adh_id' => $this->responsableCourseMember->adh_id,
+            'pac_id' => $paramRunner->pac_id,
+            'pae_id' => $paramTeam->pae_id,
+            'typ_id' => 1,
+            'raid_id' => $this->raid->raid_id,
+        ]);
+
+        $response = $this->actingAs($this->responsableClubUser)
+            ->get(route('races.edit', $race->race_id));
+        
+        $response->assertStatus(403);
+    }
+
+    /**
+     * Test that gestionnaire-raid can edit race of their raid
+     */
+    public function test_gestionnaire_raid_can_edit_race_of_their_raid(): void
+    {
+        // Make gestionnaire-raid the raid responsible
+        $this->raid->update(['adh_id' => $this->gestionnaireRaidUser->adh_id]);
+
+        // Create a race registered by someone else
+        $paramRunner = ParamRunner::create(['pac_nb_min' => 2, 'pac_nb_max' => 10]);
+        $paramTeam = ParamTeam::create(['pae_nb_min' => 1, 'pae_nb_max' => 20, 'pae_team_count_max' => 5]);
+
+        $race = Race::create([
+            'race_name' => 'Member Race',
+            'race_date_start' => now()->addMonth(),
+            'race_date_end' => now()->addMonth(),
+            'adh_id' => $this->responsableCourseMember->adh_id,
+            'pac_id' => $paramRunner->pac_id,
+            'pae_id' => $paramTeam->pae_id,
+            'typ_id' => 1,
+            'raid_id' => $this->raid->raid_id,
+        ]);
+
+        $response = $this->actingAs($this->gestionnaireRaidUser)
+            ->get(route('races.edit', $race->race_id));
+        
+        $response->assertStatus(200);
+    }
+
+    /**
+     * Test that responsable-course can delete their own race
+     */
+    public function test_responsable_course_can_delete_own_race(): void
+    {
+        // Create a race owned by responsable-course
+        $paramRunner = ParamRunner::create([
+            'pac_nb_min' => 2,
+            'pac_nb_max' => 10,
+        ]);
+        
+        $paramTeam = ParamTeam::create([
+            'pae_nb_min' => 1,
+            'pae_nb_max' => 20,
+            'pae_team_count_max' => 5,
+        ]);
+
+        $race = Race::create([
+            'race_name' => 'My Race to Delete',
+            'race_date_start' => now()->addMonth(),
+            'race_date_end' => now()->addMonth(),
+            'adh_id' => $this->responsableCourseMember->adh_id,
+            'pac_id' => $paramRunner->pac_id,
+            'pae_id' => $paramTeam->pae_id,
+            'typ_id' => 1,
+            'raid_id' => $this->raid->raid_id,
+        ]);
+
+        $response = $this->actingAs($this->responsableCourseUser)
+            ->delete(route('races.destroy', $race->race_id));
+        
+        $response->assertRedirect();
+        $this->assertDatabaseMissing('races', ['race_id' => $race->race_id]);
+    }
+
+    /**
+     * Test that responsable-course cannot delete other user's race
+     */
+    public function test_responsable_course_cannot_delete_other_race(): void
+    {
+        // Create a race owned by another user
+        $paramRunner = ParamRunner::create([
+            'pac_nb_min' => 2,
+            'pac_nb_max' => 10,
+        ]);
+        
+        $paramTeam = ParamTeam::create([
+            'pae_nb_min' => 1,
+            'pae_nb_max' => 20,
+            'pae_team_count_max' => 5,
+        ]);
+
+        $race = Race::create([
+            'race_name' => 'Other Race',
+            'race_date_start' => now()->addMonth(),
+            'race_date_end' => now()->addMonth(),
+            'adh_id' => $this->otherResponsableCourseMember->adh_id,
+            'pac_id' => $paramRunner->pac_id,
+            'pae_id' => $paramTeam->pae_id,
+            'typ_id' => 1,
+            'raid_id' => $this->raid->raid_id,
+        ]);
+
+        $response = $this->actingAs($this->responsableCourseUser)
+            ->delete(route('races.destroy', $race->race_id));
+        
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('races', ['race_id' => $race->race_id]);
     }
 }

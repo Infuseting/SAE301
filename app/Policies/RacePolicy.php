@@ -73,7 +73,7 @@ class RacePolicy
 
     /**
      * Determine whether the user can update the model.
-     * Only the race organizer (adh_id matches user's member) or admin can update.
+     * Race organizer, raid manager, club manager, or admin can update.
      */
     public function update(User $user, Race $race): bool
     {
@@ -82,18 +82,22 @@ class RacePolicy
             return true;
         }
 
-        // Check if user has the edit-own-race permission
-        if (!$user->hasPermissionTo('edit-own-race')) {
-            return false;
+        // 1. Check if user is the direct organizer of this race
+        if ($user->adh_id !== null && $user->adh_id === $race->adh_id) {
+             return $user->hasPermissionTo('edit-own-race');
         }
 
-        // Check if user is the organizer of this race (adh_id matches)
-        return $user->adh_id !== null && $user->adh_id === $race->adh_id;
+        // 2. Check if user is the manager of the raid
+        if ($race->raid && $race->raid->adh_id && $user->adh_id === $race->raid->adh_id) {
+            return $user->hasRole('gestionnaire-raid') || $user->hasRole('responsable-club');
+        }
+
+        return false;
     }
 
     /**
      * Determine whether the user can delete the model.
-     * Only the race organizer (adh_id matches user's member) or admin can delete.
+     * Race organizer, raid manager, club manager, or admin can delete.
      */
     public function delete(User $user, Race $race): bool
     {
@@ -102,13 +106,17 @@ class RacePolicy
             return true;
         }
 
-        // Check if user has the delete-own-race permission
-        if (!$user->hasPermissionTo('delete-own-race')) {
-            return false;
+        // 1. Check if user is the direct organizer of this race
+        if ($user->adh_id !== null && $user->adh_id === $race->adh_id) {
+             return $user->hasPermissionTo('delete-own-race');
         }
 
-        // Only the organizer can delete their own race (adh_id matches)
-        return $user->adh_id !== null && $user->adh_id === $race->adh_id;
+        // 2. Check if user is the manager of the raid
+        if ($race->raid && $race->raid->adh_id && $user->adh_id === $race->raid->adh_id) {
+            return $user->hasRole('gestionnaire-raid') || $user->hasRole('responsable-club');
+        }
+
+        return false;
     }
 
     /**

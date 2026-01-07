@@ -93,8 +93,8 @@ class VisuRaceController extends Controller
             'categories' => [],
             'priceMajor' => $race->price_major,
             'priceMinor' => $race->price_minor,
-            'priceMajorAdherent' => $race->price_major_adherent,
-            'priceMinorAdherent' => $race->price_minor_adherent,
+            'priceMajorAdherent' => $race->price_adherent,
+            'priceMinorAdherent' => $race->price_adherent, // Use same price for frontend consistency
             'minTeams' => $race->teamParams?->pae_nb_min ?? 1,
             'maxTeams' => $race->teamParams?->pae_nb_max ?? 1,
             'maxPerTeam' => $race->teamParams?->pae_team_count_max ?? 1,

@@ -316,13 +316,21 @@ class RaidController extends Controller
                 ->whereHas('clubs', function($q) use ($raid) {
                     $q->where('clubs.club_id', $raid->clu_id);
                 })
-                ->get(['id', 'name', 'email']);
+                ->get(['id', 'first_name', 'last_name', 'email', 'adh_id'])
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'adh_id' => $user->adh_id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
+                    ];
+                });
         }
 
         return Inertia::render('Raid/Edit', [
-            'raid' => $raidData,
+            'raid' => $raid,
             'userClub' => $userClub,
-            'clubMembers' => $clubMembers,
+            'clubMembers' => $clubAdherents,
         ]);
     }
 

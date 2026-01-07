@@ -3,6 +3,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import UserSelect from '@/Components/UserSelect';
 import { Head, useForm, usePage, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -10,7 +11,7 @@ import { useState } from 'react';
  * Edit Raid Form Component
  * Form for editing an existing raid with event and registration dates
  */
-export default function Edit({ raid, clubs, clubAdherents }) {
+export default function Edit({ raid, userClub, clubMembers }) {
     const messages = usePage().props.translations?.messages || {};
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -95,11 +96,10 @@ export default function Edit({ raid, clubs, clubAdherents }) {
     };
 
     /**
-     * Get club name by ID
+     * Get club name
      */
     const getClubName = () => {
-        const club = clubs?.find(c => c.club_id === data.clu_id);
-        return club?.club_name || 'Club non trouvé';
+        return userClub?.club_name || 'Club non trouvé';
     };
 
     return (
@@ -277,24 +277,22 @@ export default function Edit({ raid, clubs, clubAdherents }) {
                                         <InputError message={errors.raid_contact} className="mt-2" />
                                     </div>
 
-                                    {/* Organizer Selection - Club Adherents */}
+                                    {/* Organizer Selection - Club Members */}
                                     <div>
                                         <InputLabel htmlFor="adh_id" value="Responsable du raid" />
-                                        <select
-                                            id="adh_id"
-                                            name="adh_id"
-                                            value={data.adh_id || ''}
-                                            onChange={(e) => setData('adh_id', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                        >
-                                            <option value="">Sélectionner un responsable...</option>
-                                            {clubAdherents?.map((member) => (
-                                                <option key={member.id} value={member.id}>
-                                                    {member.name} ({member.email})
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <div className="mt-1">
+                                            <UserSelect
+                                                users={clubMembers}
+                                                selectedId={data.adh_id}
+                                                onSelect={(user) => setData('adh_id', user.adh_id)}
+                                                label="Responsable"
+                                                idKey="adh_id"
+                                            />
+                                        </div>
                                         <InputError message={errors.adh_id} className="mt-2" />
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            Membres adhérents du club {userClub?.club_name || ''}
+                                        </p>
                                     </div>
 
                                     {/* Club Display */}

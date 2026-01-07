@@ -61,7 +61,7 @@ class ClubMemberController extends Controller
         }
 
         // Create join request
-        $club->members()->attach($user->id, [
+        $club->allMembers()->attach($user->id, [
             'role' => 'member',
             'status' => 'pending',
         ]);
@@ -112,8 +112,8 @@ class ClubMemberController extends Controller
             abort(403, 'Only club managers can approve join requests');
         }
 
-        // Update the pivot status
-        $club->members()->updateExistingPivot($user->id, [
+        // Update the pivot status - use allMembers() to find pending users
+        $club->allMembers()->updateExistingPivot($user->id, [
             'status' => 'approved',
         ]);
 
@@ -164,8 +164,8 @@ class ClubMemberController extends Controller
             abort(403, 'Only club managers can reject join requests');
         }
 
-        // Remove the pending request
-        $club->members()->detach($user->id);
+        // Remove the pending request - use allMembers() to find pending users
+        $club->allMembers()->detach($user->id);
 
         activity()
             ->performedOn($club)
@@ -219,7 +219,7 @@ class ClubMemberController extends Controller
             return back()->with('error', __('messages.cannot_remove_manager'));
         }
 
-        $club->members()->detach($user->id);
+        $club->allMembers()->detach($user->id);
 
         activity()
             ->performedOn($club)
@@ -268,7 +268,7 @@ class ClubMemberController extends Controller
             return back()->with('error', __('messages.last_manager_cannot_leave'));
         }
 
-        $club->members()->detach($user->id);
+        $club->allMembers()->detach($user->id);
 
         activity()
             ->performedOn($club)
