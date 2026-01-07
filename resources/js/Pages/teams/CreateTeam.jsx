@@ -27,8 +27,10 @@ export default function CreateTeam() {
     };
 
     const handleImageChange = (e) => {
+        const Label = document.getElementById('download_label');
         const file = e.target.files[0];
         if (file) {
+            Label.textContent = "Cliquez pour changer l'image";
             setData('image', file);
             const reader = new FileReader();
             reader.onload = (event) => {
@@ -115,7 +117,7 @@ export default function CreateTeam() {
                                             <svg className="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                             </svg>
-                                            <span className="text-sm font-medium text-gray-700">
+                                            <span className="text-sm font-medium text-gray-700" id="download_label">
                                                 Cliquez pour télécharger
                                             </span>
                                             <span className="text-xs text-gray-500 mt-1">
