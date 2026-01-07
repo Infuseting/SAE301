@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Models\Team;
-use App\Models\Member;
+use App\Models\User;
 
 class TeamController extends Controller
 {
@@ -18,10 +18,10 @@ class TeamController extends Controller
     }
 
     /**
-     * Store a newly created team with members.
+     * Store a newly created team with users.
      * 
-     * Creates a new team, adds the leader, teammates, and optionally
-     * the creator if the join_team checkbox was selected.
+     * Creates a new team, assigns the leader and teammates,
+     * and optionally adds the creator if the join_team checkbox was selected.
      */
     public function store(Request $request)
     {
@@ -35,49 +35,27 @@ class TeamController extends Controller
             'join_team' => 'nullable|boolean',
         ]);
 
-        // Create the team
+        // Create the team with the leader's user ID
         $team = Team::create([
             'equ_name' => $validated['name'],
             'equ_image' => $request->file('image') ? $request->file('image')->store('teams', 'public') : null,
-            'adh_id' => $this->getUserMemberId($validated['leader_id']),
+            'adh_id' => $validated['leader_id'],
         ]);
 
-        // Add leader to has_participate
-        $leaderMemberId = $this->getUserMemberId($validated['leader_id']);
-        if ($leaderMemberId) {
-            $team->members()->attach($leaderMemberId);
-        }
+        // Add leader to the team
+        $team->users()->attach($validated['leader_id']);
 
-        // Add teammates to has_participate
+        // Add teammates to the team
         if (!empty($validated['teammates'])) {
-            foreach ($validated['teammates'] as $teammate) {
-                $teammateMemberId = $this->getUserMemberId($teammate['id']);
-                if ($teammateMemberId) {
-                    $team->members()->attach($teammateMemberId);
-                }
-            }
+            $teammatIds = array_map(fn($teammate) => $teammate['id'], $validated['teammates']);
+            $team->users()->attach($teammatIds);
         }
 
         // Add creator to team if checkbox is checked
         if ($validated['join_team'] ?? false) {
-            $creatorMemberId = $this->getUserMemberId($request->user()->id);
-            if ($creatorMemberId) {
-                $team->members()->attach($creatorMemberId);
-            }
+            $team->users()->attach($request->user()->id);
         }
 
         return redirect()->route('dashboard')->with('success', 'Équipe créée avec succès!');
-    }
-
-    /**
-     * Get the member ID (adh_id) for a given user ID.
-     * 
-     * @param integer $userId
-     * @return integer|null
-     */
-    private function getUserMemberId($userId)
-    {
-        $user = \App\Models\User::find($userId);
-        return $user?->adh_id;
     }
 }
