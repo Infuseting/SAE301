@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Race;
 
+use App\Http\Controllers\Controller;
 use App\Models\Race;
 use App\Services\LicenceService;
 use Illuminate\Http\Request;

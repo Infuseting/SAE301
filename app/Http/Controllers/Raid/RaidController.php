@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Raid;
 
 use App\Models\Raid;
 use App\Models\Club;
@@ -196,6 +196,12 @@ class RaidController extends Controller
         // Remove inscription dates from raid data (they're in registration_period table)
         unset($validated['ins_start_date'], $validated['ins_end_date']);
 
+        // Handle image upload if present
+        if ($request->hasFile('raid_image')) {
+            $imagePath = $request->file('raid_image')->store('raids', 'public');
+            $validated['raid_image'] = $imagePath;
+        }
+
         // Create the raid
         $raid = Raid::create($validated);
 
@@ -281,7 +287,7 @@ class RaidController extends Controller
                 'organizer_name' => $race->organizer && $race->organizer->user ? $race->organizer->user->name : 'N/A',
                 'difficulty' => $race->race_difficulty ?? 'N/A',
                 'start_date' => $race->race_date_start ? $race->race_date_start->toIso8601String() : null,
-                'image' => $race->image_url,
+                'image' => $race->image_url ? '/storage/' . $race->image_url : null,
                 'is_open' => $race->isOpen(),
                 'registration_upcoming' => $race->isRegistrationUpcoming(),
                 'is_finished' => $race->isCompleted(),
@@ -315,46 +321,43 @@ class RaidController extends Controller
      */
     public function edit(Raid $raid): Response
     {
-        try {
-            // Check authorization - user must be able to update this raid
-            file_put_contents('debug.log', "RaidController edit hit. Raid ID: " . $raid->raid_id . "\n", FILE_APPEND);
-            $this->authorize('update', $raid);
-            file_put_contents('debug.log', "RaidController authorize passed\n", FILE_APPEND);
+        // Check authorization - user must be able to update this raid
+        $this->authorize('update', $raid);
 
-            // Load registration period for the form
-            $raid->load('registrationPeriod');
+        // Load registration period for the form
+        $raid->load('registrationPeriod');
 
-            // Get the club of this raid
-            $userClub = \DB::table('clubs')
-                ->where('club_id', $raid->clu_id)
-                ->first(['club_id', 'club_name']);
+        // Get the club of this raid
+        $userClub = \DB::table('clubs')
+            ->where('club_id', $raid->clu_id)
+            ->first(['club_id', 'club_name']);
 
-            // Get adherents of the club for gestionnaire-raid assignment
-            $clubAdherents = [];
-            if ($raid->clu_id) {
-                $clubAdherents = User::whereHas('member')
-                    ->whereHas('roles', function ($q) {
-                        $q->where('name', 'adherent');
-                    })
-                    ->whereHas('clubs', function ($q) use ($raid) {
-                        $q->where('clubs.club_id', $raid->clu_id);
-                    })
-                    ->get(['id', 'name', 'email']);
-            }
-
-            $response = Inertia::render('Raid/Edit', [
-                'raid' => $raid,
-                'userClub' => $userClub,
-                'clubMembers' => $clubAdherents,
-            ]);
-
-            file_put_contents('debug.log', "Returning response type: " . get_class($response) . "\n", FILE_APPEND);
-            return $response;
-
-        } catch (\Throwable $e) {
-            file_put_contents('debug.log', "Exception in edit: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n", FILE_APPEND);
-            throw $e;
+        // Get adherents of the club for gestionnaire-raid assignment
+        $clubAdherents = [];
+        if ($raid->clu_id) {
+            $clubAdherents = User::whereHas('member')
+                ->whereHas('roles', function ($q) {
+                    $q->where('name', 'adherent');
+                })
+                ->whereHas('clubs', function ($q) use ($raid) {
+                    $q->where('clubs.club_id', $raid->clu_id);
+                })
+                ->get(['id', 'first_name', 'last_name', 'email', 'adh_id'])
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
+                        'adh_id' => $user->adh_id,
+                    ];
+                });
         }
+
+        return Inertia::render('Raid/Edit', [
+            'raid' => $raid,
+            'userClub' => $userClub,
+            'clubMembers' => $clubAdherents,
+        ]);
     }
 
     /**
@@ -411,6 +414,15 @@ class RaidController extends Controller
 
         // Remove inscription dates from raid data (they're in registration_period table)
         unset($validated['ins_start_date'], $validated['ins_end_date']);
+
+        // Handle image upload if present
+        if ($request->hasFile('raid_image')) {
+            $imagePath = $request->file('raid_image')->store('raids', 'public');
+            $validated['raid_image'] = $imagePath;
+        } else {
+            // Don't overwrite existing image if no new image uploaded
+            unset($validated['raid_image']);
+        }
 
         // Update the raid
         $raid->update($validated);

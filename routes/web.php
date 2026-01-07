@@ -3,14 +3,14 @@
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\UserController;
 
 use App\Http\Controllers\Race\NewRaceController;
 use App\Http\Controllers\Race\VisuRaceController;
-use App\Http\Controllers\RaidController;
+use App\Http\Controllers\Raid\RaidController;
 use App\Models\Raid;
 
 Route::get('/', function () {
@@ -57,21 +57,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/new-race', [NewRaceController::class, 'show'])->name('races.create');
     Route::post('/new-race', [NewRaceController::class, 'store'])->name('races.store');
     Route::get('/race/{id}/edit', [NewRaceController::class, 'edit'])->name('races.edit');
+    Route::put('/race/{id}', [NewRaceController::class, 'update'])->name('races.update');
 
     Route::get('/dashboard', function () {
         return Inertia::render('Welcome');
     })->name('dashboard');
 
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::get('/profile', [App\Http\Controllers\PublicProfileController::class, 'myProfile'])->name('profile.index');
-    Route::get('/profile/{user}', [App\Http\Controllers\PublicProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile', [App\Http\Controllers\Profile\PublicProfileController::class, 'myProfile'])->name('profile.index');
+    Route::get('/profile/{user}', [App\Http\Controllers\Profile\PublicProfileController::class, 'show'])->name('profile.show');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
+    Route::put('/user/set-password', [App\Http\Controllers\Auth\SetPasswordController::class, 'store'])->name('password.set');
 
     // Clubs routes
-    Route::resource('clubs', App\Http\Controllers\ClubController::class);
+    Route::resource('clubs', App\Http\Controllers\Club\ClubController::class);
 
     // Club routes and club leader role
     Route::middleware('club_leader')->group(function () {
@@ -84,24 +85,23 @@ Route::middleware('auth')->group(function () {
     });
 
     // Club member management (authorization handled in controller)
-    Route::post('/clubs/{club}/join', [App\Http\Controllers\ClubMemberController::class, 'requestJoin'])->name('clubs.join');
-    Route::post('/clubs/{club}/leave', [App\Http\Controllers\ClubMemberController::class, 'leave'])->name('clubs.leave');
-    Route::post('/clubs/{club}/members/{user}/approve', [App\Http\Controllers\ClubMemberController::class, 'approveJoin'])->name('clubs.members.approve');
-    Route::post('/clubs/{club}/members/{user}/reject', [App\Http\Controllers\ClubMemberController::class, 'rejectJoin'])->name('clubs.members.reject');
-    Route::delete('/clubs/{club}/members/{user}', [App\Http\Controllers\ClubMemberController::class, 'removeMember'])->name('clubs.members.remove');
-
+    Route::post('/clubs/{club}/join', [App\Http\Controllers\Club\ClubMemberController::class, 'requestJoin'])->name('clubs.join');
+    Route::post('/clubs/{club}/leave', [App\Http\Controllers\Club\ClubMemberController::class, 'leave'])->name('clubs.leave');
+    Route::post('/clubs/{club}/members/{user}/approve', [App\Http\Controllers\Club\ClubMemberController::class, 'approveJoin'])->name('clubs.members.approve');
+    Route::post('/clubs/{club}/members/{user}/reject', [App\Http\Controllers\Club\ClubMemberController::class, 'rejectJoin'])->name('clubs.members.reject');
+    Route::delete('/clubs/{club}/members/{user}', [App\Http\Controllers\Club\ClubMemberController::class, 'removeMember'])->name('clubs.members.remove');
     // Licence and PPS management
     Route::post('/licence', [App\Http\Controllers\LicenceController::class, 'storeLicence'])->name('licence.store');
     Route::post('/pps', [App\Http\Controllers\LicenceController::class, 'storePpsCode'])->name('pps.store');
     Route::get('/credentials/check', [App\Http\Controllers\LicenceController::class, 'checkCredentials'])->name('credentials.check');
 
     // Race registration
-    Route::get('/races/{race}/registration/check', [App\Http\Controllers\RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
-    Route::post('/races/{race}/register', [App\Http\Controllers\RaceRegistrationController::class, 'register'])->name('race.register');
+    Route::get('/races/{race}/registration/check', [App\Http\Controllers\Race\RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
+    Route::post('/races/{race}/register', [App\Http\Controllers\Race\RaceRegistrationController::class, 'register'])->name('race.register');
     
     // Team creation routes
-    Route::get('/createTeam', [App\Http\Controllers\TeamController::class, 'create'])->name('team.create');
-    Route::post('/createTeam', [App\Http\Controllers\TeamController::class, 'store'])->name('team.store');
+    Route::get('/createTeam', [App\Http\Controllers\Team\TeamController::class, 'create'])->name('team.create');
+    Route::post('/createTeam', [App\Http\Controllers\Team\TeamController::class, 'store'])->name('team.store');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -132,8 +132,8 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
 
 require __DIR__ . '/auth.php';
 
-Route::get('/auth/{provider}/redirect', [\App\Http\Controllers\SocialiteController::class, 'redirect'])->name('socialite.redirect');
-Route::get('/auth/{provider}/callback', [\App\Http\Controllers\SocialiteController::class, 'callback'])->name('socialite.callback');
+Route::get('/auth/{provider}/redirect', [\App\Http\Controllers\Auth\SocialiteController::class, 'redirect'])->name('socialite.redirect');
+Route::get('/auth/{provider}/callback', [\App\Http\Controllers\Auth\SocialiteController::class, 'callback'])->name('socialite.callback');
 
 // Language switcher
 Route::get('/lang/{locale}', function ($locale) {

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Team;
 
+use App\Http\Controllers\Controller;
 use App\Services\AgeValidationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

@@ -1,32 +1,84 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import UserSelect from '@/Components/UserSelect';
 
-export default function NewRace({ auth, users = [], types = [], raid_id = null, raid = null }) {
-    const { data, setData, post, processing, errors } = useForm({
-        title: '',
-        description: '',
-        responsableId: '',
-        startDate: '',
-        startTime: '',
-        duration: '',
-        endDate: '',
-        endTime: '',
-        minParticipants: '',
-        maxParticipants: '',
-        maxPerTeam: '1',
-        minTeams: '1',
-        maxTeams: '1',
-        priceMajor: '',
-        priceMinor: '',
-        priceMajorAdherent: '',
-        priceMinorAdherent: '',
-        difficulty: '',
-        type: types.length > 0 ? types[0].id : '',
-        mealPrice: '',
+/**
+ * Helper function to convert duration in minutes to H:mm format
+ * @param {number|null} minutes - Duration in minutes
+ * @returns {string} Duration string in H:mm format
+ */
+const convertMinutesToDuration = (minutes) => {
+    if (!minutes) return '';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}:${String(mins).padStart(2, '0')}`;
+};
+
+/**
+ * Helper function to extract date from datetime string
+ * @param {string|null} datetime - Datetime string
+ * @returns {string} Date string (YYYY-MM-DD)
+ */
+const extractDate = (datetime) => {
+    if (!datetime) return '';
+    return datetime.split('T')[0].split(' ')[0];
+};
+
+/**
+ * Helper function to extract time from datetime string
+ * @param {string|null} datetime - Datetime string
+ * @returns {string} Time string (HH:mm)
+ */
+const extractTime = (datetime) => {
+    if (!datetime) return '';
+    const timePart = datetime.split('T')[1] || datetime.split(' ')[1];
+    return timePart ? timePart.substring(0, 5) : '';
+};
+
+/**
+ * NewRace Component - Form for creating or editing a race
+ * @param {Object} props - Component props
+ * @param {Object} props.auth - Authentication data
+ * @param {Array} props.users - List of users for responsable selection
+ * @param {Array} props.types - List of race types
+ * @param {number|null} props.raid_id - Raid ID (for new races)
+ * @param {Object|null} props.raid - Raid data
+ * @param {Object|null} props.race - Race data (null for create, object for edit)
+ */
+export default function NewRace({ auth, users = [], types = [], raid_id = null, raid = null, race = null }) {
+    // Determine if we're in edit mode
+    const isEditMode = race !== null;
+    
+    // Find the user ID from adh_id for edit mode
+    const getResponsableUserId = () => {
+        if (!race || !race.adh_id) return '';
+        const user = users.find(u => u.adh_id === race.adh_id);
+        return user ? user.id : '';
+    };
+
+    const { data, setData, post, put, processing, errors } = useForm({
+        title: race?.race_name || '',
+        description: race?.race_description || '',
+        responsableId: getResponsableUserId(),
+        startDate: extractDate(race?.race_date_start),
+        startTime: extractTime(race?.race_date_start),
+        duration: convertMinutesToDuration(race?.race_duration_minutes),
+        endDate: extractDate(race?.race_date_end),
+        endTime: extractTime(race?.race_date_end),
+        minParticipants: race?.runner_params?.pac_nb_min || '',
+        maxParticipants: race?.runner_params?.pac_nb_max || '',
+        maxPerTeam: race?.team_params?.pae_team_count_max || '1',
+        minTeams: race?.team_params?.pae_nb_min || '1',
+        maxTeams: race?.team_params?.pae_nb_max || '1',
+        priceMajor: race?.price_major || '',
+        priceMinor: race?.price_minor || '',
+        priceAdherent: race?.price_adherent || '',
+        difficulty: race?.race_difficulty || '',
+        type: race?.typ_id || (types.length > 0 ? types[0].id : ''),
+        mealPrice: race?.race_meal_price || '',
         image: null,
-        raid_id: raid_id || '',
+        raid_id: race?.raid_id || raid_id || '',
     });
 
     // Date validation state
@@ -113,15 +165,25 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('races.store'));
+        if (isEditMode) {
+            put(route('races.update', race.race_id));
+        } else {
+            post(route('races.store'));
+        }
     };
+
+    // Page title and button text based on mode
+    const pageTitle = isEditMode ? 'Modifier la Course' : 'Créer une Nouvelle Course';
+    const submitButtonText = isEditMode 
+        ? (processing ? 'Modification en cours...' : 'Modifier la course')
+        : (processing ? 'Création en cours...' : 'Créer la course');
 
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Créer une Nouvelle Course</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{pageTitle}</h2>}
         >
-            <Head title="Créer une Course" />
+            <Head title={pageTitle} />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -385,22 +447,6 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                                     <span className="ml-1 text-gray-500 text-sm">€</span>
                                                 </div>
                                             </div>
-                                            <div>
-                                                <label className="block text-xs text-gray-500 mb-1">Adhérent</label>
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="number"
-                                                        name="priceMajorAdherent"
-                                                        value={data.priceMajorAdherent}
-                                                        onChange={handleInputChange}
-                                                        placeholder="0.00"
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                    />
-                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
-                                                </div>
-                                            </div>
                                         </div>
                                         {errors.priceMajor && <p className="mt-1 text-sm text-red-600">{errors.priceMajor}</p>}
                                     </div>
@@ -408,42 +454,40 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                     {/* Prix Mineurs */}
                                     <div className="mb-4">
                                         <label className="block text-xs font-medium text-gray-600 mb-2">Mineurs (- de 18 ans)</label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label className="block text-xs text-gray-500 mb-1">Standard</label>
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="number"
-                                                        name="priceMinor"
-                                                        value={data.priceMinor}
-                                                        onChange={handleInputChange}
-                                                        placeholder="0.00"
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                        required
-                                                    />
-                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs text-gray-500 mb-1">Adhérent</label>
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="number"
-                                                        name="priceMinorAdherent"
-                                                        value={data.priceMinorAdherent}
-                                                        onChange={handleInputChange}
-                                                        placeholder="0.00"
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                    />
-                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
-                                                </div>
-                                            </div>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="number"
+                                                name="priceMinor"
+                                                value={data.priceMinor}
+                                                onChange={handleInputChange}
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                min="0"
+                                                className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                required
+                                            />
+                                            <span className="ml-1 text-gray-500 text-sm">€</span>
                                         </div>
                                         {errors.priceMinor && <p className="mt-1 text-sm text-red-600">{errors.priceMinor}</p>}
+                                    </div>
+
+                                    {/* Prix Adhérents */}
+                                    <div className="mb-4">
+                                        <label className="block text-xs font-medium text-gray-600 mb-2">Adhérents (licenciés)</label>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="number"
+                                                name="priceAdherent"
+                                                value={data.priceAdherent}
+                                                onChange={handleInputChange}
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                min="0"
+                                                className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                            />
+                                            <span className="ml-1 text-gray-500 text-sm">€</span>
+                                        </div>
+                                        {errors.priceAdherent && <p className="mt-1 text-sm text-red-600">{errors.priceAdherent}</p>}
                                     </div>
                                 </div>
 
@@ -523,7 +567,7 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                     className={`${processing ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-900'
                                         } text-white font-semibold py-3 px-12 rounded-lg transition`}
                                 >
-                                    {processing ? 'Création en cours...' : 'Créer la course'}
+                                    {submitButtonText}
                                 </button>
                             </div>
                         </form>

@@ -32,11 +32,14 @@ export default function Create() {
 
     /**
      * Handle form submission
+     * Uses forceFormData to support file uploads
      * @param {Event} e - Form submit event
      */
     const submit = (e) => {
         e.preventDefault();
-        post(route('raids.store'));
+        post(route('raids.store'), {
+            forceFormData: true,
+        });
     };
 
     /**

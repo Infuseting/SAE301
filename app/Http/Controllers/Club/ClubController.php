@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Club;
 
+use App\Http\Controllers\Controller;
 use App\Models\Club;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

@@ -18,17 +18,30 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
             <Head title={raid?.raid_name || 'Détails du Raid'} />
 
             {/* Premium Header */}
-            <div className="bg-emerald-600 py-10 relative overflow-hidden">
+            <div className="relative overflow-hidden">
+                {/* Background Image or Gradient */}
+                {raid.raid_image ? (
+                    <div className="absolute inset-0">
+                        <img
+                            src={`/storage/${raid.raid_image}`}
+                            alt={raid.raid_name}
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-emerald-900/70" />
+                    </div>
+                ) : (
+                    <div className="absolute inset-0 bg-emerald-600" />
+                )}
                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                     <Trophy className="w-64 h-64" />
                 </div>
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
+                <div className="relative py-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="space-y-2">
-                            <button onClick={() => window.history.back()} className="text-emerald-100 hover:text-white flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-colors mb-4">
+                            <Link href={route('raids.index')} className="text-emerald-100 hover:text-white flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-colors mb-4">
                                 <ChevronRight className="h-4 w-4 rotate-180" />
                                 Retour
-                            </button>
+                            </Link>
                             <h1 className="text-4xl font-black text-white italic tracking-tighter">
                                 {raid?.raid_name.toUpperCase()}
                             </h1>

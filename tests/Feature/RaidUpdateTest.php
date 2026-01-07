@@ -163,6 +163,110 @@ class RaidUpdateTest extends TestCase
     }
 
     /**
+     * Test that raid edit form receives all required raid data
+     */
+    public function test_raid_edit_form_receives_complete_raid_data(): void
+    {
+        $response = $this->actingAs($this->clubLeader)
+            ->get(route('raids.edit', $this->raid->raid_id));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => 
+            $page->component('Raid/Edit')
+                ->has('raid', fn ($raid) => 
+                    $raid->has('raid_id')
+                        ->has('raid_name')
+                        ->has('raid_description')
+                        ->has('raid_date_start')
+                        ->has('raid_date_end')
+                        ->has('raid_contact')
+                        ->has('raid_street')
+                        ->has('raid_city')
+                        ->has('raid_postal_code')
+                        ->has('raid_number')
+                        ->has('adh_id')
+                        ->has('clu_id')
+                        ->has('ins_id')
+                        ->has('registration_period')
+                        ->etc()
+                )
+                ->has('userClub', fn ($club) =>
+                    $club->has('club_id')
+                        ->has('club_name')
+                )
+                ->has('clubMembers')
+        );
+    }
+
+    /**
+     * Test that raid edit form receives registration period data
+     */
+    public function test_raid_edit_form_receives_registration_period_data(): void
+    {
+        $response = $this->actingAs($this->clubLeader)
+            ->get(route('raids.edit', $this->raid->raid_id));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => 
+            $page->component('Raid/Edit')
+                ->has('raid.registration_period', fn ($period) =>
+                    $period->has('ins_id')
+                        ->has('ins_start_date')
+                        ->has('ins_end_date')
+                        ->etc()
+                )
+        );
+    }
+
+    /**
+     * Test that raid data values are correctly passed to edit form
+     */
+    public function test_raid_edit_form_has_correct_raid_values(): void
+    {
+        $response = $this->actingAs($this->clubLeader)
+            ->get(route('raids.edit', $this->raid->raid_id));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => 
+            $page->component('Raid/Edit')
+                ->where('raid.raid_id', $this->raid->raid_id)
+                ->where('raid.raid_name', 'Original Raid Name')
+                ->where('raid.raid_description', 'Original description')
+                ->where('raid.raid_contact', 'original@example.com')
+                ->where('raid.raid_city', 'Original City')
+                ->where('raid.raid_postal_code', '11111')
+                ->where('raid.clu_id', $this->clubId)
+                ->where('raid.adh_id', $this->leaderMember->adh_id)
+        );
+    }
+
+    /**
+     * Test that club members list contains expected members for edit form
+     */
+    public function test_raid_edit_form_has_club_members_with_required_fields(): void
+    {
+        // Assign adherent role to club member so they appear in the list
+        $adherentRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'adherent']);
+        $this->clubMember->assignRole($adherentRole);
+
+        $response = $this->actingAs($this->clubLeader)
+            ->get(route('raids.edit', $this->raid->raid_id));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => 
+            $page->component('Raid/Edit')
+                ->has('clubMembers', fn ($members) =>
+                    $members->each(fn ($member) =>
+                        $member->has('id')
+                            ->has('name')
+                            ->has('email')
+                            ->has('adh_id')
+                    )
+                )
+        );
+    }
+
+    /**
      * Test successful raid update with valid data
      */
     public function test_can_update_raid_with_valid_data(): void

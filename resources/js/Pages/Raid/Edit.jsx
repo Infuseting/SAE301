@@ -10,7 +10,7 @@ import { useState } from 'react';
  * Edit Raid Form Component
  * Form for editing an existing raid with event and registration dates
  */
-export default function Edit({ raid, clubs, clubAdherents }) {
+export default function Edit({ raid, userClub, clubMembers }) {
     const messages = usePage().props.translations?.messages || {};
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -30,7 +30,7 @@ export default function Edit({ raid, clubs, clubAdherents }) {
         return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         raid_name: raid.raid_name || '',
         raid_description: raid.raid_description || '',
         raid_date_start: formatDateTimeForInput(raid.raid_date_start),
@@ -46,15 +46,19 @@ export default function Edit({ raid, clubs, clubAdherents }) {
         ins_end_date: formatDateTimeForInput(raid.registration_period?.ins_end_date),
         raid_site_url: raid.raid_site_url || '',
         raid_image: null,
+        _method: 'PUT',
     });
 
     /**
      * Handle form submission
+     * Uses POST with _method: 'PUT' to support file uploads (FormData)
      * @param {Event} e - Form submit event
      */
     const submit = (e) => {
         e.preventDefault();
-        put(route('raids.update', raid.raid_id));
+        post(route('raids.update', raid.raid_id), {
+            forceFormData: true,
+        });
     };
 
     /**
@@ -95,11 +99,11 @@ export default function Edit({ raid, clubs, clubAdherents }) {
     };
 
     /**
-     * Get club name by ID
+     * Get club name from userClub prop
+     * @returns {string} Club name or default message
      */
     const getClubName = () => {
-        const club = clubs?.find(c => c.club_id === data.clu_id);
-        return club?.club_name || 'Club non trouvé';
+        return userClub?.club_name || 'Club non trouvé';
     };
 
     return (
@@ -288,8 +292,8 @@ export default function Edit({ raid, clubs, clubAdherents }) {
                                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                         >
                                             <option value="">Sélectionner un responsable...</option>
-                                            {clubAdherents?.map((member) => (
-                                                <option key={member.id} value={member.id}>
+                                            {clubMembers?.map((member) => (
+                                                <option key={member.id} value={member.adh_id}>
                                                     {member.name} ({member.email})
                                                 </option>
                                             ))}

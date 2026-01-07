@@ -68,6 +68,7 @@ class VisuRaceController extends Controller
         // Transform data for frontend
         $raceData = [
             'id' => $race->race_id,
+            'raidId' => $race->raid_id,
             'title' => $race->race_name,
             'description' => $race->raid?->raid_description ?? 'Aucune description disponible.',
             'location' => $race->raid?->raid_location ?? 'Lieu à définir',
@@ -81,7 +82,7 @@ class VisuRaceController extends Controller
             'status' => $this->getRaceStatus($race),
             'isOpen' => $race->isOpen(),
             'registrationUpcoming' => $race->isRegistrationUpcoming(),
-            'imageUrl' => $race->image_url ? asset('storage/' . $race->image_url) : null,
+            'imageUrl' => $race->image_url ? '/storage/' . $race->image_url : null,
             'description' => $race->race_description ?? 'Aucune description disponible.',
             'maxParticipants' => 100, 
             'registeredCount' => \DB::table('registration')->where('race_id', $race->race_id)->count(),
@@ -93,8 +94,7 @@ class VisuRaceController extends Controller
             'categories' => [],
             'priceMajor' => $race->price_major,
             'priceMinor' => $race->price_minor,
-            'priceMajorAdherent' => $race->price_major_adherent,
-            'priceMinorAdherent' => $race->price_minor_adherent,
+            'priceAdherent' => $race->price_adherent,
             'minTeams' => $race->teamParams?->pae_nb_min ?? 1,
             'maxTeams' => $race->teamParams?->pae_nb_max ?? 1,
             'maxPerTeam' => $race->teamParams?->pae_team_count_max ?? 1,

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Club;
 
+use App\Http\Controllers\Controller;
 use App\Models\Club;
 use App\Models\User;
 use Illuminate\Http\Request;

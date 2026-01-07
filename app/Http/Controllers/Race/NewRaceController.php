@@ -46,7 +46,7 @@ class NewRaceController extends Controller
      */
     public function edit(int $id)
     {
-        $race = Race::findOrFail($id);
+        $race = Race::with(['runnerParams', 'teamParams'])->findOrFail($id);
         
         // Authorize the user to update this race (checks ownership)
         $this->authorize('update', $race);
@@ -71,7 +71,7 @@ class NewRaceController extends Controller
     private function renderRaceForm(Request $request, ?Race $race = null)
     {
         $raidId = $race ? $race->raid_id : $request->query('raid_id');
-        $raid = null;
+        $raid = $raidId ? Raid::find($raidId) : null;
         $usersQuery = User::select('id', 'last_name', 'first_name', 'email', 'adh_id');
 
         if ($raid) {
@@ -148,8 +148,7 @@ class NewRaceController extends Controller
         // Handle image upload
         $imageUrl = null;
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('races', 'public');
-            $imageUrl = '/storage/' . $path;
+            $imageUrl = $request->file('image')->store('races', 'public');
         }
 
         // Prepare race data
@@ -162,8 +161,7 @@ class NewRaceController extends Controller
             'race_meal_price' => $request->input('mealPrice'),
             'price_major' => $request->input('priceMajor'),
             'price_minor' => $request->input('priceMinor'),
-            'price_major_adherent' => $request->input('priceMajorAdherent'),
-            'price_minor_adherent' => $request->input('priceMinorAdherent'),
+            'price_adherent' => $request->input('priceAdherent'),
             'adh_id' => User::find($request->input('responsableId'))->adh_id,
             'race_difficulty' => $request->input('difficulty'),
             'typ_id' => $request->input('type'),
@@ -179,6 +177,71 @@ class NewRaceController extends Controller
 
         return redirect()->route('races.show', $race->race_id)
             ->with('success', 'La course a été créée avec succès!');
+    }
+
+    /**
+     * Update an existing race in the database.
+     *
+     * @param StoreRaceRequest $request
+     * @param int $id The race ID
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(StoreRaceRequest $request, int $id)
+    {
+        $race = Race::findOrFail($id);
+        
+        // Authorize the user to update this race
+        $this->authorize('update', $race);
+
+        // Combine date and time fields
+        $startDateTime = $request->input('startDate') . ' ' . $request->input('startTime');
+        $endDateTime = $request->input('endDate') . ' ' . $request->input('endTime');
+
+        // Update ParamRunner entry if exists
+        if ($race->pac_id) {
+            ParamRunner::where('pac_id', $race->pac_id)->update([
+                'pac_nb_min' => $request->input('minParticipants'),
+                'pac_nb_max' => $request->input('maxParticipants'),
+            ]);
+        }
+
+        // Update ParamTeam entry if exists
+        if ($race->pae_id) {
+            ParamTeam::where('pae_id', $race->pae_id)->update([
+                'pae_nb_min' => $request->input('minTeams'),
+                'pae_nb_max' => $request->input('maxTeams'),
+                'pae_team_count_max' => $request->input('maxPerTeam'),
+            ]);
+        }
+
+        // Handle image upload
+        $imageUrl = $race->image_url;
+        if ($request->hasFile('image')) {
+            $imageUrl = $request->file('image')->store('races', 'public');
+        }
+
+        // Prepare race data for update
+        $raceData = [
+            'race_name' => $request->input('title'),
+            'race_description' => $request->input('description'),
+            'race_date_start' => $startDateTime,
+            'race_date_end' => $endDateTime,
+            'race_duration_minutes' => $this->convertDurationToMinutes($request->input('duration')),
+            'race_meal_price' => $request->input('mealPrice'),
+            'price_major' => $request->input('priceMajor'),
+            'price_minor' => $request->input('priceMinor'),
+            'price_adherent' => $request->input('priceAdherent'),
+            'adh_id' => User::find($request->input('responsableId'))->adh_id,
+            'race_difficulty' => $request->input('difficulty'),
+            'typ_id' => $request->input('type'),
+            'image_url' => $imageUrl,
+        ];
+
+        // Update the race
+        $race->update($raceData);
+
+        return redirect()->route('races.show', $race->race_id)
+            ->with('success', 'La course a été modifiée avec succès!');
     }
 
     /**
