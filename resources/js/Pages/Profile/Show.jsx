@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import UserAvatar from '@/Components/UserAvatar';
 import UserLastRaces from '@/Components/UserLastRaces';
+import UserTeams from '@/Components/UserTeams';
 
 
 export default function Show({ user }) {
@@ -109,7 +110,9 @@ export default function Show({ user }) {
                     </div>
                 </div>
             </div>
+            <UserTeams />
             <UserLastRaces />
+
         </AuthenticatedLayout >
     );
 }
