@@ -6,7 +6,7 @@ import UserTeams from '@/Components/UserTeams';
 import UserRolesDisplay from '@/Components/UserRolesDisplay';
 
 
-export default function Show({ user, teams = [], isOwner }) {
+export default function Show({ user, teams = [], races = [], isOwner }) {
     const messages = usePage().props.translations?.messages || {};
     const { post } = useForm();
 
@@ -172,7 +172,7 @@ export default function Show({ user, teams = [], isOwner }) {
                 </div>
             </div>
             <UserTeams teams={teams} />
-            <UserLastRaces />
+            <UserLastRaces races={races} />
             
         </AuthenticatedLayout >
     );

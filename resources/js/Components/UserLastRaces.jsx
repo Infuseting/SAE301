@@ -3,27 +3,6 @@
  * @param {Array} teams - Array of team objects with name, image, and members
  */
 export default function UserLastRaces({ races = [] }) {
-    // Demo data for display purposes
-    const demoRaces = [
-        {
-            id: 1,
-            name: "Marathon de Paris",
-            date: "2023-04-02",
-            position: "5ème",
-        },
-        {
-            id: 2,
-            name: "Semi-Marathon de Lyon",
-            date: "2023-05-15",
-            position: "10ème",
-        },
-        {
-            id: 3,
-            name: "10km de Nice",
-            date: "2023-06-20",
-            position: "3ème",
-        },
-    ];
 
     return (
         <div className="py-6">
@@ -32,13 +11,13 @@ export default function UserLastRaces({ races = [] }) {
                     Vos dernières courses
                 </h2>
                 
-                {demoRaces.length === 0 ? (
+                {races.length === 0 ? (
                     <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm text-center text-gray-500">
                         Vous n'avez participé à aucune course pour le moment.
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {demoRaces.map((race) => (
+                        {races.map((race) => (
                             <div 
                                 key={race.id} 
                                 className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col"

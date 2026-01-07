@@ -60,6 +60,13 @@ class PublicProfileController extends Controller
                     ])->toArray(),
                 ];
             })->toArray(),
+            'races' => $user->races()->get()->map(function ($race) {
+                return [
+                    'id' => $race->race_id, 
+                    'name' => $race->race_name, 
+                    'date' => $race->race_date, 
+                ];
+            })->toArray(),
             'isOwner' => $isOwner,
         ]);
     }
