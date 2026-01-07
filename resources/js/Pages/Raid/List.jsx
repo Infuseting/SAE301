@@ -6,7 +6,7 @@ import { Head, Link } from '@inertiajs/react';
 /**
  * Raid List Component
  * Displays a paginated list of all raids with dynamic search functionality
- * Design consistent with profile, clubs/create, and new-race pages
+ * Design consistent with profile, clubs/create, and races/create pages
  */
 export default function List({ raids, filters }) {
     const messages = usePage().props.translations?.messages || {};

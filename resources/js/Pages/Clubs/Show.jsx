@@ -3,14 +3,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ClubMembersList from '@/Components/ClubMembersList';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
-import DangerButton from '@/Components/DangerButton';
-import Modal from '@/Components/Modal';
-import { useState } from 'react';
 
 export default function Show({ club, isMember, isManager }) {
     const messages = usePage().props.translations?.messages || {};
-    const { post, delete: destroy, processing } = useForm();
-    const [confirmingClubDeletion, setConfirmingClubDeletion] = useState(false);
+    const { post, processing } = useForm();
 
     const handleJoin = () => {
         post(route('clubs.join', club.club_id));
@@ -20,22 +16,6 @@ export default function Show({ club, isMember, isManager }) {
         if (confirm(messages.confirm_leave_club || 'Are you sure you want to leave this club?')) {
             post(route('clubs.leave', club.club_id));
         }
-    };
-
-    const confirmClubDeletion = () => {
-        setConfirmingClubDeletion(true);
-    };
-
-    const deleteClub = () => {
-        destroy(route('clubs.destroy', club.club_id), {
-            preserveScroll: true,
-            onSuccess: () => closeModal(),
-            onFinish: () => setConfirmingClubDeletion(false),
-        });
-    };
-
-    const closeModal = () => {
-        setConfirmingClubDeletion(false);
     };
 
     return (
@@ -96,14 +76,9 @@ export default function Show({ club, isMember, isManager }) {
                                 {/* Action Buttons */}
                                 <div className="flex items-center space-x-2">
                                     {isManager ? (
-                                        <>
-                                            <Link href={route('clubs.edit', club.club_id)}>
-                                                <SecondaryButton>{messages.edit_club}</SecondaryButton>
-                                            </Link>
-                                            <DangerButton onClick={confirmClubDeletion} disabled={processing}>
-                                                {messages.delete_club || messages.delete || 'Delete Club'}
-                                            </DangerButton>
-                                        </>
+                                        <Link href={route('clubs.edit', club.club_id)}>
+                                            <SecondaryButton>{messages.edit_club}</SecondaryButton>
+                                        </Link>
                                     ) : isMember ? (
                                         <SecondaryButton onClick={handleLeave} disabled={processing}>
                                             {messages.leave_club}
@@ -233,28 +208,6 @@ export default function Show({ club, isMember, isManager }) {
                             </p>
                         </div>
                     )}
-
-                    <Modal show={confirmingClubDeletion} onClose={closeModal}>
-                        <div className="p-6">
-                            <h2 className="text-lg font-medium text-gray-900">
-                                {messages.delete_club_title || 'Delete Club'}
-                            </h2>
-
-                            <p className="mt-1 text-sm text-gray-600">
-                                {messages.delete_club_confirmation || 'Are you sure you want to delete this club? This action cannot be undone.'}
-                            </p>
-
-                            <div className="mt-6 flex justify-end">
-                                <SecondaryButton onClick={closeModal}>
-                                    {messages.cancel || 'Cancel'}
-                                </SecondaryButton>
-
-                                <DangerButton className="ms-3" onClick={deleteClub} disabled={processing}>
-                                    {messages.delete_club || messages.delete || 'Delete Club'}
-                                </DangerButton>
-                            </div>
-                        </div>
-                    </Modal>
 
                 </div>
             </div>

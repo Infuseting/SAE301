@@ -592,13 +592,9 @@ class RacePermissionsTest extends TestCase
 
     /**
      * Test that admin can delete any race
-     * 
-     * @TODO: Implement races.destroy route and RaceController::destroy method
      */
     public function test_admin_can_delete_any_race(): void
     {
-        $this->markTestSkipped('Race delete route (races.destroy) not yet implemented');
-        
         // Create a race
         $paramRunner = ParamRunner::create([
             'pac_nb_min' => 2,

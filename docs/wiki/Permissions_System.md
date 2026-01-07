@@ -83,7 +83,7 @@ Le système de permissions de SAE301 est basé sur **Spatie Laravel Permission**
 
 ```mermaid
 graph TD
-    A[Utilisateur clique sur "S'inscrire"] --> B{Est connecté?}
+    A[Utilisateur clique sur S'inscrire] --> B{Est connecté?}
     B -->|Non| C[Redirection vers login]
     B -->|Oui| D{A une licence/PPS valide?}
     D -->|Non| E[Afficher modal Licence/PPS]
@@ -97,19 +97,19 @@ graph TD
 
 ```mermaid
 graph TD
-    A[Utilisateur veut créer un club] --> B{A le rôle responsable-club?}
-    B -->|Non| C{A une licence valide?}
+    A[Utilisateur veut créer un club] --> B{A le rôle adherent?}
+    B -->|Oui| C{A une licence valide?}
     C -->|Non| D[Afficher message: Licence requise]
-    C -->|Oui| E[Permettre l'assignation du rôle responsable-club]
-    B -->|Oui| F[Créer le club]
-    E --> F
-    F --> G[Club en attente d'approbation admin]
+    C -->|Oui| E[Affiche du formulaire de création de club et soumission de celui-ci]
+    E --> F[Club en attente d'approbation admin]
+    F --> G{Admin accepte la demande?}
+    G -->|Oui| I[Création du club et assignation du rôle 'Responsable Club' à son responsable]
+    G -->|Non| J[Le club n'est pas créer et personne ne recoit de rôle]
 ```
 
 ## Fichiers Importants
 
 ### Backend
-- **Migration**: `database/migrations/2026_01_07_085306_add_licence_and_pps_to_users_table.php`
 - **Seeder**: `database/seeders/RolesAndPermissionsSeeder.php`
 - **Service**: `app/Services/LicenceService.php`
 - **Middleware**: `app/Http/Middleware/AssignDefaultRole.php`

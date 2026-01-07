@@ -269,6 +269,20 @@ class ClubMemberController extends Controller
             return back()->with('error', __('messages.last_manager_cannot_leave'));
         }
 
+        // If user was a manager, check if they should keep the responsable-club role
+        // (only if they manage other clubs)
+        if ($club->hasManager($user)) {
+            $otherManagedClubs = $user->clubs()
+                ->wherePivot('role', 'manager')
+                ->wherePivot('status', 'approved')
+                ->where('clubs.club_id', '!=', $club->club_id)
+                ->count();
+            
+            if ($otherManagedClubs === 0 && $user->hasRole('responsable-club')) {
+                $user->removeRole('responsable-club');
+            }
+        }
+
         $club->members()->detach($user->id);
 
         activity()
@@ -278,5 +292,140 @@ class ClubMemberController extends Controller
 
         return redirect()->route('clubs.index')
             ->with('success', __('messages.left_club'));
+    }
+
+    /**
+     * Promote a club member to manager.
+     *
+     * @OA\Post(
+     *     path="/api/clubs/{clubId}/members/{userId}/promote",
+     *     tags={"Club Members"},
+     *     summary="Promote a member to manager",
+     *     description="Club manager promotes a member to manager role",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="clubId",
+     *         in="path",
+     *         description="Club ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="userId",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Member promoted to manager"
+     *     ),
+     *     @OA\Response(response=403, description="Not authorized"),
+     *     @OA\Response(response=404, description="Member not found")
+     * )
+     */
+    public function promoteToManager(Club $club, User $user): RedirectResponse
+    {
+        // Only club managers can promote
+        if (!$club->hasManager(auth()->user())) {
+            abort(403, 'Only club managers can promote members');
+        }
+
+        // Check if user is an approved member
+        $membership = $club->members()
+            ->where('user_id', $user->id)
+            ->wherePivot('status', 'approved')
+            ->first();
+
+        if (!$membership) {
+            return back()->with('error', __('messages.user_not_member'));
+        }
+
+        // Update the pivot role to manager
+        $club->members()->updateExistingPivot($user->id, [
+            'role' => 'manager',
+        ]);
+
+        // Assign the responsable-club role if not already assigned
+        if (!$user->hasRole('responsable-club')) {
+            $user->assignRole('responsable-club');
+        }
+
+        activity()
+            ->performedOn($club)
+            ->causedBy(auth()->user())
+            ->withProperties(['promoted_user' => $user->name])
+            ->log('Member promoted to manager');
+
+        return back()->with('success', __('messages.member_promoted', ['name' => $user->name]));
+    }
+
+    /**
+     * Demote a club manager to regular member.
+     *
+     * @OA\Post(
+     *     path="/api/clubs/{clubId}/members/{userId}/demote",
+     *     tags={"Club Members"},
+     *     summary="Demote a manager to member",
+     *     description="Club manager demotes another manager to regular member",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="clubId",
+     *         in="path",
+     *         description="Club ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="userId",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Manager demoted to member"
+     *     ),
+     *     @OA\Response(response=403, description="Not authorized"),
+     *     @OA\Response(response=400, description="Cannot demote last manager")
+     * )
+     */
+    public function demoteFromManager(Club $club, User $user): RedirectResponse
+    {
+        // Only club managers can demote
+        if (!$club->hasManager(auth()->user())) {
+            abort(403, 'Only club managers can demote managers');
+        }
+
+        // Cannot demote yourself if you're the last manager
+        if ($club->managers()->count() === 1) {
+            return back()->with('error', __('messages.cannot_demote_last_manager'));
+        }
+
+        // Update the pivot role to member
+        $club->members()->updateExistingPivot($user->id, [
+            'role' => 'member',
+        ]);
+
+        // Check if user manages other clubs before removing the role
+        $otherManagedClubs = $user->clubs()
+            ->wherePivot('role', 'manager')
+            ->wherePivot('status', 'approved')
+            ->where('clubs.club_id', '!=', $club->club_id)
+            ->count();
+
+        if ($otherManagedClubs === 0 && $user->hasRole('responsable-club')) {
+            $user->removeRole('responsable-club');
+        }
+
+        activity()
+            ->performedOn($club)
+            ->causedBy(auth()->user())
+            ->withProperties(['demoted_user' => $user->name])
+            ->log('Manager demoted to member');
+
+        return back()->with('success', __('messages.manager_demoted', ['name' => $user->name]));
     }
 }

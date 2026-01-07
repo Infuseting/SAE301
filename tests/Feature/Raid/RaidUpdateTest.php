@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Raid;
 
 use App\Models\Member;
 use App\Models\MedicalDoc;

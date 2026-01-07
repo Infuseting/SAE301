@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import UserSelect from '@/Components/UserSelect';
+import Modal from '@/Components/Modal';
+import DangerButton from '@/Components/DangerButton';
+import SecondaryButton from '@/Components/SecondaryButton';
 
 /**
  * Helper function to convert duration in minutes to H:mm format
@@ -83,6 +86,26 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
 
     // Date validation state
     const [dateErrors, setDateErrors] = useState({});
+    
+    // Delete confirmation modal state (only used in edit mode)
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    /**
+     * Handle race deletion
+     */
+    const handleDelete = () => {
+        router.delete(route('races.destroy', race.race_id), {
+            preserveScroll: true,
+            onSuccess: () => closeDeleteModal(),
+        });
+    };
+
+    /**
+     * Close delete confirmation modal
+     */
+    const closeDeleteModal = () => {
+        setShowDeleteModal(false);
+    };
 
     // Validate dates on change
     const validateDates = (fieldName, value) => {
@@ -181,9 +204,34 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{pageTitle}</h2>}
         >
             <Head title={pageTitle} />
+
+            {/* Header with back button for edit mode */}
+            {isEditMode ? (
+                <div className="bg-emerald-600 py-6">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-center relative">
+                            <Link href={route('races.show', race.race_id)} className="text-white hover:text-white/80 absolute left-0">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </Link>
+                            <h1 className="text-2xl font-bold text-white">
+                                Modifier la course
+                            </h1>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="bg-gray-800 py-6">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                        <h1 className="text-2xl font-bold text-white text-center">
+                            Créer une nouvelle course
+                        </h1>
+                    </div>
+                </div>
+            )}
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -558,7 +606,6 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                 </div>
                             </div>
 
-
                             {/* Bouton Submit */}
                             <div className="mt-8 flex justify-center">
                                 <button
@@ -570,11 +617,48 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                     {submitButtonText}
                                 </button>
                             </div>
+
+                            {/* Danger Zone - Only in edit mode */}
+                            {isEditMode && (
+                                <div className="mt-8 bg-white rounded-lg shadow-md p-6 border-2 border-red-200">
+                                    <h2 className="text-lg font-semibold text-red-600 mb-4">
+                                        Zone de danger
+                                    </h2>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        La suppression de la course est irréversible. Toutes les inscriptions associées seront également supprimées.
+                                    </p>
+                                    <DangerButton type="button" onClick={() => setShowDeleteModal(true)}>
+                                        Supprimer la course
+                                    </DangerButton>
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>
             </div >
 
+            {/* Delete Confirmation Modal */}
+            <Modal show={showDeleteModal} onClose={closeDeleteModal}>
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900">
+                        Êtes-vous sûr de vouloir supprimer cette course ?
+                    </h2>
+
+                    <p className="mt-1 text-sm text-gray-600">
+                        La suppression de la course est irréversible. Toutes les inscriptions associées seront également supprimées.
+                    </p>
+
+                    <div className="mt-6 flex justify-end">
+                        <SecondaryButton type="button" onClick={closeDeleteModal}>
+                            Annuler
+                        </SecondaryButton>
+
+                        <DangerButton type="button" className="ms-3" onClick={handleDelete}>
+                            Oui, supprimer
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout >
     );
 }

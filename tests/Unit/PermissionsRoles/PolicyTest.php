@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\PermissionsRoles;
 
 use App\Models\Club;
 use App\Models\Race;

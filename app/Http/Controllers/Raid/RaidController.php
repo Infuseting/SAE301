@@ -48,7 +48,7 @@ class RaidController extends Controller
         $raids = Raid::query()
             ->with(['club:club_id,club_name', 'registrationPeriod:ins_id,ins_start_date,ins_end_date'])
             ->withCount('races')
-            ->orderBy('raid_date_start', 'desc')
+            ->orderBy('raid_date_start', 'asc')
             ->get();
 
         return Inertia::render('Raid/List', [
@@ -205,6 +205,14 @@ class RaidController extends Controller
         // Create the raid
         $raid = Raid::create($validated);
 
+        // Assign gestionnaire-raid role to the designated responsible if adh_id is set
+        if (!empty($validated['adh_id'])) {
+            $responsibleUser = User::where('adh_id', $validated['adh_id'])->first();
+            if ($responsibleUser) {
+                $this->assignGestionnaireRaidRole($responsibleUser->id, $raid);
+            }
+        }
+
         return redirect()->route('raids.index')
             ->with('success', 'Raid created successfully.');
     }
@@ -225,24 +233,31 @@ class RaidController extends Controller
             return;
         }
 
-        // Check if the user is an adherent (has valid licence)
-        if (!$targetUser->hasRole('adherent')) {
+        // Check if the user is an adherent (has valid licence or adh_id)
+        if (!$targetUser->adh_id) {
             return;
         }
 
-        // Check if the user is a member of the club
-        $member = $targetUser->member;
-        if (!$member) {
+        // Check if the user is a member of the raid's club
+        $isMemberOfClub = $targetUser->clubs()
+            ->where('clubs.club_id', $raid->clu_id)
+            ->wherePivot('status', 'approved')
+            ->exists();
+
+        if (!$isMemberOfClub) {
             return;
         }
 
-        // Assign gestionnaire-raid role
+        // Assign gestionnaire-raid role (even if user has other roles like admin or responsable-club)
         if (!$targetUser->hasRole('gestionnaire-raid')) {
             $targetUser->assignRole('gestionnaire-raid');
+            
+            activity()
+                ->performedOn($raid)
+                ->causedBy(auth()->user())
+                ->withProperties(['user' => $targetUser->first_name . ' ' . $targetUser->last_name])
+                ->log('User assigned as raid manager');
         }
-
-        // Update the raid with the member's adh_id
-        $raid->update(['adh_id' => $member->adh_id]);
     }
 
     /**
@@ -426,6 +441,14 @@ class RaidController extends Controller
 
         // Update the raid
         $raid->update($validated);
+
+        // Assign gestionnaire-raid role to the designated responsible if adh_id is set or updated
+        if (!empty($validated['adh_id'])) {
+            $responsibleUser = User::where('adh_id', $validated['adh_id'])->first();
+            if ($responsibleUser) {
+                $this->assignGestionnaireRaidRole($responsibleUser->id, $raid);
+            }
+        }
 
         return redirect()->route('raids.show', $raid->raid_id)
             ->with('success', 'Raid updated successfully.');

@@ -1,10 +1,26 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ClubForm from '@/Components/ClubForm';
 import ClubMembersList from '@/Components/ClubMembersList';
+import Modal from '@/Components/Modal';
+import DangerButton from '@/Components/DangerButton';
+import SecondaryButton from '@/Components/SecondaryButton';
+import { useState } from 'react';
 
 export default function Edit({ club }) {
     const messages = usePage().props.translations?.messages || {};
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    const handleDelete = () => {
+        router.delete(route('clubs.destroy', club.club_id), {
+            preserveScroll: true,
+            onSuccess: () => closeDeleteModal(),
+        });
+    };
+
+    const closeDeleteModal = () => {
+        setShowDeleteModal(false);
+    };
 
     return (
         <AuthenticatedLayout>
@@ -42,20 +58,57 @@ export default function Edit({ club }) {
                         </div>
 
                         {/* Member Management */}
-                        <div className="lg:col-span-1">
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-6">
+                        <div className="lg:col-span-1 space-y-6">
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                                 <h2 className="text-xl font-bold text-gray-900 mb-6">{messages.manage_members}</h2>
                                 <ClubMembersList
                                     members={club.members || []}
                                     pendingRequests={club.pending_requests || []}
                                     isManager={true}
                                     clubId={club.club_id}
+                                    compact={true}
                                 />
+                            </div>
+
+                            {/* Danger Zone */}
+                            <div className="bg-white rounded-2xl shadow-sm border-2 border-red-200 p-6">
+                                <h2 className="text-lg font-semibold text-red-600 mb-4">
+                                    Zone de danger
+                                </h2>
+                                <p className="text-sm text-gray-600 mb-4">
+                                    La suppression du club est irréversible. Tous les membres et données associées seront supprimés.
+                                </p>
+                                <DangerButton type="button" onClick={() => setShowDeleteModal(true)}>
+                                    {messages.delete_club || 'Supprimer le club'}
+                                </DangerButton>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <Modal show={showDeleteModal} onClose={closeDeleteModal}>
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900">
+                        {messages.delete_club_title || 'Êtes-vous sûr de vouloir supprimer ce club ?'}
+                    </h2>
+
+                    <p className="mt-1 text-sm text-gray-600">
+                        {messages.delete_club_confirmation || 'La suppression du club est irréversible. Tous les membres et données associées seront supprimés.'}
+                    </p>
+
+                    <div className="mt-6 flex justify-end">
+                        <SecondaryButton type="button" onClick={closeDeleteModal}>
+                            {messages.cancel || 'Annuler'}
+                        </SecondaryButton>
+
+                        <DangerButton type="button" className="ms-3" onClick={handleDelete}>
+                            {messages.delete_club || 'Supprimer le club'}
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }

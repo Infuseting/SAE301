@@ -471,16 +471,28 @@ class EditOwnershipTest extends TestCase
 
     /**
      * Test that responsable-course can update their own race
-     * 
-     * @TODO: Implement races.update route and ownership check in RacePolicy
      */
     public function test_responsable_course_can_update_own_race(): void
     {
-        $this->markTestSkipped('races.update route not yet implemented. Add PUT route for race updates with ownership verification.');
-
         $response = $this->actingAs($this->responsableCourseUser1)
             ->put(route('races.update', $this->race1->race_id), [
-                'race_name' => 'Updated Race Name',
+                'title' => 'Updated Race Name',
+                'description' => 'Updated description',
+                'startDate' => now()->addMonth()->format('Y-m-d'),
+                'startTime' => '10:00',
+                'endDate' => now()->addMonth()->format('Y-m-d'),
+                'endTime' => '18:00',
+                'minParticipants' => 2,
+                'maxParticipants' => 10,
+                'maxPerTeam' => 5,
+                'minTeams' => 1,
+                'maxTeams' => 20,
+                'priceMajor' => 25.00,
+                'priceMinor' => 15.00,
+                'difficulty' => 'medium',
+                'type' => 1,
+                'responsableId' => $this->responsableCourseUser1->id,
+                'raid_id' => $this->raid1->raid_id,
             ]);
 
         $response->assertRedirect();
@@ -488,16 +500,28 @@ class EditOwnershipTest extends TestCase
 
     /**
      * Test that responsable-course cannot update another user's race
-     * 
-     * @TODO: Implement races.update route and ownership check in RacePolicy
      */
     public function test_responsable_course_cannot_update_other_users_race(): void
     {
-        $this->markTestSkipped('races.update route not yet implemented. Add PUT route for race updates with ownership verification.');
-
         $response = $this->actingAs($this->responsableCourseUser1)
             ->put(route('races.update', $this->race2->race_id), [
-                'race_name' => 'Hacked Race Name',
+                'title' => 'Hacked Race Name',
+                'description' => 'Hacked description',
+                'startDate' => now()->addMonth()->format('Y-m-d'),
+                'startTime' => '10:00',
+                'endDate' => now()->addMonth()->format('Y-m-d'),
+                'endTime' => '18:00',
+                'minParticipants' => 2,
+                'maxParticipants' => 10,
+                'maxPerTeam' => 5,
+                'minTeams' => 1,
+                'maxTeams' => 20,
+                'priceMajor' => 25.00,
+                'priceMinor' => 15.00,
+                'difficulty' => 'medium',
+                'type' => 1,
+                'responsableId' => $this->responsableCourseUser1->id,
+                'raid_id' => $this->raid2->raid_id,
             ]);
 
         $response->assertStatus(403);
@@ -505,13 +529,9 @@ class EditOwnershipTest extends TestCase
 
     /**
      * Test that responsable-course can delete their own race
-     * 
-     * @TODO: Implement races.destroy route and ownership check in RacePolicy
      */
     public function test_responsable_course_can_delete_own_race(): void
     {
-        $this->markTestSkipped('races.destroy route not yet implemented. Add DELETE route for race deletion with ownership verification.');
-
         $response = $this->actingAs($this->responsableCourseUser1)
             ->delete(route('races.destroy', $this->race1->race_id));
 
@@ -520,13 +540,9 @@ class EditOwnershipTest extends TestCase
 
     /**
      * Test that responsable-course cannot delete another user's race
-     * 
-     * @TODO: Implement races.destroy route and ownership check in RacePolicy
      */
     public function test_responsable_course_cannot_delete_other_users_race(): void
     {
-        $this->markTestSkipped('races.destroy route not yet implemented. Add DELETE route for race deletion with ownership verification.');
-
         $response = $this->actingAs($this->responsableCourseUser1)
             ->delete(route('races.destroy', $this->race2->race_id));
 
@@ -627,13 +643,9 @@ class EditOwnershipTest extends TestCase
 
     /**
      * Test that admin can delete any race regardless of ownership
-     * 
-     * @TODO: Implement races.destroy route
      */
     public function test_admin_can_delete_any_race(): void
     {
-        $this->markTestSkipped('races.destroy route not yet implemented. Add DELETE route for race deletion.');
-
         // Create a new race to delete
         $paramRunner = ParamRunner::create([
             'pac_nb_min' => 2,

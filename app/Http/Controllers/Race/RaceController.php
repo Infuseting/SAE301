@@ -19,7 +19,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 /**
  * Controller for managing race creation.
  */
-class NewRaceController extends Controller
+class RaceController extends Controller
 {
     use AuthorizesRequests;
 
@@ -175,6 +175,12 @@ class NewRaceController extends Controller
         // Create the race
         $race = Race::create($raceData);
 
+        // Assign responsable-course role to the designated responsible
+        $responsibleUser = User::find($request->input('responsableId'));
+        if ($responsibleUser) {
+            $this->assignResponsableCourseRole($responsibleUser, $race);
+        }
+
         return redirect()->route('races.show', $race->race_id)
             ->with('success', 'La course a été créée avec succès!');
     }
@@ -240,8 +246,89 @@ class NewRaceController extends Controller
         // Update the race
         $race->update($raceData);
 
+        // Assign responsable-course role to the new responsible if changed
+        $responsibleUser = User::find($request->input('responsableId'));
+        if ($responsibleUser) {
+            $this->assignResponsableCourseRole($responsibleUser, $race);
+        }
+
         return redirect()->route('races.show', $race->race_id)
             ->with('success', 'La course a été modifiée avec succès!');
+    }
+
+    /**
+     * Assign responsable-course role to a user for a specific race.
+     * The user must be an adherent and a member of the raid's club.
+     *
+     * @param User $user
+     * @param Race $race
+     * @return void
+     */
+    protected function assignResponsableCourseRole(User $user, Race $race): void
+    {
+        // Check if the user has an adherent ID
+        if (!$user->adh_id) {
+            return;
+        }
+
+        // Get the raid to check club membership
+        $raid = $race->raid;
+        if (!$raid) {
+            return;
+        }
+
+        // Check if the user is a member of the raid's club
+        $isMemberOfClub = $user->clubs()
+            ->where('clubs.club_id', $raid->clu_id)
+            ->wherePivot('status', 'approved')
+            ->exists();
+
+        if (!$isMemberOfClub) {
+            return;
+        }
+
+        // Assign responsable-course role (even if user has other roles)
+        if (!$user->hasRole('responsable-course')) {
+            $user->assignRole('responsable-course');
+            
+            activity()
+                ->performedOn($race)
+                ->causedBy(auth()->user())
+                ->withProperties(['user' => $user->first_name . ' ' . $user->last_name])
+                ->log('User assigned as race manager');
+        }
+    }
+
+    /**
+     * Delete the specified race.
+     *
+     * @param int $id The race ID to delete
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(int $id)
+    {
+        $race = Race::findOrFail($id);
+        
+        // Authorize the user to delete the race
+        $this->authorize('delete', $race);
+        
+        $raidId = $race->raid_id;
+        
+        // Delete associated ParamRunner if exists
+        if ($race->pac_id) {
+            ParamRunner::where('pac_id', $race->pac_id)->delete();
+        }
+        
+        // Delete associated ParamTeam if exists
+        if ($race->pae_id) {
+            ParamTeam::where('pae_id', $race->pae_id)->delete();
+        }
+        
+        // Delete the race
+        $race->delete();
+        
+        return redirect()->route('raids.show', $raidId)
+            ->with('success', 'La course a été supprimée avec succès!');
     }
 
     /**

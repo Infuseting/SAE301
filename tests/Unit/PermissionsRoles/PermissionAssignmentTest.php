@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\PermissionsRoles;
 
 use App\Models\Member;
 use App\Models\MedicalDoc;
