@@ -315,37 +315,34 @@ class RaidController extends Controller
      */
     public function edit(Raid $raid): Response
     {
-        try {
-            // Check authorization - user must be able to update this raid
-            file_put_contents('debug.log', "RaidController edit hit. Raid ID: " . $raid->raid_id . "\n", FILE_APPEND);
-            $this->authorize('update', $raid);
-            file_put_contents('debug.log', "RaidController authorize passed\n", FILE_APPEND);
+        // Check authorization - user must be able to update this raid
+        $this->authorize('update', $raid);
 
-            // Load registration period for the form
-            $raid->load('registrationPeriod');
+        // Load registration period for the form
+        $raid->load('registrationPeriod');
 
-            // Get the club of this raid
-            $userClub = \DB::table('clubs')
-                ->where('club_id', $raid->clu_id)
-                ->first(['club_id', 'club_name']);
+        // Get the club of this raid
+        $userClub = \DB::table('clubs')
+            ->where('club_id', $raid->clu_id)
+            ->first(['club_id', 'club_name']);
 
-            // Get adherents of the club for gestionnaire-raid assignment
-            $clubAdherents = [];
-            if ($raid->clu_id) {
-                $clubAdherents = User::whereHas('member')
-                    ->whereHas('roles', function ($q) {
-                        $q->where('name', 'adherent');
-                    })
-                    ->whereHas('clubs', function ($q) use ($raid) {
-                        $q->where('clubs.club_id', $raid->clu_id);
-                    })
-                    ->get(['id', 'name', 'email']);
-            }
+        // Get adherents of the club for gestionnaire-raid assignment
+        $clubAdherents = [];
+        if ($raid->clu_id) {
+            $clubAdherents = User::whereHas('member')
+                ->whereHas('roles', function ($q) {
+                    $q->where('name', 'adherent');
+                })
+                ->whereHas('clubs', function ($q) use ($raid) {
+                    $q->where('clubs.club_id', $raid->clu_id);
+                })
+                ->get(['id', 'name', 'email']);
+        }
 
         return Inertia::render('Raid/Edit', [
-            'raid' => $raidData,
+            'raid' => $raid,
             'userClub' => $userClub,
-            'clubMembers' => $clubMembers,
+            'clubMembers' => $clubAdherents,
         ]);
     }
 
