@@ -8,6 +8,8 @@ import { Head, Link, usePage } from '@inertiajs/react';
  */
 export default function List({ raids }) {
     const messages = usePage().props.translations?.messages || {};
+    const { auth } = usePage().props;
+    const isClubLeader = auth?.user?.is_club_leader || false;
 
     /**
      * Format date for display
@@ -38,11 +40,13 @@ export default function List({ raids }) {
                         <h1 className="text-2xl font-bold text-white absolute left-1/2 transform -translate-x-1/2">
                             {messages.raids || 'Raids'}
                         </h1>
-                        <Link href={route('raids.create')}>
-                            <PrimaryButton>
-                                {messages.create_raid || 'Créer un Raid'}
-                            </PrimaryButton>
-                        </Link>
+                        {isClubLeader && (
+                            <Link href={route('raids.create')}>
+                                <PrimaryButton>
+                                    {messages.create_raid || 'Créer un Raid'}
+                                </PrimaryButton>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>
@@ -55,11 +59,13 @@ export default function List({ raids }) {
                             <p className="text-gray-500 text-lg mb-4">
                                 {messages.no_raids || 'Aucun raid disponible'}
                             </p>
-                            <Link href={route('raids.create')}>
-                                <PrimaryButton>
-                                    {messages.create_first_raid || 'Créer le premier raid'}
-                                </PrimaryButton>
-                            </Link>
+                            {isClubLeader && (
+                                <Link href={route('raids.create')}>
+                                    <PrimaryButton>
+                                        {messages.create_first_raid || 'Créer le premier raid'}
+                                    </PrimaryButton>
+                                </Link>
+                            )}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

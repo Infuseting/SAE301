@@ -186,4 +186,24 @@ class User extends Authenticatable
             ->withPivot('role', 'status')
             ->withTimestamps();
     }
+
+    /**
+     * Check if the user is a club leader.
+     * Uses the club_users pivot table to check if user has a manager role
+     * 
+     * Check if the user is a club leader/manager.
+     * A user is considered a club leader if they created any club (created_by column).
+     * 
+     * @return bool
+     */
+    public function isClubLeader(): bool
+    {
+        if (!$this->id) {
+            return false;
+        }
+
+        return \DB::table('clubs')
+            ->where('created_by', $this->id)
+            ->exists();
+    }
 }

@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\Role::class,
             'permission' => \Spatie\Permission\Middleware\Permission::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermission::class,
+            'club_leader' => \App\Http\Middleware\EnsureUserIsClubLeader::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
