@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Member;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRaidRequest;
+use App\Http\Requests\UpdateRaidRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -263,33 +264,48 @@ class RaidController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     * Loads raid data with registration period and club members
      */
     public function edit(Raid $raid): Response
     {
-        $this->authorize('update', $raid);
+        // Load raid with registration period
+        $raid->load('registrationPeriod');
 
-        $user = auth()->user();
-        $clubs = $user->hasRole('admin') 
-            ? Club::where('is_approved', true)->get()
-            : $user->clubs()->where('is_approved', true)->get();
+        // Get the club of this raid
+        $userClub = \DB::table('clubs')
+            ->where('club_id', $raid->clu_id)
+            ->first(['club_id', 'club_name']);
 
-        // Get adherents of the club for gestionnaire-raid assignment
-        $clubAdherents = [];
-        if ($raid->clu_id) {
-            $clubAdherents = User::whereHas('member')
-                ->whereHas('roles', function($q) {
-                    $q->where('name', 'adherent');
-                })
-                ->whereHas('clubs', function($q) use ($raid) {
-                    $q->where('clubs.club_id', $raid->clu_id);
-                })
-                ->get(['id', 'name', 'email']);
+        // Get members (adherents) of this club from club_user table
+        $clubMembers = [];
+        if ($userClub) {
+            $clubMembers = \DB::table('club_user')
+                ->join('users', 'club_user.user_id', '=', 'users.id')
+                ->where('club_user.club_id', $userClub->club_id)
+                ->whereNotNull('users.adh_id') // Ensure they have an adherent ID
+                ->select('users.adh_id', 'users.first_name', 'users.last_name')
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'adh_id' => $user->adh_id,
+                        'full_name' => $user->first_name . ' ' . $user->last_name,
+                        'first_name' => $user->first_name,
+                        'last_name' => $user->last_name,
+                    ];
+                });
+        }
+
+        // Prepare raid data with registration period dates
+        $raidData = $raid->toArray();
+        if ($raid->registrationPeriod) {
+            $raidData['ins_start_date'] = $raid->registrationPeriod->ins_start_date;
+            $raidData['ins_end_date'] = $raid->registrationPeriod->ins_end_date;
         }
 
         return Inertia::render('Raid/Edit', [
-            'raid' => $raid,
-            'clubs' => $clubs,
-            'clubAdherents' => $clubAdherents,
+            'raid' => $raidData,
+            'userClub' => $userClub,
+            'clubMembers' => $clubMembers,
         ]);
     }
 
@@ -331,19 +347,25 @@ class RaidController extends Controller
      *     )
      * )
      */
-    public function update(StoreRaidRequest $request, Raid $raid): RedirectResponse
+    public function update(UpdateRaidRequest $request, Raid $raid): RedirectResponse
     {
-        $this->authorize('update', $raid);
-
         $validated = $request->validated();
-        $raid->update($validated);
-
-        // If a gestionnaire_raid_id is specified, assign the role
-        if (!empty($validated['gestionnaire_raid_id'])) {
-            $this->assignGestionnaireRaidRole($validated['gestionnaire_raid_id'], $raid);
+        
+        // Update registration period if it exists
+        if ($raid->ins_id && $raid->registrationPeriod) {
+            $raid->registrationPeriod->update([
+                'ins_start_date' => $validated['ins_start_date'],
+                'ins_end_date' => $validated['ins_end_date'],
+            ]);
         }
         
-        return redirect()->route('raids.index')
+        // Remove inscription dates from raid data (they're in registration_period table)
+        unset($validated['ins_start_date'], $validated['ins_end_date']);
+        
+        // Update the raid
+        $raid->update($validated);
+        
+        return redirect()->route('raids.show', $raid->raid_id)
             ->with('success', 'Raid updated successfully.');
     }
 
