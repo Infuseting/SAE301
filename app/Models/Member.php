@@ -33,13 +33,13 @@ class Member extends Model
     }
 
     /**
-     * Get the teams this member belongs to.
+     * Get the teams this member belongs to via has_participate.
      */
     public function teams()
     {
         return $this->belongsToMany(
             Team::class,
-            'team_members',
+            'has_participate',
             'adh_id',
             'equ_id',
             'adh_id',

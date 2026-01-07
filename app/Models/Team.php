@@ -40,13 +40,13 @@ class Team extends Model
     }
 
     /**
-     * Relationship with the member model.
+     * Relationship with members via has_participate.
      */
     public function members()
     {
         return $this->belongsToMany(
             Member::class,
-            'team_members',
+            'has_participate',
             'equ_id',
             'adh_id',
             'equ_id',
