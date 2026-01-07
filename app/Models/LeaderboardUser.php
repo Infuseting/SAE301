@@ -69,8 +69,8 @@ class LeaderboardUser extends Model
     private function formatTime(float $seconds): string
     {
         $hours = floor($seconds / 3600);
-        $minutes = floor(($seconds % 3600) / 60);
-        $secs = $seconds % 60;
+        $minutes = floor(fmod($seconds, 3600) / 60);
+        $secs = fmod($seconds, 60);
 
         if ($hours > 0) {
             return sprintf('%02d:%02d:%05.2f', $hours, $minutes, $secs);

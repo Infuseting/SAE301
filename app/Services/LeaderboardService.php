@@ -270,12 +270,11 @@ class LeaderboardService
 
             $totalParticipants = LeaderboardUser::where('race_id', $item->race_id)->count();
 
-            // Get user's team for this race if exists
+            // Get user's team if exists (user belongs to a team regardless of race)
             $teamName = null;
             $teamResult = DB::table('has_participate')
                 ->join('teams', 'has_participate.equ_id', '=', 'teams.equ_id')
                 ->where('has_participate.id', $item->user_id)
-                ->where('has_participate.race_id', $item->race_id)
                 ->select('teams.equ_name')
                 ->first();
             
