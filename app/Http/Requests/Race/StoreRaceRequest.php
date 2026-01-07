@@ -16,7 +16,10 @@ class StoreRaceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('create', Race::class);
+        $raidId = $this->input('raid_id');
+        $raid = $raidId ? \App\Models\Raid::find($raidId) : null;
+
+        return $this->user()->can('create', [Race::class, $raid]);
     }
 
     /**

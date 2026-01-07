@@ -361,14 +361,36 @@ class RacePermissionsTest extends TestCase
     // ===========================================
 
     /**
-     * Test that a responsable-club without responsable-course role cannot create races
+     * Test that a responsable-club without responsable-course role cannot create races 
+     * if they are NOT the raid responsible
      */
-    public function test_responsable_club_without_course_role_cannot_create_race(): void
+    public function test_responsable_club_cannot_create_race_if_not_raid_responsible(): void
     {
+        // Set someone else as raid responsible
+        $someoneElse = Member::factory()->create();
+        $this->raid->update(['adh_id' => $someoneElse->adh_id]);
+
         $response = $this->actingAs($this->responsableClubUser)
             ->post(route('races.store'), $this->getValidRaceData());
         
         $response->assertStatus(403);
+    }
+
+    /**
+     * Test that a responsable-club CAN create races if they ARE the raid responsible
+     */
+    public function test_responsable_club_can_create_race_if_raid_responsible(): void
+    {
+        // Set responsable-club as raid responsible
+        $member = $this->responsableClubUser->member;
+        $this->raid->update(['adh_id' => $member->adh_id]);
+
+        $raceData = $this->getValidRaceData();
+        $response = $this->actingAs($this->responsableClubUser)
+            ->post(route('races.store'), $raceData);
+        
+        $response->assertRedirect();
+        $this->assertDatabaseHas('races', ['race_name' => $raceData['title']]);
     }
 
     // ===========================================
@@ -376,21 +398,27 @@ class RacePermissionsTest extends TestCase
     // ===========================================
 
     /**
-     * Test that gestionnaire-raid cannot create races (only manage raids)
+     * Test that gestionnaire-raid can create races for raids they manage
      */
-    public function test_gestionnaire_raid_cannot_access_race_creation_page(): void
+    public function test_gestionnaire_raid_can_create_race_for_their_raid(): void
     {
+        // Make gestionnaireRaidUser the responsible of the raid
+        $this->raid->update(['adh_id' => $this->gestionnaireRaidUser->adh_id]);
+
+        $raceData = $this->getValidRaceData();
         $response = $this->actingAs($this->gestionnaireRaidUser)
-            ->get(route('races.create'));
+            ->post(route('races.store'), $raceData);
         
-        $response->assertStatus(403);
+        $response->assertRedirect();
+        $this->assertDatabaseHas('races', ['race_name' => $raceData['title']]);
     }
 
     /**
-     * Test that gestionnaire-raid cannot create a race
+     * Test that gestionnaire-raid cannot create races for raids they DO NOT manage
      */
-    public function test_gestionnaire_raid_cannot_create_race(): void
+    public function test_gestionnaire_raid_cannot_create_race_for_other_raid(): void
     {
+        // raid adh_id is currently $responsableClubMember->adh_id, not $gestionnaireRaidUser->adh_id
         $response = $this->actingAs($this->gestionnaireRaidUser)
             ->post(route('races.store'), $this->getValidRaceData());
         

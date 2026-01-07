@@ -87,8 +87,12 @@ class RaidPolicy
         }
 
         // Responsable-club can update raids of their club
-        if ($user->hasRole('responsable-club') && $raid->clu_id) {
-            return $user->clubs()->where('clubs.club_id', $raid->clu_id)->exists();
+        if ($raid->clu_id) {
+            return $user->hasRole('responsable-club') && $user->clubs()->where('clubs.club_id', $raid->clu_id)->exists() ||
+                   $user->clubs()->where('clubs.club_id', $raid->clu_id)
+                        ->wherePivot('role', 'manager')
+                        ->wherePivot('status', 'approved')
+                        ->exists();
         }
 
         return false;
@@ -105,8 +109,12 @@ class RaidPolicy
         }
 
         // Responsable-club can delete raids of their club
-        if ($user->hasRole('responsable-club') && $raid->clu_id) {
-            return $user->clubs()->where('clubs.club_id', $raid->clu_id)->exists();
+        if ($raid->clu_id) {
+            return $user->hasRole('responsable-club') && $user->clubs()->where('clubs.club_id', $raid->clu_id)->exists() ||
+                   $user->clubs()->where('clubs.club_id', $raid->clu_id)
+                        ->wherePivot('role', 'manager')
+                        ->wherePivot('status', 'approved')
+                        ->exists();
         }
 
         return false;

@@ -4,6 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
+import UserSelect from '@/Components/UserSelect';
 
 /**
  * Create Raid Form Component
@@ -56,17 +57,17 @@ export default function Create() {
      */
     const getMaxInscriptionDate = () => {
         if (!data.raid_date_start) return undefined;
-        
+
         const raidStart = new Date(data.raid_date_start);
         raidStart.setDate(raidStart.getDate() - 1);
-        
+
         // Format to datetime-local format (YYYY-MM-DDTHH:mm)
         const year = raidStart.getFullYear();
         const month = String(raidStart.getMonth() + 1).padStart(2, '0');
         const day = String(raidStart.getDate()).padStart(2, '0');
         const hours = String(raidStart.getHours()).padStart(2, '0');
         const minutes = String(raidStart.getMinutes()).padStart(2, '0');
-        
+
         return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
 
@@ -248,21 +249,15 @@ export default function Create() {
                                     {/* Organizer Selection - Club Members */}
                                     <div>
                                         <InputLabel htmlFor="adh_id" value="Responsable du raid" />
-                                        <select
-                                            id="adh_id"
-                                            name="adh_id"
-                                            value={data.adh_id}
-                                            onChange={(e) => setData('adh_id', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                                            required
-                                        >
-                                            <option value="">Sélectionner un membre du club...</option>
-                                            {clubMembers?.map((member) => (
-                                                <option key={member.adh_id} value={member.adh_id}>
-                                                    {member.full_name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <div className="mt-1">
+                                            <UserSelect
+                                                users={clubMembers}
+                                                selectedId={data.adh_id}
+                                                onSelect={(user) => setData('adh_id', user.adh_id)}
+                                                label="Responsable"
+                                                idKey="adh_id"
+                                            />
+                                        </div>
                                         <InputError message={errors.adh_id} className="mt-2" />
                                         <p className="mt-1 text-sm text-gray-500">
                                             Membres adhérents du club {userClub?.club_name || ''}

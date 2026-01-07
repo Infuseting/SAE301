@@ -387,6 +387,50 @@ class RaidPermissionsTest extends TestCase
     }
 
     /**
+     * Test that a user who is a manager in club_user but doesn't have the Spatie role can still edit the raid.
+     * This explicitly tests the fix for the 403 error reported by the user.
+     */
+    public function test_club_manager_without_role_can_edit_raid(): void
+    {
+        // Create a user without any role
+        $managerUser = User::factory()->create();
+        // Manually add as manager in pivot table
+        DB::table('club_user')->insert([
+            'club_id' => $this->clubId,
+            'user_id' => $managerUser->id,
+            'role' => 'manager',
+            'status' => 'approved',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Create a raid for this club
+        $registrationPeriod = RegistrationPeriod::create([
+            'ins_start_date' => now()->addDays(7),
+            'ins_end_date' => now()->addDays(21),
+        ]);
+        $raid = Raid::create([
+            'raid_name' => 'Manager Raid',
+            'raid_description' => 'Description',
+            'clu_id' => $this->clubId,
+            'adh_id' => $this->responsableMember->adh_id,
+            'raid_date_start' => now()->addMonth(),
+            'raid_date_end' => now()->addMonth()->addDays(2),
+            'ins_id' => $registrationPeriod->ins_id,
+            'raid_contact' => 'contact@test.com',
+            'raid_street' => '123 My Street',
+            'raid_city' => 'Test City',
+            'raid_postal_code' => '12345',
+            'raid_number' => 101,
+        ]);
+
+        $response = $this->actingAs($managerUser)
+            ->get(route('raids.edit', $raid->raid_id));
+        
+        $response->assertStatus(200);
+    }
+
+    /**
      * Test that responsable-club cannot edit another club's raid
      */
     public function test_responsable_club_cannot_edit_other_clubs_raid(): void

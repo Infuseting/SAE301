@@ -31,21 +31,19 @@ class NewRaceController extends Controller
      */
     public function show(Request $request)
     {
-        // Authorize the user to create a race
-        $this->authorize('create', Race::class);
-        
         $raidId = $request->query('raid_id');
-        $raid = null;
+        $raid = $raidId ? Raid::find($raidId) : null;
+
+        // Authorize the user to create a race for this raid
+        $this->authorize('create', [Race::class, $raid]);
+        
         $usersQuery = User::select('id', 'last_name', 'first_name', 'email', 'adh_id');
 
-        if ($raidId) {
-            $raid = Raid::find($raidId);
-            if ($raid) {
-                // Filter users who belong to the same club as the raid
-                $usersQuery->whereHas('clubs', function($q) use ($raid) {
-                    $q->where('clubs.club_id', $raid->clu_id);
-                });
-            }
+        if ($raid) {
+            // Filter users who belong to the same club as the raid
+            $usersQuery->whereHas('clubs', function($q) use ($raid) {
+                $q->where('clubs.club_id', $raid->clu_id);
+            });
         }
 
         // Get all users for responsable selection (filtered by raid club if applicable)
@@ -89,6 +87,11 @@ class NewRaceController extends Controller
      */
     public function store(StoreRaceRequest $request)
     {
+        $raid = $request->input('raid_id') ? Raid::find($request->input('raid_id')) : null;
+
+        // Authorize the user to create a race for this raid
+        $this->authorize('create', [Race::class, $raid]);
+
         // Combine date and time fields
         $startDateTime = $request->input('startDate') . ' ' . $request->input('startTime');
         $endDateTime = $request->input('endDate') . ' ' . $request->input('endTime');
