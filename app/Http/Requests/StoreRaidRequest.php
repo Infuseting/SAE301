@@ -9,15 +9,16 @@ class StoreRaidRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * Only club leaders can create raids.
      */
     public function authorize(): bool
     {
-        return true; // TODO: Add proper authorization logic (e.g., role-based)
+        return $this->user() && $this->user()->isClubLeader();
     }
 
     /**
      * Prepare data for validation.
-     * Automatically set clu_id from user's club
+     * Automatically set clu_id from user's club and convert postal_code to string
      */
     protected function prepareForValidation()
     {
@@ -32,6 +33,13 @@ class StoreRaidRequest extends FormRequest
                     'clu_id' => $userClub->club_id,
                 ]);
             }
+        }
+
+        // Convert postal_code to string if it's numeric
+        if ($this->has('raid_postal_code') && is_numeric($this->raid_postal_code)) {
+            $this->merge([
+                'raid_postal_code' => (string) $this->raid_postal_code,
+            ]);
         }
     }
 
@@ -57,7 +65,7 @@ class StoreRaidRequest extends FormRequest
             'clu_id' => ['required', 'integer', 'exists:clubs,club_id'],
             
             // Required fields
-            'raid_contact' => ['required', 'string', 'max:100'],
+            'raid_contact' => ['required', 'email', 'max:100'],
             'raid_street' => ['required', 'string', 'max:100'],
             'raid_city' => ['required', 'string', 'max:100'],
             'raid_postal_code' => ['required', 'string', 'max:20'],
