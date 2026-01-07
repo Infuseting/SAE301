@@ -43,17 +43,21 @@ Route::get('/', function () {
 Route::get('/race/{id}', [VisuRaceController::class, 'show'])->name('races.show');
 Route::get('/map', [App\Http\Controllers\MapController::class, 'index'])->name('map.index');
 
-// Race management
-Route::get('/new-race', [NewRaceController::class, 'show'])->name('races.create');
-Route::post('/new-race', [NewRaceController::class, 'store'])->name('races.store');
-Route::get('/race/{id}/edit', [NewRaceController::class, 'show'])->name('races.edit'); // Placeholder
-
 // Raids public routes (no auth required)
 Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
 Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show')->whereNumber('raid');
 
 
+//myRace
+Route::get('/my-race', [App\Http\Controllers\Race\MyRaceController::class, 'index'])->name('myrace.index');
+
+
 Route::middleware('auth')->group(function () {
+    // Race management (requires auth, authorization handled by controller/policy)
+    Route::get('/new-race', [NewRaceController::class, 'show'])->name('races.create');
+    Route::post('/new-race', [NewRaceController::class, 'store'])->name('races.store');
+    Route::get('/race/{id}/edit', [NewRaceController::class, 'show'])->name('races.edit'); // Placeholder
+
     Route::get('/dashboard', function () {
         return Inertia::render('Welcome');
     })->name('dashboard');
@@ -77,15 +81,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
         Route::put('/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
         Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
-        
-        // Clubs routes
-
-    // Club member management
-        Route::post('/clubs/{club}/join', [App\Http\Controllers\ClubMemberController::class, 'requestJoin'])->name('clubs.join');
-        Route::post('/clubs/{club}/leave', [App\Http\Controllers\ClubMemberController::class, 'leave'])->name('clubs.leave');
-        Route::post('/clubs/{club}/members/{user}/approve', [App\Http\Controllers\ClubMemberController::class, 'approveJoin'])->name('clubs.members.approve');
-        Route::post('/clubs/{club}/members/{user}/reject', [App\Http\Controllers\ClubMemberController::class, 'rejectJoin'])->name('clubs.members.reject');
     });
+
+    // Club member management (authorization handled in controller)
+    Route::post('/clubs/{club}/join', [App\Http\Controllers\ClubMemberController::class, 'requestJoin'])->name('clubs.join');
+    Route::post('/clubs/{club}/leave', [App\Http\Controllers\ClubMemberController::class, 'leave'])->name('clubs.leave');
+    Route::post('/clubs/{club}/members/{user}/approve', [App\Http\Controllers\ClubMemberController::class, 'approveJoin'])->name('clubs.members.approve');
+    Route::post('/clubs/{club}/members/{user}/reject', [App\Http\Controllers\ClubMemberController::class, 'rejectJoin'])->name('clubs.members.reject');
     Route::delete('/clubs/{club}/members/{user}', [App\Http\Controllers\ClubMemberController::class, 'removeMember'])->name('clubs.members.remove');
 
     // Licence and PPS management

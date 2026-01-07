@@ -389,7 +389,7 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "required": [
                                     "club_name",
@@ -414,10 +414,6 @@
                                         "type": "string",
                                         "example": "75001"
                                     },
-                                    "club_number": {
-                                        "type": "string",
-                                        "example": "FR-001"
-                                    },
                                     "ffso_id": {
                                         "type": "string",
                                         "example": "FFSO-12345"
@@ -425,6 +421,10 @@
                                     "description": {
                                         "type": "string",
                                         "example": "Club description"
+                                    },
+                                    "club_image": {
+                                        "type": "string",
+                                        "format": "binary"
                                     }
                                 },
                                 "type": "object"
@@ -510,7 +510,7 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "properties": {
                                     "club_name": {
@@ -525,14 +525,15 @@
                                     "club_postal_code": {
                                         "type": "string"
                                     },
-                                    "club_number": {
-                                        "type": "string"
-                                    },
                                     "ffso_id": {
                                         "type": "string"
                                     },
                                     "description": {
                                         "type": "string"
+                                    },
+                                    "club_image": {
+                                        "type": "string",
+                                        "format": "binary"
                                     }
                                 },
                                 "type": "object"
@@ -852,13 +853,13 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "password"
+                                    "confirmation"
                                 ],
                                 "properties": {
-                                    "password": {
+                                    "confirmation": {
+                                        "description": "Must match 'CONFIRMER' exactly",
                                         "type": "string",
-                                        "format": "password",
-                                        "example": "secret"
+                                        "example": "CONFIRMER"
                                     }
                                 },
                                 "type": "object"
@@ -882,7 +883,7 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "required": [
                                     "name",
@@ -897,6 +898,23 @@
                                         "type": "string",
                                         "format": "email",
                                         "example": "john@example.com"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Runner bio"
+                                    },
+                                    "is_public": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "license_number": {
+                                        "type": "string",
+                                        "example": "LIC12345"
+                                    },
+                                    "photo": {
+                                        "description": "Profile photo upload",
+                                        "type": "string",
+                                        "format": "binary"
                                     }
                                 },
                                 "type": "object"
@@ -1176,7 +1194,14 @@
                                     "raid_name",
                                     "clu_id",
                                     "raid_date_start",
-                                    "raid_date_end"
+                                    "raid_date_end",
+                                    "ins_start_date",
+                                    "ins_end_date",
+                                    "raid_contact",
+                                    "raid_street",
+                                    "raid_city",
+                                    "raid_postal_code",
+                                    "raid_number"
                                 ],
                                 "properties": {
                                     "raid_name": {
@@ -1198,9 +1223,53 @@
                                         "format": "date-time",
                                         "example": "2026-06-17T18:00:00Z"
                                     },
+                                    "ins_start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-01-01"
+                                    },
+                                    "ins_end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-05-31"
+                                    },
                                     "raid_description": {
                                         "type": "string",
                                         "example": "A thrilling raid through mountains"
+                                    },
+                                    "raid_contact": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "contact@raid.com"
+                                    },
+                                    "raid_street": {
+                                        "type": "string",
+                                        "example": "1 Trail Road"
+                                    },
+                                    "raid_city": {
+                                        "type": "string",
+                                        "example": "Chamonix"
+                                    },
+                                    "raid_postal_code": {
+                                        "type": "string",
+                                        "example": "74400"
+                                    },
+                                    "raid_number": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
+                                    "raid_site_url": {
+                                        "type": "string",
+                                        "format": "uri",
+                                        "example": "https://raid.example.com"
+                                    },
+                                    "raid_image": {
+                                        "description": "Image URL or identifier",
+                                        "type": "string"
+                                    },
+                                    "adh_id": {
+                                        "description": "Responsable Adhérent ID",
+                                        "type": "integer"
                                     },
                                     "gestionnaire_raid_id": {
                                         "description": "User ID to assign as gestionnaire-raid",

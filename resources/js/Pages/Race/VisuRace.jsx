@@ -113,11 +113,19 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                         {/* Left Side: Description & Details */}
                         <div className="lg:col-span-8 space-y-10">
                             {/* Hero Image */}
-                            <div className="aspect-video rounded-[3rem] overflow-hidden shadow-2xl relative group">
-                                <img
-                                    src={race.imageUrl || '/images/default-race.svg'}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                                />
+                            <div className="aspect-video rounded-[3rem] overflow-hidden shadow-2xl relative group bg-gradient-to-br from-blue-50 to-emerald-50 flex items-center justify-center">
+                                {race.imageUrl ? (
+                                    <img
+                                        src={race.imageUrl}
+                                        alt={race.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+                                    />
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center gap-4">
+                                        <Trophy className="w-24 h-24 text-blue-300 opacity-50" />
+                                        <p className="text-blue-400 font-black text-lg uppercase tracking-wider">Pas d'image disponible</p>
+                                    </div>
+                                )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-blue-900/60 to-transparent opacity-60" />
                             </div>
 
@@ -259,7 +267,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         { label: 'Tarif Mineur', price: race.priceMinor },
                                         { label: 'Tarif Adhérent Majeur', price: race.priceMajorAdherent, sub: 'Licenciés club' },
                                         { label: 'Tarif Adhérent Mineur', price: race.priceMinorAdherent, sub: 'Licenciés club' },
-                                    ].filter(t => t.price).map((t, idx) => (
+                                    ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
                                         <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${t.isMain ? 'bg-blue-900 text-white border-blue-900 shadow-xl shadow-blue-200' : 'bg-blue-50/30 border-blue-50 text-blue-900'}`}>
                                             <div>
                                                 <p className={`text-[10px] font-black uppercase tracking-widest ${t.isMain ? 'text-blue-100/40' : 'text-blue-400'}`}>{t.label}</p>
@@ -268,6 +276,28 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                             <span className="text-lg font-black italic">{t.price}€</span>
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+
+                            {/* Équipes Info Card */}
+                            <div className="bg-white rounded-[2.5rem] p-8 border border-blue-50 shadow-sm space-y-6">
+                                <h4 className="text-xs font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-emerald-500" />
+                                    INFORMATIONS SUR LES ÉQUIPES
+                                </h4>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Équipes Min</p>
+                                        <p className="text-2xl font-black text-blue-900 italic">{race.minTeams}</p>
+                                    </div>
+                                    <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Équipes Max</p>
+                                        <p className="text-2xl font-black text-blue-900 italic">{race.maxTeams}</p>
+                                    </div>
+                                    <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Par Équipe Max</p>
+                                        <p className="text-2xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
+                                    </div>
                                 </div>
                             </div>
 

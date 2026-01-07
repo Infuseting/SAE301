@@ -3,12 +3,13 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import SelectResponsableModal from '@/Components/SelectResponsableModal';
 
-export default function NewRace({ auth, users = [], difficulties = [], types = [], raid_id = null, raid = null }) {
+export default function NewRace({ auth, users = [], types = [], raid_id = null, raid = null }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedResponsable, setSelectedResponsable] = useState(null);
 
     const { data, setData, post, processing, errors } = useForm({
         title: '',
+        description: '',
         responsableId: '',
         startDate: '',
         startTime: '',
@@ -26,13 +27,73 @@ export default function NewRace({ auth, users = [], difficulties = [], types = [
         priceMinorAdherent: '',
         difficulty: '',
         type: types.length > 0 ? types[0].id : '',
-        licenseDiscount: '',
-        meals: '',
-        price: '',
+        mealPrice: '',
         image: null,
         raid_id: raid_id || '',
-        categories: [],
     });
+
+    // Date validation state
+    const [dateErrors, setDateErrors] = useState({});
+
+    // Validate dates on change
+    const validateDates = (fieldName, value) => {
+        const newErrors = { ...dateErrors };
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const startDate = fieldName === 'startDate' ? value : data.startDate;
+        const endDate = fieldName === 'endDate' ? value : data.endDate;
+        const startTime = fieldName === 'startTime' ? value : data.startTime;
+        const endTime = fieldName === 'endTime' ? value : data.endTime;
+        const duration = fieldName === 'duration' ? value : data.duration;
+
+        // Check start date is not in the past
+        if (startDate) {
+            const start = new Date(startDate);
+            if (start < today) {
+                newErrors.startDate = 'La date de début ne peut pas être dans le passé';
+            } else {
+                delete newErrors.startDate;
+            }
+        }
+
+        // Check end date is after or equal to start date
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            if (end < start) {
+                newErrors.endDate = 'La date de fin doit être égale ou postérieure à la date de début';
+            } else {
+                delete newErrors.endDate;
+            }
+        }
+
+        // Check end time is after start time + duration if same day
+        if (startDate && endDate && startDate === endDate && startTime && endTime) {
+            const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+            const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
+            let durationMinutes = 0;
+            
+            if (duration && duration.includes(':')) {
+                const [h, m] = duration.split(':');
+                durationMinutes = parseInt(h) * 60 + parseInt(m);
+            }
+
+            if (endMinutes < startMinutes + durationMinutes) {
+                newErrors.endTime = 'L\'heure de fin doit être après l\'heure de début + durée de la course';
+            } else {
+                delete newErrors.endTime;
+            }
+        }
+
+        setDateErrors(newErrors);
+    };
+
+    const handleDateChange = (e) => {
+        const { name, value } = e.target;
+        setData(name, value);
+        validateDates(name, value);
+    };
 
     const isCompetitive = types.find(t => t.id === data.type)?.name.toLowerCase() === 'compétitif' ||
         types.find(t => t.id === data.type)?.name.toLowerCase() === 'competitif';
@@ -40,10 +101,6 @@ export default function NewRace({ auth, users = [], difficulties = [], types = [
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setData(name, value);
-    };
-
-    const handleCategoryChange = (index, field, value) => {
-        // Obsolete, replaced by specific fields
     };
 
     const [imagePreview, setImagePreview] = useState(null);
@@ -54,10 +111,6 @@ export default function NewRace({ auth, users = [], difficulties = [], types = [
             setData('image', file);
             setImagePreview(URL.createObjectURL(file));
         }
-    };
-
-    const addCategory = () => {
-        setData('categories', [...data.categories, { minAge: '', maxAge: '', price: '' }]);
     };
 
 
@@ -131,6 +184,23 @@ export default function NewRace({ auth, users = [], difficulties = [], types = [
                                         />
                                     </div>
 
+                                    {/* Description de la course */}
+                                    <div className="mb-6">
+                                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                                            Description de la course
+                                        </label>
+                                        <textarea
+                                            id="description"
+                                            name="description"
+                                            value={data.description}
+                                            onChange={handleInputChange}
+                                            placeholder="Décrivez la course (parcours, règles, etc.)"
+                                            rows="5"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        />
+                                        {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                                    </div>
+
                                     {/* Sélection du responsable */}
                                     <div className="mb-6">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -179,19 +249,21 @@ export default function NewRace({ auth, users = [], difficulties = [], types = [
                                                 type="date"
                                                 name="startDate"
                                                 value={data.startDate}
-                                                onChange={handleInputChange}
-                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                                onChange={handleDateChange}
+                                                min={new Date().toISOString().split('T')[0]}
+                                                className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.startDate ? 'border-red-500' : 'border-gray-300'}`}
                                                 required
                                             />
                                             <input
                                                 type="time"
                                                 name="startTime"
                                                 value={data.startTime}
-                                                onChange={handleInputChange}
+                                                onChange={handleDateChange}
                                                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                                 required
                                             />
                                         </div>
+                                        {dateErrors.startDate && <p className="mt-1 text-sm text-red-600">{dateErrors.startDate}</p>}
                                     </div>
 
                                     {/* Durée */}
@@ -204,10 +276,12 @@ export default function NewRace({ auth, users = [], difficulties = [], types = [
                                             id="duration"
                                             name="duration"
                                             value={data.duration}
-                                            onChange={handleInputChange}
-                                            placeholder="0:30"
+                                            onChange={handleDateChange}
+                                            placeholder="2:30"
+                                            pattern="\d+:\d{2}"
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         />
+                                        <p className="mt-1 text-xs text-gray-500">Format: heures:minutes (ex: 2:30 pour 2h30)</p>
                                     </div>
 
                                     {/* Date et heure de fin */}
@@ -220,17 +294,20 @@ export default function NewRace({ auth, users = [], difficulties = [], types = [
                                                 type="date"
                                                 name="endDate"
                                                 value={data.endDate}
-                                                onChange={handleInputChange}
-                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                                onChange={handleDateChange}
+                                                min={data.startDate || new Date().toISOString().split('T')[0]}
+                                                className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.endDate ? 'border-red-500' : 'border-gray-300'}`}
                                             />
                                             <input
                                                 type="time"
                                                 name="endTime"
                                                 value={data.endTime}
-                                                onChange={handleInputChange}
-                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                                onChange={handleDateChange}
+                                                className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.endTime ? 'border-red-500' : 'border-gray-300'}`}
                                             />
                                         </div>
+                                        {dateErrors.endDate && <p className="mt-1 text-sm text-red-600">{dateErrors.endDate}</p>}
+                                        {dateErrors.endTime && <p className="mt-1 text-sm text-red-600">{dateErrors.endTime}</p>}
                                     </div>
 
                                     {/* Nombre de participants */}
@@ -319,43 +396,91 @@ export default function NewRace({ auth, users = [], difficulties = [], types = [
 
                             {/* Colonne Droite */}
                             <div>
-                                {/* Catégories */}
+                                {/* Tarifs */}
                                 <div className="mb-8">
-                                    <h4 className="text-sm font-semibold text-gray-900 mb-4">Catégories :</h4>
-                                    <div className="space-y-3">
-                                        {data.categories.map((cat, index) => (
-                                            <div key={index} className="flex gap-2">
-                                                <input
-                                                    type="number"
-                                                    placeholder="Age min"
-                                                    value={cat.minAge}
-                                                    onChange={(e) => handleCategoryChange(index, 'minAge', e.target.value)}
-                                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    placeholder="Age Max"
-                                                    value={cat.maxAge}
-                                                    onChange={(e) => handleCategoryChange(index, 'maxAge', e.target.value)}
-                                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    placeholder="Prix"
-                                                    value={cat.price}
-                                                    onChange={(e) => handleCategoryChange(index, 'price', e.target.value)}
-                                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                />
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-4">Tarifs d'inscription :</h4>
+                                    
+                                    {/* Prix Majeurs */}
+                                    <div className="mb-4">
+                                        <label className="block text-xs font-medium text-gray-600 mb-2">Majeurs (18 ans et +)</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block text-xs text-gray-500 mb-1">Standard</label>
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="number"
+                                                        name="priceMajor"
+                                                        value={data.priceMajor}
+                                                        onChange={handleInputChange}
+                                                        placeholder="0.00"
+                                                        step="0.01"
+                                                        min="0"
+                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                        required
+                                                    />
+                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
+                                                </div>
                                             </div>
-                                        ))}
+                                            <div>
+                                                <label className="block text-xs text-gray-500 mb-1">Adhérent</label>
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="number"
+                                                        name="priceMajorAdherent"
+                                                        value={data.priceMajorAdherent}
+                                                        onChange={handleInputChange}
+                                                        placeholder="0.00"
+                                                        step="0.01"
+                                                        min="0"
+                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                    />
+                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {errors.priceMajor && <p className="mt-1 text-sm text-red-600">{errors.priceMajor}</p>}
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={addCategory}
-                                        className="mt-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-                                    >
-                                        + Ajouter
-                                    </button>
+
+                                    {/* Prix Mineurs */}
+                                    <div className="mb-4">
+                                        <label className="block text-xs font-medium text-gray-600 mb-2">Mineurs (- de 18 ans)</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block text-xs text-gray-500 mb-1">Standard</label>
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="number"
+                                                        name="priceMinor"
+                                                        value={data.priceMinor}
+                                                        onChange={handleInputChange}
+                                                        placeholder="0.00"
+                                                        step="0.01"
+                                                        min="0"
+                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                        required
+                                                    />
+                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-gray-500 mb-1">Adhérent</label>
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="number"
+                                                        name="priceMinorAdherent"
+                                                        value={data.priceMinorAdherent}
+                                                        onChange={handleInputChange}
+                                                        placeholder="0.00"
+                                                        step="0.01"
+                                                        min="0"
+                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                    />
+                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {errors.priceMinor && <p className="mt-1 text-sm text-red-600">{errors.priceMinor}</p>}
+                                    </div>
                                 </div>
 
                                 {/* Nombre d'équipes */}
@@ -381,37 +506,22 @@ export default function NewRace({ auth, users = [], difficulties = [], types = [
                                     </div>
                                 </div>
 
-                                {/* Éléments Facultatifs */}
-                                <h4 className="text-sm font-semibold text-gray-900 mb-4">Éléments facultatifs :</h4>
-
-                                <div className="mb-3">
-                                    <input
-                                        type="text"
-                                        name="licenseDiscount"
-                                        value={data.licenseDiscount}
-                                        onChange={handleInputChange}
-                                        placeholder="Réduction pour les licenciés"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                    />
-                                </div>
-
-                                <div className="flex gap-2 mb-4">
-                                    <input
-                                        type="text"
-                                        name="meals"
-                                        value={data.meals}
-                                        onChange={handleInputChange}
-                                        placeholder="Repas"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                    />
-                                    <input
-                                        type="text"
-                                        name="price"
-                                        value={data.price}
-                                        onChange={handleInputChange}
-                                        placeholder="Prix"
-                                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                    />
+                                {/* Prix du repas */}
+                                <div className="mb-6">
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Prix du repas (optionnel)</h4>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            name="mealPrice"
+                                            value={data.mealPrice}
+                                            onChange={handleInputChange}
+                                            placeholder="0.00"
+                                            step="0.01"
+                                            min="0"
+                                            className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                        />
+                                        <span className="text-gray-500">€</span>
+                                    </div>
                                 </div>
 
                                 {/* Image */}

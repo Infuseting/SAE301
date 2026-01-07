@@ -21,28 +21,41 @@ class RaidController extends Controller
     use AuthorizesRequests;
     /**
      * Display a listing of the resource.
+     * Returns all raids for client-side filtering and search.
      * 
      * @OA\Get(
      *     path="/raids",
      *     tags={"Raids"},
      *     summary="Get list of raids",
-     *     description="Returns list of all raids",
+     *     description="Returns all raids with related data for client-side filtering",
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Raid")
+     *             type="object",
+     *             @OA\Property(
+     *                 property="raids",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Raid")
+     *             )
      *         )
      *     )
      * )
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $raids = Raid::latest()->get();
+        // Get all raids with related data for client-side filtering
+        $raids = Raid::query()
+            ->with(['club:club_id,club_name', 'registrationPeriod:ins_id,ins_start_date,ins_end_date'])
+            ->withCount('races')
+            ->orderBy('raid_date_start', 'desc')
+            ->get();
         
         return Inertia::render('Raid/List', [
             'raids' => $raids,
+            'filters' => [
+                'q' => $request->input('q', ''),
+            ],
         ]);
     }
 
@@ -111,12 +124,22 @@ class RaidController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"raid_name", "clu_id", "raid_date_start", "raid_date_end"},
+     *             required={"raid_name", "clu_id", "raid_date_start", "raid_date_end", "ins_start_date", "ins_end_date", "raid_contact", "raid_street", "raid_city", "raid_postal_code", "raid_number"},
      *             @OA\Property(property="raid_name", type="string", example="Mountain Adventure Raid"),
      *             @OA\Property(property="clu_id", type="integer", example=1, description="Club ID"),
      *             @OA\Property(property="raid_date_start", type="string", format="date-time", example="2026-06-15T08:00:00Z"),
      *             @OA\Property(property="raid_date_end", type="string", format="date-time", example="2026-06-17T18:00:00Z"),
+     *             @OA\Property(property="ins_start_date", type="string", format="date", example="2026-01-01"),
+     *             @OA\Property(property="ins_end_date", type="string", format="date", example="2026-05-31"),
      *             @OA\Property(property="raid_description", type="string", example="A thrilling raid through mountains"),
+     *             @OA\Property(property="raid_contact", type="string", format="email", example="contact@raid.com"),
+     *             @OA\Property(property="raid_street", type="string", example="1 Trail Road"),
+     *             @OA\Property(property="raid_city", type="string", example="Chamonix"),
+     *             @OA\Property(property="raid_postal_code", type="string", example="74400"),
+     *             @OA\Property(property="raid_number", type="integer", example=10),
+     *             @OA\Property(property="raid_site_url", type="string", format="uri", example="https://raid.example.com"),
+     *             @OA\Property(property="raid_image", type="string", description="Image URL or identifier"),
+     *             @OA\Property(property="adh_id", type="integer", description="Responsable Adhérent ID"),
      *             @OA\Property(property="gestionnaire_raid_id", type="integer", example=5, description="User ID to assign as gestionnaire-raid")
      *         )
      *     ),
@@ -233,9 +256,8 @@ class RaidController extends Controller
                 'id' => $race->race_id,
                 'name' => $race->race_name,
                 'organizer_name' => $race->organizer && $race->organizer->user ? $race->organizer->user->name : 'N/A',
-                'difficulty' => $race->race_difficulty ?? ($race->difficulty ? $race->difficulty->dif_level : 'N/A'),
+                'difficulty' => $race->race_difficulty ?? 'N/A',
                 'start_date' => $race->race_date_start ? $race->race_date_start->toIso8601String() : null,
-                'min_age' => $race->categories->min('age_min') ?? 0,
                 'image' => $race->image_url,
                 'is_open' => $race->isOpen(),
                 'registration_upcoming' => $race->isRegistrationUpcoming(),
@@ -268,6 +290,9 @@ class RaidController extends Controller
      */
     public function edit(Raid $raid): Response
     {
+        // Check authorization - user must be able to update this raid
+        $this->authorize('update', $raid);
+
         // Load raid with registration period
         $raid->load('registrationPeriod');
 
