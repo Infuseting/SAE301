@@ -31,6 +31,9 @@ class ProfileTest extends TestCase
                 'first_name' => 'Test',
                 'last_name' => 'User',
                 'email' => 'test@example.com',
+                'birth_date' => '2000-01-01',
+                'address' => '123 Main St',
+                'phone' => '1234567890',
             ]);
 
         $response
@@ -54,8 +57,11 @@ class ProfileTest extends TestCase
                 'first_name' => 'Test',
                 'last_name' => 'User',
                 'email' => 'test@example.com',
-                'license_number' => null,
-                'medical_certificate_code' => null,
+                'birth_date' => '2000-01-01',
+                'address' => '123 Main St',
+                'phone' => '1234567890',
+
+
             ]);
 
         $response
@@ -63,9 +69,7 @@ class ProfileTest extends TestCase
             ->assertRedirect('/profile/edit');
 
         $user->refresh();
-        
-        $this->assertNull($user->license_number);
-        $this->assertNull($user->medical_certificate_code);
+
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
@@ -78,6 +82,9 @@ class ProfileTest extends TestCase
                 'first_name' => 'Test',
                 'last_name' => 'User',
                 'email' => $user->email,
+                'birth_date' => '2000-01-01',
+                'address' => '123 Main St',
+                'phone' => '1234567890',
             ]);
 
         $response

@@ -84,12 +84,12 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $validated = $request->validated();
-        
+
         // Ensure is_public is always set (false if not present, true if checked)
         if (!isset($validated['is_public'])) {
             $validated['is_public'] = false;
         }
-        
+
         $request->user()->fill($validated);
 
         if ($request->user()->isDirty('email')) {
@@ -238,11 +238,15 @@ class ProfileController extends Controller
             ]);
         } else {
             $request->validate([
-                'password' => ['required', 'string', function ($attribute, $value, $fail) {
-                    if ($value !== 'CONFIRMER') {
-                        $fail(__('messages.invalid_confirmation_text'));
+                'password' => [
+                    'required',
+                    'string',
+                    function ($attribute, $value, $fail) {
+                        if ($value !== 'CONFIRMER') {
+                            $fail(__('messages.invalid_confirmation_text'));
+                        }
                     }
-                }],
+                ],
             ]);
         }
 

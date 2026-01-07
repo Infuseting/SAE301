@@ -27,6 +27,9 @@ class ProfileRedesignTest extends TestCase
                 'email' => 'test@example.com',
                 'description' => 'My new bio',
                 'license_number' => 'TEST-LIC-123',
+                'birth_date' => '1990-01-01',
+                'address' => '123 Test St, Test City',
+                'phone' => '+33612345678',
                 'is_public' => true,
                 'photo' => $photo,
             ]);
@@ -43,6 +46,9 @@ class ProfileRedesignTest extends TestCase
         $this->assertEquals('Updated', $user->first_name);
         $this->assertEquals('Name', $user->last_name);
         $this->assertEquals('My new bio', $user->description);
+        $this->assertEquals('1990-01-01', $user->birth_date->format('Y-m-d'));
+        $this->assertEquals('123 Test St, Test City', $user->address);
+        $this->assertEquals('+33612345678', $user->phone);
         $this->assertTrue((bool) $user->is_public);
         $this->assertNotNull($user->profile_photo_path);
 
