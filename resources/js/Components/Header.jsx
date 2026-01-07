@@ -46,23 +46,27 @@ export default function Header({ transparent = false, className = "" }) {
                 }
             >
                 {!transparent && (
-                    <div className="flex h-16 justify-between w-full">
-                        <div className="flex items-center">
+                    <div className="flex h-16 items-center justify-between w-full">
+                        <div className="flex-1 flex justify-start">
                             <Link href="/">
                                 <ApplicationLogo className={logoClasses} />
                             </Link>
                         </div>
 
-                        <nav className="hidden md:flex items-center gap-3">
-                            <div className="flex justify-start items-center gap-3  lg:min-w-[650px] ">
-                                <div className="flex bg-white rounded-full">
-                                    {user && <RaidButton />}
-
-                                    {user && <MyRaceButton />}
-
-                                    {user && <ClubsDropdown />}
-                                </div>
+                        <nav className="hidden md:flex flex-none justify-center items-center gap-3">
+                            <div className="flex bg-white  p-1">
+                                {user && (
+                                    <>
+                                        <RaidButton />
+                                        <MyRaceButton />
+                                        <ClubsDropdown />
+                                    </>
+                                )}
                             </div>
+                        </nav>
+
+                        <div className=" hidden md:flex flex-1 flex items-center justify-end gap-3">
+                            <LanguageSwitcher className="text-gray-700 hover:text-emerald-600 transition" />
 
                             {user ? (
                                 <UserMenu user={user} />
@@ -82,10 +86,11 @@ export default function Header({ transparent = false, className = "" }) {
                                     </Link>
                                 </div>
                             )}
-                            <LanguageSwitcher className="text-gray-700 hover:text-emerald-600 transition" />
-                        </nav>
+                        </div>
+
                         <nav className=" md:hidden flex items-center justify-between gap-6">
                             <BurgerMenu />
+                            <LanguageSwitcher className="text-gray-700 hover:text-emerald-600 transition" />
 
                             {user ? (
                                 <UserMenu user={user} className="text-white" />
@@ -105,28 +110,34 @@ export default function Header({ transparent = false, className = "" }) {
                                     </Link>
                                 </div>
                             )}
-                            <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
                         </nav>
                     </div>
                 )}
 
                 {transparent && (
-                    <>
-                        <Link href="/">
-                            <ApplicationLogo className={logoClasses} />
-                        </Link>
+                    <div className="flex items-center justify-between w-full">
+                        {/* 1. Section GAUCHE : Logo */}
+                        <div className="flex-1 flex justify-start">
+                            <Link href="/">
+                                <ApplicationLogo className={logoClasses} />
+                            </Link>
+                        </div>
 
-                        <nav className="hidden md:flex items-center justify-between gap-6">
-                            <div className="flex justify-start items-center gap-3  lg:min-w-[650px] ">
-                                <div className="flex bg-white rounded-full shadow-lg shadow-emerald-900/20">
-                                    {user && <RaidButton />}
-
-                                    {user && <MyRaceButton />}
-
-                                    {user && <ClubsDropdown />}
+                        {/* 2. Section MILIEU : Navigation centrée */}
+                        <nav className="hidden md:flex flex-none items-center justify-center">
+                            {user && (
+                                <div className="flex bg-white backdrop-blur-md  rounded-xl p-1 shadow-lg shadow-emerald-900/20">
+                                    <RaidButton />
+                                    <MyRaceButton />
+                                    <ClubsDropdown />
                                 </div>
-                            </div>
+                            )}
+                        </nav>
 
+                        {/* 3. Section DROITE : Actions & Langue */}
+                        <div className="hidden flex-1 md:flex items-center justify-end gap-6">
+                            {" "}
+                            <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
                             {user ? (
                                 <UserMenu user={user} className="text-white" />
                             ) : (
@@ -145,11 +156,11 @@ export default function Header({ transparent = false, className = "" }) {
                                     </Link>
                                 </div>
                             )}
-                            <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
-                        </nav>
+                        </div>
 
                         <nav className=" md:hidden flex items-center justify-between gap-6">
                             <BurgerMenu />
+                            <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
 
                             {user ? (
                                 <UserMenu user={user} className="text-white" />
@@ -169,9 +180,8 @@ export default function Header({ transparent = false, className = "" }) {
                                     </Link>
                                 </div>
                             )}
-                            <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
                         </nav>
-                    </>
+                    </div>
                 )}
             </div>
         </header>
