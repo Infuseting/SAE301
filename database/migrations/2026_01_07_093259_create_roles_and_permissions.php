@@ -23,7 +23,6 @@ return new class extends Migration
             'grant role',
             'grant admin',
             'access-admin',
-            // Club permissions
             'accept-club',
             'manage-own-club',
             'view-clubs',
@@ -31,21 +30,21 @@ return new class extends Migration
         ];
 
         foreach ($permissions as $permission) {
-            \Spatie\Permission\Models\Permission::create(['name' => $permission]);
+            \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $permission]);
         }
 
         // create roles and assign created permissions
 
         // User Role
-        $userRole = \Spatie\Permission\Models\Role::create(['name' => 'user']);
+        $userRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'user']);
         $userRole->givePermissionTo(['view-clubs', 'create-club']);
 
         // Club Manager Role
-        $clubManagerRole = \Spatie\Permission\Models\Role::create(['name' => 'club-manager']);
+        $clubManagerRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'club-manager']);
         $clubManagerRole->givePermissionTo(['manage-own-club', 'view-clubs']);
 
         // Admin Role
-        $adminRole = \Spatie\Permission\Models\Role::create(['name' => 'admin']);
+        $adminRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin']);
         $adminRole->givePermissionTo(\Spatie\Permission\Models\Permission::all());
     }
 
