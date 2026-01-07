@@ -11,6 +11,7 @@ class RegistrationTest extends TestCase
 
     public function test_registration_screen_can_be_rendered(): void
     {
+        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
         $response = $this->get('/register');
 
         $response->assertStatus(200);
@@ -18,6 +19,7 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
+        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
         $response = $this->post('/register', [
             'first_name' => 'Test',
             'last_name' => 'User',

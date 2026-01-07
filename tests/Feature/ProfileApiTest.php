@@ -73,6 +73,7 @@ class ProfileApiTest extends TestCase
             ->actingAs($user)
             ->deleteJson('/profile', [
                 'password' => 'password',
+                'confirmation' => 'CONFIRMER',
             ]);
 
         $response->assertNoContent();
@@ -80,17 +81,19 @@ class ProfileApiTest extends TestCase
         $this->assertNull($user->fresh());
     }
 
-    public function test_api_profile_delete_fails_with_wrong_password(): void
+    public function test_api_profile_delete_fails_with_wrong_confirmation(): void
     {
         $user = User::factory()->create();
 
         $response = $this
             ->actingAs($user)
             ->deleteJson('/profile', [
-                'password' => 'wrong-password',
+                'password' => 'password',
+                'confirmation' => 'WRONG',
             ]);
 
         $response->assertUnprocessable(); // 422
+        $response->assertJsonValidationErrors('confirmation');
         $this->assertNotNull($user->fresh());
     }
 }
