@@ -43,7 +43,7 @@ export default function Header({ transparent = false, className = '' }) {
                         </div>
 
                         <nav className="flex items-center gap-3">
-                            <LanguageSwitcher />
+                            <LanguageSwitcher className="text-gray-700 hover:text-emerald-600 transition" />
 
                             {user && <ClubsDropdown />}
 

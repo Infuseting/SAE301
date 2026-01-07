@@ -28,7 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->respond(function ($response) {
+        $exceptions->respond(function ($response, \Throwable $exception, \Illuminate\Http\Request $request) {
             \Illuminate\Support\Facades\Log::info('Response type: ' . get_class($response));
 
             // Return original response (Ignition) if debug mode is on
@@ -40,11 +40,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $response;
             }
 
+            $status = $response->getStatusCode();
+
             return \Inertia\Inertia::render('Error', [
-                'status' => $response->getStatusCode(),
+                'status' => $status,
                 'message' => $response->getContent() // Optional: pass message if needed
             ])
-                ->toResponse(request())
-                ->setStatusCode($response->getStatusCode());
+                ->toResponse($request)
+                ->setStatusCode($status);
         });
     })->create();

@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import DatePicker from "react-datepicker";
@@ -35,10 +35,11 @@ export default function Welcome({ auth }) {
                     </div>
 
                     {/* Navigation Overlay */}
+
                     <Header transparent />
 
                     {/* Hero Content */}
-                    <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 text-center">
+                    <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 pt-24 lg:pt-0 text-center">
                         <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
                             <span className="block">{messages.find_next_race}</span>
                             <span className="block text-emerald-400">{messages.orienteering}</span>

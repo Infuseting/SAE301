@@ -50,7 +50,6 @@ class ProfileApiTest extends TestCase
                 "address" => "123 Main St",
                 "phone" => "1234567890",
             ]);
-        $response->dump();
 
 
         $response->assertOk()

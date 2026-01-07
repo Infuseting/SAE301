@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('has_participate', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id');
+            $table->unsignedBigInteger('adh_id');
             $table->unsignedBigInteger('equ_id');
             $table->unsignedBigInteger('reg_id')->nullable();
             $table->time('par_time')->nullable();
