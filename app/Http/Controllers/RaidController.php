@@ -245,7 +245,6 @@ class RaidController extends Controller
                 'organizer_name' => $race->organizer && $race->organizer->user ? $race->organizer->user->name : 'N/A',
                 'difficulty' => $race->race_difficulty ?? ($race->difficulty ? $race->difficulty->dif_level : 'N/A'),
                 'start_date' => $race->race_date_start ? $race->race_date_start->toIso8601String() : null,
-                'min_age' => $race->categories->min('age_min') ?? 0,
                 'image' => $race->image_url,
                 'is_open' => $race->isOpen(),
                 'registration_upcoming' => $race->isRegistrationUpcoming(),

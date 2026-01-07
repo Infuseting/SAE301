@@ -35,6 +35,10 @@ Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
 Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show')->whereNumber('raid');
 
 
+//myRace
+Route::get('/my-race', [App\Http\Controllers\Race\MyRaceController::class, 'index'])->name('myrace.index');
+
+
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Welcome');
