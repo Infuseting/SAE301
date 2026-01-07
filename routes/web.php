@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 
 use App\Http\Controllers\Race\NewRaceController;
 use App\Http\Controllers\Race\VisuRaceController;
+use App\Http\Controllers\RaidController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -21,8 +22,11 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/race', [VisuRaceController::class, 'show'])->name('race.view');
-Route::get('/raids', [VisuRaceController::class, 'index'])->name('raids.index');
-Route::get('/raids/{race}', [VisuRaceController::class, 'show'])->name('raids.show');
+
+// Create new race
+Route::get('/new-race', [NewRaceController::class, 'show'])->name('race.create');
+Route::post('/new-race', [NewRaceController::class, 'store'])->name('race.store');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
@@ -36,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
+
+    Route::resource('raids', RaidController::class);
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -82,9 +88,5 @@ Route::get('/lang/{locale}', function ($locale) {
 })->name('lang.switch');
 
 
-// Test Error Route
-Route::get('/test-error', function () {
-    throw new \Exception('This is a test forced error for debugging purposes.', 500);
-});
 
-// Route::get('race/{idRace}', [VisuRaceController::class, 'show'])->name('register');
+
