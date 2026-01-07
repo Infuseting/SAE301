@@ -91,6 +91,14 @@ class AuthController extends Controller
      *             @OA\Property(property="token", type="string", example="1|AbCdEf123456..."),
      *              @OA\Property(property="user", ref="#/components/schemas/User")
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The email has already been taken."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
      *     )
      * )
      */
@@ -103,25 +111,13 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $member = \App\Models\Member::create([
-            'adh_license' => 'PENDING-' . \Illuminate\Support\Str::random(8),
-            'adh_end_validity' => now()->addYear(),
-            'adh_date_added' => now(),
-        ]);
-
-        $medicalDoc = \App\Models\MedicalDoc::create([
-            'doc_num_pps' => 'PENDING',
-            'doc_end_validity' => now()->addYear(),
-            'doc_date_added' => now(),
-        ]);
-
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'adh_id' => $member->adh_id,
-            'doc_id' => $medicalDoc->doc_id,
+            'adh_id' => null,
+            'doc_id' => null,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;

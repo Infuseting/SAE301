@@ -54,3 +54,6 @@ RUN rm .env
 
 # Expose Port
 EXPOSE 80
+
+# Define Volume for persistent storage
+VOLUME ["/var/www/html/storage/app/public"]

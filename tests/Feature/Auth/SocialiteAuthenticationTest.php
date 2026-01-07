@@ -23,6 +23,7 @@ class SocialiteAuthenticationTest extends TestCase
 
     public function test_callback_creates_new_user(): void
     {
+        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
         $abstractUser = Mockery::mock(SocialiteUser::class);
         $abstractUser->shouldReceive('getId')->andReturn('1234567890');
         $abstractUser->shouldReceive('getName')->andReturn('Test User');

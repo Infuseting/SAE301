@@ -2,11 +2,11 @@ import { router, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
+import Pagination from '@/Components/Pagination';
 
-export default function Users({ users }) {
+export default function Users({ users, filters }) {
   const items = Array.isArray(users) ? users : users?.data || [];
-  const meta = users?.meta || null;
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(filters?.q || '');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState(null); // 'edit' | 'confirm' | 'roles'
   const [modalUser, setModalUser] = useState(null);
@@ -23,9 +23,20 @@ export default function Users({ users }) {
   const canGrantRole = userPermissions.includes('grant role');
   const canGrantAdmin = userPermissions.includes('grant admin');
 
+  /**
+   * Submit search and pagination filters using POST to hide all URL parameters
+   */
   function submitFilters(params = {}) {
-    const query = { q, ...params };
-    router.get(window.route ? window.route('admin.users.index') : '/admin/users', query, { preserveState: true, replace: true });
+    const data = { q, page: 1, ...params };
+    router.post(
+      window.route ? window.route('admin.users.index') : '/admin/users',
+      data,
+      {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['users', 'filters'],
+      }
+    );
   }
 
   function openEditModal(user) {
@@ -199,27 +210,116 @@ export default function Users({ users }) {
           </div>
         </div>
 
-        <div className="overflow-x-auto bg-white  p-4 rounded-lg shadow">
+        <div className="overflow-x-auto bg-white p-4 rounded-lg shadow">
           {/* Mobile stacked list */}
-          <div className="space-y-3 md:hidden">
+          <div className="space-y-4 md:hidden">
             {items.map((u) => (
-              <div key={u.id} className="p-3 bg-gray-50  rounded border border-gray-100 ">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <div className="font-medium text-gray-900 ">{u.name}</div>
-                    <div className="text-sm text-gray-700 ">{u.email}</div>
+              <div key={u.id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                {/* Header with name and status */}
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-3 border-b border-gray-200">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center flex-1 min-w-0">
+                      {/* Avatar */}
+                      <div className="flex-shrink-0 mr-3">
+                        {u.profile_photo_url ? (
+                          <img 
+                            src={u.profile_photo_url} 
+                            alt={u.name}
+                            className="h-12 w-12 rounded-full object-cover border-2 border-white shadow-sm"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm border-2 border-white shadow-sm">
+                            {u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      {/* Name and email */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-base truncate">{u.name}</h3>
+                        <p className="text-sm text-gray-600 truncate mt-0.5">{u.email}</p>
+                      </div>
+                    </div>
+                    <span className={`ml-3 flex-shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                      u.active 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {u.active ? `✓ ${messages['admin.users.status_active'] || 'Actif'}` : `✕ ${messages['admin.users.status_inactive'] || 'Inactif'}`}
+                    </span>
                   </div>
-                  <div className="text-sm text-gray-900 ">{u.active ? (messages['admin.users.active'] === 'Active' ? 'Yes' : (messages['admin.users.active'] || 'Oui')) : (messages['admin.users.active'] === 'Active' ? 'No' : 'Non')}</div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600 ">{new Date(u.created_at).toLocaleString()}</div>
-                  <div className="flex gap-2">
-                    <button onClick={() => openEditModal(u)} className="rounded-md border border-gray-300  px-2 py-1 text-xs text-gray-700 ">{messages['admin.users.edit'] || 'Edit'}</button>
+
+                {/* User details */}
+                <div className="px-4 py-3 space-y-2 bg-white">
+                  {/* Roles if any */}
+                  {u.role_names && u.role_names.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-medium text-gray-500">{messages['admin.users.roles'] || 'Rôles'}:</span>
+                      {u.role_names.map((role) => (
+                        <span key={role} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 capitalize">
+                          {role}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Creation date */}
+                  <div className="flex items-center text-xs text-gray-500">
+                    <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Créé le {new Date(u.created_at).toLocaleDateString('fr-FR')}
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button 
+                      onClick={() => openEditModal(u)} 
+                      className="flex items-center justify-center px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      {messages['admin.users.edit'] || 'Éditer'}
+                    </button>
+                    
                     {canGrantRole && (
-                      <button onClick={() => openRolesModal(u)} className="rounded-md border border-blue-300 bg-blue-50 px-2 py-1 text-xs text-blue-700">{messages['admin.users.roles'] || 'Roles'}</button>
+                      <button 
+                        onClick={() => openRolesModal(u)} 
+                        className="flex items-center justify-center px-3 py-2 rounded-md border border-blue-300 bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        {messages['admin.users.roles'] || 'Rôles'}
+                      </button>
                     )}
-                    <button onClick={() => openConfirmModal(u, 'toggle')} className="rounded-md border border-gray-300  px-2 py-1 text-xs text-gray-700 ">{u.active ? (messages['admin.users.deactivate'] || 'Deactivate') : (messages['admin.users.activate'] || 'Activate')}</button>
-                    <button onClick={() => openConfirmModal(u, 'delete')} className="rounded-md border border-gray-300  px-2 py-1 text-xs text-red-600 ">{messages['admin.users.delete'] || 'Delete'}</button>
+                    
+                    <button 
+                      onClick={() => openConfirmModal(u, 'toggle')} 
+                      className={`flex items-center justify-center px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
+                        u.active
+                          ? 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100'
+                          : 'border-green-300 bg-green-50 text-green-700 hover:bg-green-100'
+                      }`}
+                    >
+                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={u.active ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
+                      </svg>
+                      {u.active ? (messages['admin.users.deactivate'] || 'Désactiver') : (messages['admin.users.activate'] || 'Activer')}
+                    </button>
+                    
+                    <button 
+                      onClick={() => openConfirmModal(u, 'delete')} 
+                      className="flex items-center justify-center px-3 py-2 rounded-md border border-red-300 bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100 transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      {messages['admin.users.delete'] || 'Supprimer'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -227,31 +327,115 @@ export default function Users({ users }) {
           </div>
 
           {/* Desktop/tablet view */}
-          <table className="hidden md:table min-w-full text-sm align-middle divide-y divide-gray-200 ">
-            <thead>
+          <table className="hidden md:table min-w-full text-sm align-middle">
+            <thead className="bg-gray-50 border-b-2 border-gray-200">
               <tr className="text-left">
-                <th className="px-3 py-2 text-xs text-gray-600 ">{messages['admin.users.name'] || 'Name'}</th>
-                <th className="px-3 py-2 text-xs text-gray-600 ">{messages['admin.users.email'] || 'Email'}</th>
-                <th className="px-3 py-2 text-xs text-gray-600 ">{messages['admin.users.active'] || 'Active'}</th>
-                <th className="px-3 py-2 text-xs text-gray-600 ">{messages['admin.users.created_at'] || 'Created at'}</th>
-                <th className="px-3 py-2 text-xs text-gray-600 ">{messages['admin.users.actions'] || 'Actions'}</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">{messages['admin.users.name'] || 'Nom'}</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">{messages['admin.users.email'] || 'Email'}</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">{messages['admin.users.roles'] || 'Rôles'}</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">{messages['admin.users.active'] || 'Statut'}</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wider">{messages['admin.users.created_at'] || 'Créé le'}</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wider text-right">{messages['admin.users.actions'] || 'Actions'}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-white divide-y divide-gray-200">
               {items.map((u) => (
-                <tr key={u.id} className="bg-white ">
-                  <td className="px-3 py-3 text-gray-900 ">{u.name}</td>
-                  <td className="px-3 py-3 text-gray-900 ">{u.email}</td>
-                  <td className="px-3 py-3 text-gray-900 ">{u.active ? (messages['admin.users.active'] === 'Active' ? 'Yes' : (messages['admin.users.active'] || 'Oui')) : (messages['admin.users.active'] === 'Active' ? 'No' : 'Non')}</td>
-                  <td className="px-3 py-3 text-gray-700  whitespace-nowrap">{new Date(u.created_at).toLocaleString()}</td>
-                  <td className="px-3 py-3 text-gray-900 ">
-                    <div className="flex gap-2">
-                      <button onClick={() => openEditModal(u)} className="rounded-md border border-gray-300  px-2 py-1 text-xs text-gray-700 ">{messages['admin.users.edit'] || 'Edit'}</button>
+                <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10">
+                        {u.profile_photo_url ? (
+                          <img 
+                            src={u.profile_photo_url} 
+                            alt={u.name}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold">
+                            {u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="ml-3">
+                        <div className="text-sm font-semibold text-gray-900">{u.name}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-700">{u.email}</td>
+                  <td className="px-4 py-4">
+                    {u.role_names && u.role_names.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {u.role_names.map((role) => (
+                          <span key={role} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 capitalize">
+                            {role}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">{messages['admin.users.no_roles'] || 'Aucun rôle'}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      u.active 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {u.active ? `✓ ${messages['admin.users.status_active'] || 'Actif'}` : `✕ ${messages['admin.users.status_inactive'] || 'Inactif'}`}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="flex items-center text-xs text-gray-500">
+                      <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {new Date(u.created_at).toLocaleDateString('fr-FR')}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <div className="flex gap-2 justify-end">
+                      <button 
+                        onClick={() => openEditModal(u)} 
+                        className="inline-flex items-center px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 text-xs font-medium hover:bg-gray-50 transition-colors"
+                        title={messages['admin.users.edit'] || 'Éditer'}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
                       {canGrantRole && (
-                        <button onClick={() => openRolesModal(u)} className="rounded-md border border-blue-300 bg-blue-50 px-2 py-1 text-xs text-blue-700">{messages['admin.users.roles'] || 'Roles'}</button>
+                        <button 
+                          onClick={() => openRolesModal(u)} 
+                          className="inline-flex items-center px-3 py-1.5 rounded-md border border-blue-300 bg-blue-50 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors"
+                          title={messages['admin.users.roles'] || 'Rôles'}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                          </svg>
+                        </button>
                       )}
-                      <button onClick={() => openConfirmModal(u, 'toggle')} className="rounded-md border border-gray-300  px-2 py-1 text-xs text-gray-700 ">{u.active ? (messages['admin.users.deactivate'] || 'Deactivate') : (messages['admin.users.activate'] || 'Activate')}</button>
-                      <button onClick={() => openConfirmModal(u, 'delete')} className="rounded-md border border-gray-300  px-2 py-1 text-xs text-red-600 ">{messages['admin.users.delete'] || 'Delete'}</button>
+                      <button 
+                        onClick={() => openConfirmModal(u, 'toggle')} 
+                        className={`inline-flex items-center px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${
+                          u.active
+                            ? 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100'
+                            : 'border-green-300 bg-green-50 text-green-700 hover:bg-green-100'
+                        }`}
+                        title={u.active ? (messages['admin.users.deactivate'] || 'Désactiver') : (messages['admin.users.activate'] || 'Activer')}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={u.active ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
+                        </svg>
+                      </button>
+                      <button 
+                        onClick={() => openConfirmModal(u, 'delete')} 
+                        className="inline-flex items-center px-3 py-1.5 rounded-md border border-red-300 bg-red-50 text-red-700 text-xs font-medium hover:bg-red-100 transition-colors"
+                        title={messages['admin.users.delete'] || 'Supprimer'}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -388,15 +572,7 @@ export default function Users({ users }) {
           )}
         </Modal>
 
-        {meta && (
-          <div className="mt-6 flex items-center justify-between gap-3">
-            <div className="text-sm text-gray-600 ">Page {meta.current_page} / {meta.last_page} — {meta.total} utilisateurs</div>
-            <div className="flex gap-2">
-              <button disabled={!meta.prev_page_url} onClick={() => submitFilters({ page: Math.max(1, meta.current_page - 1) })} className="rounded-md border px-3 py-2 text-sm disabled:opacity-50">Précédent</button>
-              <button disabled={!meta.next_page_url} onClick={() => submitFilters({ page: meta.current_page + 1 })} className="rounded-md border px-3 py-2 text-sm disabled:opacity-50">Suivant</button>
-            </div>
-          </div>
-        )}
+        <Pagination pagination={users} onPageChange={(page) => submitFilters({ page })} />
       </div>
     </AuthenticatedLayout>
   );

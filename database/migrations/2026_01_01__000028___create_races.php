@@ -38,7 +38,7 @@ return new class extends Migration
             $table->foreign('dif_id')->references('dif_id')->on('param_difficulty')->onDelete('cascade');
             $table->unsignedBigInteger('typ_id');
             $table->foreign('typ_id')->references('typ_id')->on('param_type')->onDelete('cascade');
-            
+            $table->string('image_url')->nullable();
             $table->timestamps();
         });
     }

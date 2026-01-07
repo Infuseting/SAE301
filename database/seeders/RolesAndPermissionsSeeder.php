@@ -13,29 +13,9 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public function run(): void
     {
+        // Logic moved to migration: 2026_01_07_093259_create_roles_and_permissions.php
+        
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
-        // create permissions
-        $permissions = [
-            'view users',
-            'edit users',
-            'delete users',
-            'view logs',
-        ];
-
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
-        }
-
-        // create roles and assign created permissions
-
-        // User Role
-        $role = Role::firstOrCreate(['name' => 'user']);
-        // Users normally don't get admin perms by default
-
-        // Admin Role
-        $role = Role::firstOrCreate(['name' => 'admin']);
-        $role->givePermissionTo(Permission::all());
     }
 }

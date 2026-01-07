@@ -1,15 +1,12 @@
-import Footer from "@/Components/Footer";
-import Header from "@/Components/Header";
-import { Head, Link, usePage } from "@inertiajs/react";
+import { Head, Link, usePage, router } from "@inertiajs/react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
-import LanguageSwitcher from "@/Components/LanguageSwitcher";
-import UserMenu from "@/Components/UserMenu";
-import ApplicationLogo from "@/Components/ApplicationLogo";
+import Header from "@/Components/Header";
+import Footer from "@/Components/Footer";
 import ProfileCompletionModal from "@/Components/ProfileCompletionModal";
 
 export default function Welcome({ auth }) {
@@ -63,10 +60,11 @@ export default function Welcome({ auth }) {
                     </div>
 
                     {/* Navigation Overlay */}
-                    <Header auth={auth} />
+
+                    <Header transparent />
 
                     {/* Hero Content */}
-                    <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 text-center">
+                    <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 pt-24 lg:pt-0 text-center">
                         <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6 drop-shadow-lg">
                             <span className="block">
                                 {messages.find_next_race}
@@ -264,6 +262,133 @@ export default function Welcome({ auth }) {
                         </div>
                     </div>
                 </div>
+                {/* Raids (Previously Upcoming Races) */}
+                <section className="py-24 bg-gray-50">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="flex justify-between items-end mb-12">
+                            <div>
+                                <h2 className="text-3xl font-bold text-gray-900">
+                                    {messages.upcoming_raids_title}
+                                </h2>
+                                <p className="mt-2 text-gray-600">
+                                    {messages.upcoming_raids_subtitle}
+                                </p>
+                            </div>
+                            <Link
+                                href={route("raids.index")}
+                                className="hidden md:flex text-emerald-600 font-bold items-center hover:underline"
+                            >
+                                {messages.view_calendar}
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    className="w-4 h-4 ml-1"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                                    />
+                                </svg>
+                            </Link>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {(messages.upcoming_races_list || []).map(
+                                (race) => (
+                                    <Link
+                                        key={race.id}
+                                        href={route("raids.show", race.id)}
+                                        className="group relative bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300 block"
+                                    >
+                                        <div className="aspect-[4/3] overflow-hidden">
+                                            <img
+                                                src={race.image}
+                                                alt={race.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                            />
+                                        </div>
+                                        <div className="p-6">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                                                    {race.type}
+                                                </span>
+                                                <span className="flex items-center text-gray-500 text-sm font-medium">
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        strokeWidth={1.5}
+                                                        stroke="currentColor"
+                                                        className="w-4 h-4 mr-1"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0h18M5.25 12h13.5h-13.5Zm0 3.75h13.5h-13.5Z"
+                                                        />
+                                                    </svg>
+                                                    {race.date}
+                                                </span>
+                                            </div>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition">
+                                                {race.title}
+                                            </h3>
+                                            <div className="flex items-center text-gray-500 text-sm">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    strokeWidth={1.5}
+                                                    stroke="currentColor"
+                                                    className="w-4 h-4 mr-1"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                                    />
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                                                    />
+                                                </svg>
+                                                {race.location}
+                                            </div>
+                                        </div>
+                                    </Link>
+                                )
+                            )}
+                        </div>
+
+                        <div className="mt-8 text-center md:hidden">
+                            <Link
+                                href={route("raids.index")}
+                                className="inline-flex text-emerald-600 font-bold items-center hover:underline"
+                            >
+                                {messages.view_calendar}
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    className="w-4 h-4 ml-1"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                                    />
+                                </svg>
+                            </Link>
+                        </div>
+                    </div>
+                </section>
 
                 {/* How it Works (Moved Up) */}
                 <section className="py-24 bg-white border-b border-gray-100">
@@ -354,132 +479,6 @@ export default function Welcome({ auth }) {
                     </div>
                 </section>
 
-                {/* Raids (Previously Upcoming Races) */}
-                <section className="py-24 bg-gray-50">
-                    <div className="max-w-7xl mx-auto px-6">
-                        <div className="flex justify-between items-end mb-12">
-                            <div>
-                                <h2 className="text-3xl font-bold text-gray-900">
-                                    {messages.upcoming_raids_title}
-                                </h2>
-                                <p className="mt-2 text-gray-600">
-                                    {messages.upcoming_raids_subtitle}
-                                </p>
-                            </div>
-                            <a
-                                href="#"
-                                className="hidden md:flex text-emerald-600 font-bold items-center hover:underline"
-                            >
-                                {messages.view_calendar}
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth={2}
-                                    stroke="currentColor"
-                                    className="w-4 h-4 ml-1"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                                    />
-                                </svg>
-                            </a>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {(messages.upcoming_races_list || []).map(
-                                (race) => (
-                                    <div
-                                        key={race.id}
-                                        className="group relative bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300"
-                                    >
-                                        <div className="aspect-[4/3] overflow-hidden">
-                                            <img
-                                                src={race.image}
-                                                alt={race.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                                            />
-                                        </div>
-                                        <div className="p-6">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                                                    {race.type}
-                                                </span>
-                                                <span className="flex items-center text-gray-500 text-sm font-medium">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        strokeWidth={1.5}
-                                                        stroke="currentColor"
-                                                        className="w-4 h-4 mr-1"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0h18M5.25 12h13.5h-13.5Zm0 3.75h13.5h-13.5Z"
-                                                        />
-                                                    </svg>
-                                                    {race.date}
-                                                </span>
-                                            </div>
-                                            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition">
-                                                {race.title}
-                                            </h3>
-                                            <div className="flex items-center text-gray-500 text-sm">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    strokeWidth={1.5}
-                                                    stroke="currentColor"
-                                                    className="w-4 h-4 mr-1"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                                                    />
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-                                                    />
-                                                </svg>
-                                                {race.location}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )
-                            )}
-                        </div>
-
-                        <div className="mt-8 text-center md:hidden">
-                            <a
-                                href="#"
-                                className="inline-flex text-emerald-600 font-bold items-center hover:underline"
-                            >
-                                {messages.view_calendar}
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth={2}
-                                    stroke="currentColor"
-                                    className="w-4 h-4 ml-1"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                                    />
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                </section>
                 <Footer />
             </div>
         </>

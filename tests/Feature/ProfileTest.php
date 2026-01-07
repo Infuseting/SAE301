@@ -31,6 +31,9 @@ class ProfileTest extends TestCase
                 'first_name' => 'Test',
                 'last_name' => 'User',
                 'email' => 'test@example.com',
+                'birth_date' => '2000-01-01',
+                'address' => '123 Main St',
+                'phone' => '1234567890',
             ]);
 
         $response
@@ -44,6 +47,31 @@ class ProfileTest extends TestCase
         $this->assertNull($user->email_verified_at);
     }
 
+    public function test_profile_information_can_be_updated_with_empty_license_and_pps(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'first_name' => 'Test',
+                'last_name' => 'User',
+                'email' => 'test@example.com',
+                'birth_date' => '2000-01-01',
+                'address' => '123 Main St',
+                'phone' => '1234567890',
+
+
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile/edit');
+
+        $user->refresh();
+
+    }
+
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();
@@ -54,6 +82,9 @@ class ProfileTest extends TestCase
                 'first_name' => 'Test',
                 'last_name' => 'User',
                 'email' => $user->email,
+                'birth_date' => '2000-01-01',
+                'address' => '123 Main St',
+                'phone' => '1234567890',
             ]);
 
         $response
@@ -71,6 +102,7 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->delete('/profile', [
                 'password' => 'password',
+                'confirmation' => 'CONFIRMER',
             ]);
 
         $response
@@ -81,7 +113,7 @@ class ProfileTest extends TestCase
         $this->assertNull($user->fresh());
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account(): void
+    public function test_correct_confirmation_must_be_provided_to_delete_account(): void
     {
         $user = User::factory()->create();
 
@@ -89,11 +121,12 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->from('/profile/edit')
             ->delete('/profile', [
-                'password' => 'wrong-password',
+                'password' => 'password',
+                'confirmation' => 'WRONG',
             ]);
 
         $response
-            ->assertSessionHasErrors('password')
+            ->assertSessionHasErrors('confirmation')
             ->assertRedirect('/profile/edit');
 
         $this->assertNotNull($user->fresh());

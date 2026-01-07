@@ -32,25 +32,13 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
-        $member = \App\Models\Member::create([
-            'adh_license' => 'PENDING-' . \Illuminate\Support\Str::random(8),
-            'adh_end_validity' => now()->addYear(),
-            'adh_date_added' => now(),
-        ]);
-
-        $medicalDoc = \App\Models\MedicalDoc::create([
-            'doc_num_pps' => 'PENDING',
-            'doc_end_validity' => now()->addYear(),
-            'doc_date_added' => now(),
-        ]);
-
         return User::create([
             'first_name' => $input['first_name'],
             'last_name' => $input['last_name'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
-            'adh_id' => $member->adh_id,
-            'doc_id' => $medicalDoc->doc_id,
+            'adh_id' => null,
+            'doc_id' => null,
         ]);
     }
 }
