@@ -29,21 +29,30 @@ class StoreRaceRequest extends FormRequest
             'startDate' => ['required', 'date', 'after:today'],
             'startTime' => ['required', 'date_format:H:i'],
             'endDate' => ['required', 'date', 'after_or_equal:startDate'],
-            'endTime' => ['required', 'date_format:H:i'],
+            'endTime' => ['required', 'date_format:H:i', function($attribute, $value, $fail) {
+                $startDate = $this->input('startDate');
+                $endDate = $this->input('endDate');
+                $startTime = $this->input('startTime');
+                if ($startDate === $endDate) {
+                    if (strtotime($value) <= strtotime($startTime)) {
+                        $fail('L\'heure de fin doit être après l\'heure de début pour une même journée.');
+                    }
+                }
+            }],
             'duration' => ['nullable', 'string'],
             'minParticipants' => ['required', 'integer', 'min:1'],
             'maxParticipants' => ['required', 'integer', 'gte:minParticipants'],
             'maxPerTeam' => ['required', 'integer', 'min:1'],
-            'difficulty' => ['required', 'integer', 'exists:param_difficulty,dif_id'],
+            'difficulty' => ['required', 'string', 'max:50'],
             'type' => ['required', 'integer', 'exists:param_type,typ_id'],
-            'categories' => ['nullable', 'array'],
-            'categories.*.minAge' => ['nullable', 'integer', 'min:0', 'max:120'],
-            'categories.*.maxAge' => ['nullable', 'integer', 'gte:categories.*.minAge', 'max:120'],
-            'categories.*.price' => ['nullable', 'numeric', 'min:0'],
             'minTeams' => ['required', 'integer', 'min:1'],
             'maxTeams' => ['required', 'integer', 'gte:minTeams'],
             'licenseDiscount' => ['nullable', 'numeric', 'min:0'],
             'price' => ['nullable', 'numeric', 'min:0'],
+            'priceMajor' => ['required', 'numeric', 'min:0'],
+            'priceMinor' => ['required', 'numeric', 'min:0'],
+            'priceMajorAdherent' => ['required', 'numeric', 'min:0'],
+            'priceMinorAdherent' => ['required', 'numeric', 'min:0'],
             'responsableId' => ['required', 'integer', 'exists:users,id'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'],
         ];

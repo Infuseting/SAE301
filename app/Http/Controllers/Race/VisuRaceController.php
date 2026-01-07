@@ -20,7 +20,7 @@ class VisuRaceController extends Controller
     public function show(int $id)
     {
         // Find the race by ID
-        $race = Race::find($id);
+        $race = Race::with(['organizer.user', 'raid.registrationPeriod', 'difficulty', 'type'])->find($id);
 
         // If race not found, return error page
         if (!$race) {
@@ -31,8 +31,38 @@ class VisuRaceController extends Controller
             ]);
         }
 
-        // Load only existing relations
-        $race->load(['organizer', 'raid']);
+        $user = auth()->user();
+        $isRaceManager = $user && (($race->organizer && $user->adh_id === $race->organizer->adh_id) || ($race->raid && $race->raid->club && $race->raid->club->hasManager($user)));
+
+        // Fetch participants for managers
+        $participants = [];
+        if ($isRaceManager) {
+            $participants = \DB::table('registration')
+                ->join('teams', 'registration.equ_id', '=', 'teams.equ_id')
+                ->join('has_participate', 'teams.equ_id', '=', 'has_participate.equ_id')
+                ->join('members', 'has_participate.adh_id', '=', 'members.adh_id')
+                ->join('users', 'members.adh_id', '=', 'users.adh_id')
+                ->leftJoin('medical_docs', 'users.doc_id', '=', 'medical_docs.doc_id')
+                ->where('registration.race_id', $race->race_id)
+                ->select([
+                    'users.first_name', 
+                    'users.last_name', 
+                    'users.email',
+                    'members.adh_license',
+                    'members.adh_end_validity as license_expiry',
+                    'medical_docs.doc_num_pps as pps_number',
+                    'medical_docs.doc_end_validity as pps_expiry',
+                    'registration.reg_validated',
+                    'teams.equ_name'
+                ])
+                ->get()
+                ->map(function($p) {
+                    $now = now();
+                    $p->is_license_valid = $p->license_expiry && $now->lessThan($p->license_expiry);
+                    $p->is_pps_valid = $p->pps_expiry && $now->lessThan($p->pps_expiry);
+                    return $p;
+                });
+        }
 
         // Transform data for frontend
         $raceData = [
@@ -45,31 +75,32 @@ class VisuRaceController extends Controller
             'raceDate' => $race->race_date_start?->toIso8601String(),
             'endDate' => $race->race_date_end?->toIso8601String(),
             'duration' => $race->race_duration_minutes ? floor($race->race_duration_minutes / 60) . ':' . str_pad((int)($race->race_duration_minutes % 60), 2, '0', STR_PAD_LEFT) : '0:00',
-            'raceType' => 'medium', // Default value
-            'difficulty' => 'medium', // Default value
+            'raceType' => $race->type?->typ_name ?? 'Classique',
+            'difficulty' => $race->race_difficulty ?? ($race->difficulty?->dif_level ?? 'Moyen'),
             'status' => $this->getRaceStatus($race),
+            'isOpen' => $race->isOpen(),
+            'registrationUpcoming' => $race->isRegistrationUpcoming(),
             'imageUrl' => $race->image_url ? asset('storage/' . $race->image_url) : null,
-            'maxParticipants' => 100,
-            'minParticipants' => 1,
-            'registeredCount' => 0,
-            'maxPerTeam' => 4,
-            'minTeams' => 1,
-            'maxTeams' => 50,
+            'maxParticipants' => 100, 
+            'registeredCount' => \DB::table('registration')->where('race_id', $race->race_id)->count(),
             'organizer' => [
                 'id' => $race->organizer?->adh_id,
                 'name' => trim(($race->organizer?->adh_firstname ?? '') . ' ' . ($race->organizer?->adh_lastname ?? '')) ?: 'Organisateur',
                 'email' => $race->organizer?->user?->email ?? ''
             ],
             'categories' => [],
-            'licenseDiscount' => $race->race_reduction ? $race->race_reduction . '€ de réduction pour les licenciés' : null,
-            'meals' => $race->race_meal_price ? 'Repas disponible' : null,
-            'mealsPrice' => $race->race_meal_price,
+            'priceMajor' => $race->race_price_major,
+            'priceMinor' => $race->race_price_minor,
+            'priceMajorAdherent' => $race->race_price_major_adherent,
+            'priceMinorAdherent' => $race->race_price_minor_adherent,
             'createdAt' => $race->created_at?->toIso8601String(),
             'updatedAt' => $race->updated_at?->toIso8601String(),
         ];
 
         return Inertia::render('Race/VisuRace', [
             'race' => $raceData,
+            'isManager' => $isRaceManager,
+            'participants' => $participants,
         ]);
     }
 

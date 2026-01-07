@@ -172,4 +172,12 @@ class Club extends Model
     {
         return $this->managers()->where('user_id', $user->id)->exists();
     }
+
+    /**
+     * Get the raids belonging to this club.
+     */
+    public function raids()
+    {
+        return $this->hasMany(Raid::class, 'clu_id', 'club_id');
+    }
 }

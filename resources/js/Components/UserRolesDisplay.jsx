@@ -64,10 +64,11 @@ export default function UserRolesDisplay({ className = '' }) {
         <div className={className}>
             <div className="flex flex-wrap gap-2">
                 {roles.map((role) => {
-                    const config = getRoleConfig(role);
+                    const roleName = typeof role === 'object' ? role.name : role;
+                    const config = getRoleConfig(roleName);
                     return (
                         <span
-                            key={role}
+                            key={roleName}
                             className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${config.color}`}
                         >
                             {config.label}

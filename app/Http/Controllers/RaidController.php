@@ -70,6 +70,7 @@ class RaidController extends Controller
             $clubMembers = \DB::table('club_user')
                 ->join('users', 'club_user.user_id', '=', 'users.id')
                 ->where('club_user.club_id', $userClub->club_id)
+                ->whereNotNull('users.adh_id') // Ensure they have an adherent ID
                 ->select('users.adh_id', 'users.first_name', 'users.last_name')
                 ->get()
                 ->map(function ($user) {
@@ -219,12 +220,44 @@ class RaidController extends Controller
      */
     public function show(Raid $raid): Response
     {
-        // TODO: Load courses when DB is ready
-        $courses = [];
+        $raid->load(['club', 'races.organizer.user', 'registrationPeriod']);
+        
+        $user = auth()->user();
+        $isRaidManager = $user && ($user->adh_id === $raid->adh_id || $raid->club->hasManager($user));
+        
+        $courses = $raid->races->map(function($race) use ($user, $isRaidManager) {
+            $isRaceManager = $user && ($user->adh_id === $race->adh_id || $isRaidManager);
+            
+            return [
+                'id' => $race->race_id,
+                'name' => $race->race_name,
+                'organizer_name' => $race->organizer && $race->organizer->user ? $race->organizer->user->name : 'N/A',
+                'difficulty' => $race->race_difficulty ?? ($race->difficulty ? $race->difficulty->dif_level : 'N/A'),
+                'start_date' => $race->race_date_start ? $race->race_date_start->toIso8601String() : null,
+                'min_age' => $race->categories->min('age_min') ?? 0,
+                'image' => $race->image_url,
+                'is_open' => $race->isOpen(),
+                'registration_upcoming' => $race->isRegistrationUpcoming(),
+                'is_finished' => $race->isCompleted(),
+                'can_edit' => $isRaceManager,
+            ];
+        });
+        
+        // Add status helpers for raid
+        $raid->is_open = $raid->isOpen();
+        $raid->is_upcoming = $raid->isUpcoming();
+        $raid->is_finished = $raid->isFinished();
         
         return Inertia::render('Raid/Index', [
             'raid' => $raid,
             'courses' => $courses,
+            'isRaidManager' => $isRaidManager,
+            'typeCategories' => \App\Models\ParamType::all()->map(function($t) {
+                return [
+                    'type_id' => $t->typ_id,
+                    'type_name' => $t->typ_name,
+                ];
+            }),
         ]);
     }
 

@@ -21,12 +21,14 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/race/{id}', [VisuRaceController::class, 'show'])->name('race.view');
+// Race routes
+Route::get('/race/{id}', [VisuRaceController::class, 'show'])->name('races.show');
 Route::get('/map', [App\Http\Controllers\MapController::class, 'index'])->name('map.index');
 
-// Create new race
-Route::get('/new-race', [NewRaceController::class, 'show'])->name('race.create');
-Route::post('/new-race', [NewRaceController::class, 'store'])->name('race.store');
+// Race management
+Route::get('/new-race', [NewRaceController::class, 'show'])->name('races.create');
+Route::post('/new-race', [NewRaceController::class, 'store'])->name('races.store');
+Route::get('/race/{id}/edit', [NewRaceController::class, 'show'])->name('races.edit'); // Placeholder
 
 // Raids public routes (no auth required)
 Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');

@@ -21,6 +21,7 @@
     },
     "dependencies": {
         "leaflet": "^1.9.4",
+        "lucide-react": "^0.562.0",
         "rc-slider": "^11.1.9",
         "react-datepicker": "^9.1.0",
         "react-leaflet": "^5.0.0-rc.2"

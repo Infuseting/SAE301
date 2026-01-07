@@ -41,6 +41,19 @@ class StoreRaidRequest extends FormRequest
                 'raid_postal_code' => (string) $this->raid_postal_code,
             ]);
         }
+
+        // Force casting for IDs that must be integers
+        if ($this->has('adh_id') && is_numeric($this->adh_id)) {
+            $this->merge([
+                'adh_id' => (int) $this->adh_id,
+            ]);
+        }
+        
+        if ($this->has('clu_id') && is_numeric($this->clu_id)) {
+            $this->merge([
+                'clu_id' => (int) $this->clu_id,
+            ]);
+        }
     }
 
     /**
@@ -61,7 +74,24 @@ class StoreRaidRequest extends FormRequest
             'ins_end_date' => ['required', 'date', 'after:ins_start_date', 'before:raid_date_start'],
             
             // Foreign keys (required)
-            'adh_id' => ['required', 'integer', 'exists:members,adh_id'],
+            'adh_id' => [
+                'required', 
+                'integer', 
+                'exists:members,adh_id',
+                function($attribute, $value, $fail) {
+                    $clubId = $this->input('clu_id');
+                    if ($clubId) {
+                        $isMemberOfClub = \DB::table('club_user')
+                            ->join('users', 'club_user.user_id', '=', 'users.id')
+                            ->where('club_user.club_id', $clubId)
+                            ->where('users.adh_id', $value)
+                            ->exists();
+                        if (!$isMemberOfClub) {
+                            $fail('Le responsable doit faire partie du club sélectionné.');
+                        }
+                    }
+                }
+            ],
             'clu_id' => ['required', 'integer', 'exists:clubs,club_id'],
             
             // Required fields
