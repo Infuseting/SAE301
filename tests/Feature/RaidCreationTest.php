@@ -192,7 +192,7 @@ class RaidCreationTest extends TestCase
     {
         $requiredFields = [
             'raid_name',
-            'raid_description',
+            // 'raid_description', // Nullable
             'adh_id',
             'ins_start_date',
             'ins_end_date',
@@ -202,6 +202,7 @@ class RaidCreationTest extends TestCase
             'raid_street',
             'raid_city',
             'raid_postal_code',
+            'raid_number',
         ];
 
         foreach ($requiredFields as $field) {
@@ -217,6 +218,7 @@ class RaidCreationTest extends TestCase
                 'raid_street' => '123 Street',
                 'raid_city' => 'City',
                 'raid_postal_code' => '12345',
+                'raid_number' => 2026001,
             ];
 
             unset($raidData[$field]);
