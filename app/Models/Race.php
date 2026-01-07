@@ -69,6 +69,7 @@ class Race extends Model
      */
     protected $fillable = [
         'race_name',
+        'race_description',
         'race_date_start',
         'race_date_end',
         'race_reduction',
@@ -80,7 +81,6 @@ class Race extends Model
         'adh_id',
         'pac_id',
         'pae_id',
-        'dif_id',
         'typ_id',
         'race_difficulty',
         'price_major',
@@ -100,6 +100,10 @@ class Race extends Model
         'race_reduction' => 'float',
         'race_meal_price' => 'float',
         'race_duration_minutes' => 'float',
+        'price_major' => 'float',
+        'price_minor' => 'float',
+        'price_major_adherent' => 'float',
+        'price_minor_adherent' => 'float',
     ];
 
     /**
@@ -163,16 +167,6 @@ class Race extends Model
     public function teamParams(): BelongsTo
     {
         return $this->belongsTo(ParamTeam::class, 'pae_id', 'pae_id');
-    }
-
-    /**
-     * Get the difficulty level of this race.
-     *
-     * @return BelongsTo
-     */
-    public function difficulty(): BelongsTo
-    {
-        return $this->belongsTo(ParamDifficulty::class, 'dif_id', 'dif_id');
     }
 
     /**
