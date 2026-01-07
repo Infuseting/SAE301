@@ -53,6 +53,16 @@ class Race extends Model
     protected $primaryKey = 'race_id';
 
     /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'race_id';
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -72,6 +82,11 @@ class Race extends Model
         'pae_id',
         'dif_id',
         'typ_id',
+        'race_difficulty',
+        'price_major',
+        'price_minor',
+        'price_major_adherent',
+        'price_minor_adherent',
     ];
 
     /**
@@ -268,5 +283,21 @@ class Race extends Model
             return 'completed';
         }
         return 'upcoming';
+    }
+
+    /**
+     * Check if the race is currently open for registration (proxied from raid).
+     */
+    public function isOpen(): bool
+    {
+        return $this->raid ? $this->raid->isOpen() : false;
+    }
+
+    /**
+     * Check if registration is in the future.
+     */
+    public function isRegistrationUpcoming(): bool
+    {
+        return $this->raid ? $this->raid->isUpcoming() : true;
     }
 }

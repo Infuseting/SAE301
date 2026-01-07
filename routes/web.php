@@ -21,11 +21,18 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/race', [VisuRaceController::class, 'show'])->name('race.view');
+// Race routes
+Route::get('/race/{id}', [VisuRaceController::class, 'show'])->name('races.show');
+Route::get('/map', [App\Http\Controllers\MapController::class, 'index'])->name('map.index');
 
-// Create new race
-Route::get('/new-race', [NewRaceController::class, 'show'])->name('race.create');
-Route::post('/new-race', [NewRaceController::class, 'store'])->name('race.store');
+// Race management
+Route::get('/new-race', [NewRaceController::class, 'show'])->name('races.create');
+Route::post('/new-race', [NewRaceController::class, 'store'])->name('races.store');
+Route::get('/race/{id}/edit', [NewRaceController::class, 'show'])->name('races.edit'); // Placeholder
+
+// Raids public routes (no auth required)
+Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
+Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show')->whereNumber('raid');
 
 
 Route::middleware('auth')->group(function () {
@@ -41,18 +48,37 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
 
-    Route::resource('raids', RaidController::class);
-
-    // Club routes
+    // Clubs routes
     Route::resource('clubs', App\Http\Controllers\ClubController::class);
 
+    // Club routes and club leader role
+    Route::middleware('club_leader')->group(function () {
+        // Raids routes (only club leaders can manage raids)
+        Route::get('/raids/create', [RaidController::class, 'create'])->name('raids.create');
+        Route::post('/raids', [RaidController::class, 'store'])->name('raids.store');
+        Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
+        Route::put('/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
+        Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
+        
+        // Clubs routes
+
     // Club member management
-    Route::post('/clubs/{club}/join', [App\Http\Controllers\ClubMemberController::class, 'requestJoin'])->name('clubs.join');
-    Route::post('/clubs/{club}/leave', [App\Http\Controllers\ClubMemberController::class, 'leave'])->name('clubs.leave');
-    Route::post('/clubs/{club}/members/{user}/approve', [App\Http\Controllers\ClubMemberController::class, 'approveJoin'])->name('clubs.members.approve');
-    Route::post('/clubs/{club}/members/{user}/reject', [App\Http\Controllers\ClubMemberController::class, 'rejectJoin'])->name('clubs.members.reject');
+        Route::post('/clubs/{club}/join', [App\Http\Controllers\ClubMemberController::class, 'requestJoin'])->name('clubs.join');
+        Route::post('/clubs/{club}/leave', [App\Http\Controllers\ClubMemberController::class, 'leave'])->name('clubs.leave');
+        Route::post('/clubs/{club}/members/{user}/approve', [App\Http\Controllers\ClubMemberController::class, 'approveJoin'])->name('clubs.members.approve');
+        Route::post('/clubs/{club}/members/{user}/reject', [App\Http\Controllers\ClubMemberController::class, 'rejectJoin'])->name('clubs.members.reject');
+    });
     Route::delete('/clubs/{club}/members/{user}', [App\Http\Controllers\ClubMemberController::class, 'removeMember'])->name('clubs.members.remove');
 
+    // Licence and PPS management
+    Route::post('/licence', [App\Http\Controllers\LicenceController::class, 'storeLicence'])->name('licence.store');
+    Route::post('/pps', [App\Http\Controllers\LicenceController::class, 'storePpsCode'])->name('pps.store');
+    Route::get('/credentials/check', [App\Http\Controllers\LicenceController::class, 'checkCredentials'])->name('credentials.check');
+
+    // Race registration
+    Route::get('/races/{race}/registration/check', [App\Http\Controllers\RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
+    Route::post('/races/{race}/register', [App\Http\Controllers\RaceRegistrationController::class, 'register'])->name('race.register');
+    
     // Team creation routes
     Route::get('/createTeam', [App\Http\Controllers\TeamController::class, 'create'])->name('team.create');
     Route::post('/createTeam', [App\Http\Controllers\TeamController::class, 'store'])->name('team.store');
@@ -91,7 +117,7 @@ Route::get('/auth/{provider}/callback', [\App\Http\Controllers\SocialiteControll
 
 // Language switcher
 Route::get('/lang/{locale}', function ($locale) {
-    $available = ['en', 'es', 'fr'];
+    $available = ['en', 'es', 'fr', 'de'];
     if (!in_array($locale, $available)) {
         $locale = config('app.locale');
     }

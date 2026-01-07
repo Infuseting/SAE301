@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import SelectResponsableModal from '@/Components/SelectResponsableModal';
 
-export default function NewRace({ auth, users = [] }) {
+export default function NewRace({ auth, users = [], difficulties = [], types = [], raid_id = null, raid = null }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedResponsable, setSelectedResponsable] = useState(null);
 
@@ -17,17 +17,25 @@ export default function NewRace({ auth, users = [] }) {
         endTime: '',
         minParticipants: '',
         maxParticipants: '',
-        maxPerTeam: '',
-        difficulty: 'easy',
-        type: 'competitive',
-        categories: [{ minAge: '', maxAge: '', price: '' }],
-        minTeams: '',
-        maxTeams: '',
+        maxPerTeam: '1',
+        minTeams: '1',
+        maxTeams: '1',
+        priceMajor: '',
+        priceMinor: '',
+        priceMajorAdherent: '',
+        priceMinorAdherent: '',
+        difficulty: '',
+        type: types.length > 0 ? types[0].id : '',
         licenseDiscount: '',
         meals: '',
         price: '',
         image: null,
+        raid_id: raid_id || '',
+        categories: [],
     });
+
+    const isCompetitive = types.find(t => t.id === data.type)?.name.toLowerCase() === 'compétitif' ||
+        types.find(t => t.id === data.type)?.name.toLowerCase() === 'competitif';
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -35,20 +43,23 @@ export default function NewRace({ auth, users = [] }) {
     };
 
     const handleCategoryChange = (index, field, value) => {
-        const newCategories = [...data.categories];
-        newCategories[index][field] = value;
-        setData('categories', newCategories);
+        // Obsolete, replaced by specific fields
+    };
+
+    const [imagePreview, setImagePreview] = useState(null);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData('image', file);
+            setImagePreview(URL.createObjectURL(file));
+        }
     };
 
     const addCategory = () => {
         setData('categories', [...data.categories, { minAge: '', maxAge: '', price: '' }]);
     };
 
-    const handleImageChange = (e) => {
-        if (e.target.files[0]) {
-            setData('image', e.target.files[0]);
-        }
-    };
 
     /**
      * Handle responsable selection from modal
@@ -61,7 +72,7 @@ export default function NewRace({ auth, users = [] }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('race.store'));
+        post(route('races.store'));
     };
 
     return (
@@ -70,7 +81,7 @@ export default function NewRace({ auth, users = [] }) {
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Créer une Nouvelle Course</h2>}
         >
             <Head title="Créer une Course" />
-            
+
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -91,7 +102,17 @@ export default function NewRace({ auth, users = [] }) {
                                 {/* Colonne Gauche - Éléments Obligatoires */}
                                 <div className="col-span-2">
                                     {/* Titre Section */}
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Éléments Obligatoires</h3>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-lg font-semibold text-gray-900">Éléments Obligatoires</h3>
+                                        {raid && (
+                                            <div className="bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-lg flex items-center gap-2">
+                                                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                </svg>
+                                                <span className="text-sm font-medium text-indigo-700">Raid : {raid.raid_name}</span>
+                                            </div>
+                                        )}
+                                    </div>
 
                                     {/* Nom de la course */}
                                     <div className="mb-6">
@@ -245,209 +266,188 @@ export default function NewRace({ auth, users = [] }) {
                                         />
                                     </div>
 
-                                    {/* Difficulté et Type */}
-                                    <div className="grid grid-cols-2 gap-6 mb-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-3">Difficulté</label>
-                                            <div className="space-y-2">
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="difficulty"
-                                                        value="easy"
-                                                        checked={data.difficulty === 'easy'}
-                                                        onChange={handleInputChange}
-                                                        className="w-4 h-4 text-indigo-600"
-                                                    />
-                                                    <span className="ml-2 text-gray-700">Facile</span>
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="difficulty"
-                                                        value="medium"
-                                                        checked={data.difficulty === 'medium'}
-                                                        onChange={handleInputChange}
-                                                        className="w-4 h-4 text-indigo-600"
-                                                    />
-                                                    <span className="ml-2 text-gray-700">Moyen</span>
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="difficulty"
-                                                        value="hard"
-                                                        checked={data.difficulty === 'hard'}
-                                                        onChange={handleInputChange}
-                                                        className="w-4 h-4 text-indigo-600"
-                                                    />
-                                                    <span className="ml-2 text-gray-700">Difficile</span>
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-3">Type</label>
-                                            <div className="space-y-2">
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="type"
-                                                        value="competitive"
-                                                        checked={data.type === 'competitive'}
-                                                        onChange={handleInputChange}
-                                                        className="w-4 h-4 text-indigo-600"
-                                                    />
-                                                    <span className="ml-2 text-gray-700">Compétitif</span>
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="type"
-                                                        value="leisure"
-                                                        checked={data.type === 'leisure'}
-                                                        onChange={handleInputChange}
-                                                        className="w-4 h-4 text-indigo-600"
-                                                    />
-                                                    <span className="ml-2 text-gray-700">Rando / Loisir</span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Colonne Droite */}
-                                <div>
-                                    {/* Catégories */}
-                                    <div className="mb-8">
-                                        <h4 className="text-sm font-semibold text-gray-900 mb-4">Catégories :</h4>
-                                        <div className="space-y-3">
-                                            {data.categories.map((cat, index) => (
-                                                <div key={index} className="flex gap-2">
-                                                    <input
-                                                        type="number"
-                                                        placeholder="Age min"
-                                                        value={cat.minAge}
-                                                        onChange={(e) => handleCategoryChange(index, 'minAge', e.target.value)}
-                                                        className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                    />
-                                                    <input
-                                                        type="number"
-                                                        placeholder="Age Max"
-                                                        value={cat.maxAge}
-                                                        onChange={(e) => handleCategoryChange(index, 'maxAge', e.target.value)}
-                                                        className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                    />
-                                                    <input
-                                                        type="number"
-                                                        placeholder="Prix"
-                                                        value={cat.price}
-                                                        onChange={(e) => handleCategoryChange(index, 'price', e.target.value)}
-                                                        className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={addCategory}
-                                            className="mt-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-                                        >
-                                            + Ajouter
-                                        </button>
-                                    </div>
-
-                                    {/* Nombre d'équipes */}
-                                    <div className="mb-8">
-                                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Nombre d'équipes</h4>
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="number"
-                                                name="minTeams"
-                                                value={data.minTeams}
-                                                onChange={handleInputChange}
-                                                placeholder="Min"
-                                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                            />
-                                            <input
-                                                type="number"
-                                                name="maxTeams"
-                                                value={data.maxTeams}
-                                                onChange={handleInputChange}
-                                                placeholder="Max"
-                                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Éléments Facultatifs */}
-                                    <h4 className="text-sm font-semibold text-gray-900 mb-4">Éléments facultatifs :</h4>
-                                    
-                                    <div className="mb-3">
-                                        <input
-                                            type="text"
-                                            name="licenseDiscount"
-                                            value={data.licenseDiscount}
-                                            onChange={handleInputChange}
-                                            placeholder="Réduction pour les licenciés"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                        />
-                                    </div>
-
-                                    <div className="flex gap-2 mb-4">
-                                        <input
-                                            type="text"
-                                            name="meals"
-                                            value={data.meals}
-                                            onChange={handleInputChange}
-                                            placeholder="Repas"
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                        />
-                                        <input
-                                            type="text"
-                                            name="price"
-                                            value={data.price}
-                                            onChange={handleInputChange}
-                                            placeholder="Prix"
-                                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                        />
-                                    </div>
-
-                                    {/* Image */}
                                     <div className="mb-6">
-                                        <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center mb-3">
-                                            {data.image ? (
-                                                <img 
-                                                    src={URL.createObjectURL(data.image)} 
-                                                    alt="Preview" 
-                                                    className="w-full h-full object-cover rounded-lg"
-                                                />
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Difficulté de la course
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="difficulty"
+                                            value={data.difficulty}
+                                            onChange={handleInputChange}
+                                            placeholder="Ex: Facile, Expert, Technique..."
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            required
+                                        />
+                                        {errors.difficulty && <p className="mt-1 text-sm text-red-600">{errors.difficulty}</p>}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-3">Type</label>
+                                        <div className="space-y-2">
+                                            {types.length > 0 ? (
+                                                types.map((type) => (
+                                                    <label key={type.id} className="flex items-center">
+                                                        <input
+                                                            type="radio"
+                                                            name="type"
+                                                            value={type.id}
+                                                            checked={data.type === type.id}
+                                                            onChange={(e) => setData('type', parseInt(e.target.value))}
+                                                            className="w-4 h-4 text-indigo-600"
+                                                        />
+                                                        <span className="ml-2 text-gray-700 capitalize">{type.name}</span>
+                                                    </label>
+                                                ))
                                             ) : (
-                                                <span className="text-gray-400">Aperçu image</span>
+                                                <p className="text-sm text-gray-500 italic">Aucun type disponible</p>
                                             )}
                                         </div>
-                                        <label className="text-indigo-600 hover:text-indigo-700 text-sm font-medium cursor-pointer">
-                                            ajouter une image
-                                            <input
-                                                type="file"
-                                                name="image"
-                                                onChange={handleImageChange}
-                                                accept="image/*"
-                                                className="hidden"
-                                            />
-                                        </label>
+                                        {isCompetitive && (
+                                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-2">
+                                                <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <p className="text-xs text-blue-700">
+                                                    <strong>Mode Compétitif actitvé :</strong> Les courses compétitives sont réservées aux adultes (18 ans et plus). Les âges minimums seront ajustés automatiquement.
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Colonne Droite */}
+                            <div>
+                                {/* Catégories */}
+                                <div className="mb-8">
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-4">Catégories :</h4>
+                                    <div className="space-y-3">
+                                        {data.categories.map((cat, index) => (
+                                            <div key={index} className="flex gap-2">
+                                                <input
+                                                    type="number"
+                                                    placeholder="Age min"
+                                                    value={cat.minAge}
+                                                    onChange={(e) => handleCategoryChange(index, 'minAge', e.target.value)}
+                                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    placeholder="Age Max"
+                                                    value={cat.maxAge}
+                                                    onChange={(e) => handleCategoryChange(index, 'maxAge', e.target.value)}
+                                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                />
+                                                <input
+                                                    type="number"
+                                                    placeholder="Prix"
+                                                    value={cat.price}
+                                                    onChange={(e) => handleCategoryChange(index, 'price', e.target.value)}
+                                                    className="w-20 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={addCategory}
+                                        className="mt-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+                                    >
+                                        + Ajouter
+                                    </button>
+                                </div>
+
+                                {/* Nombre d'équipes */}
+                                <div className="mb-8">
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Nombre d'équipes</h4>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="number"
+                                            name="minTeams"
+                                            value={data.minTeams}
+                                            onChange={handleInputChange}
+                                            placeholder="Min"
+                                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        />
+                                        <input
+                                            type="number"
+                                            name="maxTeams"
+                                            value={data.maxTeams}
+                                            onChange={handleInputChange}
+                                            placeholder="Max"
+                                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Éléments Facultatifs */}
+                                <h4 className="text-sm font-semibold text-gray-900 mb-4">Éléments facultatifs :</h4>
+
+                                <div className="mb-3">
+                                    <input
+                                        type="text"
+                                        name="licenseDiscount"
+                                        value={data.licenseDiscount}
+                                        onChange={handleInputChange}
+                                        placeholder="Réduction pour les licenciés"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                    />
+                                </div>
+
+                                <div className="flex gap-2 mb-4">
+                                    <input
+                                        type="text"
+                                        name="meals"
+                                        value={data.meals}
+                                        onChange={handleInputChange}
+                                        placeholder="Repas"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                    />
+                                    <input
+                                        type="text"
+                                        name="price"
+                                        value={data.price}
+                                        onChange={handleInputChange}
+                                        placeholder="Prix"
+                                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                    />
+                                </div>
+
+                                {/* Image */}
+                                <div className="mb-6">
+                                    <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center mb-3">
+                                        {data.image ? (
+                                            <img
+                                                src={URL.createObjectURL(data.image)}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover rounded-lg"
+                                            />
+                                        ) : (
+                                            <span className="text-gray-400">Aperçu image</span>
+                                        )}
+                                    </div>
+                                    <label className="text-indigo-600 hover:text-indigo-700 text-sm font-medium cursor-pointer">
+                                        ajouter une image
+                                        <input
+                                            type="file"
+                                            name="image"
+                                            onChange={handleImageChange}
+                                            accept="image/*"
+                                            className="hidden"
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+
 
                             {/* Bouton Submit */}
                             <div className="mt-8 flex justify-center">
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className={`${
-                                        processing ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-900'
-                                    } text-white font-semibold py-3 px-12 rounded-lg transition`}
+                                    className={`${processing ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-900'
+                                        } text-white font-semibold py-3 px-12 rounded-lg transition`}
                                 >
                                     {processing ? 'Création en cours...' : 'Créer la course'}
                                 </button>
@@ -455,15 +455,16 @@ export default function NewRace({ auth, users = [] }) {
                         </form>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* Modal de sélection du responsable */}
-            <SelectResponsableModal
+            < SelectResponsableModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => setIsModalOpen(false)
+                }
                 onSelect={handleSelectResponsable}
                 users={users}
             />
-        </AuthenticatedLayout>
+        </AuthenticatedLayout >
     );
 }

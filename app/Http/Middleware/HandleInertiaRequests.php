@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Illuminate\Support\Arr;
+use App\Services\LicenceService;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -49,6 +50,32 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
+        $authData = null;
+        if ($request->user()) {
+            $user = $request->user()->load([
+                'roles',
+                'member',
+                'medicalDoc',
+                'clubs' => function ($query) {
+                    $query->where('club_user.status', 'approved')
+                        ->select('clubs.club_id', 'clubs.club_name');
+                }
+            ])->append(['has_completed_profile', 'profile_photo_url']);
+
+            // Get licence info
+            $licenceService = app(LicenceService::class);
+            $licenceInfo = $licenceService->getLicenceInfo($request->user());
+
+            $authData = array_merge(
+                $user->toArray(),
+                [
+                    'permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray(),
+                    'roles' => $request->user()->getRoleNames()->toArray(),
+                    'licence_info' => $licenceInfo,
+                ]
+            );
+        }
+
         return [
             ...$parent,
             'auth' => [
@@ -60,7 +87,10 @@ class HandleInertiaRequests extends Middleware
                                 ->select('clubs.club_id', 'clubs.club_name');
                         }
                     ])->append(['has_completed_profile', 'profile_photo_url'])->toArray(),
-                    ['permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray()]
+                    [
+                        'permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray(),
+                        'is_club_leader' => $request->user()->isClubLeader(),
+                    ]
                 ) : null,
             ],
             'locale' => $locale,

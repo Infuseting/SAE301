@@ -1,5 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
-import ApplicationLogo from '@/Components/ApplicationLogo';
+import { Link, usePage } from "@inertiajs/react";
+import ApplicationLogo from "@/Components/ApplicationLogo";
 
 /**
  * Footer component - Reusable footer for all pages
@@ -20,15 +20,23 @@ export default function Footer() {
 
                 {/* Navigation */}
                 <div>
-                    <h4 className="font-bold mb-4">{messages.footer_navigation}</h4>
+                    <h4 className="font-bold mb-4">
+                        {messages.footer_navigation}
+                    </h4>
                     <ul className="space-y-2 text-gray-400 text-sm">
                         <li>
-                            <Link href="/" className="hover:text-emerald-400 transition">
-                                {messages.welcome_title || 'Accueil'}
+                            <Link
+                                href="/"
+                                className="hover:text-emerald-400 transition"
+                            >
+                                {messages.welcome_title || "Accueil"}
                             </Link>
                         </li>
                         <li>
-                            <Link href={route('clubs.index')} className="hover:text-emerald-400 transition">
+                            <Link
+                                href={route("clubs.index")}
+                                className="hover:text-emerald-400 transition"
+                            >
                                 {messages.footer_links_clubs}
                             </Link>
                         </li>
@@ -40,17 +48,26 @@ export default function Footer() {
                     <h4 className="font-bold mb-4">{messages.footer_legal}</h4>
                     <ul className="space-y-2 text-gray-400 text-sm">
                         <li>
-                            <a href="#" className="hover:text-emerald-400 transition">
+                            <a
+                                href="#"
+                                className="hover:text-emerald-400 transition"
+                            >
                                 {messages.footer_links_legal_notice}
                             </a>
                         </li>
                         <li>
-                            <a href="#" className="hover:text-emerald-400 transition">
+                            <a
+                                href="#"
+                                className="hover:text-emerald-400 transition"
+                            >
                                 {messages.footer_links_privacy}
                             </a>
                         </li>
                         <li>
-                            <a href="#" className="hover:text-emerald-400 transition">
+                            <a
+                                href="#"
+                                className="hover:text-emerald-400 transition"
+                            >
                                 {messages.footer_links_terms}
                             </a>
                         </li>
@@ -59,14 +76,17 @@ export default function Footer() {
 
                 {/* Contact */}
                 <div>
-                    <h4 className="font-bold mb-4">{messages.footer_contact}</h4>
+                    <h4 className="font-bold mb-4">
+                        {messages.footer_contact}
+                    </h4>
                     <p className="text-gray-400 text-sm">contact@sae301.fr</p>
                 </div>
             </div>
 
             {/* Copyright */}
             <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-                &copy; {new Date().getFullYear()} SAE301. {messages.footer_copyright}
+                &copy; {new Date().getFullYear()} SAE301.{" "}
+                {messages.footer_copyright}
             </div>
         </footer>
     );

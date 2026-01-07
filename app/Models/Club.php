@@ -17,19 +17,14 @@ use OpenApi\Annotations as OA;
  *     schema="Club",
  *     title="Club",
  *     description="Club model",
- *     @OA\Property(property="club_id", type="integer", example=1),
- *     @OA\Property(property="club_name", type="string", example="Club d'orientation Paris"),
- *     @OA\Property(property="club_street", type="string", example="123 Rue de l'Orientation"),
- *     @OA\Property(property="club_city", type="string", example="Paris"),
- *     @OA\Property(property="club_postal_code", type="string", example="75001"),
- *     @OA\Property(property="ffso_id", type="string", nullable=true, example="FFSO123"),
- *     @OA\Property(property="description", type="string", nullable=true, example="Club d'orientation de Paris"),
- *     @OA\Property(property="is_approved", type="boolean", example=false),
- *     @OA\Property(property="approved_by", type="integer", nullable=true, example=1),
- *     @OA\Property(property="approved_at", type="string", format="date-time", nullable=true),
- *     @OA\Property(property="created_by", type="integer", example=1),
- *     @OA\Property(property="created_at", type="string", format="date-time"),
- *     @OA\Property(property="updated_at", type="string", format="date-time")
+ *     @OA\Property(property="club_id", type="integer", description="Club ID"),
+ *     @OA\Property(property="club_name", type="string", description="Name of the club"),
+ *     @OA\Property(property="club_street", type="string", description="Street address"),
+ *     @OA\Property(property="club_city", type="string", description="City"),
+ *     @OA\Property(property="club_postal_code", type="string", description="Postal code"),
+ *     @OA\Property(property="is_approved", type="boolean", description="Approval status"),
+ *     @OA\Property(property="created_at", type="string", format="date-time", description="Creation timestamp"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time", description="Update timestamp")
  * )
  *
  * @property int $club_id
@@ -177,5 +172,13 @@ class Club extends Model
     public function hasManager(User $user): bool
     {
         return $this->managers()->where('user_id', $user->id)->exists();
+    }
+
+    /**
+     * Get the raids belonging to this club.
+     */
+    public function raids()
+    {
+        return $this->hasMany(Raid::class, 'clu_id', 'club_id');
     }
 }

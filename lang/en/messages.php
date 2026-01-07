@@ -339,4 +339,34 @@ return [
     'confirmation_text_required' => 'Please type "CONFIRMER" to confirm deletion',
     'invalid_confirmation_text' => 'You must type exactly "CONFIRMER" to delete your account',
 
+    // Licence and PPS
+    'licence_number' => 'Licence Number',
+    'pps_code' => 'PPS Code',
+    'licence_expiry_date' => 'Licence Expiry Date',
+    'pps_expiry_date' => 'PPS Expiry Date',
+    'licence_added_successfully' => 'Licence added successfully',
+    'pps_added_successfully' => 'PPS code added successfully',
+    'add_licence' => 'Add Licence',
+    'add_pps' => 'Add PPS Code',
+    'licence_required_title' => 'Licence or PPS Code Required',
+    'licence_required_text' => 'To register for a race, you must have a valid licence number or PPS code.',
+    'licence_valid_for' => 'Valid for 1 year',
+    'pps_valid_for' => 'Valid for 3 months',
+    'enter_licence_or_pps' => 'Enter your licence number or PPS code',
+    'need_valid_credentials' => 'You need a valid licence number or PPS code to register for this race',
+    'no_permission_to_register' => 'You do not have permission to register for this race',
+    'registration_successful' => 'Registration successful',
+    'valid_until' => 'Valid until',
+
+    // Roles
+    'my_roles' => 'My Roles',
+    'role_admin' => 'Administrator',
+    'role_adherent' => 'Member',
+    'role_responsable_club' => 'Club Manager',
+    'role_gestionnaire_raid' => 'Raid Manager',
+    'role_responsable_course' => 'Race Manager',
+    'role_user' => 'User',
+    'role_guest' => 'Guest',
+    'no_roles_assigned' => 'No roles assigned',
+
 ];

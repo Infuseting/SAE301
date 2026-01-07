@@ -131,6 +131,69 @@ export default function Show({ club, isMember, isManager }) {
                         </div>
                     </div>
 
+                    {/* Raids Section */}
+                    <div className="mb-8 p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-gray-900">Raids du club</h2>
+                            {isManager && (
+                                <Link href={route('raids.create', { clu_id: club.club_id })}>
+                                    <PrimaryButton className="text-sm">+ Nouveau Raid</PrimaryButton>
+                                </Link>
+                            )}
+                        </div>
+
+                        {club.raids && club.raids.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {club.raids.map((raid) => (
+                                    <div key={raid.raid_id} className="group relative bg-gray-50 hover:bg-white rounded-xl p-5 border border-gray-200 transition-all duration-300 hover:shadow-md">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <h3 className="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">
+                                                {raid.raid_name}
+                                            </h3>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${raid.is_finished ? 'bg-gray-200 text-gray-500' :
+                                                    raid.is_open ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                                        'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                                                }`}>
+                                                {raid.is_finished ? 'Terminé' : raid.is_open ? 'Inscription Ouverte' : 'À venir'}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-col space-y-2 mb-4">
+                                            <div className="flex items-center text-xs text-gray-500">
+                                                <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                {new Date(raid.raid_date_start).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            </div>
+                                            <div className="flex items-center text-xs text-gray-500">
+                                                <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                                {raid.races ? raid.races.length : 0} épreuves disponibles
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <Link href={route('raids.show', raid.raid_id)} className="flex-1">
+                                                <SecondaryButton className="w-full justify-center py-1.5 text-xs">
+                                                    Détails & Inscription
+                                                </SecondaryButton>
+                                            </Link>
+                                            {isManager && (
+                                                <Link href={route('raids.edit', raid.raid_id)}>
+                                                    <div className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-emerald-600 hover:border-emerald-200 transition-all cursor-pointer">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                    </div>
+                                                </Link>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="bg-gray-50 border border-gray-100 rounded-xl p-10 text-center">
+                                <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <p className="text-gray-400 text-sm">Aucun raid n'est actuellement programmé.</p>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Members Section (Only visible to members) */}
                     {isMember && club.members && (
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">

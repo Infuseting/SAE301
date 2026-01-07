@@ -330,58 +330,6 @@
                 ]
             }
         },
-        "/users/search": {
-            "get": {
-                "tags": [
-                    "User"
-                ],
-                "summary": "Search users",
-                "description": "Returns users matching the search query",
-                "operationId": "searchUsers",
-                "parameters": [
-                    {
-                        "name": "q",
-                        "in": "query",
-                        "description": "Search query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "properties": {
-                                            "id": {
-                                                "type": "integer"
-                                            },
-                                            "name": {
-                                                "type": "string"
-                                            },
-                                            "email": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "apiAuth": []
-                    }
-                ]
-            }
-        },
         "/api/clubs": {
             "get": {
                 "tags": [
@@ -1608,59 +1556,36 @@
                 "description": "Club model",
                 "properties": {
                     "club_id": {
-                        "description": "Club model representing orienteering clubs",
-                        "type": "integer",
-                        "example": 1
+                        "description": "Club ID",
+                        "type": "integer"
                     },
                     "club_name": {
-                        "type": "string",
-                        "example": "Club d'orientation Paris"
+                        "description": "Name of the club",
+                        "type": "string"
                     },
                     "club_street": {
-                        "type": "string",
-                        "example": "123 Rue de l'Orientation"
+                        "description": "Street address",
+                        "type": "string"
                     },
                     "club_city": {
-                        "type": "string",
-                        "example": "Paris"
+                        "description": "City",
+                        "type": "string"
                     },
                     "club_postal_code": {
-                        "type": "string",
-                        "example": "75001"
-                    },
-                    "ffso_id": {
-                        "type": "string",
-                        "example": "FFSO123",
-                        "nullable": true
-                    },
-                    "description": {
-                        "type": "string",
-                        "example": "Club d'orientation de Paris",
-                        "nullable": true
+                        "description": "Postal code",
+                        "type": "string"
                     },
                     "is_approved": {
-                        "type": "boolean",
-                        "example": false
-                    },
-                    "approved_by": {
-                        "type": "integer",
-                        "example": 1,
-                        "nullable": true
-                    },
-                    "approved_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                    },
-                    "created_by": {
-                        "type": "integer",
-                        "example": 1
+                        "description": "Approval status",
+                        "type": "boolean"
                     },
                     "created_at": {
+                        "description": "Creation timestamp",
                         "type": "string",
                         "format": "date-time"
                     },
                     "updated_at": {
+                        "description": "Update timestamp",
                         "type": "string",
                         "format": "date-time"
                     }

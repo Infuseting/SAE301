@@ -34,7 +34,7 @@ export default function Index({ auth, races }) {
                             {races.map((race) => (
                                 <Link
                                     key={race.race_id || race.id}
-                                    href={route('raids.show', race.race_id || race.id)}
+                                    href={route('races.show', race.race_id || race.id)}
                                     className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-100 block"
                                 >
                                     <div className="aspect-video relative overflow-hidden bg-gray-100">

@@ -184,6 +184,13 @@ class ClubController extends Controller
 
         $club->load(['creator', 'approver']);
 
+        // Load raids with their registration periods and races
+        $club->load(['raids' => function($query) {
+            $query->with(['registrationPeriod', 'races' => function($q) {
+                $q->with(['type', 'difficulty']);
+            }]);
+        }]);
+
         $user = auth()->user();
         $isMember = $user && $club->hasMember($user);
         $isManager = $user && $club->hasManager($user);
@@ -197,6 +204,18 @@ class ClubController extends Controller
                 $club->load('pendingRequests');
             }
         }
+
+        // Add status helpers to raids for frontend
+        $club->raids->each(function($raid) {
+            $raid->is_open = $raid->isOpen();
+            $raid->is_upcoming = $raid->isUpcoming();
+            $raid->is_finished = $raid->isFinished();
+            
+            $raid->races->each(function($race) {
+                $race->is_open = $race->isOpen();
+                $race->registration_upcoming = $race->isRegistrationUpcoming();
+            });
+        });
 
         return Inertia::render('Clubs/Show', [
             'club' => $club,

@@ -46,4 +46,14 @@ class Member extends Model
             'equ_id'
         );
     }
+    
+    /**
+     * Get the user associated with this member.
+     * A member has one user (one-to-one relationship)
+     */
+    public function user()
+    {
+        return $this->hasOne(User::class, 'adh_id', 'adh_id');
+
+    }
 }

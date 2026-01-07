@@ -354,7 +354,36 @@ return [
     'confirmation_text_required' => 'Veuillez taper "CONFIRMER" pour confirmer la suppression',
     'invalid_confirmation_text' => 'Vous devez taper exactement "CONFIRMER" pour supprimer votre compte',
 
-    // Teams
+    // Licence and PPS
+    'licence_number' => 'Numéro de Licence',
+    'pps_code' => 'Code PPS',
+    'licence_expiry_date' => 'Date d\'Expiration de la Licence',
+    'pps_expiry_date' => 'Date d\'Expiration du PPS',
+    'licence_added_successfully' => 'Licence ajoutée avec succès',
+    'pps_added_successfully' => 'Code PPS ajouté avec succès',
+    'add_licence' => 'Ajouter une Licence',
+    'add_pps' => 'Ajouter un Code PPS',
+    'licence_required_title' => 'Licence ou Code PPS Requis',
+    'licence_required_text' => 'Pour vous inscrire à une course, vous devez avoir un numéro de licence valide ou un code PPS.',
+    'licence_valid_for' => 'Valide pendant 1 an',
+    'pps_valid_for' => 'Valide pendant 3 mois',
+    'enter_licence_or_pps' => 'Entrez votre numéro de licence ou votre code PPS',
+    'need_valid_credentials' => 'Vous devez avoir un numéro de licence valide ou un code PPS pour vous inscrire à cette course',
+    'no_permission_to_register' => 'Vous n\'avez pas la permission de vous inscrire à cette course',
+    'registration_successful' => 'Inscription réussie',
+    'valid_until' => 'Valide jusqu\'au',
+
+    // Roles
+    'my_roles' => 'Mes Rôles',
+    'role_admin' => 'Administrateur',
+    'role_adherent' => 'Adhérent',
+    'role_responsable_club' => 'Responsable Club',
+    'role_gestionnaire_raid' => 'Gestionnaire Raid',
+    'role_responsable_course' => 'Responsable Course',
+    'role_user' => 'Utilisateur',
+    'role_guest' => 'Visiteur',
+    'no_roles_assigned' => 'Aucun rôle assigné',
+        // Teams
     'create_team' => 'Créer une équipe',
     'create_team_subtext' => 'Créez une nouvelle équipe pour participer aux événements d\'orientation.',
     'team_name' => 'Nom de l\'équipe',
@@ -370,6 +399,5 @@ return [
     'remove_teammate' => 'Supprimer',
     'no_teammates_added' => 'Aucun coéquipier ajouté pour le moment',
     'teammate_added' => 'Coéquipier ajouté',
-    'teammate_removed' => 'Coéquipier supprimé',
-
+    'teammate_removed' => 'Coéquipier supprimé'
 ];

@@ -3,16 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Raid;
+use App\Models\Club;
+use App\Models\User;
+use App\Models\Member;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRaidRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use OpenApi\Annotations as OA;
 
 class RaidController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      * 
@@ -42,35 +47,86 @@ class RaidController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     * Automatically loads the user's club and its members
      */
     public function create(): Response
     {
-        return Inertia::render('Raid/Create');
+        // Get the club created by the current user
+        $userClub = \DB::table('clubs')
+            ->where('created_by', auth()->id())
+            ->first(['club_id', 'club_name']);
+
+        // Log current user info
+        \Log::info('User connecté:', [
+            'user_id' => auth()->id(),
+            'user_name' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+            'user_adh_id' => auth()->user()->adh_id,
+            'club_found' => $userClub ? $userClub->club_name : 'Aucun club'
+        ]);
+
+        // Get members (adherents) of this club from club_user table
+        $clubMembers = [];
+        if ($userClub) {
+            $clubMembers = \DB::table('club_user')
+                ->join('users', 'club_user.user_id', '=', 'users.id')
+                ->where('club_user.club_id', $userClub->club_id)
+                ->whereNotNull('users.adh_id') // Ensure they have an adherent ID
+                ->select('users.adh_id', 'users.first_name', 'users.last_name')
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'adh_id' => $user->adh_id,
+                        'full_name' => $user->first_name . ' ' . $user->last_name,
+                        'first_name' => $user->first_name,
+                        'last_name' => $user->last_name,
+                    ];
+                });
+
+            // Log club members
+            \Log::info('Liste des responsables possibles:', [
+                'club_id' => $userClub->club_id,
+                'club_name' => $userClub->club_name,
+                'members_count' => $clubMembers->count(),
+                'members' => $clubMembers->toArray()
+            ]);
+        }
+
+        return Inertia::render('Raid/Create', [
+            'userClub' => $userClub,
+            'clubMembers' => $clubMembers,
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
+     * Only responsable-club can create raids.
      * 
      * @OA\Post(
      *     path="/raids",
      *     tags={"Raids"},
      *     summary="Create a new raid",
-     *     description="Creates a new raid event",
+     *     description="Creates a new raid event. Only responsable-club can create raids.",
+     *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name", "event_start_date", "event_end_date", "registration_start_date", "registration_end_date"},
-     *             @OA\Property(property="name", type="string", example="Mountain Adventure Raid"),
-     *             @OA\Property(property="event_start_date", type="string", format="date-time", example="2026-06-15T08:00:00Z"),
-     *             @OA\Property(property="event_end_date", type="string", format="date-time", example="2026-06-17T18:00:00Z"),
-     *             @OA\Property(property="registration_start_date", type="string", format="date-time", example="2026-03-01T00:00:00Z"),
-     *             @OA\Property(property="registration_end_date", type="string", format="date-time", example="2026-06-10T23:59:59Z")
+     *             required={"raid_name", "clu_id", "raid_date_start", "raid_date_end"},
+     *             @OA\Property(property="raid_name", type="string", example="Mountain Adventure Raid"),
+     *             @OA\Property(property="clu_id", type="integer", example=1, description="Club ID"),
+     *             @OA\Property(property="raid_date_start", type="string", format="date-time", example="2026-06-15T08:00:00Z"),
+     *             @OA\Property(property="raid_date_end", type="string", format="date-time", example="2026-06-17T18:00:00Z"),
+     *             @OA\Property(property="raid_description", type="string", example="A thrilling raid through mountains"),
+     *             @OA\Property(property="gestionnaire_raid_id", type="integer", example=5, description="User ID to assign as gestionnaire-raid")
      *         )
      *     ),
      *     @OA\Response(
      *         response=201,
      *         description="Raid created successfully",
      *         @OA\JsonContent(ref="#/components/schemas/Raid")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - not a responsable-club"
      *     ),
      *     @OA\Response(
      *         response=422,
@@ -80,10 +136,61 @@ class RaidController extends Controller
      */
     public function store(StoreRaidRequest $request): RedirectResponse
     {
-        $raid = Raid::create($request->validated());
+        $validated = $request->validated();
+        
+        // Create registration period first
+        $registrationPeriod = \App\Models\RegistrationPeriod::create([
+            'ins_start_date' => $validated['ins_start_date'],
+            'ins_end_date' => $validated['ins_end_date'],
+        ]);
+        
+        // Add ins_id to raid data
+        $validated['ins_id'] = $registrationPeriod->ins_id;
+        
+        // Remove inscription dates from raid data (they're in registration_period table)
+        unset($validated['ins_start_date'], $validated['ins_end_date']);
+        
+        // Create the raid
+        $raid = Raid::create($validated);
         
         return redirect()->route('raids.index')
             ->with('success', 'Raid created successfully.');
+    }
+
+    /**
+     * Assign gestionnaire-raid role to a user for a specific raid.
+     * The user must be an adherent of the club.
+     *
+     * @param int $userId
+     * @param Raid $raid
+     * @return void
+     */
+    protected function assignGestionnaireRaidRole(int $userId, Raid $raid): void
+    {
+        $targetUser = User::find($userId);
+        
+        if (!$targetUser) {
+            return;
+        }
+
+        // Check if the user is an adherent (has valid licence)
+        if (!$targetUser->hasRole('adherent')) {
+            return;
+        }
+
+        // Check if the user is a member of the club
+        $member = $targetUser->member;
+        if (!$member) {
+            return;
+        }
+
+        // Assign gestionnaire-raid role
+        if (!$targetUser->hasRole('gestionnaire-raid')) {
+            $targetUser->assignRole('gestionnaire-raid');
+        }
+
+        // Update the raid with the member's adh_id
+        $raid->update(['adh_id' => $member->adh_id]);
     }
 
     /**
@@ -113,12 +220,44 @@ class RaidController extends Controller
      */
     public function show(Raid $raid): Response
     {
-        // TODO: Load courses when DB is ready
-        $courses = [];
+        $raid->load(['club', 'races.organizer.user', 'registrationPeriod']);
+        
+        $user = auth()->user();
+        $isRaidManager = $user && ($user->adh_id === $raid->adh_id || $raid->club->hasManager($user));
+        
+        $courses = $raid->races->map(function($race) use ($user, $isRaidManager) {
+            $isRaceManager = $user && ($user->adh_id === $race->adh_id || $isRaidManager);
+            
+            return [
+                'id' => $race->race_id,
+                'name' => $race->race_name,
+                'organizer_name' => $race->organizer && $race->organizer->user ? $race->organizer->user->name : 'N/A',
+                'difficulty' => $race->race_difficulty ?? ($race->difficulty ? $race->difficulty->dif_level : 'N/A'),
+                'start_date' => $race->race_date_start ? $race->race_date_start->toIso8601String() : null,
+                'min_age' => $race->categories->min('age_min') ?? 0,
+                'image' => $race->image_url,
+                'is_open' => $race->isOpen(),
+                'registration_upcoming' => $race->isRegistrationUpcoming(),
+                'is_finished' => $race->isCompleted(),
+                'can_edit' => $isRaceManager,
+            ];
+        });
+        
+        // Add status helpers for raid
+        $raid->is_open = $raid->isOpen();
+        $raid->is_upcoming = $raid->isUpcoming();
+        $raid->is_finished = $raid->isFinished();
         
         return Inertia::render('Raid/Index', [
             'raid' => $raid,
             'courses' => $courses,
+            'isRaidManager' => $isRaidManager,
+            'typeCategories' => \App\Models\ParamType::all()->map(function($t) {
+                return [
+                    'type_id' => $t->typ_id,
+                    'type_name' => $t->typ_name,
+                ];
+            }),
         ]);
     }
 
@@ -127,8 +266,30 @@ class RaidController extends Controller
      */
     public function edit(Raid $raid): Response
     {
+        $this->authorize('update', $raid);
+
+        $user = auth()->user();
+        $clubs = $user->hasRole('admin') 
+            ? Club::where('is_approved', true)->get()
+            : $user->clubs()->where('is_approved', true)->get();
+
+        // Get adherents of the club for gestionnaire-raid assignment
+        $clubAdherents = [];
+        if ($raid->clu_id) {
+            $clubAdherents = User::whereHas('member')
+                ->whereHas('roles', function($q) {
+                    $q->where('name', 'adherent');
+                })
+                ->whereHas('clubs', function($q) use ($raid) {
+                    $q->where('clubs.club_id', $raid->clu_id);
+                })
+                ->get(['id', 'name', 'email']);
+        }
+
         return Inertia::render('Raid/Edit', [
             'raid' => $raid,
+            'clubs' => $clubs,
+            'clubAdherents' => $clubAdherents,
         ]);
     }
 
@@ -140,6 +301,7 @@ class RaidController extends Controller
      *     tags={"Raids"},
      *     summary="Update raid",
      *     description="Updates an existing raid",
+     *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -156,6 +318,10 @@ class RaidController extends Controller
      *         @OA\JsonContent(ref="#/components/schemas/Raid")
      *     ),
      *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
      *         response=404,
      *         description="Raid not found"
      *     ),
@@ -167,7 +333,15 @@ class RaidController extends Controller
      */
     public function update(StoreRaidRequest $request, Raid $raid): RedirectResponse
     {
-        $raid->update($request->validated());
+        $this->authorize('update', $raid);
+
+        $validated = $request->validated();
+        $raid->update($validated);
+
+        // If a gestionnaire_raid_id is specified, assign the role
+        if (!empty($validated['gestionnaire_raid_id'])) {
+            $this->assignGestionnaireRaidRole($validated['gestionnaire_raid_id'], $raid);
+        }
         
         return redirect()->route('raids.index')
             ->with('success', 'Raid updated successfully.');
@@ -181,6 +355,7 @@ class RaidController extends Controller
      *     tags={"Raids"},
      *     summary="Delete raid",
      *     description="Deletes a raid",
+     *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -192,6 +367,10 @@ class RaidController extends Controller
      *         description="Raid deleted successfully"
      *     ),
      *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
      *         response=404,
      *         description="Raid not found"
      *     )
@@ -199,6 +378,8 @@ class RaidController extends Controller
      */
     public function destroy(Raid $raid): RedirectResponse
     {
+        $this->authorize('delete', $raid);
+
         $raid->delete();
         
         return redirect()->route('raids.index')

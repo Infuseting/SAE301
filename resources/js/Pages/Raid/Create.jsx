@@ -10,6 +10,7 @@ import { Head, useForm, usePage, Link } from '@inertiajs/react';
  * Form for creating a new raid with event and registration dates
  */
 export default function Create() {
+    const { userClub, clubMembers } = usePage().props;
     const messages = usePage().props.translations?.messages || {};
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -23,8 +24,8 @@ export default function Create() {
         raid_postal_code: '',
         raid_number: '',
         adh_id: '',
-        clu_id: '',
-        ins_id: '',
+        ins_start_date: '',
+        ins_end_date: '',
         raid_site_url: '',
         raid_image: null,
     });
@@ -47,6 +48,26 @@ export default function Create() {
         if (file) {
             setData('raid_image', file);
         }
+    };
+
+    /**
+     * Calculate max date for inscription (raid start date - 1 day)
+     * @returns {string} ISO datetime string for max inscription date
+     */
+    const getMaxInscriptionDate = () => {
+        if (!data.raid_date_start) return undefined;
+        
+        const raidStart = new Date(data.raid_date_start);
+        raidStart.setDate(raidStart.getDate() - 1);
+        
+        // Format to datetime-local format (YYYY-MM-DDTHH:mm)
+        const year = raidStart.getFullYear();
+        const month = String(raidStart.getMonth() + 1).padStart(2, '0');
+        const day = String(raidStart.getDate()).padStart(2, '0');
+        const hours = String(raidStart.getHours()).padStart(2, '0');
+        const minutes = String(raidStart.getMinutes()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
 
     return (
@@ -133,6 +154,7 @@ export default function Create() {
                                                 value={data.raid_date_end}
                                                 className="block w-full"
                                                 onChange={(e) => setData('raid_date_end', e.target.value)}
+                                                min={data.raid_date_start || undefined}
                                                 required
                                             />
                                             <InputError message={errors.raid_date_end} className="mt-2" />
@@ -223,9 +245,9 @@ export default function Create() {
                                         <InputError message={errors.raid_contact} className="mt-2" />
                                     </div>
 
-                                    {/* Organizer Selection */}
+                                    {/* Organizer Selection - Club Members */}
                                     <div>
-                                        <InputLabel htmlFor="adh_id" value="Sélection du responsable" />
+                                        <InputLabel htmlFor="adh_id" value="Responsable du raid" />
                                         <select
                                             id="adh_id"
                                             name="adh_id"
@@ -234,44 +256,62 @@ export default function Create() {
                                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                                             required
                                         >
-                                            <option value="">Sélectionner...</option>
-                                            {/* TODO: Load organizers from backend */}
+                                            <option value="">Sélectionner un membre du club...</option>
+                                            {clubMembers?.map((member) => (
+                                                <option key={member.adh_id} value={member.adh_id}>
+                                                    {member.full_name}
+                                                </option>
+                                            ))}
                                         </select>
                                         <InputError message={errors.adh_id} className="mt-2" />
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            Membres adhérents du club {userClub?.club_name || ''}
+                                        </p>
                                     </div>
 
-                                    {/* Club Selection */}
+                                    {/* Club Display (auto-assigned) */}
                                     <div>
-                                        <InputLabel htmlFor="clu_id" value="Club de rattachement" />
-                                        <select
-                                            id="clu_id"
-                                            name="clu_id"
-                                            value={data.clu_id}
-                                            onChange={(e) => setData('clu_id', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                                            required
-                                        >
-                                            <option value="">Sélectionner...</option>
-                                            {/* TODO: Load clubs from backend */}
-                                        </select>
-                                        <InputError message={errors.clu_id} className="mt-2" />
+                                        <InputLabel value="Club de rattachement" />
+                                        <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                                            {userClub?.club_name || 'Aucun club trouvé'}
+                                        </div>
                                     </div>
 
-                                    {/* Registration Period Selection */}
+                                    {/* Registration Period */}
                                     <div>
-                                        <InputLabel htmlFor="ins_id" value="Période d'inscription" />
-                                        <select
-                                            id="ins_id"
-                                            name="ins_id"
-                                            value={data.ins_id}
-                                            onChange={(e) => setData('ins_id', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                                            required
-                                        >
-                                            <option value="">Sélectionner...</option>
-                                            {/* TODO: Load registration periods from backend */}
-                                        </select>
-                                        <InputError message={errors.ins_id} className="mt-2" />
+                                        <InputLabel value="Période d'inscription" />
+                                        <div className="space-y-3 mt-2">
+                                            <div>
+                                                <label className="text-sm text-gray-600">Début des inscriptions</label>
+                                                <TextInput
+                                                    type="datetime-local"
+                                                    name="ins_start_date"
+                                                    value={data.ins_start_date}
+                                                    className="block w-full mt-1"
+                                                    onChange={(e) => setData('ins_start_date', e.target.value)}
+                                                    max={getMaxInscriptionDate()}
+                                                    required
+                                                />
+                                                <InputError message={errors.ins_start_date} className="mt-2" />
+                                            </div>
+                                            <div>
+                                                <label className="text-sm text-gray-600">Fin des inscriptions</label>
+                                                <TextInput
+                                                    type="datetime-local"
+                                                    name="ins_end_date"
+                                                    value={data.ins_end_date}
+                                                    className="block w-full mt-1"
+                                                    onChange={(e) => setData('ins_end_date', e.target.value)}
+                                                    min={data.ins_start_date || undefined}
+                                                    max={getMaxInscriptionDate()}
+                                                    required
+                                                />
+                                                <InputError message={errors.ins_end_date} className="mt-2" />
+                                            </div>
+                                        </div>
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            Les inscriptions doivent se terminer au plus tard la veille du début du raid
+                                        </p>
                                     </div>
                                 </div>
 
