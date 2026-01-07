@@ -983,6 +983,159 @@
                 }
             }
         },
+        "/races/{race}/registration/check": {
+            "get": {
+                "tags": [
+                    "Race Registration"
+                ],
+                "summary": "Check registration eligibility",
+                "description": "Checks if the authenticated user is eligible to register for a specific race",
+                "operationId": "525d0e8e902ea4cecb00247fe0f44338",
+                "parameters": [
+                    {
+                        "name": "race",
+                        "in": "path",
+                        "description": "Race ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eligibility check result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "can_register": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "has_valid_licence": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "has_valid_pps": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "needs_credentials": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "licence_expiry_date": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "example": "2026-12-31"
+                                        },
+                                        "pps_expiry_date": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Race not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/races/{race}/register": {
+            "post": {
+                "tags": [
+                    "Race Registration"
+                ],
+                "summary": "Register for a race",
+                "description": "Registers the authenticated user for a specific race",
+                "operationId": "53361e2a09fec00912756878fa1dbc83",
+                "parameters": [
+                    {
+                        "name": "race",
+                        "in": "path",
+                        "description": "Race ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Registration successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Registration successful"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Validation failed or credentials missing",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Valid licence or PPS code required"
+                                        },
+                                        "needs_credentials": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden - Permission denied"
+                    },
+                    "404": {
+                        "description": "Race not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/raids": {
             "get": {
                 "tags": [
@@ -1012,7 +1165,7 @@
                     "Raids"
                 ],
                 "summary": "Create a new raid",
-                "description": "Creates a new raid event",
+                "description": "Creates a new raid event. Only responsable-club can create raids.",
                 "operationId": "0b6a230086167f7a174917a7d4f4147c",
                 "requestBody": {
                     "required": true,
@@ -1020,36 +1173,39 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name",
-                                    "event_start_date",
-                                    "event_end_date",
-                                    "registration_start_date",
-                                    "registration_end_date"
+                                    "raid_name",
+                                    "clu_id",
+                                    "raid_date_start",
+                                    "raid_date_end"
                                 ],
                                 "properties": {
-                                    "name": {
+                                    "raid_name": {
                                         "type": "string",
                                         "example": "Mountain Adventure Raid"
                                     },
-                                    "event_start_date": {
+                                    "clu_id": {
+                                        "description": "Club ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "raid_date_start": {
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2026-06-15T08:00:00Z"
                                     },
-                                    "event_end_date": {
+                                    "raid_date_end": {
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2026-06-17T18:00:00Z"
                                     },
-                                    "registration_start_date": {
+                                    "raid_description": {
                                         "type": "string",
-                                        "format": "date-time",
-                                        "example": "2026-03-01T00:00:00Z"
+                                        "example": "A thrilling raid through mountains"
                                     },
-                                    "registration_end_date": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2026-06-10T23:59:59Z"
+                                    "gestionnaire_raid_id": {
+                                        "description": "User ID to assign as gestionnaire-raid",
+                                        "type": "integer",
+                                        "example": 5
                                     }
                                 },
                                 "type": "object"
@@ -1068,10 +1224,18 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Unauthorized - not a responsable-club"
+                    },
                     "422": {
                         "description": "Validation error"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/raids/{id}": {
@@ -1146,13 +1310,21 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
                     "404": {
                         "description": "Raid not found"
                     },
                     "422": {
                         "description": "Validation error"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             },
             "delete": {
                 "tags": [
@@ -1175,10 +1347,18 @@
                     "204": {
                         "description": "Raid deleted successfully"
                     },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
                     "404": {
                         "description": "Raid not found"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/user/set-password": {
@@ -1628,6 +1808,218 @@
                 },
                 "type": "object"
             },
+            "MedicalDoc": {
+                "title": "Medical Document",
+                "description": "Medical document or PPS for a user",
+                "properties": {
+                    "doc_id": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "doc_num_pps": {
+                        "type": "string",
+                        "example": "PPS-123456"
+                    },
+                    "doc_end_validity": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-12-31"
+                    },
+                    "doc_date_added": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-01-01"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "type": "object"
+            },
+            "Member": {
+                "title": "Member",
+                "description": "Member model representing an adherent",
+                "properties": {
+                    "adh_id": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "adh_license": {
+                        "type": "string",
+                        "example": "LIC123456"
+                    },
+                    "adh_end_validity": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-12-31"
+                    },
+                    "adh_date_added": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-01-01"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "type": "object"
+            },
+            "ParamDifficulty": {
+                "title": "ParamDifficulty",
+                "description": "Difficulty parameters model for races",
+                "properties": {
+                    "dif_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "dif_level": {
+                        "type": "string",
+                        "example": "medium"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ParamRunner": {
+                "title": "ParamRunner",
+                "description": "Runner parameters model for races",
+                "properties": {
+                    "pac_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "pac_nb_min": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "pac_nb_max": {
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ParamTeam": {
+                "title": "ParamTeam",
+                "description": "Team parameters model for races",
+                "properties": {
+                    "pae_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "pae_nb_min": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "pae_nb_max": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "pae_team_count_max": {
+                        "type": "integer",
+                        "example": 30
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ParamType": {
+                "title": "ParamType",
+                "description": "Type parameters model for races",
+                "properties": {
+                    "typ_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "typ_name": {
+                        "type": "string",
+                        "example": "medium"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "PriceAgeCategory": {
+                "title": "PriceAgeCategory",
+                "description": "Price and age category for races",
+                "properties": {
+                    "catp_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "catp_name": {
+                        "type": "string",
+                        "example": "Adultes"
+                    },
+                    "catp_price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 15
+                    },
+                    "age_min": {
+                        "type": "integer",
+                        "example": 18
+                    },
+                    "age_max": {
+                        "type": "integer",
+                        "example": 99
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
             "Race": {
                 "title": "Race",
                 "description": "Orienteering race model",
@@ -1750,6 +2142,38 @@
                 },
                 "type": "object"
             },
+            "RegistrationPeriod": {
+                "title": "Registration Period",
+                "description": "Registration period for a raid event",
+                "properties": {
+                    "ins_id": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "example": 1
+                    },
+                    "ins_start_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-01-01T08:00:00Z"
+                    },
+                    "ins_end_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-05-31T23:59:59Z"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "type": "object"
+            },
             "User": {
                 "title": "User",
                 "description": "User model",
@@ -1819,6 +2243,10 @@
         {
             "name": "Club Members",
             "description": "Club member management endpoints"
+        },
+        {
+            "name": "Race Registration",
+            "description": "Endpoints for race registration and eligibility checks"
         },
         {
             "name": "Auth",
