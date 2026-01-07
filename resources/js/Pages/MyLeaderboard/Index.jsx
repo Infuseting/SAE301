@@ -4,14 +4,15 @@ import { useState } from 'react';
 
 /**
  * MyLeaderboard Index page - Shows the authenticated user's race results
- * Includes search by race name and sort by best/worst score
+ * Includes search by race name, sort by best/worst score, and filter by individual/team
  */
-export default function MyLeaderboardIndex({ results, search, sortBy }) {
+export default function MyLeaderboardIndex({ results, search, sortBy, type }) {
     const messages = usePage().props.translations?.messages || {};
     const { auth } = usePage().props;
 
     const [searchTerm, setSearchTerm] = useState(search || '');
     const [selectedSort, setSelectedSort] = useState(sortBy || 'best');
+    const [selectedType, setSelectedType] = useState(type || 'individual');
 
     /**
      * Handle search form submission
@@ -21,6 +22,7 @@ export default function MyLeaderboardIndex({ results, search, sortBy }) {
         router.get(route('my-leaderboard.index'), {
             search: searchTerm,
             sort: selectedSort,
+            type: selectedType,
         }, { preserveState: true });
     };
 
@@ -32,6 +34,19 @@ export default function MyLeaderboardIndex({ results, search, sortBy }) {
         router.get(route('my-leaderboard.index'), {
             search: searchTerm,
             sort: newSort,
+            type: selectedType,
+        }, { preserveState: true });
+    };
+
+    /**
+     * Handle type change (individual/team)
+     */
+    const handleTypeChange = (newType) => {
+        setSelectedType(newType);
+        router.get(route('my-leaderboard.index'), {
+            search: searchTerm,
+            sort: selectedSort,
+            type: newType,
         }, { preserveState: true });
     };
 
@@ -60,6 +75,8 @@ export default function MyLeaderboardIndex({ results, search, sortBy }) {
         });
     };
 
+    const isTeamView = selectedType === 'team';
+
     return (
         <AuthenticatedLayout>
             <Head title={messages.my_rankings || 'Mes Classements'} />
@@ -78,7 +95,7 @@ export default function MyLeaderboardIndex({ results, search, sortBy }) {
 
                     {/* Filters */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {/* Search by race name */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -117,6 +134,35 @@ export default function MyLeaderboardIndex({ results, search, sortBy }) {
                                     <option value="worst">{messages.worst_score || 'Pire score'}</option>
                                 </select>
                             </div>
+
+                            {/* Type toggle (individual/team) */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    {messages.view_type || 'Type de classement'}
+                                </label>
+                                <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+                                    <button
+                                        onClick={() => handleTypeChange('individual')}
+                                        className={`flex-1 px-4 py-2 text-sm font-medium transition ${
+                                            selectedType === 'individual'
+                                                ? 'bg-indigo-600 text-white'
+                                                : 'bg-white text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        {messages.individual || 'Individuel'}
+                                    </button>
+                                    <button
+                                        onClick={() => handleTypeChange('team')}
+                                        className={`flex-1 px-4 py-2 text-sm font-medium transition ${
+                                            selectedType === 'team'
+                                                ? 'bg-indigo-600 text-white'
+                                                : 'bg-white text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        {messages.team || 'Équipe'}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -125,7 +171,10 @@ export default function MyLeaderboardIndex({ results, search, sortBy }) {
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                                 <h2 className="text-lg font-bold text-gray-900">
-                                    {messages.your_results || 'Vos résultats'}
+                                    {isTeamView 
+                                        ? (messages.your_team_results || 'Vos résultats en équipe')
+                                        : (messages.your_results || 'Vos résultats')
+                                    }
                                 </h2>
                                 <p className="text-sm text-gray-500">
                                     {results.total} {results.total > 1 ? (messages.races_participated || 'courses participées') : (messages.race_participated || 'course participée')}
@@ -142,9 +191,16 @@ export default function MyLeaderboardIndex({ results, search, sortBy }) {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 {messages.race || 'Course'}
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                {messages.team || 'Équipe'}
-                                            </th>
+                                            {isTeamView && (
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {messages.team || 'Équipe'}
+                                                </th>
+                                            )}
+                                            {!isTeamView && (
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {messages.team || 'Équipe'}
+                                                </th>
+                                            )}
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 {messages.time || 'Temps'}
                                             </th>
@@ -157,6 +213,11 @@ export default function MyLeaderboardIndex({ results, search, sortBy }) {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 {messages.date || 'Date'}
                                             </th>
+                                            {isTeamView && (
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {messages.members || 'Membres'}
+                                                </th>
+                                            )}
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
@@ -183,17 +244,22 @@ export default function MyLeaderboardIndex({ results, search, sortBy }) {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-gray-700 font-mono">
-                                                    {result.temps_formatted}
+                                                    {isTeamView ? result.average_temps_formatted : result.temps_formatted}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-red-600 font-mono">
-                                                    +{result.malus_formatted}
+                                                    +{isTeamView ? result.average_malus_formatted : result.malus_formatted}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap font-bold text-indigo-600 font-mono">
-                                                    {result.temps_final_formatted}
+                                                    {isTeamView ? result.average_temps_final_formatted : result.temps_final_formatted}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                                                     {formatDate(result.race_date)}
                                                 </td>
+                                                {isTeamView && (
+                                                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                                        {result.member_count}
+                                                    </td>
+                                                )}
                                             </tr>
                                         ))}
                                     </tbody>
@@ -208,7 +274,9 @@ export default function MyLeaderboardIndex({ results, search, sortBy }) {
                             <h3 className="text-xl font-bold text-gray-900 mb-2">
                                 {search 
                                     ? (messages.no_results_found || 'Aucun résultat trouvé')
-                                    : (messages.no_races_yet || 'Vous n\'avez pas encore participé à des courses')
+                                    : isTeamView
+                                        ? (messages.no_team_races_yet || 'Vous n\'avez pas encore participé à des courses en équipe')
+                                        : (messages.no_races_yet || 'Vous n\'avez pas encore participé à des courses')
                                 }
                             </h3>
                             <p className="text-gray-500">

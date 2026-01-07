@@ -193,6 +193,9 @@ export default function AuthenticatedLayout({ header, children }) {
                             <ResponsiveNavLink href={route('my-leaderboard.index')}>
                                 {messages.my_rankings || 'Mes Classements'}
                             </ResponsiveNavLink>
+                            <ResponsiveNavLink href={route('leaderboard.index')}>
+                                {messages.general_leaderboard || 'Classement Général'}
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"
                                 href={route('logout')}

@@ -7,6 +7,7 @@ export default function LeaderboardIndex({ races }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         file: null,
         race_id: '',
+        type: 'individual',
     });
 
     const [dragActive, setDragActive] = useState(false);
@@ -93,6 +94,44 @@ export default function LeaderboardIndex({ races }) {
                                         )}
                                     </div>
 
+                                    {/* Import Type Selection */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            {messages.import_type || 'Import Type'}
+                                        </label>
+                                        <div className="flex gap-4">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="type"
+                                                    value="individual"
+                                                    checked={data.type === 'individual'}
+                                                    onChange={(e) => setData('type', e.target.value)}
+                                                    className="text-emerald-600 focus:ring-emerald-500"
+                                                />
+                                                <span className="text-sm text-gray-700">
+                                                    {messages.individual || 'Individual'}
+                                                </span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="type"
+                                                    value="team"
+                                                    checked={data.type === 'team'}
+                                                    onChange={(e) => setData('type', e.target.value)}
+                                                    className="text-emerald-600 focus:ring-emerald-500"
+                                                />
+                                                <span className="text-sm text-gray-700">
+                                                    {messages.team || 'Team'}
+                                                </span>
+                                            </label>
+                                        </div>
+                                        {errors.type && (
+                                            <p className="mt-1 text-sm text-red-600">{errors.type}</p>
+                                        )}
+                                    </div>
+
                                     {/* File Upload */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -147,7 +186,7 @@ export default function LeaderboardIndex({ races }) {
                                             {messages.csv_format_description || 'The CSV file should have the following columns (semicolon separated):'}
                                         </p>
                                         <code className="text-xs bg-white px-2 py-1 rounded border">
-                                            user_id;temps;malus
+                                            {data.type === 'team' ? 'team_id;temps;malus' : 'user_id;temps;malus'}
                                         </code>
                                         <p className="text-xs text-gray-500 mt-2">
                                             {messages.time_format_info || 'Time can be in seconds (3600.50) or HH:MM:SS format (01:00:00.50)'}
@@ -186,18 +225,36 @@ export default function LeaderboardIndex({ races }) {
                                         {races.map((race) => (
                                             <div
                                                 key={race.race_id}
-                                                className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition cursor-pointer"
-                                                onClick={() => viewResults(race.race_id)}
+                                                className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition"
                                             >
-                                                <div>
+                                                <div 
+                                                    className="flex-1 cursor-pointer"
+                                                    onClick={() => viewResults(race.race_id)}
+                                                >
                                                     <h4 className="font-medium text-gray-900">{race.race_name}</h4>
                                                     <p className="text-sm text-gray-500">
                                                         {new Date(race.race_date_start).toLocaleDateString()}
                                                     </p>
                                                 </div>
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-gray-400">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                                </svg>
+                                                <div className="flex items-center gap-2">
+                                                    <a
+                                                        href={route('admin.leaderboard.export', { raceId: race.race_id })}
+                                                        className="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-100 rounded-lg transition"
+                                                        title={messages.export_csv || 'Export CSV'}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                                        </svg>
+                                                    </a>
+                                                    <button
+                                                        onClick={() => viewResults(race.race_id)}
+                                                        className="p-2 text-gray-400 hover:text-emerald-600 transition"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>

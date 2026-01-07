@@ -10,7 +10,7 @@ use Inertia\Response;
 
 /**
  * Controller for user's personal leaderboard results.
- * Allows authenticated users to view their own race results.
+ * Allows authenticated users to view their own race results (individual or team).
  */
 class MyLeaderboardController extends Controller
 {
@@ -29,17 +29,28 @@ class MyLeaderboardController extends Controller
         $user = Auth::user();
         $search = $request->input('search');
         $sortBy = $request->input('sort', 'best');
+        $type = $request->input('type', 'individual');
 
-        $results = $this->leaderboardService->getUserResults(
-            $user->id,
-            $search,
-            $sortBy
-        );
+        // Get results based on type (individual or team)
+        if ($type === 'team') {
+            $results = $this->leaderboardService->getUserTeamResults(
+                $user->id,
+                $search,
+                $sortBy
+            );
+        } else {
+            $results = $this->leaderboardService->getUserResults(
+                $user->id,
+                $search,
+                $sortBy
+            );
+        }
 
         return Inertia::render('MyLeaderboard/Index', [
             'results' => $results,
             'search' => $search,
             'sortBy' => $sortBy,
+            'type' => $type,
         ]);
     }
 }

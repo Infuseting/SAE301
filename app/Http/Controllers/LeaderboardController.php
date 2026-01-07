@@ -4,15 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Services\LeaderboardService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controller for public leaderboard page.
+ * Displays rankings for races with search and filter capabilities.
+ * Only shows users with public profiles.
+ */
 class LeaderboardController extends Controller
 {
     public function __construct(
         private LeaderboardService $leaderboardService
     ) {}
 
+    /**
+     * Display the public leaderboard page.
+     * Shows only users with public profiles.
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function index(Request $request): Response
     {
         $races = $this->leaderboardService->getRaces();
@@ -25,9 +38,19 @@ class LeaderboardController extends Controller
 
         if ($raceId) {
             $selectedRace = $races->firstWhere('race_id', (int) $raceId);
-            $results = $type === 'team'
-                ? $this->leaderboardService->getTeamLeaderboard((int) $raceId, $search)
-                : $this->leaderboardService->getIndividualLeaderboard((int) $raceId, $search);
+            // Use public leaderboard that filters by is_public
+            $results = $this->leaderboardService->getPublicLeaderboard(
+                (int) $raceId,
+                $search,
+                $type
+            );
+        } else {
+            // Show all public results across all races
+            $results = $this->leaderboardService->getPublicLeaderboard(
+                null,
+                $search,
+                $type
+            );
         }
 
         return Inertia::render('Leaderboard/Index', [
@@ -36,6 +59,33 @@ class LeaderboardController extends Controller
             'results' => $results,
             'type' => $type,
             'search' => $search,
+        ]);
+    }
+
+    /**
+     * Export leaderboard results to CSV.
+     *
+     * @param Request $request
+     * @param int $raceId
+     * @return HttpResponse
+     */
+    public function export(Request $request, int $raceId): HttpResponse
+    {
+        $type = $request->input('type', 'individual');
+        $race = $this->leaderboardService->getRaces()->firstWhere('race_id', $raceId);
+        
+        $csv = $this->leaderboardService->exportToCsv($raceId, $type);
+        
+        $filename = sprintf(
+            'classement_%s_%s_%s.csv',
+            $race ? str_replace(' ', '_', $race->race_name) : $raceId,
+            $type,
+            date('Y-m-d')
+        );
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
     }
 }

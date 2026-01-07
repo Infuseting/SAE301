@@ -36,6 +36,10 @@ export default function UserMenu({ user }) {
                         {messages.my_rankings || 'Mes Classements'}
                     </Dropdown.Link>
 
+                    <Dropdown.Link href={route('leaderboard.index')}>
+                        {messages.general_leaderboard || 'Classement Général'}
+                    </Dropdown.Link>
+
                     {hasAdminAccess && (
                         <Dropdown.Link href={route('admin.dashboard')}>
                             Admin

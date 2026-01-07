@@ -42,9 +42,9 @@ class Race extends Model
         return $this->belongsTo(Raid::class, 'raid_id', 'raid_id');
     }
 
-    public function leaderboardResults(): HasMany
+    public function leaderboardUsers(): HasMany
     {
-        return $this->hasMany(LeaderboardResult::class, 'race_id', 'race_id');
+        return $this->hasMany(LeaderboardUser::class, 'race_id', 'race_id');
     }
 
     public function leaderboardTeams(): HasMany

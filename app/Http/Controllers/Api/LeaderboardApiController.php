@@ -88,7 +88,7 @@ class LeaderboardApiController extends Controller
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/LeaderboardResult")
+     *                 @OA\Items(ref="#/components/schemas/LeaderboardUser")
      *             ),
      *             @OA\Property(property="current_page", type="integer"),
      *             @OA\Property(property="last_page", type="integer"),
@@ -190,7 +190,7 @@ class LeaderboardApiController extends Controller
      *         @OA\JsonContent(
      *             type="object",
      *             @OA\Property(property="success", type="boolean"),
-     *             @OA\Property(property="data", ref="#/components/schemas/LeaderboardResult")
+     *             @OA\Property(property="data", ref="#/components/schemas/LeaderboardUser")
      *         )
      *     ),
      *     @OA\Response(
@@ -201,7 +201,7 @@ class LeaderboardApiController extends Controller
      */
     public function userResult(int $raceId, int $userId): JsonResponse
     {
-        $result = \App\Models\LeaderboardResult::with('user:id,first_name,last_name')
+        $result = \App\Models\LeaderboardUser::with('user:id,first_name,last_name')
             ->where('race_id', $raceId)
             ->where('user_id', $userId)
             ->first();
@@ -213,7 +213,7 @@ class LeaderboardApiController extends Controller
             ], 404);
         }
 
-        $rank = \App\Models\LeaderboardResult::where('race_id', $raceId)
+        $rank = \App\Models\LeaderboardUser::where('race_id', $raceId)
             ->where('temps_final', '<', $result->temps_final)
             ->count() + 1;
 
