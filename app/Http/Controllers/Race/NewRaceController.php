@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Race\StoreRaceRequest;
 use App\Models\Race;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Models\ParamDifficulty;
+use App\Models\ParamType;
+use App\Models\ParamRunner;
+use App\Models\ParamTeam;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Controller for managing race creation.
@@ -35,8 +37,30 @@ class NewRaceController extends Controller
             ])
             ->toArray();
 
+        // Get all difficulties from database
+        $difficulties = ParamDifficulty::select('dif_id', 'dif_level')
+            ->orderBy('dif_id')
+            ->get()
+            ->map(fn($difficulty) => [
+                'id' => $difficulty->dif_id,
+                'level' => $difficulty->dif_level,
+            ])
+            ->toArray();
+
+        // Get all types from database
+        $types = ParamType::select('typ_id', 'typ_name')
+            ->orderBy('typ_id')
+            ->get()
+            ->map(fn($type) => [
+                'id' => $type->typ_id,
+                'name' => $type->typ_name,
+            ])
+            ->toArray();
+
         return Inertia::render('Race/NewRace', [    
             'users' => $users,
+            'difficulties' => $difficulties,
+            'types' => $types,
             'auth' => [
                 'user' => Auth::user(),
             ],
@@ -55,6 +79,19 @@ class NewRaceController extends Controller
         $startDateTime = $request->input('startDate') . ' ' . $request->input('startTime');
         $endDateTime = $request->input('endDate') . ' ' . $request->input('endTime');
 
+        // Create ParamRunner entry for this race
+        $paramRunner = ParamRunner::create([
+            'pac_nb_min' => $request->input('minParticipants'),
+            'pac_nb_max' => $request->input('maxParticipants'),
+        ]);
+
+        // Create ParamTeam entry for this race
+        $paramTeam = ParamTeam::create([
+            'pae_nb_min' => $request->input('minTeams'),
+            'pae_nb_max' => $request->input('maxTeams'),
+            'pae_team_count_max' => $request->input('maxPerTeam'),
+        ]);
+
         // Prepare race data
         $raceData = [
             'race_name' => $request->input('title'),
@@ -63,27 +100,18 @@ class NewRaceController extends Controller
             'race_duration_minutes' => $this->convertDurationToMinutes($request->input('duration')),
             'race_reduction' => $request->input('licenseDiscount'),
             'race_meal_price' => $request->input('price'),
-            'adh_id' => $request->input('responsableId') ?? Auth::user()->adh_id ?? 1, // Use selected responsable or fallback
+            'adh_id' => $request->input('responsableId'),
+            'dif_id' => $request->input('difficulty'),
+            'typ_id' => $request->input('type'),
+            'pac_id' => $paramRunner->pac_id,
+            'pae_id' => $paramTeam->pae_id,
+            'image_url' => null,
+            'cla_id' => null,
+            'raid_id' => null,
         ];
-
-        // Handle image upload if present
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('races', 'public');
-            $raceData['image_url'] = $imagePath;
-        }
 
         // Create the race
         $race = Race::create($raceData);
-
-        // Log the creation activity (temporarily commented out)
-        // activity()
-        //     ->performedOn($race)
-        //     ->causedBy(Auth::user())
-        //     ->log('Course créée: ' . $race->race_name);
-
-        // TODO: Save categories relationship
-        // TODO: Save team parameters if provided
-        // TODO: Create race parameters
 
         return redirect()->route('race.view', $race->race_id)
             ->with('success', 'La course a été créée avec succès!');
