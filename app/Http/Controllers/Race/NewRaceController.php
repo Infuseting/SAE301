@@ -6,27 +6,34 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Race\StoreRaceRequest;
 use App\Models\Race;
 use App\Models\User;
-use App\Models\ParamDifficulty;
 use App\Models\ParamType;
 use App\Models\ParamRunner;
+use App\Models\ParamTeam;
 use App\Models\Raid;
 use App\Models\PriceAgeCategory;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 /**
  * Controller for managing race creation.
  */
 class NewRaceController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Show the form for creating a new race.
+     * Only responsable-course and admin can access this page.
      *
      * @return \Inertia\Response
      */
     public function show(Request $request)
     {
+        // Authorize the user to create a race
+        $this->authorize('create', Race::class);
+        
         $raidId = $request->query('raid_id');
         $raid = null;
         $usersQuery = User::select('id', 'last_name', 'first_name', 'email', 'adh_id');
@@ -53,16 +60,6 @@ class NewRaceController extends Controller
             ])
             ->toArray();
 
-        // Get all difficulties from database
-        $difficulties = ParamDifficulty::select('dif_id', 'dif_level')
-            ->orderBy('dif_id')
-            ->get()
-            ->map(fn($difficulty) => [
-                'id' => $difficulty->dif_id,
-                'level' => $difficulty->dif_level,
-            ])
-            ->toArray();
-
         // Get all types from database
         $types = ParamType::select('typ_id', 'typ_name')
             ->orderBy('typ_id')
@@ -75,7 +72,6 @@ class NewRaceController extends Controller
 
         return Inertia::render('Race/NewRace', [    
             'users' => $users,
-            'difficulties' => $difficulties,
             'types' => $types,
             'raid_id' => $raidId,
             'raid' => $raid,
@@ -120,23 +116,22 @@ class NewRaceController extends Controller
         // Prepare race data
         $raceData = [
             'race_name' => $request->input('title'),
+            'race_description' => $request->input('description'),
             'race_date_start' => $startDateTime,
             'race_date_end' => $endDateTime,
             'race_duration_minutes' => $this->convertDurationToMinutes($request->input('duration')),
-            'race_reduction' => $request->input('licenseDiscount'),
-            'race_meal_price' => $request->input('price'),
+            'race_meal_price' => $request->input('mealPrice'),
             'price_major' => $request->input('priceMajor'),
             'price_minor' => $request->input('priceMinor'),
             'price_major_adherent' => $request->input('priceMajorAdherent'),
             'price_minor_adherent' => $request->input('priceMinorAdherent'),
             'adh_id' => User::find($request->input('responsableId'))->adh_id,
             'race_difficulty' => $request->input('difficulty'),
-            'dif_id' => null, // Deprecated in favor of race_difficulty string
             'typ_id' => $request->input('type'),
             'pac_id' => $paramRunner->pac_id,
             'pae_id' => $paramTeam->pae_id,
             'image_url' => $imageUrl,
-            'cla_id' => $request->input('cla_id'), // Use leaderboard if provided
+            'cla_id' => $request->input('cla_id'),
             'raid_id' => $request->input('raid_id'),
         ];
 

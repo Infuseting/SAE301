@@ -196,6 +196,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Determine if the user is allowed to reset their password.
+     * A user can reset their password if they have a local password set
+     * and no connected social accounts.
+     *
+     * @return bool
+     */
+    public function canResetPassword(): bool
+    {
+        return $this->password_is_set && !$this->connectedAccounts()->exists();
+    }
+
+    /**
      * Check if the user is a club leader.
      * Uses the club_users pivot table to check if user has a manager role
      * 
