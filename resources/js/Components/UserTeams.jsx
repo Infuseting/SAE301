@@ -1,3 +1,5 @@
+import { Head, Link } from '@inertiajs/react';
+
 /**
  * UserLastRaces component - Displays user's teams in a card grid layout
  * @param {Array} teams - Array of team objects with name, image, and members
@@ -96,6 +98,14 @@ export default function UserTeams({ teams = [] }) {
                                         )}
                                     </ul>
                                 </div>
+                                <Link href= {route('teams.show', team.id)}> 
+                                    <button 
+                                       
+                                        className="inline-block w-full text-center bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                    >
+                                        Voir l'équipe
+                                    </button>
+                                </Link>
                             </div>
                         ))}
                     </div>
