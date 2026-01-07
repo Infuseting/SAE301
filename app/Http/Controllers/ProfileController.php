@@ -68,10 +68,17 @@ class ProfileController extends Controller
      *      description="Updates user profile data",
      *      @OA\RequestBody(
      *          required=true,
-     *          @OA\JsonContent(
-     *              required={"name","email"},
-     *              @OA\Property(property="name", type="string", example="John Doe"),
-     *              @OA\Property(property="email", type="string", format="email", example="john@example.com")
+     *          @OA\MediaType(
+     *              mediaType="multipart/form-data",
+     *              @OA\Schema(
+     *                  required={"name","email"},
+     *                  @OA\Property(property="name", type="string", example="John Doe"),
+     *                  @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *                  @OA\Property(property="description", type="string", example="Runner bio"),
+     *                  @OA\Property(property="is_public", type="boolean", example=true),
+     *                  @OA\Property(property="license_number", type="string", example="LIC12345"),
+     *                  @OA\Property(property="photo", type="string", format="binary", description="Profile photo upload")
+     *              )
      *          )
      *      ),
      *      @OA\Response(
@@ -216,8 +223,8 @@ class ProfileController extends Controller
      *      @OA\RequestBody(
      *          required=true,
      *          @OA\JsonContent(
-     *              required={"password"},
-     *              @OA\Property(property="password", type="string", format="password", example="secret")
+     *              required={"confirmation"},
+     *              @OA\Property(property="confirmation", type="string", example="CONFIRMER", description="Must match 'CONFIRMER' exactly")
      *          )
      *      ),
      *      @OA\Response(

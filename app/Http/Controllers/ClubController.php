@@ -99,15 +99,18 @@ class ClubController extends Controller
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             required={"club_name","club_street","club_city","club_postal_code"},
-     *             @OA\Property(property="club_name", type="string", example="Club Orienteering Paris"),
-     *             @OA\Property(property="club_street", type="string", example="123 Rue de la Paix"),
-     *             @OA\Property(property="club_city", type="string", example="Paris"),
-     *             @OA\Property(property="club_postal_code", type="string", example="75001"),
-     *             @OA\Property(property="club_number", type="string", example="FR-001"),
-     *             @OA\Property(property="ffso_id", type="string", example="FFSO-12345"),
-     *             @OA\Property(property="description", type="string", example="Club description")
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"club_name","club_street","club_city","club_postal_code"},
+     *                 @OA\Property(property="club_name", type="string", example="Club Orienteering Paris"),
+     *                 @OA\Property(property="club_street", type="string", example="123 Rue de la Paix"),
+     *                 @OA\Property(property="club_city", type="string", example="Paris"),
+     *                 @OA\Property(property="club_postal_code", type="string", example="75001"),
+     *                 @OA\Property(property="ffso_id", type="string", example="FFSO-12345"),
+     *                 @OA\Property(property="description", type="string", example="Club description"),
+     *                 @OA\Property(property="club_image", type="string", format="binary")
+     *             )
      *         )
      *     ),
      *     @OA\Response(
@@ -187,7 +190,7 @@ class ClubController extends Controller
         // Load raids with their registration periods and races
         $club->load(['raids' => function($query) {
             $query->with(['registrationPeriod', 'races' => function($q) {
-                $q->with(['type', 'difficulty']);
+                $q->with(['type']);
             }]);
         }]);
 
@@ -229,10 +232,8 @@ class ClubController extends Controller
      */
     public function edit(Club $club): Response
     {
-        // Only club managers can edit
-        if (!$club->hasManager(auth()->user())) {
-            abort(403, 'Only club managers can edit this club');
-        }
+        // Use policy for authorization (handles admin and club managers)
+        $this->authorize('update', $club);
 
         $club->load(['members', 'pendingRequests']);
 
@@ -259,14 +260,17 @@ class ClubController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="club_name", type="string"),
-     *             @OA\Property(property="club_street", type="string"),
-     *             @OA\Property(property="club_city", type="string"),
-     *             @OA\Property(property="club_postal_code", type="string"),
-     *             @OA\Property(property="club_number", type="string"),
-     *             @OA\Property(property="ffso_id", type="string"),
-     *             @OA\Property(property="description", type="string")
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="club_name", type="string"),
+     *                 @OA\Property(property="club_street", type="string"),
+     *                 @OA\Property(property="club_city", type="string"),
+     *                 @OA\Property(property="club_postal_code", type="string"),
+     *                 @OA\Property(property="ffso_id", type="string"),
+     *                 @OA\Property(property="description", type="string"),
+     *                 @OA\Property(property="club_image", type="string", format="binary")
+     *             )
      *         )
      *     ),
      *     @OA\Response(
@@ -280,10 +284,8 @@ class ClubController extends Controller
      */
     public function update(Request $request, Club $club): RedirectResponse
     {
-        // Only club managers can update
-        if (!$club->hasManager(auth()->user())) {
-            abort(403, 'Only club managers can update this club');
-        }
+        // Use policy for authorization (handles admin and club managers)
+        $this->authorize('update', $club);
 
         $validated = $request->validate([
             'club_name' => 'required|string|max:100',

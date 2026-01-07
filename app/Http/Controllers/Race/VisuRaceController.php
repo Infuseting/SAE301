@@ -20,7 +20,7 @@ class VisuRaceController extends Controller
     public function show(int $id)
     {
         // Find the race by ID
-        $race = Race::with(['organizer.user', 'raid.registrationPeriod', 'difficulty', 'type'])->find($id);
+        $race = Race::with(['organizer.user', 'raid.registrationPeriod', 'type', 'teamParams'])->find($id);
 
         // If race not found, return error page
         if (!$race) {
@@ -76,23 +76,27 @@ class VisuRaceController extends Controller
             'endDate' => $race->race_date_end?->toIso8601String(),
             'duration' => $race->race_duration_minutes ? floor($race->race_duration_minutes / 60) . ':' . str_pad((int)($race->race_duration_minutes % 60), 2, '0', STR_PAD_LEFT) : '0:00',
             'raceType' => $race->type?->typ_name ?? 'Classique',
-            'difficulty' => $race->race_difficulty ?? ($race->difficulty?->dif_level ?? 'Moyen'),
+            'difficulty' => $race->race_difficulty ?? 'Moyen',
             'status' => $this->getRaceStatus($race),
             'isOpen' => $race->isOpen(),
             'registrationUpcoming' => $race->isRegistrationUpcoming(),
             'imageUrl' => $race->image_url ? asset('storage/' . $race->image_url) : null,
+            'description' => $race->race_description ?? 'Aucune description disponible.',
             'maxParticipants' => 100, 
             'registeredCount' => \DB::table('registration')->where('race_id', $race->race_id)->count(),
             'organizer' => [
-                'id' => $race->organizer?->adh_id,
-                'name' => trim(($race->organizer?->adh_firstname ?? '') . ' ' . ($race->organizer?->adh_lastname ?? '')) ?: 'Organisateur',
+                'id' => $race->organizer?->user?->id,
+                'name' => trim(($race->organizer?->adh_firstname ?? '') . ' ' . ($race->organizer?->adh_lastname ?? '')) ?: ($race->organizer?->user?->name ?? 'Organisateur'),
                 'email' => $race->organizer?->user?->email ?? ''
             ],
             'categories' => [],
-            'priceMajor' => $race->race_price_major,
-            'priceMinor' => $race->race_price_minor,
-            'priceMajorAdherent' => $race->race_price_major_adherent,
-            'priceMinorAdherent' => $race->race_price_minor_adherent,
+            'priceMajor' => $race->price_major,
+            'priceMinor' => $race->price_minor,
+            'priceMajorAdherent' => $race->price_major_adherent,
+            'priceMinorAdherent' => $race->price_minor_adherent,
+            'minTeams' => $race->teamParams?->pae_nb_min ?? 1,
+            'maxTeams' => $race->teamParams?->pae_nb_max ?? 1,
+            'maxPerTeam' => $race->teamParams?->pae_team_count_max ?? 1,
             'createdAt' => $race->created_at?->toIso8601String(),
             'updatedAt' => $race->updated_at?->toIso8601String(),
         ];

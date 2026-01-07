@@ -7,28 +7,29 @@ import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import UserSelect from '@/Components/UserSelect';
 
 /**
- * Create Raid Form Component
- * Form for creating a new raid with event and registration dates
+ * Edit Raid Form Component
+ * Form for editing an existing raid with event and registration dates
  */
-export default function Create() {
-    const { userClub, clubMembers } = usePage().props;
+export default function Edit() {
+    const { raid, userClub, clubMembers } = usePage().props;
     const messages = usePage().props.translations?.messages || {};
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        raid_name: '',
-        raid_description: '',
-        raid_date_start: '',
-        raid_date_end: '',
-        raid_contact: '',
-        raid_street: '',
-        raid_city: '',
-        raid_postal_code: '',
-        raid_number: '',
-        adh_id: '',
-        ins_start_date: '',
-        ins_end_date: '',
-        raid_site_url: '',
-        raid_image: null,
+    const { data, setData, put, processing, errors } = useForm({
+        raid_name: raid.raid_name || '',
+        raid_description: raid.raid_description || '',
+        raid_date_start: raid.raid_date_start || '',
+        raid_date_end: raid.raid_date_end || '',
+        raid_contact: raid.raid_contact || '',
+        raid_street: raid.raid_street || '',
+        raid_city: raid.raid_city || '',
+        raid_postal_code: raid.raid_postal_code || '',
+        raid_number: raid.raid_number || '',
+        adh_id: raid.adh_id || '',
+        clu_id: raid.clu_id || '',
+        ins_start_date: raid.ins_start_date || '',
+        ins_end_date: raid.ins_end_date || '',
+        raid_site_url: raid.raid_site_url || '',
+        raid_image: raid.raid_image || '',
     });
 
     /**
@@ -37,7 +38,7 @@ export default function Create() {
      */
     const submit = (e) => {
         e.preventDefault();
-        post(route('raids.store'));
+        put(route('raids.update', raid.raid_id));
     };
 
     /**
@@ -71,21 +72,37 @@ export default function Create() {
         return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
 
+    /**
+     * Format datetime for datetime-local input
+     * @param {string} datetime - ISO datetime string
+     * @returns {string} Formatted datetime string (YYYY-MM-DDTHH:mm)
+     */
+    const formatDateTimeLocal = (datetime) => {
+        if (!datetime) return '';
+        const date = new Date(datetime);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
     return (
         <AuthenticatedLayout>
-            <Head title={messages.new_raid || 'Nouveau raid'} />
+            <Head title={messages.edit_raid || 'Modifier le raid'} />
 
             {/* Green Header */}
             <div className="bg-green-500 py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-center relative">
-                        <Link href={route('home')} className="text-white hover:text-white/80 absolute left-0">
+                        <Link href={route('raids.show', raid.raid_id)} className="text-white hover:text-white/80 absolute left-0">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </Link>
                         <h1 className="text-2xl font-bold text-white">
-                            {messages.new_raid || 'Nouveau raid'}
+                            {messages.edit_raid || 'Modifier le raid'}
                         </h1>
                     </div>
                 </div>
@@ -141,7 +158,7 @@ export default function Create() {
                                             <TextInput
                                                 type="datetime-local"
                                                 name="raid_date_start"
-                                                value={data.raid_date_start}
+                                                value={formatDateTimeLocal(data.raid_date_start)}
                                                 className="block w-full"
                                                 onChange={(e) => setData('raid_date_start', e.target.value)}
                                                 required
@@ -152,7 +169,7 @@ export default function Create() {
                                             <TextInput
                                                 type="datetime-local"
                                                 name="raid_date_end"
-                                                value={data.raid_date_end}
+                                                value={formatDateTimeLocal(data.raid_date_end)}
                                                 className="block w-full"
                                                 onChange={(e) => setData('raid_date_end', e.target.value)}
                                                 min={data.raid_date_start || undefined}
@@ -264,7 +281,7 @@ export default function Create() {
                                         </p>
                                     </div>
 
-                                    {/* Club Display (auto-assigned) */}
+                                    {/* Club Display (read-only) */}
                                     <div>
                                         <InputLabel value="Club de rattachement" />
                                         <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
@@ -281,7 +298,7 @@ export default function Create() {
                                                 <TextInput
                                                     type="datetime-local"
                                                     name="ins_start_date"
-                                                    value={data.ins_start_date}
+                                                    value={formatDateTimeLocal(data.ins_start_date)}
                                                     className="block w-full mt-1"
                                                     onChange={(e) => setData('ins_start_date', e.target.value)}
                                                     max={getMaxInscriptionDate()}
@@ -294,7 +311,7 @@ export default function Create() {
                                                 <TextInput
                                                     type="datetime-local"
                                                     name="ins_end_date"
-                                                    value={data.ins_end_date}
+                                                    value={formatDateTimeLocal(data.ins_end_date)}
                                                     className="block w-full mt-1"
                                                     onChange={(e) => setData('ins_end_date', e.target.value)}
                                                     min={data.ins_start_date || undefined}
@@ -333,6 +350,16 @@ export default function Create() {
 
                                     {/* Image Upload */}
                                     <div>
+                                        {data.raid_image && typeof data.raid_image === 'string' && (
+                                            <div className="mb-4">
+                                                <label className="text-sm text-gray-600">Image actuelle</label>
+                                                <img
+                                                    src={data.raid_image}
+                                                    alt="Raid current"
+                                                    className="mt-2 w-full h-48 object-cover rounded-lg"
+                                                />
+                                            </div>
+                                        )}
                                         <div className="flex items-center justify-center w-full">
                                             <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -340,7 +367,7 @@ export default function Create() {
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                                     </svg>
                                                     <p className="mb-2 text-sm text-gray-500">
-                                                        <span className="font-semibold">ajouter une image</span>
+                                                        <span className="font-semibold">modifier l'image</span>
                                                     </p>
                                                     <p className="text-xs text-gray-500">PNG, JPG (MAX. 5MB)</p>
                                                 </div>
@@ -353,9 +380,9 @@ export default function Create() {
                                                 />
                                             </label>
                                         </div>
-                                        {data.raid_image && (
+                                        {data.raid_image && typeof data.raid_image !== 'string' && (
                                             <p className="mt-2 text-sm text-gray-600">
-                                                Fichier sélectionné : {data.raid_image.name}
+                                                Nouveau fichier sélectionné : {data.raid_image.name}
                                             </p>
                                         )}
                                         <InputError message={errors.raid_image} className="mt-2" />
@@ -365,13 +392,19 @@ export default function Create() {
                         </div>
 
                         {/* Submit Button */}
-                        <div className="mt-8 flex justify-center">
+                        <div className="mt-8 flex justify-center gap-4">
+                            <Link
+                                href={route('raids.show', raid.raid_id)}
+                                className="px-16 py-3 bg-gray-300 text-gray-800 font-semibold rounded-md hover:bg-gray-400 transition-colors inline-block text-center"
+                            >
+                                Annuler
+                            </Link>
                             <button
                                 type="submit"
                                 disabled={processing}
                                 className="px-16 py-3 bg-gray-800 text-white font-semibold rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                                Créer le raid
+                                Enregistrer les modifications
                             </button>
                         </div>
                     </form>

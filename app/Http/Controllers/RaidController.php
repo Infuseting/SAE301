@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Member;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRaidRequest;
+use App\Http\Requests\UpdateRaidRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,28 +21,41 @@ class RaidController extends Controller
     use AuthorizesRequests;
     /**
      * Display a listing of the resource.
+     * Returns all raids for client-side filtering and search.
      * 
      * @OA\Get(
      *     path="/raids",
      *     tags={"Raids"},
      *     summary="Get list of raids",
-     *     description="Returns list of all raids",
+     *     description="Returns all raids with related data for client-side filtering",
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Raid")
+     *             type="object",
+     *             @OA\Property(
+     *                 property="raids",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Raid")
+     *             )
      *         )
      *     )
      * )
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $raids = Raid::latest()->get();
+        // Get all raids with related data for client-side filtering
+        $raids = Raid::query()
+            ->with(['club:club_id,club_name', 'registrationPeriod:ins_id,ins_start_date,ins_end_date'])
+            ->withCount('races')
+            ->orderBy('raid_date_start', 'desc')
+            ->get();
         
         return Inertia::render('Raid/List', [
             'raids' => $raids,
+            'filters' => [
+                'q' => $request->input('q', ''),
+            ],
         ]);
     }
 
@@ -71,14 +85,16 @@ class RaidController extends Controller
                 ->join('users', 'club_user.user_id', '=', 'users.id')
                 ->where('club_user.club_id', $userClub->club_id)
                 ->whereNotNull('users.adh_id') // Ensure they have an adherent ID
-                ->select('users.adh_id', 'users.first_name', 'users.last_name')
+                ->select('users.id', 'users.adh_id', 'users.first_name', 'users.last_name', 'users.email')
+                ->orderBy('users.last_name')
+                ->orderBy('users.first_name')
                 ->get()
                 ->map(function ($user) {
                     return [
+                        'id' => $user->id,
                         'adh_id' => $user->adh_id,
-                        'full_name' => $user->first_name . ' ' . $user->last_name,
-                        'first_name' => $user->first_name,
-                        'last_name' => $user->last_name,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
                     ];
                 });
 
@@ -110,12 +126,22 @@ class RaidController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"raid_name", "clu_id", "raid_date_start", "raid_date_end"},
+     *             required={"raid_name", "clu_id", "raid_date_start", "raid_date_end", "ins_start_date", "ins_end_date", "raid_contact", "raid_street", "raid_city", "raid_postal_code", "raid_number"},
      *             @OA\Property(property="raid_name", type="string", example="Mountain Adventure Raid"),
      *             @OA\Property(property="clu_id", type="integer", example=1, description="Club ID"),
      *             @OA\Property(property="raid_date_start", type="string", format="date-time", example="2026-06-15T08:00:00Z"),
      *             @OA\Property(property="raid_date_end", type="string", format="date-time", example="2026-06-17T18:00:00Z"),
+     *             @OA\Property(property="ins_start_date", type="string", format="date", example="2026-01-01"),
+     *             @OA\Property(property="ins_end_date", type="string", format="date", example="2026-05-31"),
      *             @OA\Property(property="raid_description", type="string", example="A thrilling raid through mountains"),
+     *             @OA\Property(property="raid_contact", type="string", format="email", example="contact@raid.com"),
+     *             @OA\Property(property="raid_street", type="string", example="1 Trail Road"),
+     *             @OA\Property(property="raid_city", type="string", example="Chamonix"),
+     *             @OA\Property(property="raid_postal_code", type="string", example="74400"),
+     *             @OA\Property(property="raid_number", type="integer", example=10),
+     *             @OA\Property(property="raid_site_url", type="string", format="uri", example="https://raid.example.com"),
+     *             @OA\Property(property="raid_image", type="string", description="Image URL or identifier"),
+     *             @OA\Property(property="adh_id", type="integer", description="Responsable Adhérent ID"),
      *             @OA\Property(property="gestionnaire_raid_id", type="integer", example=5, description="User ID to assign as gestionnaire-raid")
      *         )
      *     ),
@@ -232,9 +258,8 @@ class RaidController extends Controller
                 'id' => $race->race_id,
                 'name' => $race->race_name,
                 'organizer_name' => $race->organizer && $race->organizer->user ? $race->organizer->user->name : 'N/A',
-                'difficulty' => $race->race_difficulty ?? ($race->difficulty ? $race->difficulty->dif_level : 'N/A'),
+                'difficulty' => $race->race_difficulty ?? 'N/A',
                 'start_date' => $race->race_date_start ? $race->race_date_start->toIso8601String() : null,
-                'min_age' => $race->categories->min('age_min') ?? 0,
                 'image' => $race->image_url,
                 'is_open' => $race->isOpen(),
                 'registration_upcoming' => $race->isRegistrationUpcoming(),
@@ -252,6 +277,8 @@ class RaidController extends Controller
             'raid' => $raid,
             'courses' => $courses,
             'isRaidManager' => $isRaidManager,
+            'canEditRaid' => $user && $user->can('update', $raid),
+            'canAddRace' => $user && $user->can('create', [\App\Models\Race::class, $raid]),
             'typeCategories' => \App\Models\ParamType::all()->map(function($t) {
                 return [
                     'type_id' => $t->typ_id,
@@ -263,33 +290,53 @@ class RaidController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     * Loads raid data with registration period and club members
      */
     public function edit(Raid $raid): Response
     {
+        // Check authorization - user must be able to update this raid
         $this->authorize('update', $raid);
 
-        $user = auth()->user();
-        $clubs = $user->hasRole('admin') 
-            ? Club::where('is_approved', true)->get()
-            : $user->clubs()->where('is_approved', true)->get();
+        // Load raid with registration period
+        $raid->load('registrationPeriod');
 
-        // Get adherents of the club for gestionnaire-raid assignment
-        $clubAdherents = [];
-        if ($raid->clu_id) {
-            $clubAdherents = User::whereHas('member')
-                ->whereHas('roles', function($q) {
-                    $q->where('name', 'adherent');
-                })
-                ->whereHas('clubs', function($q) use ($raid) {
-                    $q->where('clubs.club_id', $raid->clu_id);
-                })
-                ->get(['id', 'name', 'email']);
+        // Get the club of this raid
+        $userClub = \DB::table('clubs')
+            ->where('club_id', $raid->clu_id)
+            ->first(['club_id', 'club_name']);
+
+        // Get members (adherents) of this club from club_user table
+        $clubMembers = [];
+        if ($userClub) {
+            $clubMembers = \DB::table('club_user')
+                ->join('users', 'club_user.user_id', '=', 'users.id')
+                ->where('club_user.club_id', $userClub->club_id)
+                ->whereNotNull('users.adh_id') // Ensure they have an adherent ID
+                ->select('users.id', 'users.adh_id', 'users.first_name', 'users.last_name', 'users.email')
+                ->orderBy('users.last_name')
+                ->orderBy('users.first_name')
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'adh_id' => $user->adh_id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
+                    ];
+                });
+        }
+
+        // Prepare raid data with registration period dates
+        $raidData = $raid->toArray();
+        if ($raid->registrationPeriod) {
+            $raidData['ins_start_date'] = $raid->registrationPeriod->ins_start_date;
+            $raidData['ins_end_date'] = $raid->registrationPeriod->ins_end_date;
         }
 
         return Inertia::render('Raid/Edit', [
-            'raid' => $raid,
-            'clubs' => $clubs,
-            'clubAdherents' => $clubAdherents,
+            'raid' => $raidData,
+            'userClub' => $userClub,
+            'clubMembers' => $clubMembers,
         ]);
     }
 
@@ -331,19 +378,25 @@ class RaidController extends Controller
      *     )
      * )
      */
-    public function update(StoreRaidRequest $request, Raid $raid): RedirectResponse
+    public function update(UpdateRaidRequest $request, Raid $raid): RedirectResponse
     {
-        $this->authorize('update', $raid);
-
         $validated = $request->validated();
-        $raid->update($validated);
-
-        // If a gestionnaire_raid_id is specified, assign the role
-        if (!empty($validated['gestionnaire_raid_id'])) {
-            $this->assignGestionnaireRaidRole($validated['gestionnaire_raid_id'], $raid);
+        
+        // Update registration period if it exists
+        if ($raid->ins_id && $raid->registrationPeriod) {
+            $raid->registrationPeriod->update([
+                'ins_start_date' => $validated['ins_start_date'],
+                'ins_end_date' => $validated['ins_end_date'],
+            ]);
         }
         
-        return redirect()->route('raids.index')
+        // Remove inscription dates from raid data (they're in registration_period table)
+        unset($validated['ins_start_date'], $validated['ins_end_date']);
+        
+        // Update the raid
+        $raid->update($validated);
+        
+        return redirect()->route('raids.show', $raid->raid_id)
             ->with('success', 'Raid updated successfully.');
     }
 

@@ -82,6 +82,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the teams that this user belongs to.
+     */
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'has_participate', 'id_users', 'equ_id');
+    }
+
+    /**
      * Get the user's full name.
      */
     protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
@@ -188,6 +196,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Determine if the user is allowed to reset their password.
+     * A user can reset their password if they have a local password set
+     * and no connected social accounts.
+     *
+     * @return bool
+     */
+    public function canResetPassword(): bool
+    {
+        return $this->password_is_set && !$this->connectedAccounts()->exists();
+    }
+
+    /**
      * Check if the user is a club leader.
      * Uses the club_users pivot table to check if user has a manager role
      * 
@@ -202,8 +222,24 @@ class User extends Authenticatable
             return false;
         }
 
-        return \DB::table('clubs')
+        // Check if user is the creator of any club
+        $isCreator = \DB::table('clubs')
             ->where('created_by', $this->id)
+            ->exists();
+
+        if ($isCreator) {
+            return true;
+        }
+
+        // Check if user has the responsable-club role
+        if ($this->hasRole('responsable-club')) {
+            return true;
+        }
+
+        // Check if user is a manager of any club in the pivot table
+        return $this->clubs()
+            ->wherePivot('role', 'manager')
+            ->wherePivot('status', 'approved')
             ->exists();
     }
 }

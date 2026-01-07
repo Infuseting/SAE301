@@ -3,6 +3,7 @@ import ApplicationLogo from "@/Components/ApplicationLogo";
 import LanguageSwitcher from "@/Components/LanguageSwitcher";
 import ClubsDropdown from "@/Components/ClubsDropdown";
 import UserMenu from "@/Components/UserMenu";
+import MyRaceButton from "./MyRaceButton";
 
 /**
  * Header component - Reusable header for all pages
@@ -53,6 +54,8 @@ export default function Header({ transparent = false, className = "" }) {
 
                             {user && <ClubsDropdown />}
 
+                            {user && <MyRaceButton />}
+
                             {user ? (
                                 <UserMenu user={user} />
                             ) : (
@@ -85,6 +88,8 @@ export default function Header({ transparent = false, className = "" }) {
                             <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
 
                             {user && <ClubsDropdown />}
+
+                            {user && <MyRaceButton />}
 
                             {user ? (
                                 <UserMenu user={user} className="text-white" />

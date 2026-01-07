@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Race;
 use App\Models\User;
+use App\Models\Raid;
 use Illuminate\Auth\Access\Response;
 
 /**
@@ -32,10 +33,42 @@ class RacePolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(User $user, ?Raid $raid = null): bool
     {
-        // Only users with responsable-course role can create races
-        return $user->hasPermissionTo('create-race') && $user->hasRole('responsable-course');
+        // Admin can always create races
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+
+        // If a raid is provided, check if the user has authority over it
+        if ($raid) {
+            // Gestionnaire-raid can create races for raids they manage
+            if ($user->hasRole('gestionnaire-raid') && $raid->adh_id) {
+                $member = $user->member;
+                if ($member && $member->adh_id === $raid->adh_id) {
+                    return true;
+                }
+            }
+
+            // Responsable-club can ONLY create races for raids of their club IF they are the raid responsible
+            if ($raid->clu_id) {
+                $isClubManager = $user->hasRole('responsable-club') || 
+                               $user->clubs()->where('clubs.club_id', $raid->clu_id)
+                                    ->wherePivot('role', 'manager')
+                                    ->wherePivot('status', 'approved')
+                                    ->exists();
+
+                if ($isClubManager && $raid->adh_id) {
+                    $member = $user->member;
+                    if ($member && $member->adh_id === $raid->adh_id) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        // Default check: Only users with responsable-course role and permission
+        return $user->hasRole('responsable-course') && $user->hasPermissionTo('create-race');
     }
 
     /**

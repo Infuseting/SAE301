@@ -69,6 +69,7 @@ class Race extends Model
      */
     protected $fillable = [
         'race_name',
+        'race_description',
         'race_date_start',
         'race_date_end',
         'race_reduction',
@@ -80,7 +81,6 @@ class Race extends Model
         'adh_id',
         'pac_id',
         'pae_id',
-        'dif_id',
         'typ_id',
         'race_difficulty',
         'price_major',
@@ -100,6 +100,10 @@ class Race extends Model
         'race_reduction' => 'float',
         'race_meal_price' => 'float',
         'race_duration_minutes' => 'float',
+        'price_major' => 'float',
+        'price_minor' => 'float',
+        'price_major_adherent' => 'float',
+        'price_minor_adherent' => 'float',
     ];
 
     /**
@@ -166,16 +170,6 @@ class Race extends Model
     }
 
     /**
-     * Get the difficulty level of this race.
-     *
-     * @return BelongsTo
-     */
-    public function difficulty(): BelongsTo
-    {
-        return $this->belongsTo(ParamDifficulty::class, 'dif_id', 'dif_id');
-    }
-
-    /**
      * Get the race type of this race.
      *
      * @return BelongsTo
@@ -192,7 +186,7 @@ class Race extends Model
      */
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(PriceAgeCategory::class, 'has_category', 'race_id', 'pac_id', 'race_id', 'pac_id');
+        return $this->belongsToMany(PriceAgeCategory::class, 'has_category', 'race_id', 'catpd_id', 'race_id', 'catp_id');
     }
 
     /**

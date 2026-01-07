@@ -125,4 +125,31 @@ class PasswordResetTest extends TestCase
             return true;
         });
     }
+
+    public function test_reset_password_link_request_always_says_success_even_if_email_invalid(): void
+    {
+        Notification::fake();
+
+        $response = $this->post('/forgot-password', ['email' => 'nonexistent@example.com']);
+
+        $response->assertSessionHas('status', __('passwords.sent'));
+        Notification::assertNothingSent();
+    }
+
+    public function test_socialite_user_cannot_request_password_reset_link(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['password_is_set' => false]);
+        $user->connectedAccounts()->create([
+            'provider' => 'google',
+            'provider_id' => '12345',
+            'token' => 'dummy-token',
+        ]);
+
+        $response = $this->post('/forgot-password', ['email' => $user->email]);
+
+        $response->assertSessionHas('status', __('passwords.sent'));
+        Notification::assertNothingSent();
+    }
 }

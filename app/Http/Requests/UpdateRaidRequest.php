@@ -3,45 +3,25 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\User;
+use App\Models\Raid;
 
-class StoreRaidRequest extends FormRequest
+class UpdateRaidRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     * Only club leaders and admins can create raids.
+     * Note: Permission checks are handled elsewhere as per project requirements.
      */
     public function authorize(): bool
     {
-        $user = $this->user();
-        
-        // Allow admins to bypass the club leader requirement
-        if ($user && $user->hasRole('admin')) {
-            return true;
-        }
-        
-        return $user && $user->isClubLeader();
+        return true;
     }
 
     /**
      * Prepare data for validation.
-     * Automatically set clu_id from user's club and convert postal_code to string
+     * Convert postal_code to string if it's numeric
      */
     protected function prepareForValidation()
     {
-        // Auto-assign club from authenticated user
-        if (!$this->has('clu_id') || empty($this->clu_id)) {
-            $userClub = \DB::table('clubs')
-                ->where('created_by', auth()->id())
-                ->first();
-            
-            if ($userClub) {
-                $this->merge([
-                    'clu_id' => $userClub->club_id,
-                ]);
-            }
-        }
-
         // Convert postal_code to string if it's numeric
         if ($this->has('raid_postal_code') && is_numeric($this->raid_postal_code)) {
             $this->merge([
@@ -73,7 +53,7 @@ class StoreRaidRequest extends FormRequest
         return [
             'raid_name' => ['required', 'string', 'max:100'],
             'raid_description' => ['nullable', 'string'],
-            'raid_date_start' => ['required', 'date', 'after:now'],
+            'raid_date_start' => ['required', 'date'],
             'raid_date_end' => ['required', 'date', 'after:raid_date_start'],
             
             // Inscription period dates

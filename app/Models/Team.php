@@ -2,28 +2,28 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Team model - Represents a team/équipe
+ */
 class Team extends Model
 {
+    use HasFactory;
+
     /**
      * The table associated with the model.
-     *
-     * @var string
      */
     protected $table = 'teams';
 
     /**
-     * The primary key associated with the model.
-     *
-     * @var string
+     * The primary key for the model.
      */
     protected $primaryKey = 'equ_id';
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
         'equ_name',
@@ -32,23 +32,19 @@ class Team extends Model
     ];
 
     /**
+     * Get the users that belong to this team.
+     * Uses the has_participate pivot table.
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'has_participate', 'equ_id', 'id_users');
+    }
+
+    /**
      * Get the team leader (user who created the team).
      */
     public function leader()
     {
         return $this->belongsTo(User::class, 'adh_id', 'id');
-    }
-
-    /**
-     * Get all users participating in the team.
-     */
-    public function users()
-    {
-        return $this->belongsToMany(
-            User::class,
-            'has_participate',
-            'equ_id',
-            'id_users'
-        );
     }
 }
