@@ -190,7 +190,7 @@ class ClubController extends Controller
         // Load raids with their registration periods and races
         $club->load(['raids' => function($query) {
             $query->with(['registrationPeriod', 'races' => function($q) {
-                $q->with(['type', 'difficulty']);
+                $q->with(['type']);
             }]);
         }]);
 

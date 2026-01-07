@@ -256,7 +256,7 @@ class RaidController extends Controller
                 'id' => $race->race_id,
                 'name' => $race->race_name,
                 'organizer_name' => $race->organizer && $race->organizer->user ? $race->organizer->user->name : 'N/A',
-                'difficulty' => $race->race_difficulty ?? ($race->difficulty ? $race->difficulty->dif_level : 'N/A'),
+                'difficulty' => $race->race_difficulty ?? 'N/A',
                 'start_date' => $race->race_date_start ? $race->race_date_start->toIso8601String() : null,
                 'image' => $race->image_url,
                 'is_open' => $race->isOpen(),
@@ -290,6 +290,9 @@ class RaidController extends Controller
      */
     public function edit(Raid $raid): Response
     {
+        // Check authorization - user must be able to update this raid
+        $this->authorize('update', $raid);
+
         // Load raid with registration period
         $raid->load('registrationPeriod');
 

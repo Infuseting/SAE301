@@ -9,7 +9,7 @@ use App\Models\Race;
 use App\Models\Raid;
 use App\Models\ParamRunner;
 use App\Models\ParamTeam;
-use App\Models\ParamDifficulty;
+
 use App\Models\ParamType;
 use App\Models\RegistrationPeriod;
 use App\Models\User;
@@ -220,9 +220,6 @@ class RacePermissionsTest extends TestCase
         $adminRole->givePermissionTo(Permission::all());
 
         // Create required param entries
-        ParamDifficulty::firstOrCreate(['dif_id' => 1], ['dif_level' => 'Facile']);
-        ParamDifficulty::firstOrCreate(['dif_id' => 2], ['dif_level' => 'Moyen']);
-        ParamDifficulty::firstOrCreate(['dif_id' => 3], ['dif_level' => 'Difficile']);
         ParamType::firstOrCreate(['typ_id' => 1], ['typ_name' => 'Course']);
         ParamType::firstOrCreate(['typ_id' => 2], ['typ_name' => 'Relais']);
     }
