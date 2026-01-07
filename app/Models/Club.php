@@ -11,7 +11,21 @@ use Spatie\Activitylog\LogOptions;
 
 /**
  * Club model representing orienteering clubs
- * 
+ *
+ * @OA\Schema(
+ *     schema="Club",
+ *     title="Club",
+ *     description="Club model",
+ *     @OA\Property(property="club_id", type="integer", description="Club ID"),
+ *     @OA\Property(property="club_name", type="string", description="Name of the club"),
+ *     @OA\Property(property="club_street", type="string", description="Street address"),
+ *     @OA\Property(property="club_city", type="string", description="City"),
+ *     @OA\Property(property="club_postal_code", type="string", description="Postal code"),
+ *     @OA\Property(property="is_approved", type="boolean", description="Approval status"),
+ *     @OA\Property(property="created_at", type="string", format="date-time", description="Creation timestamp"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time", description="Update timestamp")
+ * )
+ *
  * @property int $club_id
  * @property string $club_name
  * @property string $club_street
