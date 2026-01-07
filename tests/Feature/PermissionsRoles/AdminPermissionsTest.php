@@ -10,7 +10,6 @@ use App\Models\Raid;
 use App\Models\ParamRunner;
 use App\Models\ParamTeam;
 use App\Models\ParamType;
-use App\Models\ParamDifficulty;
 use App\Models\RegistrationPeriod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -176,7 +175,6 @@ class AdminPermissionsTest extends TestCase
         
         // Create required ParamType entries
         ParamType::firstOrCreate(['typ_id' => 1], ['typ_name' => 'Course']);
-        ParamDifficulty::firstOrCreate(['dif_id' => 1], ['dif_level' => 'Facile']);
     }
 
     // ===========================================

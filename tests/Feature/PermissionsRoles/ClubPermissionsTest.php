@@ -226,29 +226,35 @@ class ClubPermissionsTest extends TestCase
     }
 
     // ===========================================
-    // ADHERENT USER TESTS (has licence but not responsable-club)
+    // ADHERENT USER TESTS (has licence, can create clubs)
     // ===========================================
 
     /**
-     * Test that an adherent without responsable-club role cannot access club creation page
+     * Test that an adherent CAN access club creation page
+     * Adherents (licensed members) are allowed to create clubs
      */
-    public function test_adherent_without_responsable_club_role_cannot_access_club_creation_page(): void
+    public function test_adherent_can_access_club_creation_page(): void
     {
         $response = $this->actingAs($this->adherentUser)
             ->get(route('clubs.create'));
         
-        $response->assertStatus(403);
+        $response->assertStatus(200);
     }
 
     /**
-     * Test that an adherent without responsable-club role cannot create a club
+     * Test that an adherent CAN create a club
+     * Adherents (licensed members) are allowed to create clubs
      */
-    public function test_adherent_without_responsable_club_role_cannot_create_club(): void
+    public function test_adherent_can_create_club(): void
     {
-        $response = $this->actingAs($this->adherentUser)
-            ->post(route('clubs.store'), $this->getValidClubData());
+        $clubData = $this->getValidClubData();
         
-        $response->assertStatus(403);
+        $response = $this->actingAs($this->adherentUser)
+            ->post(route('clubs.store'), $clubData);
+        
+        // Should redirect to the club page on success
+        $response->assertStatus(302);
+        $this->assertDatabaseHas('clubs', ['club_name' => $clubData['club_name']]);
     }
 
     // ===========================================

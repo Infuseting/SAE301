@@ -11,6 +11,12 @@ export default function ClubsDropdown() {
     const userClubs = user?.clubs || [];
     const hasClubs = userClubs.length > 0;
 
+    // Check if user can create clubs (must be adherent or admin)
+    const userRoles = user?.roles || [];
+    const canCreateClub = userRoles.some(role => 
+        ['adherent', 'admin'].includes(role.name || role)
+    );
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -123,30 +129,32 @@ export default function ClubsDropdown() {
                             </div>
                         </Link>
 
-                        {/* Create Club */}
-                        <Link
-                            href="/clubs/create"
-                            className="block px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 font-medium transition"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            <div className="flex items-center">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth={2}
-                                    stroke="currentColor"
-                                    className="w-4 h-4 mr-2"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M12 4.5v15m7.5-7.5h-15"
-                                    />
-                                </svg>
-                                {messages.create_club || 'Create Club'}
-                            </div>
-                        </Link>
+                        {/* Create Club - Only show if user has permission */}
+                        {canCreateClub && (
+                            <Link
+                                href="/clubs/create"
+                                className="block px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 font-medium transition"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                <div className="flex items-center">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        strokeWidth={2}
+                                        stroke="currentColor"
+                                        className="w-4 h-4 mr-2"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M12 4.5v15m7.5-7.5h-15"
+                                        />
+                                    </svg>
+                                    {messages.create_club || 'Create Club'}
+                                </div>
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}

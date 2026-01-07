@@ -32,7 +32,8 @@ class VisuRaceController extends Controller
         }
 
         $user = auth()->user();
-        $isRaceManager = $user && (($race->organizer && $user->adh_id === $race->organizer->adh_id) || ($race->raid && $race->raid->club && $race->raid->club->hasManager($user)));
+        // Admin can manage all races, otherwise check if user is race organizer or club manager
+        $isRaceManager = $user && ($user->hasRole('admin') || ($race->organizer && $user->adh_id === $race->organizer->adh_id) || ($race->raid && $race->raid->club && $race->raid->club->hasManager($user)));
 
         // Fetch participants for managers
         $participants = [];

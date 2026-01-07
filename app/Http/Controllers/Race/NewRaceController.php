@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Race\StoreRaceRequest;
 use App\Models\Race;
 use App\Models\User;
-use App\Models\ParamDifficulty;
 use App\Models\ParamType;
 use App\Models\ParamRunner;
 use App\Models\ParamTeam;
@@ -35,7 +34,43 @@ class NewRaceController extends Controller
         // Authorize the user to create a race
         $this->authorize('create', Race::class);
         
-        $raidId = $request->query('raid_id');
+        return $this->renderRaceForm($request);
+    }
+
+    /**
+     * Show the form for editing an existing race.
+     * Only the race organizer (adh_id matches) or admin can edit.
+     *
+     * @param int $id The race ID
+     * @return \Inertia\Response
+     */
+    public function edit(int $id)
+    {
+        $race = Race::findOrFail($id);
+        
+        // Authorize the user to update this race (checks ownership)
+        $this->authorize('update', $race);
+        
+        return $this->renderRaceForm(request(), $race);
+    }
+
+    /**
+     * Render the race form (used for both create and edit)
+     *
+     * @param Request $request
+     * @param Race|null $race The race to edit (null for create)
+     * @return \Inertia\Response
+     */
+    /**
+     * Render the race form (used for both create and edit)
+     *
+     * @param Request $request
+     * @param Race|null $race The race to edit (null for create)
+     * @return \Inertia\Response
+     */
+    private function renderRaceForm(Request $request, ?Race $race = null)
+    {
+        $raidId = $race ? $race->raid_id : $request->query('raid_id');
         $raid = null;
         $usersQuery = User::select('id', 'last_name', 'first_name', 'email', 'adh_id');
 
@@ -61,16 +96,6 @@ class NewRaceController extends Controller
             ])
             ->toArray();
 
-        // Get all difficulties from database
-        $difficulties = ParamDifficulty::select('dif_id', 'dif_level')
-            ->orderBy('dif_id')
-            ->get()
-            ->map(fn($difficulty) => [
-                'id' => $difficulty->dif_id,
-                'level' => $difficulty->dif_level,
-            ])
-            ->toArray();
-
         // Get all types from database
         $types = ParamType::select('typ_id', 'typ_name')
             ->orderBy('typ_id')
@@ -83,10 +108,10 @@ class NewRaceController extends Controller
 
         return Inertia::render('Race/NewRace', [    
             'users' => $users,
-            'difficulties' => $difficulties,
             'types' => $types,
             'raid_id' => $raidId,
             'raid' => $raid,
+            'race' => $race, // null for create, race data for edit
             'auth' => [
                 'user' => Auth::user(),
             ],

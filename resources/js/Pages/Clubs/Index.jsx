@@ -5,7 +5,14 @@ import ClubCard from '@/Components/ClubCard';
 
 export default function Index({ clubs, filters }) {
     const messages = usePage().props.translations?.messages || {};
+    const { auth } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
+    
+    // Check if user can create clubs (must be adherent or admin)
+    const userRoles = auth?.user?.roles || [];
+    const canCreateClub = userRoles.some(role => 
+        ['adherent', 'admin'].includes(role.name || role)
+    );
 
     return (
         <AuthenticatedLayout>
@@ -77,7 +84,8 @@ export default function Index({ clubs, filters }) {
                                 <p className="mt-2 text-gray-600">{messages.clubs_subtitle}</p>
                             </div>
 
-                            {/* Create Club Button */}
+                        {/* Create Club Button - Only show if user can create clubs */}
+                        {canCreateClub && (
                             <Link
                                 href={route('clubs.create')}
                                 className="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-bold transition shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:-translate-y-0.5"
@@ -87,9 +95,9 @@ export default function Index({ clubs, filters }) {
                                 </svg>
                                 {messages.create_club}
                             </Link>
+                        )}
                         </div>
 
-                        {/* Clubs Grid or Empty State */}
                         {clubs.data.length === 0 ? (
                             <div className="text-center py-20">
                                 <div className="bg-white rounded-2xl p-16 shadow-sm border border-gray-100 max-w-2xl mx-auto">
@@ -106,15 +114,18 @@ export default function Index({ clubs, filters }) {
                                     <p className="text-gray-600 text-lg mb-8">
                                         {messages.no_clubs_description}
                                     </p>
-                                    <Link
-                                        href={route('clubs.create')}
-                                        className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-bold transition shadow-lg hover:shadow-xl"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                        </svg>
-                                        {messages.create_club}
-                                    </Link>
+                                    {/* Create Club Button - Only show if user can create clubs */}
+                                    {canCreateClub && (
+                                        <Link
+                                            href={route('clubs.create')}
+                                            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-bold transition shadow-lg hover:shadow-xl"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg>
+                                            {messages.create_club}
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         ) : (

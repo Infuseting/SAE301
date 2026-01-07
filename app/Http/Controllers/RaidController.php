@@ -236,7 +236,8 @@ class RaidController extends Controller
         $raid->load(['club', 'races.organizer.user', 'registrationPeriod']);
         
         $user = auth()->user();
-        $isRaidManager = $user && ($user->adh_id === $raid->adh_id || $raid->club->hasManager($user));
+        // Admin can manage all raids, otherwise check if user is raid manager or club manager
+        $isRaidManager = $user && ($user->hasRole('admin') || $user->adh_id === $raid->adh_id || $raid->club->hasManager($user));
         
         $courses = $raid->races->map(function($race) use ($user, $isRaidManager) {
             $isRaceManager = $user && ($user->adh_id === $race->adh_id || $isRaidManager);
@@ -281,6 +282,9 @@ class RaidController extends Controller
     {
         $this->authorize('update', $raid);
 
+        // Load registration period for the form
+        $raid->load('registrationPeriod');
+
         $user = auth()->user();
         $clubs = $user->hasRole('admin') 
             ? Club::where('is_approved', true)->get()
@@ -296,7 +300,14 @@ class RaidController extends Controller
                 ->whereHas('clubs', function($q) use ($raid) {
                     $q->where('clubs.club_id', $raid->clu_id);
                 })
-                ->get(['id', 'name', 'email']);
+                ->get(['id', 'first_name', 'last_name', 'email'])
+                ->map(function($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
+                    ];
+                });
         }
 
         return Inertia::render('Raid/Edit', [

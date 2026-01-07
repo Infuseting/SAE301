@@ -10,7 +10,7 @@ class EnsureUserIsClubLeader
 {
     /**
      * Handle an incoming request.
-     * Allows admin users to bypass the club leader requirement.
+     * Allows admin and gestionnaire-raid users to bypass the club leader requirement.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
@@ -20,6 +20,11 @@ class EnsureUserIsClubLeader
         
         // Allow admins to bypass the club leader requirement
         if ($user && $user->hasRole('admin')) {
+            return $next($request);
+        }
+        
+        // Allow gestionnaire-raid to manage raids they are responsible for
+        if ($user && $user->hasRole('gestionnaire-raid')) {
             return $next($request);
         }
         

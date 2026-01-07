@@ -34,7 +34,7 @@ Route::middleware('auth')->group(function () {
     // Race management (requires auth, authorization handled by controller/policy)
     Route::get('/new-race', [NewRaceController::class, 'show'])->name('races.create');
     Route::post('/new-race', [NewRaceController::class, 'store'])->name('races.store');
-    Route::get('/race/{id}/edit', [NewRaceController::class, 'show'])->name('races.edit'); // Placeholder
+    Route::get('/race/{id}/edit', [NewRaceController::class, 'edit'])->name('races.edit');
 
     Route::get('/dashboard', function () {
         return Inertia::render('Welcome');
