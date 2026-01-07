@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Race;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Race;
 
 /**
  * Form request for creating a new race.
@@ -11,10 +12,11 @@ class StoreRaceRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * Only responsable-course and admin can create races.
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('create', Race::class);
     }
 
     /**

@@ -232,10 +232,8 @@ class ClubController extends Controller
      */
     public function edit(Club $club): Response
     {
-        // Only club managers can edit
-        if (!$club->hasManager(auth()->user())) {
-            abort(403, 'Only club managers can edit this club');
-        }
+        // Use policy for authorization (handles admin and club managers)
+        $this->authorize('update', $club);
 
         $club->load(['members', 'pendingRequests']);
 
@@ -286,10 +284,8 @@ class ClubController extends Controller
      */
     public function update(Request $request, Club $club): RedirectResponse
     {
-        // Only club managers can update
-        if (!$club->hasManager(auth()->user())) {
-            abort(403, 'Only club managers can update this club');
-        }
+        // Use policy for authorization (handles admin and club managers)
+        $this->authorize('update', $club);
 
         $validated = $request->validate([
             'club_name' => 'required|string|max:100',

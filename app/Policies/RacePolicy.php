@@ -34,8 +34,13 @@ class RacePolicy
      */
     public function create(User $user): bool
     {
+        // Admin can always create races
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+        
         // Only users with responsable-course role can create races
-        return $user->hasPermissionTo('create-race') && $user->hasRole('responsable-course');
+        return $user->hasRole('responsable-course') && $user->hasPermissionTo('create-race');
     }
 
     /**
