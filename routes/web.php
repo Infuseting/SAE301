@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\LeaderboardController as AdminLeaderboardController;
 use App\Http\Controllers\TeamAgeController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\MyLeaderboardController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -35,6 +36,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
+
+    // My leaderboard - accessible to all authenticated users
+    Route::get('/my-leaderboard', [MyLeaderboardController::class, 'index'])->name('my-leaderboard.index');
 
     // Team age validation page
     Route::get('/team/age-validation', [TeamAgeController::class, 'index'])->name('team.age-validation');

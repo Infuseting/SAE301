@@ -24,9 +24,6 @@ return new class extends Migration
             $table->unsignedBigInteger('raid_id');
             $table->foreign('raid_id')->references('raid_id')->on('raids')->onDelete('cascade');
 
-            $table->unsignedBigInteger('cla_id');
-            $table->foreign('cla_id')->references('cla_id')->on('leaderboards')->onDelete('cascade');
-
             $table->unsignedBigInteger('adh_id');
             $table->foreign('adh_id')->references('adh_id')->on('members')->onDelete('cascade');
 

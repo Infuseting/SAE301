@@ -22,7 +22,6 @@ class Race extends Model
         'race_meal_price',
         'race_duration_minutes',
         'raid_id',
-        'cla_id',
         'adh_id',
         'pac_id',
         'pae_id',
@@ -41,11 +40,6 @@ class Race extends Model
     public function raid(): BelongsTo
     {
         return $this->belongsTo(Raid::class, 'raid_id', 'raid_id');
-    }
-
-    public function leaderboard(): BelongsTo
-    {
-        return $this->belongsTo(Leaderboard::class, 'cla_id', 'cla_id');
     }
 
     public function leaderboardResults(): HasMany

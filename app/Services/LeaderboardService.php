@@ -240,6 +240,80 @@ class LeaderboardService
         return true;
     }
 
+    /**
+     * Get all results for a specific user with their rank in each race.
+     *
+     * @param int $userId The user ID
+     * @param string|null $search Search by race name
+     * @param string $sortBy Sort by 'best' or 'worst' score
+     * @return array
+     */
+    public function getUserResults(int $userId, ?string $search = null, string $sortBy = 'best'): array
+    {
+        $query = LeaderboardResult::with(['race:race_id,race_name,race_date_start', 'user:id,first_name,last_name'])
+            ->where('user_id', $userId);
+
+        if ($search) {
+            $query->whereHas('race', function ($q) use ($search) {
+                $q->where('race_name', 'like', "%{$search}%");
+            });
+        }
+
+        $results = $query->get();
+
+        // Calculate rank for each result
+        $data = $results->map(function ($item) {
+            // Get rank by counting how many have better temps_final
+            $rank = LeaderboardResult::where('race_id', $item->race_id)
+                ->where('temps_final', '<', $item->temps_final)
+                ->count() + 1;
+
+            $totalParticipants = LeaderboardResult::where('race_id', $item->race_id)->count();
+
+            // Get user's team for this race if exists
+            $teamName = null;
+            $teamResult = DB::table('has_participate')
+                ->join('teams', 'has_participate.equ_id', '=', 'teams.equ_id')
+                ->where('has_participate.id', $item->user_id)
+                ->where('has_participate.race_id', $item->race_id)
+                ->select('teams.equ_name')
+                ->first();
+            
+            if ($teamResult) {
+                $teamName = $teamResult->equ_name;
+            }
+
+            return [
+                'id' => $item->id,
+                'race_id' => $item->race_id,
+                'race_name' => $item->race ? $item->race->race_name : 'Unknown',
+                'race_date' => $item->race ? $item->race->race_date_start : null,
+                'rank' => $rank,
+                'total_participants' => $totalParticipants,
+                'user_name' => $item->user ? $item->user->first_name . ' ' . $item->user->last_name : 'Unknown',
+                'team_name' => $teamName,
+                'temps' => $item->temps,
+                'temps_formatted' => $item->formatted_temps,
+                'malus' => $item->malus,
+                'malus_formatted' => $item->formatted_malus,
+                'temps_final' => $item->temps_final,
+                'temps_final_formatted' => $item->formatted_temps_final,
+            ];
+        });
+
+        // Sort by performance
+        if ($sortBy === 'best') {
+            $data = $data->sortBy('rank')->values();
+        } else {
+            $data = $data->sortByDesc('rank')->values();
+        }
+
+        return [
+            'data' => $data->toArray(),
+            'total' => $data->count(),
+        ];
+    }
+
     private function parseTime(string $time): float
     {
         $time = trim($time);
