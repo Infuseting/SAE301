@@ -4,6 +4,9 @@ import LanguageSwitcher from "@/Components/LanguageSwitcher";
 import ClubsDropdown from "@/Components/ClubsDropdown";
 import UserMenu from "@/Components/UserMenu";
 import MyRaceButton from "./MyRaceButton";
+import RaidButton from "./RaidButton";
+
+import ManagerButton from "./ManagerButton";
 
 /**
  * Header component - Reusable header for all pages
@@ -37,7 +40,7 @@ export default function Header({ transparent = false, className = "" }) {
             <div
                 className={
                     transparent
-                        ? "max-w-7xl mx-auto flex items-center justify-between"
+                        ? "max-w-7xl mx-auto flex items-center justify-between "
                         : "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
                 }
             >
@@ -50,11 +53,15 @@ export default function Header({ transparent = false, className = "" }) {
                         </div>
 
                         <nav className="flex items-center gap-3">
-                            <LanguageSwitcher className="text-gray-700 hover:text-emerald-600 transition" />
+                            <div className="flex justify-start items-center gap-3  lg:min-w-[650px] ">
+                                <div className="flex bg-white rounded-full ">
+                                    {user && <RaidButton />}
 
-                            {user && <ClubsDropdown />}
+                                    {user && <MyRaceButton />}
 
-                            {user && <MyRaceButton />}
+                                    {user && <ClubsDropdown />}
+                                </div>
+                            </div>
 
                             {user ? (
                                 <UserMenu user={user} />
@@ -74,6 +81,7 @@ export default function Header({ transparent = false, className = "" }) {
                                     </Link>
                                 </div>
                             )}
+                            <LanguageSwitcher className="text-gray-700 hover:text-emerald-600 transition" />
                         </nav>
                     </div>
                 )}
@@ -84,12 +92,16 @@ export default function Header({ transparent = false, className = "" }) {
                             <ApplicationLogo className={logoClasses} />
                         </Link>
 
-                        <nav className="flex items-center gap-6">
-                            <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
+                        <nav className="flex items-center justify-between gap-6">
+                            <div className="flex justify-start items-center gap-3  lg:min-w-[650px] ">
+                                <div className="flex bg-white rounded-full shadow-lg shadow-emerald-900/20">
+                                    {user && <RaidButton />}
 
-                            {user && <ClubsDropdown />}
+                                    {user && <MyRaceButton />}
 
-                            {user && <MyRaceButton />}
+                                    {user && <ClubsDropdown />}
+                                </div>
+                            </div>
 
                             {user ? (
                                 <UserMenu user={user} className="text-white" />
@@ -109,6 +121,7 @@ export default function Header({ transparent = false, className = "" }) {
                                     </Link>
                                 </div>
                             )}
+                            <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
                         </nav>
                     </>
                 )}

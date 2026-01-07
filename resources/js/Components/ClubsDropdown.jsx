@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { useState, useRef, useEffect } from "react";
+import { Link, usePage } from "@inertiajs/react";
 
 export default function ClubsDropdown() {
     const [isOpen, setIsOpen] = useState(false);
@@ -13,13 +13,17 @@ export default function ClubsDropdown() {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
                 setIsOpen(false);
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     return (
@@ -27,7 +31,7 @@ export default function ClubsDropdown() {
             {/* Dropdown Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
+                className="inline-flex items-center px-3 py-2 border border-transparent text-md leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -43,9 +47,11 @@ export default function ClubsDropdown() {
                         d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
                     />
                 </svg>
-                {messages.clubs || 'Clubs'}
+                {messages.clubs || "Clubs"}
                 <svg
-                    className={`ml-2 h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    className={`ml-2 h-4 w-4 transition-transform ${
+                        isOpen ? "rotate-180" : ""
+                    }`}
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
@@ -66,7 +72,7 @@ export default function ClubsDropdown() {
                         {hasClubs && (
                             <>
                                 <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                    {messages.my_clubs || 'My Clubs'}
+                                    {messages.my_clubs || "My Clubs"}
                                 </div>
                                 {userClubs.map((club) => (
                                     <Link
@@ -119,7 +125,7 @@ export default function ClubsDropdown() {
                                         d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z"
                                     />
                                 </svg>
-                                {messages.browse_clubs || 'Browse All Clubs'}
+                                {messages.browse_clubs || "Browse All Clubs"}
                             </div>
                         </Link>
 
@@ -144,7 +150,7 @@ export default function ClubsDropdown() {
                                         d="M12 4.5v15m7.5-7.5h-15"
                                     />
                                 </svg>
-                                {messages.create_club || 'Create Club'}
+                                {messages.create_club || "Create Club"}
                             </div>
                         </Link>
                     </div>

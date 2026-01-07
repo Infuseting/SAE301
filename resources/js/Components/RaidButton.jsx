@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
-import { RiRunLine } from "react-icons/ri";
+import { FaRegCompass } from "react-icons/fa6";
 
-export default function MyRaceButton() {
+export default function RaidButton() {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const messages = usePage().props.translations?.messages || {};
     const user = usePage().props.auth.user;
-
     return (
         <div className="relative" ref={dropdownRef}>
             {/* Dropdown Button */}
@@ -15,8 +14,8 @@ export default function MyRaceButton() {
                 onClick={() => setIsOpen(!isOpen)}
                 className="inline-flex items-center px-3 py-2 border border-transparent text-md leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
             >
-                <RiRunLine className="h-5 w-5 mr-1" />
-                {messages.course || "Courses"}
+                <FaRegCompass className="h-5 w-5 mr-1" />
+                {messages.raids || "Raids"}
                 <svg
                     className={`ml-2 h-4 w-4 transition-transform ${
                         isOpen ? "rotate-180" : ""
@@ -37,11 +36,18 @@ export default function MyRaceButton() {
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1"></div>
+
+                    <Link
+                        href={route("raids.index")}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                        {messages.raids || "Voir tous les raids"}
+                    </Link>
                     <Link
                         href={route("myrace.index")}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
-                        {messages.my_courses || "Mes courses"}
+                        {messages.my_courses || "Mes raids"}
                     </Link>
                 </div>
             )}
