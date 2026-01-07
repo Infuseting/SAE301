@@ -162,6 +162,21 @@ class RaidController extends Controller
     {
         $validated = $request->validated();
         
+        // Generate unique raid_number (format: YYYYNNN where NNN is sequential)
+        $year = date('Y');
+        $lastRaid = Raid::whereYear('created_at', $year)
+            ->orderBy('raid_number', 'desc')
+            ->first();
+        
+        if ($lastRaid && $lastRaid->raid_number) {
+            // Extract the last sequential number and increment
+            $lastNumber = (int) substr($lastRaid->raid_number, -3);
+            $validated['raid_number'] = (int) ($year . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT));
+        } else {
+            // First raid of the year
+            $validated['raid_number'] = (int) ($year . '001');
+        }
+        
         // Create registration period first
         $registrationPeriod = \App\Models\RegistrationPeriod::create([
             'ins_start_date' => $validated['ins_start_date'],
