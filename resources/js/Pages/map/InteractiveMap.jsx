@@ -90,7 +90,12 @@ function RaidMarkers({ raids, defaultIcon, onRaidClick }) {
     );
 }
 
-export default function InteractiveMap({ center, onCenterChange, raids = [] }) {
+export default function InteractiveMap({
+    center,
+    onCenterChange,
+    userLocation,
+    raids,
+}) {
     const defaultIcon = L.icon({
         iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
         iconSize: [25, 41],
@@ -99,6 +104,17 @@ export default function InteractiveMap({ center, onCenterChange, raids = [] }) {
         shadowUrl:
             "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
         shadowSize: [41, 41],
+    });
+    const userIcon = L.divIcon({
+        html: `
+        <svg width="30" height="30" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="256" cy="256" r="200" stroke="#3b82f6" stroke-width="40" fill="rgba(59, 130, 246, 0.3)" />
+            <circle cx="256" cy="256" r="80" fill="#3b82f6" />
+        </svg>
+    `,
+        className: "", // On vide la classe par défaut pour éviter le carré blanc
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
     });
 
     // Utilise les raids passés en prop, sinon utilise un tableau vide
@@ -116,6 +132,11 @@ export default function InteractiveMap({ center, onCenterChange, raids = [] }) {
                     attribution="&copy; OpenStreetMap contributors"
                 />
                 <CenterUpdater center={center} />
+                {userLocation && (
+                    <Marker position={userLocation} icon={userIcon}>
+                        <Popup>Vous êtes ici</Popup>
+                    </Marker>
+                )}
                 <RaidMarkers
                     raids={raidsData}
                     defaultIcon={defaultIcon}
