@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip if table already exists (created by the preemptive fix migration)
+        if (Schema::hasTable('has_participate')) {
+            return;
+        }
+
         Schema::create('has_participate', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id');
@@ -18,7 +23,7 @@ return new class extends Migration
             $table->unsignedBigInteger('reg_id')->nullable();
             $table->time('par_time')->nullable();
             $table->foreign('equ_id')->references('equ_id')->on('teams')->onDelete('cascade');
-            $table->foreign('adh_id')->references('adh_id')->on('members')->onDelete('cascade');
+            $table->foreign('id')->references('adh_id')->on('members')->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -52,6 +52,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/clubs/{club}/members/{user}/approve', [App\Http\Controllers\ClubMemberController::class, 'approveJoin'])->name('clubs.members.approve');
     Route::post('/clubs/{club}/members/{user}/reject', [App\Http\Controllers\ClubMemberController::class, 'rejectJoin'])->name('clubs.members.reject');
     Route::delete('/clubs/{club}/members/{user}', [App\Http\Controllers\ClubMemberController::class, 'removeMember'])->name('clubs.members.remove');
+
+    // Licence and PPS management
+    Route::post('/licence', [App\Http\Controllers\LicenceController::class, 'storeLicence'])->name('licence.store');
+    Route::post('/pps', [App\Http\Controllers\LicenceController::class, 'storePpsCode'])->name('pps.store');
+    Route::get('/credentials/check', [App\Http\Controllers\LicenceController::class, 'checkCredentials'])->name('credentials.check');
+
+    // Race registration
+    Route::get('/races/{race}/registration/check', [App\Http\Controllers\RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
+    Route::post('/races/{race}/register', [App\Http\Controllers\RaceRegistrationController::class, 'register'])->name('race.register');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {

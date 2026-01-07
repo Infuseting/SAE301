@@ -249,4 +249,34 @@ return [
     'description_bio' => 'Descripción / Bio',
     'edit_profile' => 'Editar',
 
+    // Licence and PPS
+    'licence_number' => 'Número de Licencia',
+    'pps_code' => 'Código PPS',
+    'licence_expiry_date' => 'Fecha de Expiración de Licencia',
+    'pps_expiry_date' => 'Fecha de Expiración del PPS',
+    'licence_added_successfully' => 'Licencia añadida con éxito',
+    'pps_added_successfully' => 'Código PPS añadido con éxito',
+    'add_licence' => 'Añadir Licencia',
+    'add_pps' => 'Añadir Código PPS',
+    'licence_required_title' => 'Licencia o Código PPS Requerido',
+    'licence_required_text' => 'Para inscribirte en una carrera, debes tener un número de licencia válido o un código PPS.',
+    'licence_valid_for' => 'Válido por 1 año',
+    'pps_valid_for' => 'Válido por 3 meses',
+    'enter_licence_or_pps' => 'Introduce tu número de licencia o código PPS',
+    'need_valid_credentials' => 'Necesitas un número de licencia válido o un código PPS para inscribirte en esta carrera',
+    'no_permission_to_register' => 'No tienes permiso para inscribirte en esta carrera',
+    'registration_successful' => 'Inscripción exitosa',
+    'valid_until' => 'Válido hasta',
+
+    // Roles
+    'my_roles' => 'Mis Roles',
+    'role_admin' => 'Administrador',
+    'role_adherent' => 'Adherente',
+    'role_responsable_club' => 'Responsable de Club',
+    'role_gestionnaire_raid' => 'Gestor de Raid',
+    'role_responsable_course' => 'Responsable de Carrera',
+    'role_user' => 'Usuario',
+    'role_guest' => 'Visitante',
+    'no_roles_assigned' => 'Sin roles asignados',
+
 ];
