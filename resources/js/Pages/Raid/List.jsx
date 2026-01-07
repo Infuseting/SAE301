@@ -168,7 +168,7 @@ export default function List({ raids, filters }) {
                                             <div className="relative h-48 overflow-hidden bg-gradient-to-br from-indigo-100 to-indigo-50">
                                                 {raid.raid_image ? (
                                                     <img
-                                                        src={raid.raid_image}
+                                                        src={`/storage/${raid.raid_image}`}
                                                         alt={raid.raid_name}
                                                         className="w-full h-full object-cover"
                                                     />

@@ -184,6 +184,12 @@ class RaidController extends Controller
             $validated['raid_street'] = 'Non spécifiée';
         }
         
+        // Handle image upload
+        if ($request->hasFile('raid_image')) {
+            $imagePath = $request->file('raid_image')->store('raids', 'public');
+            $validated['raid_image'] = $imagePath;
+        }
+        
         // Create registration period first
         $registrationPeriod = \App\Models\RegistrationPeriod::create([
             'ins_start_date' => $validated['ins_start_date'],
