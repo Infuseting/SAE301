@@ -80,6 +80,10 @@ Route::middleware('auth')->group(function () {
     // Race registration
     Route::get('/races/{race}/registration/check', [App\Http\Controllers\RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
     Route::post('/races/{race}/register', [App\Http\Controllers\RaceRegistrationController::class, 'register'])->name('race.register');
+    
+    // Team creation routes
+    Route::get('/createTeam', [App\Http\Controllers\TeamController::class, 'create'])->name('team.create');
+    Route::post('/createTeam', [App\Http\Controllers\TeamController::class, 'store'])->name('team.store');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {

@@ -10,7 +10,7 @@ import { Settings, Plus, MapPin, Calendar, Info, Users, ChevronRight, Trophy } f
  * Raid Detail Component
  * Displays raid information and associated courses with premium UI
  */
-export default function Index({ raid, courses = [], typeCategories = [], isRaidManager }) {
+export default function Index({ raid, courses = [], typeCategories = [], isRaidManager, canEditRaid, canAddRace }) {
     const messages = usePage().props.translations?.messages || {};
 
     return (
@@ -45,7 +45,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                         </div>
 
                         <div className="flex items-center gap-3">
-                            {isRaidManager && (
+                            {canEditRaid && (
                                 <Link href={route('raids.edit', raid.raid_id)}>
                                     <button className="bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 rounded-2xl font-black text-sm transition-all shadow-xl shadow-emerald-900/20 flex items-center gap-2">
                                         <Settings className="h-4 w-4" />
@@ -97,7 +97,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                         {courses.length} COURSE{courses.length > 1 ? 'S' : ''}
                                     </p>
                                 </div>
-                                {isRaidManager && (
+                                {canAddRace && (
                                     <Link href={route('races.create', { raid_id: raid.raid_id })}>
                                         <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-black text-xs transition-all shadow-xl shadow-blue-200 flex items-center gap-2">
                                             <Plus className="h-4 w-4" />

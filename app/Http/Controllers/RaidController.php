@@ -85,14 +85,16 @@ class RaidController extends Controller
                 ->join('users', 'club_user.user_id', '=', 'users.id')
                 ->where('club_user.club_id', $userClub->club_id)
                 ->whereNotNull('users.adh_id') // Ensure they have an adherent ID
-                ->select('users.adh_id', 'users.first_name', 'users.last_name')
+                ->select('users.id', 'users.adh_id', 'users.first_name', 'users.last_name', 'users.email')
+                ->orderBy('users.last_name')
+                ->orderBy('users.first_name')
                 ->get()
                 ->map(function ($user) {
                     return [
+                        'id' => $user->id,
                         'adh_id' => $user->adh_id,
-                        'full_name' => $user->first_name . ' ' . $user->last_name,
-                        'first_name' => $user->first_name,
-                        'last_name' => $user->last_name,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
                     ];
                 });
 
@@ -275,6 +277,8 @@ class RaidController extends Controller
             'raid' => $raid,
             'courses' => $courses,
             'isRaidManager' => $isRaidManager,
+            'canEditRaid' => $user && $user->can('update', $raid),
+            'canAddRace' => $user && $user->can('create', [\App\Models\Race::class, $raid]),
             'typeCategories' => \App\Models\ParamType::all()->map(function($t) {
                 return [
                     'type_id' => $t->typ_id,
@@ -308,14 +312,16 @@ class RaidController extends Controller
                 ->join('users', 'club_user.user_id', '=', 'users.id')
                 ->where('club_user.club_id', $userClub->club_id)
                 ->whereNotNull('users.adh_id') // Ensure they have an adherent ID
-                ->select('users.adh_id', 'users.first_name', 'users.last_name')
+                ->select('users.id', 'users.adh_id', 'users.first_name', 'users.last_name', 'users.email')
+                ->orderBy('users.last_name')
+                ->orderBy('users.first_name')
                 ->get()
                 ->map(function ($user) {
                     return [
+                        'id' => $user->id,
                         'adh_id' => $user->adh_id,
-                        'full_name' => $user->first_name . ' ' . $user->last_name,
-                        'first_name' => $user->first_name,
-                        'last_name' => $user->last_name,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
                     ];
                 });
         }

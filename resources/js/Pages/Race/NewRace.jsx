@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
-import SelectResponsableModal from '@/Components/SelectResponsableModal';
+import UserSelect from '@/Components/UserSelect';
 
 export default function NewRace({ auth, users = [], types = [], raid_id = null, raid = null }) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedResponsable, setSelectedResponsable] = useState(null);
-
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         description: '',
@@ -73,7 +70,7 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
             const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
             const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
             let durationMinutes = 0;
-            
+
             if (duration && duration.includes(':')) {
                 const [h, m] = duration.split(':');
                 durationMinutes = parseInt(h) * 60 + parseInt(m);
@@ -113,15 +110,6 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
         }
     };
 
-
-    /**
-     * Handle responsable selection from modal
-     * @param {object} user - The selected user object
-     */
-    const handleSelectResponsable = (user) => {
-        setSelectedResponsable(user);
-        setData('responsableId', user.id);
-    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -206,37 +194,13 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Responsable de la course
                                         </label>
-                                        {selectedResponsable ? (
-                                            <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                                                <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                                    <span className="text-green-600 font-semibold text-sm">
-                                                        {selectedResponsable.name.charAt(0).toUpperCase()}
-                                                    </span>
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-medium text-gray-900">{selectedResponsable.name}</p>
-                                                    <p className="text-xs text-gray-500">{selectedResponsable.email}</p>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsModalOpen(true)}
-                                                    className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-                                                >
-                                                    Modifier
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsModalOpen(true)}
-                                                className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                </svg>
-                                                Sélectionner un responsable
-                                            </button>
-                                        )}
+                                        <UserSelect
+                                            users={users}
+                                            selectedId={data.responsableId}
+                                            onSelect={(user) => setData('responsableId', user.id)}
+                                            label="Responsable"
+                                        />
+                                        {errors.responsableId && <p className="mt-1 text-sm text-red-600">{errors.responsableId}</p>}
                                     </div>
 
                                     {/* Date et heure de départ */}
@@ -399,7 +363,7 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                 {/* Tarifs */}
                                 <div className="mb-8">
                                     <h4 className="text-sm font-semibold text-gray-900 mb-4">Tarifs d'inscription :</h4>
-                                    
+
                                     {/* Prix Majeurs */}
                                     <div className="mb-4">
                                         <label className="block text-xs font-medium text-gray-600 mb-2">Majeurs (18 ans et +)</label>
@@ -567,14 +531,6 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                 </div>
             </div >
 
-            {/* Modal de sélection du responsable */}
-            < SelectResponsableModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)
-                }
-                onSelect={handleSelectResponsable}
-                users={users}
-            />
         </AuthenticatedLayout >
     );
 }

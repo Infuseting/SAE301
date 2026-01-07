@@ -39,4 +39,12 @@ class Team extends Model
     {
         return $this->belongsToMany(User::class, 'has_participate', 'equ_id', 'id_users');
     }
+
+    /**
+     * Get the team leader (user who created the team).
+     */
+    public function leader()
+    {
+        return $this->belongsTo(User::class, 'adh_id', 'id');
+    }
 }

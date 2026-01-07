@@ -222,8 +222,24 @@ class User extends Authenticatable
             return false;
         }
 
-        return \DB::table('clubs')
+        // Check if user is the creator of any club
+        $isCreator = \DB::table('clubs')
             ->where('created_by', $this->id)
+            ->exists();
+
+        if ($isCreator) {
+            return true;
+        }
+
+        // Check if user has the responsable-club role
+        if ($this->hasRole('responsable-club')) {
+            return true;
+        }
+
+        // Check if user is a manager of any club in the pivot table
+        return $this->clubs()
+            ->wherePivot('role', 'manager')
+            ->wherePivot('status', 'approved')
             ->exists();
     }
 }
