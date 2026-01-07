@@ -23,25 +23,28 @@ class StoreRaidRequest extends FormRequest
     {
         return [
             'raid_name' => ['required', 'string', 'max:100'],
-            'raid_description' => ['required', 'string'],
+            'raid_description' => ['nullable', 'string'],
             'raid_date_start' => ['required', 'date', 'after:now'],
             'raid_date_end' => ['required', 'date', 'after:raid_date_start'],
             
-            // Foreign keys (required)
-            'adh_id' => ['required', 'integer'],
-            'clu_id' => ['required', 'integer'],
-            'ins_id' => ['required', 'integer'],
+            // Foreign keys
+            'adh_id' => ['nullable', 'integer', 'exists:members,adh_id'],
+            'clu_id' => ['required', 'integer', 'exists:clubs,club_id'],
+            'ins_id' => ['nullable', 'integer'],
             
-            // Required fields
-            'raid_contact' => ['required', 'string', 'max:100'],
-            'raid_street' => ['required', 'string', 'max:100'],
-            'raid_city' => ['required', 'string', 'max:100'],
-            'raid_postal_code' => ['required', 'string', 'max:20'],
-            'raid_number' => ['required', 'integer'],
+            // Location fields
+            'raid_contact' => ['nullable', 'string', 'max:100'],
+            'raid_street' => ['nullable', 'string', 'max:100'],
+            'raid_city' => ['nullable', 'string', 'max:100'],
+            'raid_postal_code' => ['nullable', 'string', 'max:20'],
+            'raid_number' => ['nullable', 'integer'],
             
             // Optional fields
             'raid_site_url' => ['nullable', 'url', 'max:255'],
             'raid_image' => ['nullable', 'string', 'max:255'],
+
+            // Gestionnaire raid assignment (user id)
+            'gestionnaire_raid_id' => ['nullable', 'integer', 'exists:users,id'],
         ];
     }
 
