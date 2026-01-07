@@ -25,17 +25,17 @@ Route::get('/', function () {
 Route::get('/race/{id}', [VisuRaceController::class, 'show'])->name('races.show');
 Route::get('/map', [App\Http\Controllers\MapController::class, 'index'])->name('map.index');
 
-// Race management
-Route::get('/new-race', [NewRaceController::class, 'show'])->name('races.create');
-Route::post('/new-race', [NewRaceController::class, 'store'])->name('races.store');
-Route::get('/race/{id}/edit', [NewRaceController::class, 'show'])->name('races.edit'); // Placeholder
-
 // Raids public routes (no auth required)
 Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
 Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show')->whereNumber('raid');
 
 
 Route::middleware('auth')->group(function () {
+    // Race management (requires auth, authorization handled by controller/policy)
+    Route::get('/new-race', [NewRaceController::class, 'show'])->name('races.create');
+    Route::post('/new-race', [NewRaceController::class, 'store'])->name('races.store');
+    Route::get('/race/{id}/edit', [NewRaceController::class, 'show'])->name('races.edit'); // Placeholder
+
     Route::get('/dashboard', function () {
         return Inertia::render('Welcome');
     })->name('dashboard');

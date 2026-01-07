@@ -9,24 +9,32 @@ use App\Models\User;
 use App\Models\ParamDifficulty;
 use App\Models\ParamType;
 use App\Models\ParamRunner;
+use App\Models\ParamTeam;
 use App\Models\Raid;
 use App\Models\PriceAgeCategory;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 /**
  * Controller for managing race creation.
  */
 class NewRaceController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Show the form for creating a new race.
+     * Only responsable-course and admin can access this page.
      *
      * @return \Inertia\Response
      */
     public function show(Request $request)
     {
+        // Authorize the user to create a race
+        $this->authorize('create', Race::class);
+        
         $raidId = $request->query('raid_id');
         $raid = null;
         $usersQuery = User::select('id', 'last_name', 'first_name', 'email', 'adh_id');

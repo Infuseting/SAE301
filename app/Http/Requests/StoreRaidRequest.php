@@ -9,11 +9,18 @@ class StoreRaidRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     * Only club leaders can create raids.
+     * Only club leaders and admins can create raids.
      */
     public function authorize(): bool
     {
-        return $this->user() && $this->user()->isClubLeader();
+        $user = $this->user();
+        
+        // Allow admins to bypass the club leader requirement
+        if ($user && $user->hasRole('admin')) {
+            return true;
+        }
+        
+        return $user && $user->isClubLeader();
     }
 
     /**

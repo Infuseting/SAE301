@@ -20,28 +20,41 @@ class RaidController extends Controller
     use AuthorizesRequests;
     /**
      * Display a listing of the resource.
+     * Returns all raids for client-side filtering and search.
      * 
      * @OA\Get(
      *     path="/raids",
      *     tags={"Raids"},
      *     summary="Get list of raids",
-     *     description="Returns list of all raids",
+     *     description="Returns all raids with related data for client-side filtering",
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Raid")
+     *             type="object",
+     *             @OA\Property(
+     *                 property="raids",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Raid")
+     *             )
      *         )
      *     )
      * )
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $raids = Raid::latest()->get();
+        // Get all raids with related data for client-side filtering
+        $raids = Raid::query()
+            ->with(['club:club_id,club_name', 'registrationPeriod:ins_id,ins_start_date,ins_end_date'])
+            ->withCount('races')
+            ->orderBy('raid_date_start', 'desc')
+            ->get();
         
         return Inertia::render('Raid/List', [
             'raids' => $raids,
+            'filters' => [
+                'q' => $request->input('q', ''),
+            ],
         ]);
     }
 
