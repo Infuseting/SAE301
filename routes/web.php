@@ -11,13 +11,31 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Race\NewRaceController;
 use App\Http\Controllers\Race\VisuRaceController;
 use App\Http\Controllers\RaidController;
+use App\Models\Raid;
 
 Route::get('/', function () {
+    $upcomingRaids = Raid::with('club')
+        ->where('raid_date_start', '>=', now())
+        ->orderBy('raid_date_start', 'asc')
+        ->take(3)
+        ->get()
+        ->map(function ($raid) {
+            return [
+                'id' => $raid->raid_id,
+                'title' => $raid->raid_name,
+                'date' => $raid->raid_date_start ? \Carbon\Carbon::parse($raid->raid_date_start)->format('d M Y') : '',
+                'location' => trim(($raid->raid_city ?? '') . ', ' . ($raid->raid_country ?? ''), ', '),
+                'type' => 'Raid',
+                'image' => $raid->raid_image ?? 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+            ];
+        });
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'upcomingRaids' => $upcomingRaids,
     ]);
 })->name('home');
 
