@@ -192,7 +192,7 @@ class Race extends Model
      */
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(PriceAgeCategory::class, 'has_category', 'race_id', 'pac_id', 'race_id', 'pac_id');
+        return $this->belongsToMany(PriceAgeCategory::class, 'has_category', 'race_id', 'catpd_id', 'race_id', 'catp_id');
     }
 
     /**

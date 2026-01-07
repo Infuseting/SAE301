@@ -3,9 +3,8 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import { Head, Link, usePage } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
-import AdvancedFilter from '@/Components/Raid/AdvancedFilter';
 import RaidProgress from '@/Components/Raid/RaidProgress';
-import { Settings, Plus, MapPin, Calendar, Info, Users, ChevronRight, Trophy, Heart } from 'lucide-react';
+import { Settings, Plus, MapPin, Calendar, Info, Users, ChevronRight, Trophy } from 'lucide-react';
 
 /**
  * Raid Detail Component
@@ -13,21 +12,6 @@ import { Settings, Plus, MapPin, Calendar, Info, Users, ChevronRight, Trophy, He
  */
 export default function Index({ raid, courses = [], typeCategories = [], isRaidManager }) {
     const messages = usePage().props.translations?.messages || {};
-    const [filteredCourses, setFilteredCourses] = useState(courses);
-
-    const handleApplyFilter = (filters) => {
-        let results = courses;
-
-        if (filters.difficulty_names.length > 0) {
-            results = results.filter(c => filters.difficulty_names.includes(c.difficulty));
-        }
-
-        if (filters.type_ids.length > 0) {
-            results = results.filter(c => filters.type_ids.includes(c.type_id));
-        }
-
-        setFilteredCourses(results);
-    };
 
     return (
         <AuthenticatedLayout>
@@ -41,10 +25,10 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="space-y-2">
-                            <Link href={route('clubs.show', raid.clu_id)} className="text-emerald-100 hover:text-white flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-colors mb-4">
+                            <button onClick={() => window.history.back()} className="text-emerald-100 hover:text-white flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-colors mb-4">
                                 <ChevronRight className="h-4 w-4 rotate-180" />
-                                Retour au club
-                            </Link>
+                                Retour
+                            </button>
                             <h1 className="text-4xl font-black text-white italic tracking-tighter">
                                 {raid?.raid_name.toUpperCase()}
                             </h1>
@@ -55,7 +39,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                 </div>
                                 <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
                                     <Trophy className="h-3.5 w-3.5" />
-                                    {courses.length} Épreuves
+                                    {courses.length} Courses
                                 </div>
                             </div>
                         </div>
@@ -80,7 +64,11 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                         {/* Left Column: Progress & Info */}
                         <div className="lg:col-span-4 space-y-8">
                             <RaidProgress raid={raid} />
+                        </div>
 
+                        {/* Right Column: Description & Race List */}
+                        <div className="lg:col-span-8 space-y-8">
+                            {/* Description Section */}
                             <div className="bg-white rounded-3xl border border-blue-100 p-8 shadow-sm space-y-6">
                                 <h3 className="text-xs font-black text-blue-900 flex items-center uppercase tracking-widest">
                                     <Info className="h-4 w-4 mr-2 text-blue-500" />
@@ -100,32 +88,13 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                 )}
                             </div>
 
-                            <div className="bg-emerald-900 rounded-3xl p-8 text-white relative overflow-hidden group">
-                                <Heart className="absolute -bottom-4 -right-4 w-24 h-24 text-white/5 rotate-12 group-hover:scale-110 transition-transform" />
-                                <h3 className="text-lg font-black italic mb-2">SOUTENEZ LE RAID</h3>
-                                <p className="text-emerald-100/70 text-sm mb-6 leading-relaxed">
-                                    Participez à l'aventure et rejoignez la communauté des raideurs passionnés.
-                                </p>
-                                <button className="w-full bg-emerald-500 hover:bg-emerald-400 py-3 rounded-2xl font-black text-xs transition-all shadow-lg shadow-emerald-950">
-                                    DEVENIR BÉNÉVOLE
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Right Column: Filters & Race List */}
-                        <div className="lg:col-span-8 space-y-8">
-                            <AdvancedFilter
-                                categories={typeCategories}
-                                onApply={handleApplyFilter}
-                            />
-
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
                                     <h2 className="text-2xl font-black text-blue-900 flex items-center gap-3 italic">
-                                        ÉPREUVES DISPONIBLES
+                                        COURSES DISPONIBLES
                                     </h2>
                                     <p className="text-xs font-bold text-blue-700/40 uppercase tracking-widest">
-                                        {filteredCourses.length} RÉSULTATS CORRESPONDANTS
+                                        {courses.length} COURSE{courses.length > 1 ? 'S' : ''}
                                     </p>
                                 </div>
                                 {isRaidManager && (
@@ -139,7 +108,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {filteredCourses.map((course) => (
+                                {courses.map((course) => (
                                     <div key={course.id} className="bg-white rounded-3xl border border-blue-50 overflow-hidden hover:shadow-2xl hover:shadow-blue-900/5 transition-all group flex flex-col border-b-4 border-b-transparent hover:border-b-emerald-500">
                                         <div className="relative h-56 overflow-hidden">
                                             <img
@@ -211,21 +180,15 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                 ))}
                             </div>
 
-                            {filteredCourses.length === 0 && (
+                            {courses.length === 0 && (
                                 <div className="bg-white rounded-[2rem] border-2 border-dashed border-blue-100 p-20 text-center space-y-4">
                                     <div className="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <Trophy className="w-10 h-10 text-blue-200" />
                                     </div>
-                                    <h3 className="text-xl font-black text-blue-900 italic">AUCUN RÉSULTAT</h3>
+                                    <h3 className="text-xl font-black text-blue-900 italic">AUCUNE COURSE</h3>
                                     <p className="text-sm text-blue-700/40 max-w-xs mx-auto font-bold uppercase tracking-widest">
-                                        Ajustez vos filtres pour découvrir de nouvelles épreuves.
+                                        Aucune course n'est disponible pour ce raid pour le moment.
                                     </p>
-                                    <button
-                                        onClick={() => handleApplyFilter({ difficulty_names: [], type_ids: [] })}
-                                        className="text-blue-600 font-black text-xs uppercase tracking-widest hover:underline pt-4"
-                                    >
-                                        VOIR TOUT
-                                    </button>
                                 </div>
                             )}
                         </div>
