@@ -27,6 +27,10 @@ Route::get('/race', [VisuRaceController::class, 'show'])->name('race.view');
 Route::get('/new-race', [NewRaceController::class, 'show'])->name('race.create');
 Route::post('/new-race', [NewRaceController::class, 'store'])->name('race.store');
 
+// Raids public routes (no auth required)
+Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
+Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
@@ -41,10 +45,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
 
-    Route::resource('raids', RaidController::class);
-
     // Club routes and club leader role
     Route::middleware('club_leader')->group(function () {
+        // Raids routes (only club leaders can manage raids)
+        Route::get('/raids/create', [RaidController::class, 'create'])->name('raids.create');
+        Route::post('/raids', [RaidController::class, 'store'])->name('raids.store');
+        Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
+        Route::put('/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
+        Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
+        
+        // Clubs routes
         Route::resource('clubs', App\Http\Controllers\ClubController::class);
 
     // Club member management
