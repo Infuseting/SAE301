@@ -160,7 +160,7 @@ class RaidCreationTest extends TestCase
             'raid_street' => '123 Raid Street',
             'raid_city' => 'Raid City',
             'raid_postal_code' => '54321',
-            'raid_number' => 2026001,
+            // raid_number is auto-generated, don't send it
         ];
 
         $response = $this->actingAs($this->clubLeader)
@@ -199,10 +199,10 @@ class RaidCreationTest extends TestCase
             'raid_date_start',
             'raid_date_end',
             'raid_contact',
-            'raid_street',
+            // 'raid_street', // Now nullable
             'raid_city',
             'raid_postal_code',
-            'raid_number',
+            // 'raid_number', // Auto-generated
         ];
 
         foreach ($requiredFields as $field) {
@@ -218,7 +218,6 @@ class RaidCreationTest extends TestCase
                 'raid_street' => '123 Street',
                 'raid_city' => 'City',
                 'raid_postal_code' => '12345',
-                'raid_number' => 2026001,
             ];
 
             unset($raidData[$field]);
@@ -372,7 +371,6 @@ class RaidCreationTest extends TestCase
             'raid_street' => '123 Street',
             'raid_city' => 'City',
             'raid_postal_code' => '12345',
-            'raid_number' => 2026001,
         ];
 
         $response = $this->actingAs($this->clubLeader)
@@ -402,7 +400,6 @@ class RaidCreationTest extends TestCase
             'raid_street' => '123 Street',
             'raid_city' => 'City',
             'raid_postal_code' => '12345',
-            'raid_number' => 2026002,
         ];
 
         $initialPeriodCount = RegistrationPeriod::count();
@@ -440,7 +437,6 @@ class RaidCreationTest extends TestCase
             'raid_street' => '123 Street',
             'raid_city' => 'City',
             'raid_postal_code' => '12345',
-            'raid_number' => 2026003,
         ];
 
         $response = $this->actingAs($this->clubLeader)
@@ -492,7 +488,6 @@ class RaidCreationTest extends TestCase
             'raid_street' => '123 Street',
             'raid_city' => 'City',
             'raid_postal_code' => '12345',
-            'raid_number' => 2026004,
         ];
 
         $response = $this->actingAs($this->clubLeader)
@@ -522,7 +517,6 @@ class RaidCreationTest extends TestCase
             'raid_street' => '123 Street',
             'raid_city' => 'City',
             'raid_postal_code' => 12345, // Integer instead of string
-            'raid_number' => 2026005,
         ];
 
         $response = $this->actingAs($this->clubLeader)
