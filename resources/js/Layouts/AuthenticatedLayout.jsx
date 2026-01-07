@@ -2,6 +2,7 @@
 import ProfileCompletionModal from '@/Components/ProfileCompletionModal';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import ClubsDropdown from '@/Components/ClubsDropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import UserMenu from '@/Components/UserMenu';
@@ -73,6 +74,12 @@ export default function AuthenticatedLayout({ header, children }) {
                             <div className="relative ms-3">
                                 <LanguageSwitcher />
                             </div>
+
+                            {user && (
+                                <div className="relative ms-3">
+                                    <ClubsDropdown />
+                                </div>
+                            )}
 
                             {user ? (
                                 <div className="hidden sm:flex sm:items-center">

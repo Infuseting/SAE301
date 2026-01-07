@@ -230,25 +230,20 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // If user has a password, validate the password
-        // If user doesn't have a password (social login), validate "CONFIRMER" confirmation text
-        if ($user->password_is_set) {
-            $request->validate([
-                'password' => ['required', 'current_password'],
-            ]);
-        } else {
-            $request->validate([
-                'password' => [
-                    'required',
-                    'string',
-                    function ($attribute, $value, $fail) {
-                        if ($value !== 'CONFIRMER') {
-                            $fail(__('messages.invalid_confirmation_text'));
-                        }
+        // All users must type "CONFIRMER" to delete their account
+        $request->validate([
+            'confirmation' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if ($value !== 'CONFIRMER') {
+                        $fail(__('messages.invalid_confirmation_text'));
                     }
-                ],
-            ]);
-        }
+                }
+            ],
+        ], [
+            'confirmation.required' => __('messages.confirmation_text_required'),
+        ]);
 
         $this->profileService->deleteAccount($user);
 

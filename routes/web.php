@@ -42,6 +42,16 @@ Route::middleware('auth')->group(function () {
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
 
     Route::resource('raids', RaidController::class);
+
+    // Club routes
+    Route::resource('clubs', App\Http\Controllers\ClubController::class);
+
+    // Club member management
+    Route::post('/clubs/{club}/join', [App\Http\Controllers\ClubMemberController::class, 'requestJoin'])->name('clubs.join');
+    Route::post('/clubs/{club}/leave', [App\Http\Controllers\ClubMemberController::class, 'leave'])->name('clubs.leave');
+    Route::post('/clubs/{club}/members/{user}/approve', [App\Http\Controllers\ClubMemberController::class, 'approveJoin'])->name('clubs.members.approve');
+    Route::post('/clubs/{club}/members/{user}/reject', [App\Http\Controllers\ClubMemberController::class, 'rejectJoin'])->name('clubs.members.reject');
+    Route::delete('/clubs/{club}/members/{user}', [App\Http\Controllers\ClubMemberController::class, 'removeMember'])->name('clubs.members.remove');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -63,6 +73,11 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
 
     // logs
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
+
+    // Club approval
+    Route::get('/clubs/pending', [App\Http\Controllers\Admin\ClubApprovalController::class, 'index'])->name('clubs.pending')->middleware('can:accept-club');
+    Route::post('/clubs/{club}/approve', [App\Http\Controllers\Admin\ClubApprovalController::class, 'approve'])->name('clubs.approve')->middleware('can:accept-club');
+    Route::post('/clubs/{club}/reject', [App\Http\Controllers\Admin\ClubApprovalController::class, 'reject'])->name('clubs.reject')->middleware('can:accept-club');
 });
 
 require __DIR__ . '/auth.php';

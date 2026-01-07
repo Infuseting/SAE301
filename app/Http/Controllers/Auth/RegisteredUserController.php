@@ -56,6 +56,10 @@ class RegisteredUserController extends Controller
                 'ip' => $request->ip(),
             ])
             ->log('USER_CREATED');
+
+        // Assign default 'user' role
+        $user->assignRole('user');
+
         event(new Registered($user));
 
         Auth::login($user);

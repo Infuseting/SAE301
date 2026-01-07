@@ -12,6 +12,7 @@ class AdminController extends Controller
     {
         $stats = [
             'logs' => Activity::count(),
+            'pendingClubs' => \App\Models\Club::where('is_approved', false)->count(),
         ];
 
         return inertia('Admin/Dashboard', [

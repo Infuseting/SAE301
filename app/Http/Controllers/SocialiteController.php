@@ -137,6 +137,9 @@ class SocialiteController extends Controller
                 'adh_id' => null,
                 'doc_id' => null,
             ]);
+
+            // Assign default 'user' role
+            $user->assignRole('user');
         }
 
         // Link account
