@@ -11,6 +11,7 @@ use App\Models\ParamRunner;
 use App\Models\ParamTeam;
 use App\Models\Raid;
 use App\Models\PriceAgeCategory;
+use App\Models\AgeCategorie;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -70,9 +71,16 @@ class NewRaceController extends Controller
             ])
             ->toArray();
 
+        // Get all age categories
+        $ageCategories = AgeCategorie::select('id', 'nom', 'age_min', 'age_max')
+            ->orderBy('age_min')
+            ->get()
+            ->toArray();
+
         return Inertia::render('Race/NewRace', [    
             'users' => $users,
             'types' => $types,
+            'ageCategories' => $ageCategories,
             'raid_id' => $raidId,
             'raid' => $raid,
             'auth' => [
