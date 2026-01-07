@@ -6,8 +6,7 @@ use App\Http\Controllers\TeamAgeController;
 
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
 Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
-
-Route::get('/user', \App\Http\Controllers\Api\UserController::class)->middleware('auth:sanctum');
+Route::get('/users/search', [\App\Http\Controllers\Api\UserController::class, 'search']);
 
 /*
 |--------------------------------------------------------------------------
