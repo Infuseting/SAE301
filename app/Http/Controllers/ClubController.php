@@ -99,15 +99,18 @@ class ClubController extends Controller
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             required={"club_name","club_street","club_city","club_postal_code"},
-     *             @OA\Property(property="club_name", type="string", example="Club Orienteering Paris"),
-     *             @OA\Property(property="club_street", type="string", example="123 Rue de la Paix"),
-     *             @OA\Property(property="club_city", type="string", example="Paris"),
-     *             @OA\Property(property="club_postal_code", type="string", example="75001"),
-     *             @OA\Property(property="club_number", type="string", example="FR-001"),
-     *             @OA\Property(property="ffso_id", type="string", example="FFSO-12345"),
-     *             @OA\Property(property="description", type="string", example="Club description")
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"club_name","club_street","club_city","club_postal_code"},
+     *                 @OA\Property(property="club_name", type="string", example="Club Orienteering Paris"),
+     *                 @OA\Property(property="club_street", type="string", example="123 Rue de la Paix"),
+     *                 @OA\Property(property="club_city", type="string", example="Paris"),
+     *                 @OA\Property(property="club_postal_code", type="string", example="75001"),
+     *                 @OA\Property(property="ffso_id", type="string", example="FFSO-12345"),
+     *                 @OA\Property(property="description", type="string", example="Club description"),
+     *                 @OA\Property(property="club_image", type="string", format="binary")
+     *             )
      *         )
      *     ),
      *     @OA\Response(
@@ -259,14 +262,17 @@ class ClubController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="club_name", type="string"),
-     *             @OA\Property(property="club_street", type="string"),
-     *             @OA\Property(property="club_city", type="string"),
-     *             @OA\Property(property="club_postal_code", type="string"),
-     *             @OA\Property(property="club_number", type="string"),
-     *             @OA\Property(property="ffso_id", type="string"),
-     *             @OA\Property(property="description", type="string")
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="club_name", type="string"),
+     *                 @OA\Property(property="club_street", type="string"),
+     *                 @OA\Property(property="club_city", type="string"),
+     *                 @OA\Property(property="club_postal_code", type="string"),
+     *                 @OA\Property(property="ffso_id", type="string"),
+     *                 @OA\Property(property="description", type="string"),
+     *                 @OA\Property(property="club_image", type="string", format="binary")
+     *             )
      *         )
      *     ),
      *     @OA\Response(
