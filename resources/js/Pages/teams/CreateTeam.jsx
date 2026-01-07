@@ -4,22 +4,40 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import Checkbox from '@/Components/Checkbox';
-import Modal from '@/Components/Modal';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function CreateTeam() {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         image: null,
+        leader_id: '',
         teammates: [],
         join_team: false,
     });
-    const [showModal, setShowModal] = useState(false);
-    const [search, setSearch] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
+    const [selectedLeader, setSelectedLeader] = useState(null);
+    const [showLeaderDropdown, setShowLeaderDropdown] = useState(false);
+    const [showTeammateDropdown, setShowTeammateDropdown] = useState(false);
+    const [leaderSearch, setLeaderSearch] = useState('');
+    const [teammateSearch, setTeammateSearch] = useState('');
     const messages = usePage().props.translations?.messages || {};
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!event.target.closest('.dropdown-container')) {
+                setShowLeaderDropdown(false);
+                setShowTeammateDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const submit = (e) => {
         e.preventDefault();
@@ -45,12 +63,59 @@ export default function CreateTeam() {
         if (!data.teammates.some(t => t.id === userId)) {
             setData('teammates', [...data.teammates, teammate]);
         }
-        setShowModal(false);
-        setSearch('');
+        setShowTeammateDropdown(false);
+        setTeammateSearch('');
+    };
+
+    const selectLeader = (userId, name, email) => {
+        const leader = { id: userId, name, email };
+        setSelectedLeader(leader);
+        setData('leader_id', userId);
+        setShowLeaderDropdown(false);
+        setLeaderSearch('');
     };
 
     const removeTeammate = (userId) => {
         setData('teammates', data.teammates.filter(t => t.id !== userId));
+    };
+
+    const removeLeader = () => {
+        setSelectedLeader(null);
+        setData('leader_id', '');
+        setLeaderSearch('');
+        setShowLeaderDropdown(false);
+    };
+
+    const performLeaderSearch = (searchTerm) => {
+        // Mock search results - in a real app, this would be an API call
+        const mockResults = [
+            { id: 1, name: 'Jean Dupont', email: 'jean@example.com' },
+            { id: 2, name: 'Marie Martin', email: 'marie@example.com' },
+            { id: 3, name: 'Pierre Durand', email: 'pierre@example.com' },
+            { id: 4, name: 'Sophie Leroy', email: 'sophie@example.com' },
+            { id: 5, name: 'Thomas Moreau', email: 'thomas@example.com' },
+        ].filter(person =>
+            person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            person.email.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        return mockResults;
+    };
+
+    const performTeammateSearch = (searchTerm) => {
+        // Mock search results - in a real app, this would be an API call
+        const mockResults = [
+            { id: 1, name: 'Jean Dupont', email: 'jean@example.com' },
+            { id: 2, name: 'Marie Martin', email: 'marie@example.com' },
+            { id: 3, name: 'Pierre Durand', email: 'pierre@example.com' },
+            { id: 4, name: 'Sophie Leroy', email: 'sophie@example.com' },
+            { id: 5, name: 'Thomas Moreau', email: 'thomas@example.com' },
+            { id: 6, name: 'Alice Bernard', email: 'alice@example.com' },
+            { id: 7, name: 'Lucas Petit', email: 'lucas@example.com' },
+        ].filter(person =>
+            person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            person.email.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        return mockResults;
     };
 
     return (
@@ -159,6 +224,96 @@ export default function CreateTeam() {
                             </div>
                         </div>
 
+                        {/* Team Leader Selection */}
+                        <div className="space-y-4 border-t border-gray-200 pt-8">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                        {messages.team_leader || 'Chef de l\'équipe'}
+                                    </h3>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {messages.team_leader_description || 'Sélectionnez le chef de votre équipe'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Leader Search and Selection */}
+                            {!selectedLeader && (
+                                <div className="relative dropdown-container">
+                                    <div className="flex flex-col sm:flex-row gap-2">
+                                        <div className="flex-1 relative">
+                                            <TextInput
+                                                value={leaderSearch}
+                                                onChange={(e) => setLeaderSearch(e.target.value)}
+                                                onFocus={() => setShowLeaderDropdown(true)}
+                                                placeholder="Rechercher un chef d'équipe..."
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-transparent transition"
+                                            />
+                                            {showLeaderDropdown && (
+                                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                    {performLeaderSearch(leaderSearch).length > 0 ? (
+                                                        performLeaderSearch(leaderSearch).map((person) => (
+                                                            <div
+                                                                key={person.id}
+                                                                className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                                                onClick={() => selectLeader(person.id, person.name, person.email)}
+                                                            >
+                                                                <div className="font-medium text-gray-900">{person.name}</div>
+                                                                <div className="text-sm text-gray-600">{person.email}</div>
+                                                            </div>
+                                                        ))
+                                                    ) : leaderSearch ? (
+                                                        <div className="px-4 py-3 text-gray-500 text-center">
+                                                            Aucun résultat trouvé pour "{leaderSearch}"
+                                                        </div>
+                                                    ) : (
+                                                        <div className="px-4 py-3 text-gray-500 text-center">
+                                                            Tapez pour rechercher...
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Leader Display */}
+                            <div className="space-y-2">
+                                {selectedLeader ? (
+                                    <div
+                                        className="flex items-center justify-between p-4 border rounded-lg hover:opacity-90 transition"
+                                        style={{backgroundColor: 'rgba(4, 120, 87, 0.08)', borderColor: 'rgba(4, 120, 87, 0.3)'}}
+                                    >
+                                        <div className="flex-1">
+                                            <p className="font-medium text-gray-900">{selectedLeader.name}</p>
+                                            <p className="text-sm text-gray-600">{selectedLeader.email}</p>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Chef d'équipe
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={removeLeader}
+                                            className="ml-4 px-3 py-1 text-sm rounded transition"
+                                            style={{color: 'rgb(220, 38, 38)', backgroundColor: 'rgba(220, 38, 38, 0.1)'}}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.2)'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.1)'}
+                                        >
+                                            {messages.remove_leader || 'Supprimer'}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="px-4 py-8 bg-gray-50 rounded-lg text-center">
+                                        <p className="text-gray-500">
+                                            {messages.no_leader_selected || 'Aucun chef sélectionné'}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            <InputError message={errors.leader_id} className="mt-2" />
+                        </div>
+
                         {/* Teammates Section */}
                         <div className="space-y-4 border-t border-gray-200 pt-8">
                             <div className="flex items-center justify-between">
@@ -170,16 +325,45 @@ export default function CreateTeam() {
                                         Ajoutez des coéquipiers pour former votre équipe complète
                                     </p>
                                 </div>
-                                <SecondaryButton 
-                                    type="button" 
-                                    onClick={() => setShowModal(true)}
-                                    className="flex items-center gap-2"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    {messages.add_teammate || 'Ajouter un coéquipier'}
-                                </SecondaryButton>
+                            </div>
+
+                            {/* Teammate Search and Selection */}
+                            <div className="relative dropdown-container">
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    <div className="flex-1 relative">
+                                        <TextInput
+                                            value={teammateSearch}
+                                            onChange={(e) => setTeammateSearch(e.target.value)}
+                                            onFocus={() => setShowTeammateDropdown(true)}
+                                            placeholder="Rechercher un coéquipier..."
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-transparent transition"
+                                        />
+                                        {showTeammateDropdown && (
+                                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                {performTeammateSearch(teammateSearch).length > 0 ? (
+                                                    performTeammateSearch(teammateSearch).map((person) => (
+                                                        <div
+                                                            key={person.id}
+                                                            className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                                            onClick={() => addTeammate(person.id, person.name, person.email)}
+                                                        >
+                                                            <div className="font-medium text-gray-900">{person.name}</div>
+                                                            <div className="text-sm text-gray-600">{person.email}</div>
+                                                        </div>
+                                                    ))
+                                                ) : teammateSearch ? (
+                                                    <div className="px-4 py-3 text-gray-500 text-center">
+                                                        Aucun résultat trouvé pour "{teammateSearch}"
+                                                    </div>
+                                                ) : (
+                                                    <div className="px-4 py-3 text-gray-500 text-center">
+                                                        Tapez pour rechercher...
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Teammates List */}
@@ -242,50 +426,6 @@ export default function CreateTeam() {
                     </form>
                 </div>
             </div>
-
-            {/* Modal for Teammate Selection */}
-            <Modal show={showModal} onClose={() => setShowModal(false)}>
-                <div className="p-6 sm:p-8 max-w-2xl">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
-                            {messages.add_teammate || 'Ajouter un coéquipier'}
-                        </h3>
-                        <button
-                            onClick={() => setShowModal(false)}
-                            className="text-gray-400 hover:text-gray-600 transition"
-                        >
-                            <span className="sr-only">Fermer</span>
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    {/* Search Field */}
-                    <div className="mb-6 space-y-2">
-                        <InputLabel htmlFor="search" value="Rechercher une personne" />
-                        <div className="flex flex-col sm:flex-row gap-2">
-                            <TextInput
-                                id="search"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Nom, email ou téléphone..."
-                                className="flex-1 px-4 py-3"
-                            />
-                            <PrimaryButton className="w-full sm:w-auto" style={{backgroundColor: 'rgb(4, 120, 87)'}}>
-                                {messages.search || 'Rechercher'}
-                            </PrimaryButton>
-                        </div>
-                    </div>
-
-                    {/* Results Area */}
-                    <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto border" style={{borderColor: 'rgba(4, 120, 87, 0.2)'}}>
-                        <p className="text-center text-gray-500 py-8">
-                            Aucun résultat pour le moment. Commencez une recherche.
-                        </p>
-                    </div>
-                </div>
-            </Modal>
         </AuthenticatedLayout>
     );
 }

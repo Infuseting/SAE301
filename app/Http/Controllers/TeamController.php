@@ -21,11 +21,21 @@ class TeamController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'image' => 'nullable|image|max:2048',
             'leader_id' => 'required|exists:members,adh_id',
+            'teammates' => 'nullable|array',
+            'join_team' => 'nullable|boolean',
         ]);
+
+        // Create the team
+        $team = Team::create([
+            'equ_name' => $validated['name'],
+            'equ_image' => $request->file('image') ? $request->file('image')->store('teams', 'public') : null,
+            'adh_id' => $validated['leader_id'],
+        ]);
+
         return redirect()->route('home')->with('success', 'Team created successfully!');
     }
 }
