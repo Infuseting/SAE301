@@ -13,7 +13,7 @@ class TeamController extends Controller
      */
     public function create()
     {
-        return Inertia::render('teams/CreateTeam');
+        return Inertia::render('Team/CreateTeam');
     }
 
     /**

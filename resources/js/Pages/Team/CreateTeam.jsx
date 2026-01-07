@@ -105,6 +105,12 @@ export default function CreateTeam() {
         setShowLeaderDropdown(false);
     };
 
+    /**
+     * Searches for users to assign as team leader.
+     * Makes a debounced API call to fetch matching users.
+     * 
+     * @param {string} searchTerm - The search query (name or email)
+     */
     const performLeaderSearch = async (searchTerm) => {
         if (!searchTerm.trim()) {
             setLeaderSearchResults([]);
@@ -112,10 +118,20 @@ export default function CreateTeam() {
         }
 
         try {
-            const response = await fetch(`/users/search?q=${encodeURIComponent(searchTerm)}`);
+            const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin'
+            });
+
             if (!response.ok) {
-                throw new Error('Failed to fetch users');
+                console.error(`Search failed with status ${response.status}`);
+                setLeaderSearchResults([]);
+                return;
             }
+
             const users = await response.json();
             setLeaderSearchResults(users);
         } catch (error) {
@@ -124,6 +140,12 @@ export default function CreateTeam() {
         }
     };
 
+    /**
+     * Searches for users to add as team members.
+     * Makes a debounced API call to fetch matching users.
+     * 
+     * @param {string} searchTerm - The search query (name or email)
+     */
     const performTeammateSearch = async (searchTerm) => {
         if (!searchTerm.trim()) {
             setTeammateSearchResults([]);
@@ -131,10 +153,20 @@ export default function CreateTeam() {
         }
 
         try {
-            const response = await fetch(`/users/search?q=${encodeURIComponent(searchTerm)}`);
+            const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin'
+            });
+
             if (!response.ok) {
-                throw new Error('Failed to fetch users');
+                console.error(`Search failed with status ${response.status}`);
+                setTeammateSearchResults([]);
+                return;
             }
+
             const users = await response.json();
             setTeammateSearchResults(users);
         } catch (error) {

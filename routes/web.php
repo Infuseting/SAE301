@@ -52,11 +52,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/clubs/{club}/members/{user}/approve', [App\Http\Controllers\ClubMemberController::class, 'approveJoin'])->name('clubs.members.approve');
     Route::post('/clubs/{club}/members/{user}/reject', [App\Http\Controllers\ClubMemberController::class, 'rejectJoin'])->name('clubs.members.reject');
     Route::delete('/clubs/{club}/members/{user}', [App\Http\Controllers\ClubMemberController::class, 'removeMember'])->name('clubs.members.remove');
-});
 
-Route::get('/createTeam', [App\Http\Controllers\TeamController::class, 'create'])->name('team.create');
-Route::post('/createTeam', [App\Http\Controllers\TeamController::class, 'store'])->name('team.store');
-Route::get('/users/search', [App\Http\Controllers\Api\UserController::class, 'search'])->name('users.search')->middleware('auth');
+    // Team creation routes
+    Route::get('/createTeam', [App\Http\Controllers\TeamController::class, 'create'])->name('team.create');
+    Route::post('/createTeam', [App\Http\Controllers\TeamController::class, 'store'])->name('team.store');
+});
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
     // dashboard
