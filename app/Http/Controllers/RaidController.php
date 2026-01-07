@@ -42,10 +42,53 @@ class RaidController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     * Automatically loads the user's club and its members
      */
     public function create(): Response
     {
-        return Inertia::render('Raid/Create');
+        // Get the club created by the current user
+        $userClub = \DB::table('clubs')
+            ->where('created_by', auth()->id())
+            ->first(['club_id', 'club_name']);
+
+        // Log current user info
+        \Log::info('User connecté:', [
+            'user_id' => auth()->id(),
+            'user_name' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
+            'user_adh_id' => auth()->user()->adh_id,
+            'club_found' => $userClub ? $userClub->club_name : 'Aucun club'
+        ]);
+
+        // Get members (adherents) of this club from club_user table
+        $clubMembers = [];
+        if ($userClub) {
+            $clubMembers = \DB::table('club_user')
+                ->join('users', 'club_user.user_id', '=', 'users.id')
+                ->where('club_user.club_id', $userClub->club_id)
+                ->select('users.adh_id', 'users.first_name', 'users.last_name')
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'adh_id' => $user->adh_id,
+                        'full_name' => $user->first_name . ' ' . $user->last_name,
+                        'first_name' => $user->first_name,
+                        'last_name' => $user->last_name,
+                    ];
+                });
+
+            // Log club members
+            \Log::info('Liste des responsables possibles:', [
+                'club_id' => $userClub->club_id,
+                'club_name' => $userClub->club_name,
+                'members_count' => $clubMembers->count(),
+                'members' => $clubMembers->toArray()
+            ]);
+        }
+
+        return Inertia::render('Raid/Create', [
+            'userClub' => $userClub,
+            'clubMembers' => $clubMembers,
+        ]);
     }
 
     /**
@@ -80,7 +123,22 @@ class RaidController extends Controller
      */
     public function store(StoreRaidRequest $request): RedirectResponse
     {
-        $raid = Raid::create($request->validated());
+        $validated = $request->validated();
+        
+        // Create registration period first
+        $registrationPeriod = \App\Models\RegistrationPeriod::create([
+            'ins_start_date' => $validated['ins_start_date'],
+            'ins_end_date' => $validated['ins_end_date'],
+        ]);
+        
+        // Add ins_id to raid data
+        $validated['ins_id'] = $registrationPeriod->ins_id;
+        
+        // Remove inscription dates from raid data (they're in registration_period table)
+        unset($validated['ins_start_date'], $validated['ins_end_date']);
+        
+        // Create the raid
+        $raid = Raid::create($validated);
         
         return redirect()->route('raids.index')
             ->with('success', 'Raid created successfully.');

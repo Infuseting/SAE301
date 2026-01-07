@@ -54,7 +54,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user() ? array_merge(
                     $request->user()->load('roles')->append(['has_completed_profile', 'profile_photo_url'])->toArray(),
-                    ['permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray()]
+                    [
+                        'permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray(),
+                        'is_club_leader' => $request->user()->isClubLeader(),
+                    ]
                 ) : null,
             ],
             'locale' => $locale,
