@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('has_participate', function (Blueprint $table) {
             $table->unsignedBigInteger('id');
             $table->unsignedBigInteger('equ_id');
+        
             $table->foreign('id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('equ_id')->references('equ_id')->on('teams')->onDelete('cascade');
             $table->timestamps();

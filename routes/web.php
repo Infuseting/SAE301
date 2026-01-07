@@ -17,6 +17,7 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/map', [App\Http\Controllers\MapController::class, 'index'])->name('map.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
@@ -30,10 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [App\Http\Controllers\SetPasswordController::class, 'store'])->name('password.set');
-    
 });
-
-
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
     // dashboard
