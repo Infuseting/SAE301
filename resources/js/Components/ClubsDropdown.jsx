@@ -27,7 +27,7 @@ export default function ClubsDropdown() {
     }, []);
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative text-center" ref={dropdownRef}>
             {/* Dropdown Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
@@ -66,7 +66,7 @@ export default function ClubsDropdown() {
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                <div className="md:absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
                         {/* My Clubs Section */}
                         {hasClubs && (
@@ -78,7 +78,7 @@ export default function ClubsDropdown() {
                                     <Link
                                         key={club.club_id}
                                         href={`/clubs/${club.club_id}`}
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 text-center hover:text-emerald-600 transition"
                                         onClick={() => setIsOpen(false)}
                                     >
                                         <div className="flex items-center">
@@ -107,7 +107,7 @@ export default function ClubsDropdown() {
                         {/* Browse All Clubs */}
                         <Link
                             href="/clubs"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                            className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition"
                             onClick={() => setIsOpen(false)}
                         >
                             <div className="flex items-center">
