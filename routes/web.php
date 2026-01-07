@@ -59,7 +59,7 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
     Route::post('/users/{user}/role', [UserController::class, 'assignRole'])->name('users.assignRole')->middleware('can:grant role');
     Route::delete('/users/{user}/role', [UserController::class, 'removeRole'])->name('users.removeRole')->middleware('can:grant role');
 
-    
+
 
     // logs
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
@@ -86,7 +86,3 @@ Route::get('/lang/{locale}', function ($locale) {
 
     return redirect()->back();
 })->name('lang.switch');
-
-
-
-
