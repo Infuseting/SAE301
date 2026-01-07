@@ -26,6 +26,11 @@ Route::prefix('team')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->as('api.')->group(function () {
+    // Current user
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    
     // Club CRUD
     Route::apiResource('clubs', \App\Http\Controllers\ClubController::class);
 

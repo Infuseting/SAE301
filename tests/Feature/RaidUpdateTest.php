@@ -158,7 +158,7 @@ class RaidUpdateTest extends TestCase
             $page->component('Raid/Edit')
                 ->has('raid')
                 ->has('userClub')
-                ->has('clubMembers')
+                ->has('clubAdherents')
         );
     }
 

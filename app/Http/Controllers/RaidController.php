@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRaidRequest;
 use App\Http\Requests\UpdateRaidRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -346,9 +347,9 @@ class RaidController extends Controller
         }
 
         return Inertia::render('Raid/Edit', [
-            'raid' => $raidData,
+            'raid' => $raid,
             'userClub' => $userClub,
-            'clubMembers' => $clubMembers,
+            'clubAdherents' => $clubAdherents,
         ]);
     }
 
@@ -392,7 +393,25 @@ class RaidController extends Controller
      */
     public function update(UpdateRaidRequest $request, Raid $raid): RedirectResponse
     {
+        // Check authorization
+        $this->authorize('update', $raid);
+        
         $validated = $request->validated();
+        
+        // Handle image upload if provided
+        if ($request->hasFile('raid_image')) {
+            // Delete old image if exists
+            if ($raid->raid_image) {
+                Storage::disk('public')->delete($raid->raid_image);
+            }
+            
+            // Store new image
+            $path = $request->file('raid_image')->store('raids', 'public');
+            $validated['raid_image'] = $path;
+        } elseif (!$request->has('raid_image')) {
+            // If no image in request, keep existing
+            unset($validated['raid_image']);
+        }
         
         // Update registration period if it exists
         if ($raid->ins_id && $raid->registrationPeriod) {
