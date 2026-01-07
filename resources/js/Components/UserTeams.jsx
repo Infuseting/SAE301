@@ -27,7 +27,7 @@ export default function UserTeams({ teams = [] }) {
         
     ];
 
-    const displayTeams = teams.length > 0 ? teams : demoTeams;
+    const displayTeams = teams;
 
     return (
         <div className="py-6">

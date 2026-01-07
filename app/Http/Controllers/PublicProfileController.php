@@ -49,6 +49,24 @@ class PublicProfileController extends Controller
                 'email' => $user->email,
                 'created_at' => $user->created_at,
             ],
+            'teams' => $user->teams()->get()->map(function ($team) {
+                return [
+                    'id' => $team->equ_id,
+                    'name' => $team->equ_name,
+                    'image' => $team->equ_image,
+                    'members' => $team->users()->get()->map(fn ($u) => [
+                        'id' => $u->id,
+                        'name' => $u->name,
+                    ])->toArray(),
+                ];
+            })->toArray(),
+            'races' => $user->races()->get()->map(function ($race) {
+                return [
+                    'id' => $race->race_id, 
+                    'name' => $race->race_name, 
+                    'date' => $race->race_date, 
+                ];
+            })->toArray(),
             'isOwner' => $isOwner,
         ]);
     }
