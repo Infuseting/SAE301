@@ -9,35 +9,8 @@ import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
 import ProfileCompletionModal from "@/Components/ProfileCompletionModal";
 
-export default function Welcome({ auth }) {
+export default function Welcome({ auth, upcomingRaids }) {
     const messages = usePage().props.translations?.messages || {};
-
-    const upcomingRaces = [
-        {
-            id: 1,
-            title: "La Boussole de la Forêt",
-            date: "12 Oct 2026",
-            location: "Fontainebleau, FR",
-            type: "Moyenne Distance",
-            image: "https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-        },
-        {
-            id: 2,
-            title: "Sprint Urbain de Paris",
-            date: "25 Oct 2026",
-            location: "Paris, FR",
-            type: "Sprint",
-            image: "https://images.unsplash.com/photo-1552674605-5d226a5beb38?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-        },
-        {
-            id: 3,
-            title: "Nocturne des Vosges",
-            date: "05 Nov 2026",
-            location: "Gerardmer, FR",
-            type: "Nuit",
-            image: "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-        },
-    ];
     const [startDate, setStartDate] = useState(null);
     const [distanceRange, setDistanceRange] = useState([0, 50]);
 
@@ -297,7 +270,7 @@ export default function Welcome({ auth }) {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {(messages.upcoming_races_list || []).map(
+                            {(upcomingRaids || []).map(
                                 (race) => (
                                     <Link
                                         key={race.id}

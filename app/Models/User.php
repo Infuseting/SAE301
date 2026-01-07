@@ -237,9 +237,11 @@ class User extends Authenticatable
         }
 
         // Check if user is a manager of any club in the pivot table
-        return $this->clubs()
+        $isManager = $this->clubs()
             ->wherePivot('role', 'manager')
             ->wherePivot('status', 'approved')
             ->exists();
+
+        return $isManager;
     }
 }

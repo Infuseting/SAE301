@@ -35,7 +35,7 @@ class UpdateRaidRequest extends FormRequest
                 'adh_id' => (int) $this->adh_id,
             ]);
         }
-        
+
         if ($this->has('clu_id') && is_numeric($this->clu_id)) {
             $this->merge([
                 'clu_id' => (int) $this->clu_id,
@@ -55,17 +55,17 @@ class UpdateRaidRequest extends FormRequest
             'raid_description' => ['nullable', 'string'],
             'raid_date_start' => ['required', 'date'],
             'raid_date_end' => ['required', 'date', 'after:raid_date_start'],
-            
+
             // Inscription period dates
             'ins_start_date' => ['required', 'date', 'before:raid_date_start'],
             'ins_end_date' => ['required', 'date', 'after:ins_start_date', 'before:raid_date_start'],
-            
+
             // Foreign keys (required)
             'adh_id' => [
-                'required', 
-                'integer', 
+                'required',
+                'integer',
                 'exists:members,adh_id',
-                function($attribute, $value, $fail) {
+                function ($attribute, $value, $fail) {
                     $clubId = $this->input('clu_id');
                     if ($clubId) {
                         $isMemberOfClub = \DB::table('club_user')
@@ -80,14 +80,14 @@ class UpdateRaidRequest extends FormRequest
                 }
             ],
             'clu_id' => ['required', 'integer', 'exists:clubs,club_id'],
-            
+
             // Required fields
             'raid_contact' => ['required', 'email', 'max:100'],
             'raid_street' => ['required', 'string', 'max:100'],
             'raid_city' => ['required', 'string', 'max:100'],
             'raid_postal_code' => ['required', 'string', 'max:20'],
             'raid_number' => ['required', 'integer'],
-            
+
             // Optional fields
             'raid_site_url' => ['nullable', 'url', 'max:255'],
             'raid_image' => ['nullable', 'string', 'max:255'],

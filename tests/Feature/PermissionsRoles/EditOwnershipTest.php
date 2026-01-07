@@ -213,7 +213,7 @@ class EditOwnershipTest extends TestCase
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam1 = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -235,7 +235,7 @@ class EditOwnershipTest extends TestCase
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam2 = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -305,10 +305,22 @@ class EditOwnershipTest extends TestCase
         }
 
         $permissions = [
-            'create-club', 'edit-own-club', 'delete-own-club', 'view-clubs',
-            'create-raid', 'edit-own-raid', 'delete-own-raid', 'view-raids',
-            'create-race', 'edit-own-race', 'delete-own-race', 'view-races',
-            'manage-all-raids', 'manage-all-clubs', 'manage-all-races', 'access-admin',
+            'create-club',
+            'edit-own-club',
+            'delete-own-club',
+            'view-clubs',
+            'create-raid',
+            'edit-own-raid',
+            'delete-own-raid',
+            'view-raids',
+            'create-race',
+            'edit-own-race',
+            'delete-own-race',
+            'view-races',
+            'manage-all-raids',
+            'manage-all-clubs',
+            'manage-all-races',
+            'access-admin',
             'register-to-race'
         ];
         foreach ($permissions as $permission) {
@@ -343,7 +355,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableClubUser1)
             ->get(route('raids.edit', $this->raid1->raid_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -354,7 +366,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableClubUser1)
             ->get(route('raids.edit', $this->raid2->raid_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -375,7 +387,7 @@ class EditOwnershipTest extends TestCase
                 'raid_city' => 'Updated City',
                 'raid_postal_code' => '99999',
             ]);
-        
+
         $response->assertRedirect();
     }
 
@@ -403,8 +415,9 @@ class EditOwnershipTest extends TestCase
                 'raid_city' => 'Hack City',
                 'raid_postal_code' => '00000',
                 'raid_number' => 999,
+                'raid_site_url' => 'http://hacker.com',
             ]);
-        
+
         $response->assertStatus(403);
     }
 
@@ -415,7 +428,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableClubUser1)
             ->delete(route('raids.destroy', $this->raid1->raid_id));
-        
+
         $response->assertRedirect();
     }
 
@@ -426,7 +439,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableClubUser1)
             ->delete(route('raids.destroy', $this->raid2->raid_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -441,7 +454,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableCourseUser1)
             ->get(route('races.edit', $this->race1->race_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -452,7 +465,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableCourseUser1)
             ->get(route('races.edit', $this->race2->race_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -464,12 +477,12 @@ class EditOwnershipTest extends TestCase
     public function test_responsable_course_can_update_own_race(): void
     {
         $this->markTestSkipped('races.update route not yet implemented. Add PUT route for race updates with ownership verification.');
-        
+
         $response = $this->actingAs($this->responsableCourseUser1)
             ->put(route('races.update', $this->race1->race_id), [
                 'race_name' => 'Updated Race Name',
             ]);
-        
+
         $response->assertRedirect();
     }
 
@@ -481,12 +494,12 @@ class EditOwnershipTest extends TestCase
     public function test_responsable_course_cannot_update_other_users_race(): void
     {
         $this->markTestSkipped('races.update route not yet implemented. Add PUT route for race updates with ownership verification.');
-        
+
         $response = $this->actingAs($this->responsableCourseUser1)
             ->put(route('races.update', $this->race2->race_id), [
                 'race_name' => 'Hacked Race Name',
             ]);
-        
+
         $response->assertStatus(403);
     }
 
@@ -498,10 +511,10 @@ class EditOwnershipTest extends TestCase
     public function test_responsable_course_can_delete_own_race(): void
     {
         $this->markTestSkipped('races.destroy route not yet implemented. Add DELETE route for race deletion with ownership verification.');
-        
+
         $response = $this->actingAs($this->responsableCourseUser1)
             ->delete(route('races.destroy', $this->race1->race_id));
-        
+
         $response->assertRedirect();
     }
 
@@ -513,10 +526,10 @@ class EditOwnershipTest extends TestCase
     public function test_responsable_course_cannot_delete_other_users_race(): void
     {
         $this->markTestSkipped('races.destroy route not yet implemented. Add DELETE route for race deletion with ownership verification.');
-        
+
         $response = $this->actingAs($this->responsableCourseUser1)
             ->delete(route('races.destroy', $this->race2->race_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -532,7 +545,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->gestionnaireRaidUser)
             ->get(route('raids.edit', $this->raidForGestionnaire->raid_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -544,7 +557,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->gestionnaireRaidUser)
             ->get(route('raids.edit', $this->raid2->raid_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -608,7 +621,7 @@ class EditOwnershipTest extends TestCase
 
         $response = $this->actingAs($this->adminUser)
             ->delete(route('raids.destroy', $raidToDelete->raid_id));
-        
+
         $response->assertRedirect();
     }
 
@@ -620,13 +633,13 @@ class EditOwnershipTest extends TestCase
     public function test_admin_can_delete_any_race(): void
     {
         $this->markTestSkipped('races.destroy route not yet implemented. Add DELETE route for race deletion.');
-        
+
         // Create a new race to delete
         $paramRunner = ParamRunner::create([
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -646,7 +659,7 @@ class EditOwnershipTest extends TestCase
 
         $response = $this->actingAs($this->adminUser)
             ->delete(route('races.destroy', $raceToDelete->race_id));
-        
+
         $response->assertRedirect();
     }
 
@@ -664,7 +677,7 @@ class EditOwnershipTest extends TestCase
             ->put(route('clubs.update', $this->club2Id), [
                 'club_name' => 'Hacked Club Name',
             ]);
-        
+
         $response->assertStatus(403);
     }
 
@@ -686,7 +699,7 @@ class EditOwnershipTest extends TestCase
                 'raid_city' => 'City',
                 'raid_postal_code' => '12345',
             ]);
-        
+
         // Should be redirected with error or forbidden
         $this->assertTrue(in_array($response->status(), [302, 403, 422]));
     }

@@ -6,8 +6,7 @@ use App\Http\Controllers\TeamAgeController;
 
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
 Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
-
-Route::get('/user', \App\Http\Controllers\Api\UserController::class)->middleware('auth:sanctum');
+Route::get('/users/search', [\App\Http\Controllers\Api\UserController::class, 'search']);
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +25,10 @@ Route::prefix('team')->group(function () {
 | Club API Routes
 |--------------------------------------------------------------------------
 */
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
 Route::middleware('auth:sanctum')->as('api.')->group(function () {
     // Club CRUD
     Route::apiResource('clubs', \App\Http\Controllers\ClubController::class);

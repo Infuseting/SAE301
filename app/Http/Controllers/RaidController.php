@@ -50,7 +50,7 @@ class RaidController extends Controller
             ->withCount('races')
             ->orderBy('raid_date_start', 'desc')
             ->get();
-        
+
         return Inertia::render('Raid/List', [
             'raids' => $raids,
             'filters' => [
@@ -163,22 +163,42 @@ class RaidController extends Controller
     public function store(StoreRaidRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        
+
+        // Generate unique raid_number (format: YYYYNNN where NNN is sequential)
+        $year = date('Y');
+        $lastRaid = Raid::whereYear('created_at', $year)
+            ->orderBy('raid_number', 'desc')
+            ->first();
+
+        if ($lastRaid && $lastRaid->raid_number) {
+            // Extract the last sequential number and increment
+            $lastNumber = (int) substr($lastRaid->raid_number, -3);
+            $validated['raid_number'] = (int) ($year . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT));
+        } else {
+            // First raid of the year
+            $validated['raid_number'] = (int) ($year . '001');
+        }
+
+        // Set default value for raid_street if not provided (DB field is NOT NULL)
+        if (empty($validated['raid_street'])) {
+            $validated['raid_street'] = 'Non spécifiée';
+        }
+
         // Create registration period first
         $registrationPeriod = \App\Models\RegistrationPeriod::create([
             'ins_start_date' => $validated['ins_start_date'],
             'ins_end_date' => $validated['ins_end_date'],
         ]);
-        
+
         // Add ins_id to raid data
         $validated['ins_id'] = $registrationPeriod->ins_id;
-        
+
         // Remove inscription dates from raid data (they're in registration_period table)
         unset($validated['ins_start_date'], $validated['ins_end_date']);
-        
+
         // Create the raid
         $raid = Raid::create($validated);
-        
+
         return redirect()->route('raids.index')
             ->with('success', 'Raid created successfully.');
     }
@@ -194,7 +214,7 @@ class RaidController extends Controller
     protected function assignGestionnaireRaidRole(int $userId, Raid $raid): void
     {
         $targetUser = User::find($userId);
-        
+
         if (!$targetUser) {
             return;
         }
@@ -247,14 +267,14 @@ class RaidController extends Controller
     public function show(Raid $raid): Response
     {
         $raid->load(['club', 'races.organizer.user', 'registrationPeriod']);
-        
+
         $user = auth()->user();
         // Admin can manage all raids, otherwise check if user is raid manager or club manager
         $isRaidManager = $user && ($user->hasRole('admin') || $user->adh_id === $raid->adh_id || $raid->club->hasManager($user));
-        
-        $courses = $raid->races->map(function($race) use ($user, $isRaidManager) {
+
+        $courses = $raid->races->map(function ($race) use ($user, $isRaidManager) {
             $isRaceManager = $user && ($user->adh_id === $race->adh_id || $isRaidManager);
-            
+
             return [
                 'id' => $race->race_id,
                 'name' => $race->race_name,
@@ -268,19 +288,19 @@ class RaidController extends Controller
                 'can_edit' => $isRaceManager,
             ];
         });
-        
+
         // Add status helpers for raid
         $raid->is_open = $raid->isOpen();
         $raid->is_upcoming = $raid->isUpcoming();
         $raid->is_finished = $raid->isFinished();
-        
+
         return Inertia::render('Raid/Index', [
             'raid' => $raid,
             'courses' => $courses,
             'isRaidManager' => $isRaidManager,
             'canEditRaid' => $user && $user->can('update', $raid),
             'canAddRace' => $user && $user->can('create', [\App\Models\Race::class, $raid]),
-            'typeCategories' => \App\Models\ParamType::all()->map(function($t) {
+            'typeCategories' => \App\Models\ParamType::all()->map(function ($t) {
                 return [
                     'type_id' => $t->typ_id,
                     'type_name' => $t->typ_name,
@@ -295,42 +315,37 @@ class RaidController extends Controller
      */
     public function edit(Raid $raid): Response
     {
-        // Check authorization - user must be able to update this raid
-        $this->authorize('update', $raid);
+        try {
+            // Check authorization - user must be able to update this raid
+            file_put_contents('debug.log', "RaidController edit hit. Raid ID: " . $raid->raid_id . "\n", FILE_APPEND);
+            $this->authorize('update', $raid);
+            file_put_contents('debug.log', "RaidController authorize passed\n", FILE_APPEND);
 
-        // Load registration period for the form
-        $raid->load('registrationPeriod');
+            // Load registration period for the form
+            $raid->load('registrationPeriod');
 
-        // Get the club of this raid
-        $userClub = \DB::table('clubs')
-            ->where('club_id', $raid->clu_id)
-            ->first(['club_id', 'club_name']);
+            // Get the club of this raid
+            $userClub = \DB::table('clubs')
+                ->where('club_id', $raid->clu_id)
+                ->first(['club_id', 'club_name']);
 
-        // Get adherents of the club for gestionnaire-raid assignment
-        $clubAdherents = [];
-        if ($raid->clu_id) {
-            $clubAdherents = User::whereHas('member')
-                ->whereHas('roles', function($q) {
-                    $q->where('name', 'adherent');
-                })
-                ->whereHas('clubs', function($q) use ($raid) {
-                    $q->where('clubs.club_id', $raid->clu_id);
-                })
-                ->get(['id', 'first_name', 'last_name', 'email', 'adh_id'])
-                ->map(function ($user) {
-                    return [
-                        'id' => $user->id,
-                        'adh_id' => $user->adh_id,
-                        'name' => $user->first_name . ' ' . $user->last_name,
-                        'email' => $user->email,
-                    ];
-                });
-        }
+            // Get adherents of the club for gestionnaire-raid assignment
+            $clubAdherents = [];
+            if ($raid->clu_id) {
+                $clubAdherents = User::whereHas('member')
+                    ->whereHas('roles', function ($q) {
+                        $q->where('name', 'adherent');
+                    })
+                    ->whereHas('clubs', function ($q) use ($raid) {
+                        $q->where('clubs.club_id', $raid->clu_id);
+                    })
+                    ->get(['id', 'name', 'email']);
+            }
 
         return Inertia::render('Raid/Edit', [
-            'raid' => $raid,
+            'raid' => $raidData,
             'userClub' => $userClub,
-            'clubMembers' => $clubAdherents,
+            'clubMembers' => $clubMembers,
         ]);
     }
 
@@ -374,8 +389,10 @@ class RaidController extends Controller
      */
     public function update(UpdateRaidRequest $request, Raid $raid): RedirectResponse
     {
+        $this->authorize('update', $raid);
+
         $validated = $request->validated();
-        
+
         // Update registration period if it exists
         if ($raid->ins_id && $raid->registrationPeriod) {
             $raid->registrationPeriod->update([
@@ -383,13 +400,13 @@ class RaidController extends Controller
                 'ins_end_date' => $validated['ins_end_date'],
             ]);
         }
-        
+
         // Remove inscription dates from raid data (they're in registration_period table)
         unset($validated['ins_start_date'], $validated['ins_end_date']);
-        
+
         // Update the raid
         $raid->update($validated);
-        
+
         return redirect()->route('raids.show', $raid->raid_id)
             ->with('success', 'Raid updated successfully.');
     }
@@ -428,7 +445,7 @@ class RaidController extends Controller
         $this->authorize('delete', $raid);
 
         $raid->delete();
-        
+
         return redirect()->route('raids.index')
             ->with('success', 'Raid deleted successfully.');
     }
