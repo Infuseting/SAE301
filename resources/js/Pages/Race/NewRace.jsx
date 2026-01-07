@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import SelectResponsableModal from '@/Components/SelectResponsableModal';
 
-export default function NewRace({ auth, users = [] }) {
+export default function NewRace({ auth, users = [], difficulties = [], types = [] }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedResponsable, setSelectedResponsable] = useState(null);
 
@@ -18,8 +18,8 @@ export default function NewRace({ auth, users = [] }) {
         minParticipants: '',
         maxParticipants: '',
         maxPerTeam: '',
-        difficulty: 'easy',
-        type: 'competitive',
+        difficulty: difficulties.length > 0 ? difficulties[0].id : '',
+        type: types.length > 0 ? types[0].id : '',
         categories: [{ minAge: '', maxAge: '', price: '' }],
         minTeams: '',
         maxTeams: '',
@@ -250,67 +250,46 @@ export default function NewRace({ auth, users = [] }) {
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-3">Difficulté</label>
                                             <div className="space-y-2">
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="difficulty"
-                                                        value="easy"
-                                                        checked={data.difficulty === 'easy'}
-                                                        onChange={handleInputChange}
-                                                        className="w-4 h-4 text-indigo-600"
-                                                    />
-                                                    <span className="ml-2 text-gray-700">Facile</span>
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="difficulty"
-                                                        value="medium"
-                                                        checked={data.difficulty === 'medium'}
-                                                        onChange={handleInputChange}
-                                                        className="w-4 h-4 text-indigo-600"
-                                                    />
-                                                    <span className="ml-2 text-gray-700">Moyen</span>
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="difficulty"
-                                                        value="hard"
-                                                        checked={data.difficulty === 'hard'}
-                                                        onChange={handleInputChange}
-                                                        className="w-4 h-4 text-indigo-600"
-                                                    />
-                                                    <span className="ml-2 text-gray-700">Difficile</span>
-                                                </label>
+                                                {difficulties.length > 0 ? (
+                                                    difficulties.map((difficulty) => (
+                                                        <label key={difficulty.id} className="flex items-center">
+                                                            <input
+                                                                type="radio"
+                                                                name="difficulty"
+                                                                value={difficulty.id}
+                                                                checked={data.difficulty === difficulty.id}
+                                                                onChange={(e) => setData('difficulty', parseInt(e.target.value))}
+                                                                className="w-4 h-4 text-indigo-600"
+                                                            />
+                                                            <span className="ml-2 text-gray-700 capitalize">{difficulty.level}</span>
+                                                        </label>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-sm text-gray-500 italic">Aucune difficulté disponible</p>
+                                                )}
                                             </div>
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-3">Type</label>
                                             <div className="space-y-2">
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="type"
-                                                        value="competitive"
-                                                        checked={data.type === 'competitive'}
-                                                        onChange={handleInputChange}
-                                                        className="w-4 h-4 text-indigo-600"
-                                                    />
-                                                    <span className="ml-2 text-gray-700">Compétitif</span>
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="type"
-                                                        value="leisure"
-                                                        checked={data.type === 'leisure'}
-                                                        onChange={handleInputChange}
-                                                        className="w-4 h-4 text-indigo-600"
-                                                    />
-                                                    <span className="ml-2 text-gray-700">Rando / Loisir</span>
-                                                </label>
+                                                {types.length > 0 ? (
+                                                    types.map((type) => (
+                                                        <label key={type.id} className="flex items-center">
+                                                            <input
+                                                                type="radio"
+                                                                name="type"
+                                                                value={type.id}
+                                                                checked={data.type === type.id}
+                                                                onChange={(e) => setData('type', parseInt(e.target.value))}
+                                                                className="w-4 h-4 text-indigo-600"
+                                                            />
+                                                            <span className="ml-2 text-gray-700 capitalize">{type.name}</span>
+                                                        </label>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-sm text-gray-500 italic">Aucun type disponible</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

@@ -2,8 +2,63 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link } from '@inertiajs/react';
 
-export default function VisuRace({ auth, race: raceData }) {
-    // Données du backend via props, ou données fictives pour dev
+export default function VisuRace({ auth, race: raceData, error, errorMessage }) {
+    // If race not found, display error message
+    if (error || !raceData) {
+        return (
+            <AuthenticatedLayout
+                user={auth?.user}
+                header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Course non trouvée</h2>}
+            >
+                <Head title="Course non trouvée" />
+
+                <div className="py-12">
+                    <div className="max-w-3xl mx-auto sm:px-6 lg:px-8">
+                        <div className="bg-white shadow-sm rounded-2xl overflow-hidden">
+                            <div className="p-12 text-center">
+                                {/* Error Icon */}
+                                <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                                    <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                
+                                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                                    {error || 'Course non trouvée'}
+                                </h3>
+                                <p className="text-gray-600 mb-8">
+                                    {errorMessage || "La course que vous recherchez n'existe pas ou a été supprimée."}
+                                </p>
+                                
+                                <div className="flex justify-center gap-4">
+                                    <Link
+                                        href="/"
+                                        className="inline-flex items-center px-6 py-3 bg-amber-900 hover:bg-amber-800 text-white font-semibold rounded-lg transition"
+                                    >
+                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                        </svg>
+                                        Retour à l'accueil
+                                    </Link>
+                                    <button
+                                        onClick={() => window.history.back()}
+                                        className="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
+                                    >
+                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                        </svg>
+                                        Page précédente
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </AuthenticatedLayout>
+        );
+    }
+
+    // Données du backend via props
     const race = raceData || {
         id: 1,
         title: "La Boussole de la Forêt",
@@ -85,6 +140,16 @@ export default function VisuRace({ auth, race: raceData }) {
     const availableSpots = race.maxParticipants - race.registeredCount;
     const progressPercentage = (race.registeredCount / race.maxParticipants) * 100;
 
+    // Component for no image placeholder
+    const NoImagePlaceholder = () => (
+        <div className="w-full h-full bg-gray-200 flex flex-col items-center justify-center">
+            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p className="mt-2 text-sm text-gray-500">Aucune image disponible</p>
+        </div>
+    );
+
     return (
         <AuthenticatedLayout
             user={auth?.user}
@@ -94,45 +159,71 @@ export default function VisuRace({ auth, race: raceData }) {
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* Image Header */}
-                    <div className="relative h-80 rounded-t-2xl overflow-hidden">
-                        <img
-                            src={race.imageUrl}
-                            alt={race.title}
-                            className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                        <div className="absolute bottom-6 left-6 right-6">
-                            <div className="flex items-center gap-3 mb-3">
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusLabels[race.status].color}`}>
-                                    {statusLabels[race.status].label}
-                                </span>
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${difficultyLabels[race.difficulty].color}`}>
-                                    {difficultyLabels[race.difficulty].label}
-                                </span>
-                                <span className="px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
-                                    {raceTypeLabels[race.raceType]}
-                                </span>
+                    <div className="bg-white shadow-sm rounded-2xl overflow-hidden">
+                        {/* Header with image on the side */}
+                        <div className="flex flex-col lg:flex-row">
+                            {/* Image Section - Left side */}
+                            <div className="lg:w-1/3 h-64 lg:h-auto lg:min-h-[400px] relative">
+                                {race.imageUrl ? (
+                                    <img
+                                        src={race.imageUrl}
+                                        alt={race.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <NoImagePlaceholder />
+                                )}
                             </div>
-                            <h1 className="text-3xl font-bold text-white">{race.title}</h1>
+
+                            {/* Header Info - Right side */}
+                            <div className="lg:w-2/3 p-6 lg:p-8 flex flex-col justify-center">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusLabels[race.status]?.color || 'bg-gray-100 text-gray-800'}`}>
+                                        {statusLabels[race.status]?.label || 'Inconnu'}
+                                    </span>
+                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${difficultyLabels[race.difficulty]?.color || 'bg-gray-100 text-gray-800'}`}>
+                                        {difficultyLabels[race.difficulty]?.label || 'Non défini'}
+                                    </span>
+                                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
+                                        {raceTypeLabels[race.raceType] || 'Course'}
+                                    </span>
+                                </div>
+                                <h1 className="text-3xl font-bold text-gray-900 mb-4">{race.title}</h1>
+                                <p className="text-gray-600 leading-relaxed mb-6">{race.description}</p>
+                                
+                                {/* Quick info */}
+                                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                                    <div className="flex items-center gap-2">
+                                        <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <span>{formatDate(race.raceDate)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>{race.duration}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        <span>{race.location}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="bg-white shadow-sm rounded-b-2xl overflow-hidden">
-                        <div className="p-8">
-                            <div className="grid grid-cols-3 gap-8">
+                        <div className="p-8 border-t border-gray-100">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                 {/* Colonne principale */}
-                                <div className="col-span-2 space-y-8">
-                                    {/* Description */}
-                                    <section>
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
-                                        <p className="text-gray-600 leading-relaxed">{race.description}</p>
-                                    </section>
-
+                                <div className="lg:col-span-2 space-y-8">
                                     {/* Informations de la course */}
                                     <section>
                                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Informations</h3>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="bg-gray-50 rounded-lg p-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">

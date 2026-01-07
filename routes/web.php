@@ -21,7 +21,7 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/race', [VisuRaceController::class, 'show'])->name('race.view');
+Route::get('/race/{id}', [VisuRaceController::class, 'show'])->name('race.view');
 
 // Create new race
 Route::get('/new-race', [NewRaceController::class, 'show'])->name('race.create');

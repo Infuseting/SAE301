@@ -53,6 +53,16 @@ class Race extends Model
     protected $primaryKey = 'race_id';
 
     /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'race_id';
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
