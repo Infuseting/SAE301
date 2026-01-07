@@ -8,10 +8,30 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use OpenApi\Annotations as OA;
 
 /**
  * Club model representing orienteering clubs
- * 
+ *
+ * @OA\Schema(
+ *     schema="Club",
+ *     title="Club",
+ *     description="Club model",
+ *     @OA\Property(property="club_id", type="integer", example=1),
+ *     @OA\Property(property="club_name", type="string", example="Club d'orientation Paris"),
+ *     @OA\Property(property="club_street", type="string", example="123 Rue de l'Orientation"),
+ *     @OA\Property(property="club_city", type="string", example="Paris"),
+ *     @OA\Property(property="club_postal_code", type="string", example="75001"),
+ *     @OA\Property(property="ffso_id", type="string", nullable=true, example="FFSO123"),
+ *     @OA\Property(property="description", type="string", nullable=true, example="Club d'orientation de Paris"),
+ *     @OA\Property(property="is_approved", type="boolean", example=false),
+ *     @OA\Property(property="approved_by", type="integer", nullable=true, example=1),
+ *     @OA\Property(property="approved_at", type="string", format="date-time", nullable=true),
+ *     @OA\Property(property="created_by", type="integer", example=1),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ *
  * @property int $club_id
  * @property string $club_name
  * @property string $club_street

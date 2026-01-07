@@ -15,6 +15,134 @@
         }
     ],
     "paths": {
+        "/api/admin/clubs/pending": {
+            "get": {
+                "tags": [
+                    "Admin - Club Approval"
+                ],
+                "summary": "Get pending clubs",
+                "description": "Returns a list of clubs awaiting approval",
+                "operationId": "71075f0fab5dd77f7551fe8e27c63bc7",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Club"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - requires accept-club permission"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/clubs/{id}/approve": {
+            "post": {
+                "tags": [
+                    "Admin - Club Approval"
+                ],
+                "summary": "Approve a club",
+                "description": "Approves a pending club and assigns club-manager role to creator",
+                "operationId": "ffae7bff6d7f5b38cca5d39868d36349",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Club approved successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Club not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/clubs/{id}/reject": {
+            "post": {
+                "tags": [
+                    "Admin - Club Approval"
+                ],
+                "summary": "Reject a club",
+                "description": "Rejects a pending club with optional reason",
+                "operationId": "e39af848fa9c4747108b030fee54ed66",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Duplicate club"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Club rejected successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Club not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/login": {
             "post": {
                 "tags": [
@@ -202,6 +330,543 @@
                 ]
             }
         },
+        "/users/search": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Search users",
+                "description": "Returns users matching the search query",
+                "operationId": "searchUsers",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "email": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs": {
+            "get": {
+                "tags": [
+                    "Clubs"
+                ],
+                "summary": "Get list of approved clubs",
+                "description": "Returns a paginated list of approved clubs with optional search and filters",
+                "operationId": "c44731a8866e74bcd14a6b4f0f1f82b6",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by club name or city",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "city",
+                        "in": "query",
+                        "description": "Filter by city",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Club"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Clubs"
+                ],
+                "summary": "Create a new club",
+                "description": "Creates a new club (pending approval)",
+                "operationId": "4e37feabfe957444c16ab299c31af0a7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "club_name",
+                                    "club_street",
+                                    "club_city",
+                                    "club_postal_code"
+                                ],
+                                "properties": {
+                                    "club_name": {
+                                        "type": "string",
+                                        "example": "Club Orienteering Paris"
+                                    },
+                                    "club_street": {
+                                        "type": "string",
+                                        "example": "123 Rue de la Paix"
+                                    },
+                                    "club_city": {
+                                        "type": "string",
+                                        "example": "Paris"
+                                    },
+                                    "club_postal_code": {
+                                        "type": "string",
+                                        "example": "75001"
+                                    },
+                                    "club_number": {
+                                        "type": "string",
+                                        "example": "FR-001"
+                                    },
+                                    "ffso_id": {
+                                        "type": "string",
+                                        "example": "FFSO-12345"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Club description"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Club created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Club"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs/{id}": {
+            "get": {
+                "tags": [
+                    "Clubs"
+                ],
+                "summary": "Get club details",
+                "description": "Returns club details. Members list is only visible to club members.",
+                "operationId": "b5900ff997f9d991c3a388875d8971f8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Club"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Club not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Clubs"
+                ],
+                "summary": "Update club details",
+                "description": "Updates club details (club managers only)",
+                "operationId": "9a7201b06d26cfc6aa54fe93f98774d2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "club_name": {
+                                        "type": "string"
+                                    },
+                                    "club_street": {
+                                        "type": "string"
+                                    },
+                                    "club_city": {
+                                        "type": "string"
+                                    },
+                                    "club_postal_code": {
+                                        "type": "string"
+                                    },
+                                    "club_number": {
+                                        "type": "string"
+                                    },
+                                    "ffso_id": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Club updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Club"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Club not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Clubs"
+                ],
+                "summary": "Delete a club",
+                "description": "Deletes a club (admin or club manager only)",
+                "operationId": "7ae9561f331895c99ba0d047eb68ba96",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Club deleted successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Club not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs/{id}/join": {
+            "post": {
+                "tags": [
+                    "Club Members"
+                ],
+                "summary": "Request to join a club",
+                "description": "Authenticated user requests to join a club",
+                "operationId": "5f72860d473c52f4eada0f8bf90bfa72",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Join request sent successfully"
+                    },
+                    "400": {
+                        "description": "Already a member or request pending"
+                    },
+                    "403": {
+                        "description": "Club not approved"
+                    },
+                    "404": {
+                        "description": "Club not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs/{clubId}/members/{userId}/approve": {
+            "post": {
+                "tags": [
+                    "Club Members"
+                ],
+                "summary": "Approve a join request",
+                "description": "Club manager approves a pending join request",
+                "operationId": "d217126399286f1322240bfab8023e70",
+                "parameters": [
+                    {
+                        "name": "clubId",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Join request approved"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Request not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs/{clubId}/members/{userId}/reject": {
+            "post": {
+                "tags": [
+                    "Club Members"
+                ],
+                "summary": "Reject a join request",
+                "description": "Club manager rejects a pending join request",
+                "operationId": "0e0b60f1ddb503dcc7e943da23f21d3d",
+                "parameters": [
+                    {
+                        "name": "clubId",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Join request rejected"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Request not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs/{clubId}/members/{userId}": {
+            "delete": {
+                "tags": [
+                    "Club Members"
+                ],
+                "summary": "Remove a member from club",
+                "description": "Club manager removes a member from the club",
+                "operationId": "ab3e6bfac9f3bc8bd8524bf47baa656b",
+                "parameters": [
+                    {
+                        "name": "clubId",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Member removed successfully"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Member not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs/{id}/leave": {
+            "post": {
+                "tags": [
+                    "Club Members"
+                ],
+                "summary": "Leave a club",
+                "description": "Authenticated user leaves a club they are a member of",
+                "operationId": "8f7251fbd160fd5be77253dae896d7d3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Left club successfully"
+                    },
+                    "400": {
+                        "description": "Cannot leave (e.g., last manager)"
+                    },
+                    "404": {
+                        "description": "Club not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/profile": {
             "get": {
                 "tags": [
@@ -370,6 +1035,204 @@
                 }
             }
         },
+        "/raids": {
+            "get": {
+                "tags": [
+                    "Raids"
+                ],
+                "summary": "Get list of raids",
+                "description": "Returns list of all raids",
+                "operationId": "7383b27b4f0f3318f1bbaf594f189c31",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Raid"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Raids"
+                ],
+                "summary": "Create a new raid",
+                "description": "Creates a new raid event",
+                "operationId": "0b6a230086167f7a174917a7d4f4147c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "event_start_date",
+                                    "event_end_date",
+                                    "registration_start_date",
+                                    "registration_end_date"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Mountain Adventure Raid"
+                                    },
+                                    "event_start_date": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-06-15T08:00:00Z"
+                                    },
+                                    "event_end_date": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-06-17T18:00:00Z"
+                                    },
+                                    "registration_start_date": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-03-01T00:00:00Z"
+                                    },
+                                    "registration_end_date": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-06-10T23:59:59Z"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Raid created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Raid"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/raids/{id}": {
+            "get": {
+                "tags": [
+                    "Raids"
+                ],
+                "summary": "Get raid by ID",
+                "description": "Returns a single raid",
+                "operationId": "68387e0d2c9afb312cf35d19d2673da7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Raid"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Raid not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Raids"
+                ],
+                "summary": "Update raid",
+                "description": "Updates an existing raid",
+                "operationId": "ba2b5897eb580d5203730de7e02e28e0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Raid"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Raid updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Raid"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Raid not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Raids"
+                ],
+                "summary": "Delete raid",
+                "description": "Deletes a raid",
+                "operationId": "ee76ac9a2e8d0f3ab51e7ca249790877",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Raid deleted successfully"
+                    },
+                    "404": {
+                        "description": "Raid not found"
+                    }
+                }
+            }
+        },
         "/user/set-password": {
             "put": {
                 "tags": [
@@ -433,7 +1296,7 @@
                     "Auth"
                 ],
                 "summary": "Social Login Redirect",
-                "description": "Redirects the user to the OAuth provider (google, github, discord)",
+                "description": "Redirects the user to the OAuth provider (google, strava)",
                 "operationId": "e5e9b27699f32085ee1b5fe32ad31cbe",
                 "parameters": [
                     {
@@ -740,6 +1603,70 @@
     },
     "components": {
         "schemas": {
+            "Club": {
+                "title": "Club",
+                "description": "Club model",
+                "properties": {
+                    "club_id": {
+                        "description": "Club model representing orienteering clubs",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "club_name": {
+                        "type": "string",
+                        "example": "Club d'orientation Paris"
+                    },
+                    "club_street": {
+                        "type": "string",
+                        "example": "123 Rue de l'Orientation"
+                    },
+                    "club_city": {
+                        "type": "string",
+                        "example": "Paris"
+                    },
+                    "club_postal_code": {
+                        "type": "string",
+                        "example": "75001"
+                    },
+                    "ffso_id": {
+                        "type": "string",
+                        "example": "FFSO123",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Club d'orientation de Paris",
+                        "nullable": true
+                    },
+                    "is_approved": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "approved_by": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "approved_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_by": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
             "ConnectedAccount": {
                 "title": "Connected Account",
                 "description": "Social Media Connected Account",
@@ -764,6 +1691,128 @@
                         "type": "string",
                         "format": "date-time",
                         "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Race": {
+                "title": "Race",
+                "description": "Orienteering race model",
+                "properties": {
+                    "race_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "race_name": {
+                        "type": "string",
+                        "example": "La Boussole de la Forêt"
+                    },
+                    "race_date_start": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-10-12T09:00:00Z"
+                    },
+                    "race_date_end": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-10-12T17:00:00Z"
+                    },
+                    "race_reduction": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 5,
+                        "nullable": true
+                    },
+                    "race_meal_price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 8,
+                        "nullable": true
+                    },
+                    "race_duration_minutes": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 150,
+                        "nullable": true
+                    },
+                    "raid_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "cla_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "adh_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "pac_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "pae_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "dif_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "typ_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Raid": {
+                "title": "Raid",
+                "description": "Raid model",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Mountain Adventure Raid"
+                    },
+                    "event_start_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-06-15T08:00:00Z"
+                    },
+                    "event_end_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-06-17T18:00:00Z"
+                    },
+                    "registration_start_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-03-01T00:00:00Z"
+                    },
+                    "registration_end_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-06-10T23:59:59Z"
                     },
                     "created_at": {
                         "type": "string",
@@ -835,6 +1884,18 @@
     },
     "tags": [
         {
+            "name": "Admin - Club Approval",
+            "description": "Admin endpoints for club approval management"
+        },
+        {
+            "name": "Clubs",
+            "description": "Club management endpoints"
+        },
+        {
+            "name": "Club Members",
+            "description": "Club member management endpoints"
+        },
+        {
             "name": "Auth",
             "description": "Auth"
         },
@@ -845,6 +1906,10 @@
         {
             "name": "Profile",
             "description": "Profile"
+        },
+        {
+            "name": "Raids",
+            "description": "Raids"
         },
         {
             "name": "Team",

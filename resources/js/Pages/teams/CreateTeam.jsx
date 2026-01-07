@@ -22,7 +22,26 @@ export default function CreateTeam() {
     const [showTeammateDropdown, setShowTeammateDropdown] = useState(false);
     const [leaderSearch, setLeaderSearch] = useState('');
     const [teammateSearch, setTeammateSearch] = useState('');
+    const [leaderSearchResults, setLeaderSearchResults] = useState([]);
+    const [teammateSearchResults, setTeammateSearchResults] = useState([]);
     const messages = usePage().props.translations?.messages || {};
+
+    // Debounced search effects
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            performLeaderSearch(leaderSearch);
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [leaderSearch]);
+
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            performTeammateSearch(teammateSearch);
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [teammateSearch]);
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -86,36 +105,42 @@ export default function CreateTeam() {
         setShowLeaderDropdown(false);
     };
 
-    const performLeaderSearch = (searchTerm) => {
-        // Mock search results - in a real app, this would be an API call
-        const mockResults = [
-            { id: 1, name: 'Jean Dupont', email: 'jean@example.com' },
-            { id: 2, name: 'Marie Martin', email: 'marie@example.com' },
-            { id: 3, name: 'Pierre Durand', email: 'pierre@example.com' },
-            { id: 4, name: 'Sophie Leroy', email: 'sophie@example.com' },
-            { id: 5, name: 'Thomas Moreau', email: 'thomas@example.com' },
-        ].filter(person =>
-            person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            person.email.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        return mockResults;
+    const performLeaderSearch = async (searchTerm) => {
+        if (!searchTerm.trim()) {
+            setLeaderSearchResults([]);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/users/search?q=${encodeURIComponent(searchTerm)}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch users');
+            }
+            const users = await response.json();
+            setLeaderSearchResults(users);
+        } catch (error) {
+            console.error('Error searching users:', error);
+            setLeaderSearchResults([]);
+        }
     };
 
-    const performTeammateSearch = (searchTerm) => {
-        // Mock search results - in a real app, this would be an API call
-        const mockResults = [
-            { id: 1, name: 'Jean Dupont', email: 'jean@example.com' },
-            { id: 2, name: 'Marie Martin', email: 'marie@example.com' },
-            { id: 3, name: 'Pierre Durand', email: 'pierre@example.com' },
-            { id: 4, name: 'Sophie Leroy', email: 'sophie@example.com' },
-            { id: 5, name: 'Thomas Moreau', email: 'thomas@example.com' },
-            { id: 6, name: 'Alice Bernard', email: 'alice@example.com' },
-            { id: 7, name: 'Lucas Petit', email: 'lucas@example.com' },
-        ].filter(person =>
-            person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            person.email.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        return mockResults;
+    const performTeammateSearch = async (searchTerm) => {
+        if (!searchTerm.trim()) {
+            setTeammateSearchResults([]);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/users/search?q=${encodeURIComponent(searchTerm)}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch users');
+            }
+            const users = await response.json();
+            setTeammateSearchResults(users);
+        } catch (error) {
+            console.error('Error searching users:', error);
+            setTeammateSearchResults([]);
+        }
     };
 
     return (
@@ -251,8 +276,8 @@ export default function CreateTeam() {
                                             />
                                             {showLeaderDropdown && (
                                                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                                    {performLeaderSearch(leaderSearch).length > 0 ? (
-                                                        performLeaderSearch(leaderSearch).map((person) => (
+                                                    {leaderSearchResults.length > 0 ? (
+                                                        leaderSearchResults.map((person) => (
                                                             <div
                                                                 key={person.id}
                                                                 className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
@@ -340,8 +365,8 @@ export default function CreateTeam() {
                                         />
                                         {showTeammateDropdown && (
                                             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                                {performTeammateSearch(teammateSearch).length > 0 ? (
-                                                    performTeammateSearch(teammateSearch).map((person) => (
+                                                {teammateSearchResults.length > 0 ? (
+                                                    teammateSearchResults.map((person) => (
                                                         <div
                                                             key={person.id}
                                                             className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
