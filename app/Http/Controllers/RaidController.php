@@ -177,6 +177,11 @@ class RaidController extends Controller
             $validated['raid_number'] = (int) ($year . '001');
         }
         
+        // Set default value for raid_street if not provided (DB field is NOT NULL)
+        if (empty($validated['raid_street'])) {
+            $validated['raid_street'] = 'Non spécifiée';
+        }
+        
         // Create registration period first
         $registrationPeriod = \App\Models\RegistrationPeriod::create([
             'ins_start_date' => $validated['ins_start_date'],
