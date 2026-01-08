@@ -67,8 +67,10 @@ export default function ClubForm({ club = null, submitRoute, submitLabel }) {
                     className="mt-1 block w-full"
                     value={data.club_name}
                     onChange={(e) => setData('club_name', e.target.value)}
+                    maxLength={100}
                     required
                 />
+                <p className="text-xs text-gray-500 mt-1">{data.club_name.length}/100 caractères</p>
                 <InputError message={errors.club_name} className="mt-2" />
             </div>
 
@@ -83,8 +85,10 @@ export default function ClubForm({ club = null, submitRoute, submitLabel }) {
                         className="mt-1 block w-full"
                         value={data.club_street}
                         onChange={(e) => setData('club_street', e.target.value)}
+                        maxLength={100}
                         required
                     />
+                    <p className="text-xs text-gray-500 mt-1">{data.club_street.length}/100 caractères</p>
                     <InputError message={errors.club_street} className="mt-2" />
                 </div>
 
@@ -97,8 +101,10 @@ export default function ClubForm({ club = null, submitRoute, submitLabel }) {
                         className="mt-1 block w-full"
                         value={data.club_city}
                         onChange={(e) => setData('club_city', e.target.value)}
+                        maxLength={100}
                         required
                     />
+                    <p className="text-xs text-gray-500 mt-1">{data.club_city.length}/100 caractères</p>
                     <InputError message={errors.club_city} className="mt-2" />
                 </div>
 
@@ -111,8 +117,10 @@ export default function ClubForm({ club = null, submitRoute, submitLabel }) {
                         className="mt-1 block w-full"
                         value={data.club_postal_code}
                         onChange={(e) => setData('club_postal_code', e.target.value)}
+                        maxLength={20}
                         required
                     />
+                    <p className="text-xs text-gray-500 mt-1">{data.club_postal_code.length}/20 caractères</p>
                     <InputError message={errors.club_postal_code} className="mt-2" />
                 </div>
             </div>
@@ -126,9 +134,11 @@ export default function ClubForm({ club = null, submitRoute, submitLabel }) {
                     className="mt-1 block w-full"
                     value={data.ffso_id}
                     onChange={(e) => setData('ffso_id', e.target.value)}
+                    maxLength={50}
                     required
                     placeholder="Ex: FFCO-12345"
                 />
+                <p className="text-xs text-gray-500 mt-1">{data.ffso_id.length}/50 caractères</p>
                 <InputError message={errors.ffso_id} className="mt-2" />
             </div>
 

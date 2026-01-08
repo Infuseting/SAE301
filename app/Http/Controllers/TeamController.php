@@ -27,7 +27,7 @@ class TeamController extends Controller
     {
         // Validate input
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:32',
             'image' => 'nullable|image|max:2048',
             'leader_id' => 'required|exists:users,id',
             'teammates' => 'nullable|array',

@@ -378,9 +378,11 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.title}
                                         onChange={handleInputChange}
                                         placeholder="Nom de la course"
+                                        maxLength={100}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         required
                                     />
+                                    <p className="mt-1 text-xs text-gray-500">{data.title.length}/100 caractères</p>
                                 </div>
 
                                 <div>
@@ -408,8 +410,10 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         onChange={handleInputChange}
                                         placeholder="Décrivez la course (parcours, règles, etc.)"
                                         rows="4"
+                                        maxLength={2000}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
+                                    <p className="mt-1 text-xs text-gray-500">{data.description.length}/2000 caractères</p>
                                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                                 </div>
 
@@ -484,6 +488,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.difficulty}
                                         onChange={handleInputChange}
                                         placeholder="Ex: Facile, Expert, Technique..."
+                                        maxLength={255}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         required
                                     />

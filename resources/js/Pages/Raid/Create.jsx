@@ -105,8 +105,10 @@ export default function Create() {
                                         autoComplete="off"
                                         isFocused={true}
                                         onChange={(e) => setData('raid_name', e.target.value)}
+                                        maxLength={100}
                                         required
                                     />
+                                    <p className="text-xs text-gray-500 mt-1">{data.raid_name.length}/100 caractères</p>
                                     <InputError message={errors.raid_name} className="mt-2" />
                                 </div>
 
