@@ -27,7 +27,7 @@ class LeaderboardService
      *
      * @param UploadedFile $file The CSV file to import
      * @param int $raceId The race ID to import results for
-     * @return array Import results with success count, errors, total and created users count
+     * @return array Import results with success count, errors, total, created and removed users count
      * @throws Exception If file cannot be read or race not found
      */
     public function importCsv(UploadedFile $file, int $raceId): array
@@ -37,6 +37,7 @@ class LeaderboardService
             'errors' => [],
             'total' => 0,
             'created' => 0, // Count of newly created users
+            'removed' => 0, // Count of removed leaderboard entries
         ];
 
         $race = Race::find($raceId);
@@ -95,6 +96,8 @@ class LeaderboardService
 
         try {
             $lineNumber = 1;
+            $processedUserIds = []; // Track all user IDs processed in this import
+            
             while (($row = fgetcsv($handle, 0, $separator)) !== false) {
                 $lineNumber++;
                 $results['total']++;
@@ -122,6 +125,10 @@ class LeaderboardService
 
                 if ($result['success']) {
                     $results['success']++;
+                    // Track the user ID that was processed
+                    if (!empty($result['user_id'])) {
+                        $processedUserIds[] = $result['user_id'];
+                    }
                     // Track if a new user was created
                     if (!empty($result['created'])) {
                         $results['created']++;
@@ -130,6 +137,11 @@ class LeaderboardService
                     $results['errors'][] = $result['error'];
                 }
             }
+
+            // Remove leaderboard entries for users NOT in the CSV
+            // This ensures the CSV is the source of truth
+            $removedCount = $this->removeAbsentParticipants($raceId, $processedUserIds);
+            $results['removed'] = $removedCount;
 
             $this->recalculateTeamAverages($raceId);
 
@@ -783,7 +795,7 @@ class LeaderboardService
             ['temps' => $temps, 'malus' => $malus]
         );
 
-        return ['success' => true, 'created' => $wasCreated];
+        return ['success' => true, 'created' => $wasCreated, 'user_id' => $user->id];
     }
 
     /**
@@ -814,7 +826,7 @@ class LeaderboardService
             ['temps' => $temps, 'malus' => $malus]
         );
 
-        return ['success' => true];
+        return ['success' => true, 'user_id' => $userId];
     }
 
     /**
@@ -962,5 +974,120 @@ class LeaderboardService
         DB::table('has_participate')->insert($participateData);
 
         return $user;
+    }
+
+    /**
+     * Remove leaderboard entries for users not present in the imported CSV.
+     * This ensures the CSV is the source of truth for race results.
+     * Users who were in the leaderboard but are not in the new CSV will be removed.
+     * For imported users (email ending with @imported.local), also cleans up:
+     * - has_participate entries
+     * - Solo teams created for the import
+     * - Member records created for the import
+     * - MedicalDoc records created for the import
+     *
+     * @param int $raceId The race ID
+     * @param array $processedUserIds Array of user IDs that were in the CSV
+     * @return int Number of entries removed
+     */
+    private function removeAbsentParticipants(int $raceId, array $processedUserIds): int
+    {
+        if (empty($processedUserIds)) {
+            // If no users were processed, remove ALL entries for this race
+            $entriesToRemove = LeaderboardUser::where('race_id', $raceId)->get();
+            $removedCount = $entriesToRemove->count();
+
+            if ($removedCount > 0) {
+                $removedUserIds = $entriesToRemove->pluck('user_id')->toArray();
+                $this->cleanupImportedUsersData($removedUserIds);
+                LeaderboardUser::where('race_id', $raceId)->delete();
+                Log::info("Removed all {$removedCount} leaderboard entries for race {$raceId} (empty CSV import)");
+            }
+
+            return $removedCount;
+        }
+
+        // Find entries that exist in leaderboard but were NOT in the CSV
+        $entriesToRemove = LeaderboardUser::where('race_id', $raceId)
+            ->whereNotIn('user_id', $processedUserIds)
+            ->get();
+
+        $removedCount = $entriesToRemove->count();
+
+        if ($removedCount > 0) {
+            // Log which users are being removed
+            $removedUserIds = $entriesToRemove->pluck('user_id')->toArray();
+            Log::info("Removing {$removedCount} leaderboard entries for race {$raceId}. User IDs: " . implode(', ', $removedUserIds));
+
+            // Clean up imported users' participation and team data
+            $this->cleanupImportedUsersData($removedUserIds);
+
+            // Delete the leaderboard entries
+            LeaderboardUser::where('race_id', $raceId)
+                ->whereNotIn('user_id', $processedUserIds)
+                ->delete();
+        }
+
+        return $removedCount;
+    }
+
+    /**
+     * Clean up data for imported users being removed from leaderboard.
+     * Only affects users created via CSV import (email ending with @imported.local).
+     * Removes: has_participate entries, solo teams, members, medical_docs.
+     *
+     * @param array $userIds Array of user IDs to check and clean up
+     * @return void
+     */
+    private function cleanupImportedUsersData(array $userIds): void
+    {
+        if (empty($userIds)) {
+            return;
+        }
+
+        // Get imported users (email ending with @imported.local)
+        $importedUsers = User::whereIn('id', $userIds)
+            ->where('email', 'like', '%@imported.local')
+            ->get();
+
+        if ($importedUsers->isEmpty()) {
+            return;
+        }
+
+        foreach ($importedUsers as $user) {
+            Log::info("Cleaning up imported user data: {$user->first_name} {$user->last_name} (ID: {$user->id})");
+
+            // Get associated IDs before deleting
+            $adhId = $user->adh_id;
+            $docId = $user->doc_id;
+
+            // Find and delete has_participate entries for this user
+            $hasIdUsersColumn = DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+            $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
+            DB::table('has_participate')
+                ->where($userIdColumn, $user->id)
+                ->delete();
+
+            // Delete solo teams created for this member (teams with the member's adh_id)
+            if ($adhId) {
+                Team::where('adh_id', $adhId)->delete();
+            }
+
+            // Delete the user
+            $user->delete();
+
+            // Delete the member record if exists
+            if ($adhId) {
+                Member::where('adh_id', $adhId)->delete();
+            }
+
+            // Delete the medical doc record if exists
+            if ($docId) {
+                MedicalDoc::where('doc_id', $docId)->delete();
+            }
+        }
+
+        Log::info("Cleaned up {$importedUsers->count()} imported users and their related data");
     }
 }

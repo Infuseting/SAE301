@@ -697,4 +697,319 @@ class LeaderboardServiceTest extends TestCase
         $this->assertEquals(10903.00, (float) $entry->temps, 'Temps should be updated');
         $this->assertEquals(300.00, (float) $entry->malus, 'Malus should be updated (5 minutes = 300 seconds)');
     }
+
+    /**
+     * Test import CSV removes participants not present in CSV.
+     * If a user was in the leaderboard but is not in the new CSV, they should be removed.
+     */
+    public function test_import_csv_removes_absent_participants(): void
+    {
+        $race = Race::factory()->create();
+        
+        // Create 3 users
+        $user1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+        $user2 = User::factory()->create(['first_name' => 'Marie', 'last_name' => 'Martin']);
+        $user3 = User::factory()->create(['first_name' => 'Pierre', 'last_name' => 'Bernard']);
+
+        // All 3 users have leaderboard entries initially
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3700, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user3->id, 'race_id' => $race->race_id, 'temps' => 3800, 'malus' => 0]);
+
+        $this->assertEquals(3, LeaderboardUser::where('race_id', $race->race_id)->count());
+
+        // Import CSV with only 2 users (Pierre Bernard is missing)
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Jean Dupont,01:00:00.00,00:00.00,01:00:00.00\n";
+        $csvContent .= "2,Marie Martin,01:05:00.00,00:00.00,01:05:00.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        // Verify import results
+        $this->assertEquals(2, $result['success']);
+        $this->assertEquals(1, $result['removed'], 'One participant should be removed');
+        $this->assertEquals(0, $result['created']);
+
+        // Verify only 2 entries remain
+        $this->assertEquals(2, LeaderboardUser::where('race_id', $race->race_id)->count());
+
+        // Verify Pierre Bernard was removed
+        $this->assertNull(
+            LeaderboardUser::where('user_id', $user3->id)->where('race_id', $race->race_id)->first(),
+            'Pierre Bernard should be removed from leaderboard'
+        );
+
+        // Verify Jean and Marie still exist with updated times
+        $entry1 = LeaderboardUser::where('user_id', $user1->id)->where('race_id', $race->race_id)->first();
+        $this->assertNotNull($entry1);
+        $this->assertEquals(3600.00, (float) $entry1->temps);
+
+        $entry2 = LeaderboardUser::where('user_id', $user2->id)->where('race_id', $race->race_id)->first();
+        $this->assertNotNull($entry2);
+        $this->assertEquals(3900.00, (float) $entry2->temps); // 1:05:00 = 3900 seconds
+    }
+
+    /**
+     * Test import CSV removes all participants when CSV is empty (only headers).
+     */
+    public function test_import_csv_removes_all_when_csv_empty(): void
+    {
+        $race = Race::factory()->create();
+        
+        $user1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+        $user2 = User::factory()->create(['first_name' => 'Marie', 'last_name' => 'Martin']);
+
+        // Both users have leaderboard entries
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        $this->assertEquals(2, LeaderboardUser::where('race_id', $race->race_id)->count());
+
+        // Import CSV with only headers (no data rows)
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        // Verify all entries were removed
+        $this->assertEquals(0, $result['success']);
+        $this->assertEquals(2, $result['removed'], 'Both participants should be removed');
+        $this->assertEquals(0, LeaderboardUser::where('race_id', $race->race_id)->count());
+    }
+
+    /**
+     * Test import CSV only affects the specific race, not other races.
+     */
+    public function test_import_csv_does_not_affect_other_races(): void
+    {
+        $race1 = Race::factory()->create();
+        $race2 = Race::factory()->create();
+        
+        $user = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+
+        // User has entries in both races
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race1->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race2->race_id, 'temps' => 4000, 'malus' => 0]);
+
+        // Import empty CSV for race1 (should remove entry for race1 only)
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $this->service->importCsv($file, $race1->race_id);
+
+        // Race1 should have no entries
+        $this->assertEquals(0, LeaderboardUser::where('race_id', $race1->race_id)->count());
+
+        // Race2 should still have the entry
+        $this->assertEquals(1, LeaderboardUser::where('race_id', $race2->race_id)->count());
+        
+        $entry = LeaderboardUser::where('race_id', $race2->race_id)->first();
+        $this->assertEquals($user->id, $entry->user_id);
+        $this->assertEquals(4000.00, (float) $entry->temps);
+    }
+
+    /**
+     * Test imported user has @imported.local email domain.
+     */
+    public function test_imported_user_has_imported_local_email(): void
+    {
+        $race = Race::factory()->create();
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Nouveau Coureur,01:30:00.00,00:00.00,01:30:00.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['created']);
+
+        // Verify user was created with @imported.local email
+        $user = User::where('first_name', 'Nouveau')->where('last_name', 'Coureur')->first();
+        $this->assertNotNull($user);
+        $this->assertStringEndsWith('@imported.local', $user->email);
+    }
+
+    /**
+     * Test removing imported users also cleans up their participation data.
+     */
+    public function test_removing_imported_user_cleans_up_participation(): void
+    {
+        $race = Race::factory()->create();
+
+        // First import to create a user
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Import Test User,01:30:00.00,00:00.00,01:30:00.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+        $this->assertEquals(1, $result['created']);
+
+        // Get the imported user
+        $importedUser = User::where('email', 'like', '%@imported.local')->first();
+        $this->assertNotNull($importedUser);
+        $userId = $importedUser->id;
+        $adhId = $importedUser->adh_id;
+
+        // Verify has_participate entry exists
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        
+        $participationCount = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $userId)
+            ->count();
+        $this->assertGreaterThan(0, $participationCount, 'Participation should exist after import');
+
+        // Verify team exists
+        $teamCount = Team::where('adh_id', $adhId)->count();
+        $this->assertGreaterThan(0, $teamCount, 'Team should exist after import');
+
+        // Now import empty CSV to remove the user
+        $emptyCsv = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $file2 = UploadedFile::fake()->createWithContent('empty.csv', $emptyCsv);
+
+        $result2 = $this->service->importCsv($file2, $race->race_id);
+        $this->assertEquals(1, $result2['removed']);
+
+        // Verify user was deleted
+        $this->assertNull(User::find($userId), 'Imported user should be deleted');
+
+        // Verify has_participate entry was deleted
+        $participationCountAfter = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $userId)
+            ->count();
+        $this->assertEquals(0, $participationCountAfter, 'Participation should be deleted after removal');
+
+        // Verify team was deleted
+        $teamCountAfter = Team::where('adh_id', $adhId)->count();
+        $this->assertEquals(0, $teamCountAfter, 'Team should be deleted after removal');
+    }
+
+    /**
+     * Test removing regular (non-imported) users only removes leaderboard entry.
+     * Regular users should NOT have their participation or team data deleted.
+     */
+    public function test_removing_regular_user_only_removes_leaderboard_entry(): void
+    {
+        $race = Race::factory()->create();
+        
+        // Create a regular user (not imported - email doesn't end with @imported.local)
+        $user = User::factory()->create([
+            'first_name' => 'Regular',
+            'last_name' => 'User',
+            'email' => 'regular@example.com',
+        ]);
+
+        // Create a team for the regular user
+        $team = Team::factory()->create(['adh_id' => $user->adh_id]);
+
+        // Create participation
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        
+        \Illuminate\Support\Facades\DB::table('has_participate')->insert([
+            $userIdColumn => $user->id,
+            'equ_id' => $team->equ_id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Add leaderboard entry
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+
+        // Import empty CSV to remove from leaderboard
+        $emptyCsv = "Rang,Nom,Temps,Malus,Temps Final\n";
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('empty.csv', $emptyCsv);
+
+        $this->service->importCsv($file, $race->race_id);
+
+        // Verify leaderboard entry was removed
+        $this->assertEquals(0, LeaderboardUser::where('user_id', $user->id)->where('race_id', $race->race_id)->count());
+
+        // But user, team and participation should still exist
+        $this->assertNotNull(User::find($user->id), 'Regular user should NOT be deleted');
+        $this->assertNotNull(Team::find($team->equ_id), 'Regular user team should NOT be deleted');
+        
+        $participationCount = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $user->id)
+            ->count();
+        $this->assertGreaterThan(0, $participationCount, 'Regular user participation should NOT be deleted');
+    }
+
+    /**
+     * Test that adh_id is set for imported users (required by database constraints).
+     * The member record should have license starting with IMPORT-.
+     */
+    public function test_imported_user_has_member_with_import_prefix(): void
+    {
+        $race = Race::factory()->create();
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Import Member Test,01:30:00.00,00:00.00,01:30:00.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $this->service->importCsv($file, $race->race_id);
+
+        // Get the imported user
+        $user = User::where('first_name', 'Import')->where('last_name', 'Member Test')->first();
+        $this->assertNotNull($user);
+
+        // Verify user has adh_id set
+        $this->assertNotNull($user->adh_id, 'Imported user should have adh_id set');
+
+        // Verify member record has IMPORT- prefix
+        $member = \App\Models\Member::where('adh_id', $user->adh_id)->first();
+        $this->assertNotNull($member);
+        $this->assertStringStartsWith('IMPORT-', $member->adh_license, 'Member license should start with IMPORT-');
+    }
+
+    /**
+     * Test imported user cleanup also removes member and medical doc.
+     */
+    public function test_imported_user_cleanup_removes_member_and_medical_doc(): void
+    {
+        $race = Race::factory()->create();
+
+        // Import to create user
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Cleanup Test User,01:30:00.00,00:00.00,01:30:00.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $this->service->importCsv($file, $race->race_id);
+
+        $user = User::where('first_name', 'Cleanup')->where('last_name', 'Test User')->first();
+        $this->assertNotNull($user);
+        
+        $adhId = $user->adh_id;
+        $docId = $user->doc_id;
+
+        // Verify member and medical doc exist
+        $this->assertNotNull(\App\Models\Member::where('adh_id', $adhId)->first(), 'Member should exist');
+        $this->assertNotNull(\App\Models\MedicalDoc::where('doc_id', $docId)->first(), 'MedicalDoc should exist');
+
+        // Import empty CSV to trigger cleanup
+        $emptyCsv = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $file2 = UploadedFile::fake()->createWithContent('empty.csv', $emptyCsv);
+
+        $this->service->importCsv($file2, $race->race_id);
+
+        // Verify member and medical doc were deleted
+        $this->assertNull(\App\Models\Member::where('adh_id', $adhId)->first(), 'Member should be deleted');
+        $this->assertNull(\App\Models\MedicalDoc::where('doc_id', $docId)->first(), 'MedicalDoc should be deleted');
+    }
 }
