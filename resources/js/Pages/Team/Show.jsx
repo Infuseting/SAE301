@@ -33,6 +33,9 @@ export default function Show({ team }) {
                                         <p className="mb-2">
                                             <span className="font-semibold">Membres:</span> {team.members?.length || 0}
                                         </p>
+                                        <p>
+                                            <span className="font-semibold">Créée le:</span> {team.created_at}
+                                        </p>
                                     </div>
                                 </div>
                             </div>

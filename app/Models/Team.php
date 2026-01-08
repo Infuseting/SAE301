@@ -19,6 +19,7 @@ class Team extends Model
         'equ_name',
         'equ_image',
         'adh_id',
+        'created_at',
     ];
 
     public function member(): BelongsTo
@@ -55,4 +56,5 @@ class Team extends Model
     {
         return $this->belongsTo(User::class, 'adh_id', 'id');
     }
+    
 }
