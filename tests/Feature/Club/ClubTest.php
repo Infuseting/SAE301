@@ -36,7 +36,7 @@ class ClubTest extends TestCase
             'club_street' => '123 Test St',
             'club_city' => 'Test City',
             'club_postal_code' => '12345',
-            'ffso_id' => 'FFSO-TEST',
+            'ffso_id' => 'FFCO-TEST',
             'description' => 'A test club'
         ]);
 

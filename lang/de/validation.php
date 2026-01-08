@@ -185,6 +185,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Benutzerdefinierte Validierungsregeln
+    |--------------------------------------------------------------------------
+    |
+    | Hier können Sie benutzerdefinierte Validierungsmeldungen für
+    | benutzerdefinierte Regeln angeben.
+    |
+    */
+
+    'ffco_license_number' => 'Das Feld :attribute muss eine gültige FFCO-Lizenznummer sein (z.B. 123456 oder AB12345).',
+
+    /*
+    |--------------------------------------------------------------------------
     | Custom Validation Attributes
     |--------------------------------------------------------------------------
     |

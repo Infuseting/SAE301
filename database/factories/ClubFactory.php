@@ -30,7 +30,7 @@ class ClubFactory extends Factory
             'club_street' => $this->faker->streetAddress(),
             'club_city' => $this->faker->city(),
             'club_postal_code' => $this->faker->postcode(),
-            'ffso_id' => $this->faker->bothify('FFSO-####'),
+            'ffso_id' => $this->faker->bothify('FFCO-####'),
             'description' => $this->faker->paragraph(),
             'club_image' => null,
             'is_approved' => false,

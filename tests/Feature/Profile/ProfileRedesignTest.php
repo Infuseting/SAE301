@@ -26,7 +26,7 @@ class ProfileRedesignTest extends TestCase
                 'last_name' => 'Name',
                 'email' => 'test@example.com',
                 'description' => 'My new bio',
-                'license_number' => 'TEST-LIC-123',
+                'license_number' => 'AB123456',
                 'birth_date' => '1990-01-01',
                 'address' => '123 Test St, Test City',
                 'phone' => '+33612345678',
