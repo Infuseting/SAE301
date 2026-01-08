@@ -72,6 +72,7 @@ class VisuRaceController extends Controller
             'raid.club',
             'type',
             'teamParams',
+            'runnerParams',
             'categorieAges.ageCategorie'
         ])->find($id);
 
@@ -172,6 +173,8 @@ class VisuRaceController extends Controller
             'priceMajor' => $race->price_major,
             'priceMinor' => $race->price_minor,
             'priceAdherent' => $race->price_adherent,
+            'minParticipants' => $race->runnerParams?->pac_nb_min ?? 0,
+            'maxParticipants' => $race->runnerParams?->pac_nb_max ?? 100,
             'minTeams' => $race->teamParams?->pae_nb_min ?? 1,
             'maxTeams' => $race->teamParams?->pae_nb_max ?? 1,
             'maxPerTeam' => $race->teamParams?->pae_team_count_max ?? 1,

@@ -56,6 +56,14 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
         });
     };
 
+    const formatTime = (dateString) => {
+        if (!dateString) return '';
+        return new Date(dateString).toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     const statusConfig = {
         completed: { label: 'Épreuve Terminée', icon: <CheckCircle2 className="h-4 w-4" />, color: 'bg-gray-900 text-white' },
         ongoing: { label: 'En cours', icon: <Clock className="h-4 w-4" />, color: 'bg-emerald-500 text-white' },
@@ -146,8 +154,10 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     <div className="flex items-center gap-3">
                                         <Calendar className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                                         <div>
-                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Date</p>
-                                            <p className="text-sm font-bold text-blue-900">{formatDate(race.raceDate)}</p>
+                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Date & Heure</p>
+                                            <p className="text-sm font-bold text-blue-900">
+                                                {formatDate(race.raceDate)} à <span className="text-emerald-600 font-black">{formatTime(race.raceDate)}</span>
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -166,6 +176,29 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     {race.description}
                                 </p>
                             </div>
+
+                            {/* Age Categories Display */}
+                            {race.ageCategories && race.ageCategories.length > 0 && (
+                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-50">
+                                    <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <Users className="h-5 w-5 text-emerald-500" />
+                                        Catégories d'âges acceptées
+                                    </h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {race.ageCategories.map((category) => (
+                                            <div 
+                                                key={category.id}
+                                                className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-3 text-center hover:shadow-md transition-all"
+                                            >
+                                                <p className="text-xs font-black text-emerald-700 uppercase tracking-widest">{category.nom}</p>
+                                                <p className="text-sm font-bold text-emerald-900 mt-1">
+                                                    {category.age_min}{category.age_max ? `–${category.age_max}` : '+'} ans
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Tabs for Tarifs, Équipes, Organisateur */}
                             <div className="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden">
@@ -227,18 +260,39 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
 
                                     {/* Équipes Tab */}
                                     {activeTab === 'equipes' && (
-                                        <div className="grid grid-cols-3 gap-3">
-                                            <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
-                                                <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Min</p>
-                                                <p className="text-xl font-black text-blue-900 italic">{race.minTeams}</p>
+                                        <div className="space-y-4">
+                                            {/* Participants */}
+                                            <div>
+                                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Coureurs</p>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Min</p>
+                                                        <p className="text-xl font-black text-blue-900 italic">{race.minParticipants}</p>
+                                                    </div>
+                                                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Max</p>
+                                                        <p className="text-xl font-black text-blue-900 italic">{race.maxParticipants}</p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
-                                                <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Max</p>
-                                                <p className="text-xl font-black text-blue-900 italic">{race.maxTeams}</p>
-                                            </div>
-                                            <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
-                                                <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Par Eq</p>
-                                                <p className="text-xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
+
+                                            {/* Teams */}
+                                            <div>
+                                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Équipes</p>
+                                                <div className="grid grid-cols-3 gap-3">
+                                                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Min</p>
+                                                        <p className="text-xl font-black text-blue-900 italic">{race.minTeams}</p>
+                                                    </div>
+                                                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Max</p>
+                                                        <p className="text-xl font-black text-blue-900 italic">{race.maxTeams}</p>
+                                                    </div>
+                                                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Par Éq</p>
+                                                        <p className="text-xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -250,34 +304,23 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                 race.ageCategories.map((category) => (
                                                     <div
                                                         key={category.id}
-                                                        onClick={() => toggleAgeCategory(category.id)}
-                                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                                                            selectedAgeCategories.includes(category.id)
-                                                                ? 'bg-emerald-50 border-emerald-500 shadow-lg shadow-emerald-200'
-                                                                : 'bg-blue-50/30 border-blue-50 hover:border-emerald-300'
-                                                        }`}
+                                                        className="p-4 rounded-xl border-2 border-emerald-300 bg-emerald-50/50 shadow-sm hover:shadow-md transition-all"
                                                     >
                                                         <div className="flex items-center justify-between">
                                                             <div>
-                                                                <p className="text-sm font-black text-blue-900 uppercase italic">{category.nom}</p>
-                                                                <p className="text-xs text-blue-600 font-bold mt-1">
-                                                                    {category.age_min} - {category.age_max} ans
+                                                                <p className="text-sm font-black text-emerald-900 uppercase italic">{category.nom}</p>
+                                                                <p className="text-xs text-emerald-700 font-bold mt-1">
+                                                                    {category.age_min} {category.age_max ? `- ${category.age_max}` : '+'} ans
                                                                 </p>
                                                             </div>
-                                                            <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${
-                                                                selectedAgeCategories.includes(category.id)
-                                                                    ? 'bg-emerald-500 border-emerald-500'
-                                                                    : 'border-blue-300'
-                                                            }`}>
-                                                                {selectedAgeCategories.includes(category.id) && (
-                                                                    <CheckCircle2 className="w-4 h-4 text-white" />
-                                                                )}
+                                                            <div className="bg-emerald-500 rounded-full p-2">
+                                                                <CheckCircle2 className="w-5 h-5 text-white" />
                                                             </div>
                                                         </div>
                                                     </div>
                                                 ))
                                             ) : (
-                                                <p className="text-center text-blue-600 text-sm font-bold py-4">Aucune catégorie d'âge disponible</p>
+                                                <p className="text-center text-blue-600 text-sm font-bold py-4">Aucune catégorie d'âge définie</p>
                                             )}
                                         </div>
                                     )}

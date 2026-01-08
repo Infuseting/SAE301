@@ -71,13 +71,13 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         duration: convertMinutesToDuration(race?.race_duration_minutes),
         endDate: extractDate(race?.race_date_end),
         endTime: extractTime(race?.race_date_end),
-        minParticipants: race?.runner_params?.pac_nb_min || '',
-        maxParticipants: race?.runner_params?.pac_nb_max || '',
+        minParticipants: race?.runner_params?.pac_nb_min || '1',
+        maxParticipants: race?.runner_params?.pac_nb_max || '10',
         maxPerTeam: race?.team_params?.pae_team_count_max || '1',
         minTeams: race?.team_params?.pae_nb_min || '1',
         maxTeams: race?.team_params?.pae_nb_max || '1',
-        priceMajor: race?.price_major || '',
-        priceMinor: race?.price_minor || '',
+        priceMajor: race?.price_major || '0',
+        priceMinor: race?.price_minor || '0',
         priceAdherent: race?.price_adherent || '',
         difficulty: race?.race_difficulty || '',
         type: race?.typ_id || (types.length > 0 ? types[0].id : ''),
@@ -249,6 +249,12 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        // Debug: Log all form data
+        console.log('Form data before submission:', data);
+        console.log('Processing state:', processing);
+        console.log('Selected age categories:', data.selectedAgeCategories);
+        
         if (isEditMode) {
             // Use router.post with _method: PUT for file uploads to work correctly
             router.post(route('races.update', race.race_id), {
@@ -258,6 +264,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                 forceFormData: true,
             });
         } else {
+            // Send form data with forceFormData to handle file upload
             post(route('races.store'), {
                 forceFormData: true,
             });
@@ -499,7 +506,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Participants - Ligne 5 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Min participants
+                                        Min participants *
                                     </label>
                                     <input
                                         type="number"
@@ -507,13 +514,15 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.minParticipants}
                                         onChange={handleInputChange}
                                         placeholder="0"
+                                        required
+                                        min="1"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Max participants
+                                        Max participants *
                                     </label>
                                     <input
                                         type="number"
@@ -521,6 +530,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.maxParticipants}
                                         onChange={handleInputChange}
                                         placeholder="0"
+                                        required
+                                        min="1"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
                                 </div>
@@ -528,7 +539,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Équipes - Ligne 6 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Min équipes
+                                        Min équipes *
                                     </label>
                                     <input
                                         type="number"
@@ -536,13 +547,15 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.minTeams}
                                         onChange={handleInputChange}
                                         placeholder="0"
+                                        required
+                                        min="1"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Max équipes
+                                        Max équipes *
                                     </label>
                                     <input
                                         type="number"
@@ -550,6 +563,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.maxTeams}
                                         onChange={handleInputChange}
                                         placeholder="0"
+                                        required
+                                        min="1"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
                                 </div>
@@ -557,7 +572,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Max par équipe - Ligne 7 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Max par équipe
+                                        Max par équipe *
                                     </label>
                                     <input
                                         type="number"
@@ -565,6 +580,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.maxPerTeam}
                                         onChange={handleInputChange}
                                         placeholder="0"
+                                        required
+                                        min="1"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
                                 </div>
@@ -610,8 +627,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                     placeholder="0.00"
                                                     step="0.01"
                                                     min="0"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                                                     required
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                                                 />
                                                 <span className="ml-2 text-gray-500 text-sm">€</span>
                                             </div>
@@ -681,7 +698,10 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
                                 {/* Catégories d'âges - Colonne pleine */}
                                 <div className="col-span-1 lg:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-3">Catégories d'âges</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                                        Catégories d'âges
+                                        <span className="text-xs text-gray-500 ml-2">({data.selectedAgeCategories.length} sélectionnée{data.selectedAgeCategories.length !== 1 ? 's' : ''})</span>
+                                    </label>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                         {ageCategories.length > 0 ? (
                                             ageCategories.map((category) => {
