@@ -115,8 +115,27 @@ return [
     'admin.users.manage_roles_title' => 'Gestionar roles de :name',
     'admin.users.current_roles' => 'Roles actuales:',
     'admin.users.select_role' => 'Haz clic para añadir un rol:',
-    'admin.users.current' => 'Actual',
-    'admin.users.remove_role' => 'Eliminar rol',
+    'admin.users.current' => 'Actual',    'admin.users.remove_role' => 'Eliminar rol',
+    'admin.users.requires_grant_admin' => 'Requiere permiso',
+    'admin.users.status_active' => 'Activo',
+    'admin.users.status_inactive' => 'Inactivo',
+    'admin.users.no_roles' => 'Sin roles',
+
+    // Admin - Logs
+    'admin.logs.title' => 'Registro de actividad',
+    'admin.logs.timestamp' => 'Marca de tiempo',
+    'admin.logs.level' => 'Nivel',
+    'admin.logs.action' => 'Acción',
+    'admin.logs.user' => 'Usuario',
+    'admin.logs.content' => 'Contenido',
+    'admin.logs.ip' => 'IP',
+    'admin.logs.no_activity' => 'No hay actividad por ahora.',
+    'admin.logs.details' => 'Detalles',
+    'admin.logs.level_info' => 'Info',
+    'admin.logs.level_notice' => 'Aviso',
+    'admin.logs.level_warning' => 'Advertencia',
+    'admin.logs.level_error' => 'Error',
+    'admin.logs.level_critical' => 'Crítico',    'admin.users.remove_role' => 'Eliminar rol',
     'admin.users.requires_grant_admin' => 'Permiso requerido',
     'admin.users.role_assigned' => '¡Rol ":role" asignado correctamente!',
     'admin.users.role_removed' => '¡Rol ":role" eliminado correctamente!',
@@ -160,8 +179,8 @@ return [
     // Homepage - Upcoming Races
     'upcoming_races_title' => 'Próximas Carreras',
     'upcoming_races_subtitle' => 'No te pierdas los próximos eventos cerca de ti.',
-    'upcoming_raids_title' => 'Raids Destacados',
-    'upcoming_raids_subtitle' => 'Los mejores raids de orientación seleccionados para ti.',
+    'upcoming_raids_title' => 'Raids Añadidos Recientemente',
+    'upcoming_raids_subtitle' => 'Descubre los últimos raids creados.',
     'view_calendar' => 'Ver calendario completo',
     'upcoming_races_list' => [
         [
@@ -227,6 +246,19 @@ return [
     'step_3_title' => '¡Corre!',
     'step_3_desc' => 'Participa en el evento, sigue tus resultados y compara tu rendimiento.',
 
+    // Footer
+    'footer_tagline' => 'La referencia para orienteering en Francia.',
+    'footer_navigation' => 'Navegación',
+    'footer_links_calendar' => 'Calendario',
+    'footer_links_clubs' => 'Clubes',
+    'footer_links_raids' => 'Incursiones',
+    'footer_links_results' => 'Resultados',
+    'footer_legal' => 'Legal',
+    'footer_links_legal_notice' => 'Aviso legal',
+    'footer_links_privacy' => 'Privacidad',
+    'footer_links_terms' => 'Términos de servicio',
+    'footer_contact' => 'Contacto',
+    'footer_copyright' => 'Todos los derechos reservados.',
 
     // Welcome Page
     'documentation_text' => 'Laravel tiene una maravillosa documentación cubriendo cada aspecto del framework. Ya sea un principiante o alguien con experiencia previa con Laravel, recomendamos leer nuestra documentación desde el principio hasta el final.',
@@ -248,5 +280,56 @@ return [
     'member_since' => 'Miembro desde el :date',
     'description_bio' => 'Descripción / Bio',
     'edit_profile' => 'Editar',
+
+    // Licence and PPS
+    'licence_number' => 'Número de Licencia',
+    'pps_code' => 'Código PPS',
+    'licence_expiry_date' => 'Fecha de Expiración de Licencia',
+    'pps_expiry_date' => 'Fecha de Expiración del PPS',
+    'licence_added_successfully' => 'Licencia añadida con éxito',
+    'pps_added_successfully' => 'Código PPS añadido con éxito',
+    'add_licence' => 'Añadir Licencia',
+    'add_pps' => 'Añadir Código PPS',
+    'licence_required_title' => 'Licencia o Código PPS Requerido',
+    'licence_required_text' => 'Para inscribirte en una carrera, debes tener un número de licencia válido o un código PPS.',
+    'licence_valid_for' => 'Válido por 1 año',
+    'pps_valid_for' => 'Válido por 3 meses',
+    'enter_licence_or_pps' => 'Introduce tu número de licencia o código PPS',
+    'need_valid_credentials' => 'Necesitas un número de licencia válido o un código PPS para inscribirte en esta carrera',
+    'no_permission_to_register' => 'No tienes permiso para inscribirte en esta carrera',
+    'registration_successful' => 'Inscripción exitosa',
+    'valid_until' => 'Válido hasta',
+
+    // Roles
+    'my_roles' => 'Mis Roles',
+    'role_admin' => 'Administrador',
+    'role_adherent' => 'Adherente',
+    'role_responsable_club' => 'Responsable de Club',
+    'role_gestionnaire_raid' => 'Gestor de Raid',
+    'role_responsable_course' => 'Responsable de Carrera',
+    'role_user' => 'Usuario',
+    'role_guest' => 'Visitante',
+    'no_roles_assigned' => 'Sin roles asignados',
+
+    // Clubs
+    'join_club' => 'Unirse al Club',
+    'leave_club' => 'Dejar el Club',
+    'manage_members' => 'Gestionar Miembros',
+    'approve_club' => 'Aceptar',
+    'reject_club' => 'Rechazar',
+    'member_promoted' => ':name ha sido promovido a responsable del club',
+    'manager_demoted' => ':name ha sido degradado a miembro',
+    'cannot_demote_last_manager' => 'No se puede degradar al último responsable del club',
+    'user_not_member' => 'Este usuario no es miembro de este club',
+    'promote_to_manager' => 'Promover a responsable',
+    'demote_to_member' => 'Degradar a miembro',
+
+    // Leaderboard Navigation
+    'leaderboard' => 'Clasificación',
+    'public_leaderboard' => 'Clasificación pública',
+    'my_leaderboard' => 'Mi clasificación',
+
+    // Courses Navigation
+    'view_all_races' => 'Ver todas las carreras',
 
 ];

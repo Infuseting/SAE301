@@ -82,12 +82,20 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the teams that this user belongs to.
+     */
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'has_participate', 'id_users', 'equ_id');
+    }
+
+    /**
      * Get the user's full name.
      */
     protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(
-            get: fn () => "{$this->first_name} {$this->last_name}",
+            get: fn() => "{$this->first_name} {$this->last_name}",
         );
     }
 
@@ -113,6 +121,7 @@ class User extends Authenticatable
         'profile_photo_url',
         'name',
         'license_number',
+        'licence_end_validity',
     ];
 
     /**
@@ -146,6 +155,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the licence end validity date from the user's member record.
+     *
+     * @return \Illuminate\Database\Eloquent\Casts\Attribute
+     */
+    public function licenceEndValidity(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn() => $this->member?->endValidity(),
+        );
+    }
+
+    /**
      * Check if the user has completed their profile.
      * 
      * Verifies that birth_date, address, and phone are present,
@@ -175,5 +196,76 @@ class User extends Authenticatable
     public function getLicenseNumberAttribute()
     {
         return $this->member ? $this->member->adh_license : null;
+    }
+
+    public function endValidity()
+    {
+        return $this->member ? $this->member->adh_end_validity ? $this->member->adh_end_validity->format('d/m/Y') : null : null;
+    }
+
+    /**
+     * Get the clubs that the user belongs to.
+     */
+    public function clubs()
+    {
+        return $this->belongsToMany(Club::class, 'club_user', 'user_id', 'club_id')
+            ->withPivot('role', 'status')
+            ->withTimestamps();
+    }
+
+    public function races()
+    {
+        return $this->belongsToMany(Race::class, 'race_registrations', 'user_id', 'race_id');
+    }
+
+
+    /**
+     * Determine if the user is allowed to reset their password.
+     * A user can reset their password if they have a local password set
+     * and no connected social accounts.
+     *
+     * @return bool
+     */
+    public function canResetPassword(): bool
+    {
+        return $this->password_is_set && !$this->connectedAccounts()->exists();
+    }
+
+    /**
+     * Check if the user is a club leader.
+     * Uses the club_users pivot table to check if user has a manager role
+     * 
+     * Check if the user is a club leader/manager.
+     * A user is considered a club leader if they created any club (created_by column).
+     * 
+     * @return bool
+     */
+    public function isClubLeader(): bool
+    {
+        if (!$this->id) {
+            return false;
+        }
+
+        // Check if user is the creator of any club
+        $isCreator = \DB::table('clubs')
+            ->where('created_by', $this->id)
+            ->exists();
+
+        if ($isCreator) {
+            return true;
+        }
+
+        // Check if user has the responsable-club role
+        if ($this->hasRole('responsable-club')) {
+            return true;
+        }
+
+        // Check if user is a manager of any club in the pivot table
+        $isManager = $this->clubs()
+            ->wherePivot('role', 'manager')
+            ->wherePivot('status', 'approved')
+            ->exists();
+
+        return $isManager;
     }
 }

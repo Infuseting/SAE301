@@ -73,4 +73,70 @@ class Raid extends Model
             'raid_date_end' => 'datetime',
         ];
     }
+
+    /**
+     * Get the route key name for model binding.
+     *
+     * @return string
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'raid_id';
+    }
+
+    /**
+     * Get the club this raid belongs to.
+     */
+    public function club()
+    {
+        return $this->belongsTo(Club::class, 'clu_id', 'club_id');
+    }
+
+    /**
+     * Get the races for this raid.
+     */
+    public function races()
+    {
+        return $this->hasMany(Race::class, 'raid_id', 'raid_id');
+    }
+
+    /**
+     * Get the registration period for this raid.
+     */
+    public function registrationPeriod()
+    {
+        return $this->belongsTo(RegistrationPeriod::class, 'ins_id', 'ins_id');
+    }
+
+    /**
+     * Check if the raid is currently open for registration.
+     */
+    public function isOpen(): bool
+    {
+        $period = $this->registrationPeriod;
+        if (!$period) return false;
+        
+        $now = now();
+        return $now >= $period->ins_start_date && $now <= $period->ins_end_date;
+    }
+
+    /**
+     * Check if the raid registration is in the future.
+     */
+    public function isUpcoming(): bool
+    {
+        $period = $this->registrationPeriod;
+        if (!$period) return true;
+        
+        return now() < $period->ins_start_date;
+    }
+
+    /**
+     * Check if the raid (event or registration) is finished.
+     */
+    public function isFinished(): bool
+    {
+        return now() > $this->raid_date_end;
+    }
+    
 }

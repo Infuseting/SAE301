@@ -6,9 +6,10 @@ export default function LanguageSwitcher({ mobile = false }) {
     const { locale } = usePage().props;
 
     const flags = {
-        en: '🇺🇸',
-        es: '🇪🇸',
         fr: '🇫🇷',
+        en: '🇬🇧',
+        es: '🇪🇸',
+        de: '🇩🇪'
     };
 
     const currentFlag = flags[locale] || flags['en'];
@@ -16,6 +17,7 @@ export default function LanguageSwitcher({ mobile = false }) {
     if (mobile) {
         return (
             <>
+                <ResponsiveNavLink href={route('lang.switch', 'fr')}>{flags.fr}</ResponsiveNavLink>
                 <ResponsiveNavLink href={route('lang.switch', 'en')}>{flags.en}</ResponsiveNavLink>
                 <ResponsiveNavLink href={route('lang.switch', 'es')}>{flags.es}</ResponsiveNavLink>
                 <ResponsiveNavLink href={route('lang.switch', 'fr')}>{flags.fr}</ResponsiveNavLink>
@@ -24,13 +26,13 @@ export default function LanguageSwitcher({ mobile = false }) {
     }
 
     return (
-        <div className="relative">
+        <div className="relative bg-white rounded-md">
             <Dropdown>
                 <Dropdown.Trigger>
                     <span className="inline-flex rounded-md">
                         <button
                             type="button"
-                            className="inline-flex items-center rounded-md border border-transparent bg-white  px-3 py-2 text-xl leading-4 text-gray-500  transition duration-150 ease-in-out hover:text-gray-700  hover:bg-gray-100  focus:outline-none"
+                            className="inline-flex items-center rounded-md border border-transparent bg-transparent px-3 py-2 text-xl leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
                         >
                             {currentFlag}
 
@@ -51,14 +53,17 @@ export default function LanguageSwitcher({ mobile = false }) {
                 </Dropdown.Trigger>
 
                 <Dropdown.Content width="w-min">
+                    <Dropdown.Link href={route('lang.switch', 'fr')}>
+                        {flags.fr}
+                    </Dropdown.Link>
                     <Dropdown.Link href={route('lang.switch', 'en')}>
                         {flags.en}
                     </Dropdown.Link>
                     <Dropdown.Link href={route('lang.switch', 'es')}>
                         {flags.es}
                     </Dropdown.Link>
-                    <Dropdown.Link href={route('lang.switch', 'fr')}>
-                        {flags.fr}
+                    <Dropdown.Link href={route('lang.switch', 'de')}>
+                        {flags.de}
                     </Dropdown.Link>
                 </Dropdown.Content>
             </Dropdown>
