@@ -1358,6 +1358,236 @@ class LeaderboardServiceTest extends TestCase
     }
 
     /**
+     * Test that when a user is REPLACED by another user in CSV, the old user's participation is cleaned up.
+     * - Old user's has_participate entry should be deleted
+     * - Old user's solo team should be deleted (if alone in team)
+     * - New user should have new participation and team created
+     */
+    public function test_user_replacement_in_csv_cleans_up_old_participation(): void
+    {
+        $race = Race::factory()->create();
+        
+        // First import: User A
+        $csvContent1 = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent1 .= "1,Old Runner,01:30:00.00,00:00.00,01:30:00.00";
+
+        Storage::fake('local');
+        $file1 = UploadedFile::fake()->createWithContent('results1.csv', $csvContent1);
+
+        $result1 = $this->service->importCsv($file1, $race->race_id);
+        $this->assertEquals(1, $result1['success']);
+        $this->assertEquals(1, $result1['created']); // User was created
+
+        // Verify User A was created
+        $oldUser = User::where('first_name', 'Old')->where('last_name', 'Runner')->first();
+        $this->assertNotNull($oldUser, 'Old user should be created');
+
+        // Get old user's team
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
+        $oldParticipation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $oldUser->id)
+            ->first();
+        $this->assertNotNull($oldParticipation, 'Old user should have participation');
+        $oldTeamId = $oldParticipation->equ_id;
+        
+        // Verify old team exists
+        $this->assertNotNull(Team::find($oldTeamId), 'Old team should exist');
+
+        // Second import: Replace User A with User B
+        $csvContent2 = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent2 .= "1,New Runner,01:25:00.00,00:00.00,01:25:00.00";
+
+        $file2 = UploadedFile::fake()->createWithContent('results2.csv', $csvContent2);
+
+        $result2 = $this->service->importCsv($file2, $race->race_id);
+        $this->assertEquals(1, $result2['success']);
+        $this->assertEquals(1, $result2['created']); // New user was created
+        $this->assertEquals(1, $result2['removed']); // Old user was removed
+
+        // Verify new user was created
+        $newUser = User::where('first_name', 'New')->where('last_name', 'Runner')->first();
+        $this->assertNotNull($newUser, 'New user should be created');
+
+        // Verify old user's participation was deleted
+        $oldParticipationAfter = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $oldUser->id)
+            ->count();
+        $this->assertEquals(0, $oldParticipationAfter, 'Old user participation should be deleted');
+
+        // Verify old user's solo team was deleted
+        $this->assertNull(Team::find($oldTeamId), 'Old solo team should be deleted');
+
+        // Verify new user has participation
+        $newParticipation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $newUser->id)
+            ->first();
+        $this->assertNotNull($newParticipation, 'New user should have participation');
+
+        // Verify leaderboard only has new user
+        $leaderboard = $this->service->getIndividualLeaderboard($race->race_id);
+        $this->assertEquals(1, $leaderboard['total']);
+        $this->assertEquals($newUser->id, $leaderboard['data'][0]['user_id']);
+    }
+
+    /**
+     * Test that when a user is REPLACED, but the old user's team has other members,
+     * only the has_participate entry is deleted, NOT the team.
+     */
+    public function test_user_replacement_keeps_team_when_other_members_exist(): void
+    {
+        $race = Race::factory()->create();
+        
+        // First import: User A
+        $csvContent1 = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent1 .= "1,Old Member,01:30:00.00,00:00.00,01:30:00.00";
+
+        Storage::fake('local');
+        $file1 = UploadedFile::fake()->createWithContent('results1.csv', $csvContent1);
+
+        $this->service->importCsv($file1, $race->race_id);
+
+        $oldUser = User::where('first_name', 'Old')->where('last_name', 'Member')->first();
+        $this->assertNotNull($oldUser);
+
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
+        $oldParticipation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $oldUser->id)
+            ->first();
+        $teamId = $oldParticipation->equ_id;
+
+        // Add another member to the same team (simulating a shared team)
+        $anotherUser = User::factory()->create([
+            'first_name' => 'Permanent',
+            'last_name' => 'Member',
+        ]);
+
+        $participateData = [
+            $userIdColumn => $anotherUser->id,
+            'equ_id' => $teamId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+        if (\Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'adh_id')) {
+            $participateData['adh_id'] = $anotherUser->adh_id;
+        }
+        \Illuminate\Support\Facades\DB::table('has_participate')->insert($participateData);
+
+        // Verify team now has 2 members
+        $memberCount = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where('equ_id', $teamId)
+            ->count();
+        $this->assertEquals(2, $memberCount);
+
+        // Second import: Replace User A with User B (new user)
+        $csvContent2 = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent2 .= "1,Replacement Runner,01:25:00.00,00:00.00,01:25:00.00";
+
+        $file2 = UploadedFile::fake()->createWithContent('results2.csv', $csvContent2);
+
+        $result2 = $this->service->importCsv($file2, $race->race_id);
+        $this->assertEquals(1, $result2['removed']);
+
+        // Verify old user's participation was deleted
+        $oldParticipationAfter = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $oldUser->id)
+            ->count();
+        $this->assertEquals(0, $oldParticipationAfter, 'Old user participation should be deleted');
+
+        // Verify team still exists (because Permanent Member is still in it)
+        $this->assertNotNull(Team::find($teamId), 'Team should NOT be deleted when other members exist');
+
+        // Verify Permanent Member is still in team
+        $permanentMemberParticipation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $anotherUser->id)
+            ->where('equ_id', $teamId)
+            ->count();
+        $this->assertEquals(1, $permanentMemberParticipation, 'Permanent member should still be in team');
+    }
+
+    /**
+     * Test multiple users being replaced at once in CSV.
+     */
+    public function test_multiple_users_replacement_in_csv(): void
+    {
+        $race = Race::factory()->create();
+        
+        // First import: 3 users
+        $csvContent1 = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent1 .= "1,User Alpha,01:00:00.00,00:00.00,01:00:00.00\n";
+        $csvContent1 .= "2,User Beta,01:10:00.00,00:00.00,01:10:00.00\n";
+        $csvContent1 .= "3,User Gamma,01:20:00.00,00:00.00,01:20:00.00";
+
+        Storage::fake('local');
+        $file1 = UploadedFile::fake()->createWithContent('results1.csv', $csvContent1);
+
+        $result1 = $this->service->importCsv($file1, $race->race_id);
+        $this->assertEquals(3, $result1['success']);
+        $this->assertEquals(3, $result1['created']);
+
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
+        // Get all old users and their teams
+        $userAlpha = User::where('first_name', 'User')->where('last_name', 'Alpha')->first();
+        $userBeta = User::where('first_name', 'User')->where('last_name', 'Beta')->first();
+        $userGamma = User::where('first_name', 'User')->where('last_name', 'Gamma')->first();
+
+        $teamAlpha = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $userAlpha->id)->first()->equ_id;
+        $teamBeta = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $userBeta->id)->first()->equ_id;
+        $teamGamma = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $userGamma->id)->first()->equ_id;
+
+        // Second import: Only User Beta stays, Alpha and Gamma are replaced
+        $csvContent2 = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent2 .= "1,User Delta,00:55:00.00,00:00.00,00:55:00.00\n";
+        $csvContent2 .= "2,User Beta,01:05:00.00,00:00.00,01:05:00.00\n";
+        $csvContent2 .= "3,User Epsilon,01:15:00.00,00:00.00,01:15:00.00";
+
+        $file2 = UploadedFile::fake()->createWithContent('results2.csv', $csvContent2);
+
+        $result2 = $this->service->importCsv($file2, $race->race_id);
+        $this->assertEquals(3, $result2['success']);
+        $this->assertEquals(2, $result2['created']); // Delta and Epsilon
+        $this->assertEquals(2, $result2['removed']); // Alpha and Gamma removed
+
+        // Verify Alpha and Gamma participation deleted
+        $alphaParticipation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $userAlpha->id)->count();
+        $gammaParticipation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $userGamma->id)->count();
+        $this->assertEquals(0, $alphaParticipation, 'Alpha participation should be deleted');
+        $this->assertEquals(0, $gammaParticipation, 'Gamma participation should be deleted');
+
+        // Verify Alpha and Gamma solo teams deleted
+        $this->assertNull(Team::find($teamAlpha), 'Alpha solo team should be deleted');
+        $this->assertNull(Team::find($teamGamma), 'Gamma solo team should be deleted');
+
+        // Verify Beta still has participation (user was retained)
+        $betaParticipation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $userBeta->id)->count();
+        $this->assertEquals(1, $betaParticipation, 'Beta participation should still exist');
+
+        // Verify Beta team still exists
+        $this->assertNotNull(Team::find($teamBeta), 'Beta team should still exist');
+
+        // Verify leaderboard has correct 3 users now
+        $leaderboard = $this->service->getIndividualLeaderboard($race->race_id);
+        $this->assertEquals(3, $leaderboard['total']);
+        $userNames = collect($leaderboard['data'])->pluck('user_name')->toArray();
+        $this->assertContains('User Delta', $userNames);
+        $this->assertContains('User Beta', $userNames);
+        $this->assertContains('User Epsilon', $userNames);
+        $this->assertNotContains('User Alpha', $userNames);
+        $this->assertNotContains('User Gamma', $userNames);
+    }
+
+    /**
      * Test cleanup when imported user is removed but team has other members.
      * The team should NOT be deleted, only the user's has_participate entry.
      */
