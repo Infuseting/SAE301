@@ -7,6 +7,10 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Invitation;
+use App\Mail\TeamInvitation;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class TeamController extends Controller
 {
@@ -91,6 +95,14 @@ class TeamController extends Controller
             'avatar' => $user->avatar,
         ])->toArray();
 
+        // Get all users for invitation
+        $users = User::all()->map(fn($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => $user->avatar,
+        ])->toArray();
+
         return Inertia::render('Team/Show', [
             'team' => [
                 'id' => $team->equ_id,
@@ -99,6 +111,39 @@ class TeamController extends Controller
                 'members' => $members,
                 'creator_id' => $team->user_id,  
             ],
+            'users' => $users,
         ]);
+    }
+
+    /**
+     * Send invitation email to a new user.
+     */
+    public function inviteByEmail(Team $team, Request $request)
+    {
+        // Verify the user is the team creator
+        if ($request->user()->id !== $team->user_id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Validate email
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        // Create invitation record
+        $token = Str::random(64);
+        $invitation = Invitation::create([
+            'equ_id' => $team->equ_id,
+            'email' => $validated['email'],
+            'inviter_id' => $request->user()->id,
+            'token' => $token,
+            'status' => 'pending',
+            'expires_at' => now()->addDays(7),
+        ]);
+
+        // Send invitation email
+        Mail::to($validated['email'])->send(new TeamInvitation($team->equ_name, $request->user()->name));
+
+        return response()->json(['success' => 'Email d\'invitation envoyé avec succès']);
     }
 }

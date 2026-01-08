@@ -1,10 +1,15 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
+import { useState } from 'react';
+import InviteUserModal from '@/Components/Team/InviteUserModal';
+import InviteByEmailModal from '@/Components/Team/InviteByEmailModal';
 
 /**
  * Display team details including members and information.
- */
-export default function Show({ team, auth }) {
+ */ 
+export default function Show({ team, auth, users }) {
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [showEmailModal, setShowEmailModal] = useState(false);
     const isCreator = auth?.user?.id === team?.creator_id;
 
     return (
@@ -33,7 +38,10 @@ export default function Show({ team, auth }) {
                                             {team.name}
                                         </h1>
                                         {isCreator && (
-                                            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                            <button 
+                                                onClick={() => setShowInviteModal(true)}
+                                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                            >
                                                 Inviter
                                             </button>
                                         )}
@@ -86,6 +94,25 @@ export default function Show({ team, auth }) {
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            <InviteUserModal
+                isOpen={showInviteModal}
+                onClose={() => setShowInviteModal(false)}
+                users={users}
+                teamMembers={team.members}
+                auth={auth}
+                onEmailInviteOpen={() => {
+                    setShowInviteModal(false);
+                    setShowEmailModal(true);
+                }}
+            />
+            
+            <InviteByEmailModal
+                isOpen={showEmailModal}
+                onClose={() => setShowEmailModal(false)}
+                teamId={team.id}
+            />
         </AuthenticatedLayout>
     );
 }

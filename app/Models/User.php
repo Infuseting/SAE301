@@ -89,6 +89,8 @@ class User extends Authenticatable
         return $this->belongsToMany(Team::class, 'has_participate', 'id_users', 'equ_id');
     }
 
+    
+
     /**
      * Get the user's full name.
      */
