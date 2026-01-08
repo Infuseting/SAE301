@@ -540,28 +540,15 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 <div className="space-y-4">
                                     {[
                                         { label: 'Tarif Majeur', price: race.priceMajor, isMain: true },
-                                        { label: 'Tarif Mineur', price: race.priceMinor },
+                                        ...(!race.isCompetitive ? [{ label: 'Tarif Mineur', price: race.priceMinor }] : []),
                                         { label: 'Tarif Adhérent', price: race.priceAdherent, sub: 'Licenciés club' },
                                     ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
                                         <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${t.isMain ? 'bg-blue-900 text-white border-blue-900 shadow-xl shadow-blue-200' : 'bg-blue-50/30 border-blue-50 text-blue-900'}`}>
                                             <div>
-                                                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">CLUB</p>
-                                                <p className="text-xs font-bold text-blue-900">{race.raid.club.nom}</p>
+                                                <p className={`text-[10px] font-black uppercase tracking-widest ${t.isMain ? 'text-blue-100/40' : 'text-blue-400'}`}>{t.label}</p>
+                                                {t.sub && <p className={`text-[10px] font-bold ${t.isMain ? 'text-blue-200' : 'text-blue-800/40'}`}>{t.sub}</p>}
                                             </div>
-                                        )}
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className="bg-blue-50/50 p-2 rounded-lg">
-                                                <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Début</p>
-                                                <p className="text-[10px] font-bold text-blue-900">
-                                                    {new Date(race.raid.dateStart).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' })}
-                                                </p>
-                                            </div>
-                                            <div className="bg-blue-50/50 p-2 rounded-lg">
-                                                <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Fin</p>
-                                                <p className="text-[10px] font-bold text-blue-900">
-                                                    {new Date(race.raid.dateEnd).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' })}
-                                                </p>
-                                            </div>
+                                            <span className="text-lg font-black italic">{t.price}€</span>
                                         </div>
                                     ))}
                                 </div>
@@ -587,7 +574,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         <p className="text-2xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
                 </div>
