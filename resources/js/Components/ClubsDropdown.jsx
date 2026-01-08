@@ -7,18 +7,13 @@ export default function ClubsDropdown() {
     const messages = usePage().props.translations?.messages || {};
     const user = usePage().props.auth?.user;
 
-    // Don't render the component if user is not logged in
-    if (!user) {
-        return null;
-    }
-
     // Get user's clubs (clubs where user is a member)
     const userClubs = user?.clubs || [];
     const hasClubs = userClubs.length > 0;
 
     // Check if user can create clubs (must be adherent or admin)
     const userRoles = user?.roles || [];
-    const canCreateClub = userRoles.some(role => 
+    const canCreateClub = user && userRoles.some(role => 
         ['adherent', 'admin'].includes(role.name || role)
     );
 
