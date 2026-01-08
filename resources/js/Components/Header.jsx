@@ -25,7 +25,7 @@ export default function Header({ transparent = false, className = "" }) {
         : "bg-white border-b border-gray-100 shadow-sm";
 
     const logoClasses = transparent
-        ? "h-12 w-auto fill-current text-white"
+        ? "h-20 w-auto fill-current text-white"
         : "h-9 w-auto fill-current text-gray-800 hover:text-emerald-600 transition-colors";
 
     const linkClasses = transparent
@@ -117,9 +117,12 @@ export default function Header({ transparent = false, className = "" }) {
                 {transparent && (
                     <div className="flex items-center justify-between w-full">
                         {/* 1. Section GAUCHE : Logo */}
-                        <div className="flex-1 flex justify-start">
-                            <Link href="/">
-                                <ApplicationLogo className={logoClasses} />
+                        <div className="flex-1 flex  justify-start">
+                            <Link href="/" className="flex items-center ">
+                                <ApplicationLogo
+                                    className={logoClasses}
+                                    big={true}
+                                />
                             </Link>
                         </div>
 
