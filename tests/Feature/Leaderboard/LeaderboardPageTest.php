@@ -265,6 +265,75 @@ class LeaderboardPageTest extends TestCase
     }
 
     /**
+     * Test export all (general leaderboard) is accessible.
+     */
+    public function test_export_all_leaderboard_accessible(): void
+    {
+        $user = User::factory()->create(['is_public' => true]);
+        $currentUser = User::factory()->create();
+        $race1 = Race::factory()->create(['race_name' => 'Race 1']);
+        $race2 = Race::factory()->create(['race_name' => 'Race 2']);
+
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race1->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race2->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        $response = $this->actingAs($currentUser)
+            ->get(route('leaderboard.export.all', ['type' => 'individual']));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        
+        // Verify CSV contains all races
+        $content = $response->getContent();
+        $this->assertStringContainsString('Race 1', $content);
+        $this->assertStringContainsString('Race 2', $content);
+    }
+
+    /**
+     * Test export all team leaderboard includes teams from all races.
+     */
+    public function test_export_all_team_leaderboard(): void
+    {
+        $currentUser = User::factory()->create();
+        $race1 = Race::factory()->create(['race_name' => 'Team Race 1']);
+        $race2 = Race::factory()->create(['race_name' => 'Team Race 2']);
+        
+        $team1 = Team::factory()->create(['equ_name' => 'Alpha Team']);
+        $team2 = Team::factory()->create(['equ_name' => 'Beta Team']);
+
+        LeaderboardTeam::create([
+            'equ_id' => $team1->equ_id,
+            'race_id' => $race1->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 2,
+        ]);
+        
+        LeaderboardTeam::create([
+            'equ_id' => $team2->equ_id,
+            'race_id' => $race2->race_id,
+            'average_temps' => 3700,
+            'average_malus' => 0,
+            'average_temps_final' => 3700,
+            'member_count' => 3,
+        ]);
+
+        $response = $this->actingAs($currentUser)
+            ->get(route('leaderboard.export.all', ['type' => 'team']));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        
+        // Verify CSV contains all teams and races
+        $content = $response->getContent();
+        $this->assertStringContainsString('Alpha Team', $content);
+        $this->assertStringContainsString('Beta Team', $content);
+        $this->assertStringContainsString('Team Race 1', $content);
+        $this->assertStringContainsString('Team Race 2', $content);
+    }
+
+    /**
      * Test my leaderboard can switch between individual and team.
      */
     public function test_my_leaderboard_can_switch_between_individual_and_team(): void

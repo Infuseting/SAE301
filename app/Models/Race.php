@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 // use Spatie\ActivityLog\Traits\LogsActivity;
 // use Spatie\ActivityLog\LogOptions;
 use OpenApi\Annotations as OA;
+use App\Models\AgeCategorie;
 
 /**
  * @OA\Schema(
@@ -196,6 +197,33 @@ class Race extends Model
     public function categorieAges(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ParamCategorieAge::class, 'race_id', 'race_id');
+    }
+
+    /**
+     * Get the age categories for this race through param_categorie_age.
+     *
+     * @return BelongsToMany
+     */
+    public function ageCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            AgeCategorie::class,
+            'param_categorie_age',
+            'race_id',
+            'age_categorie_id',
+            'race_id',
+            'id'
+        );
+    }
+
+    /**
+     * Get the age category names for this race.
+     *
+     * @return array
+     */
+    public function getAgeCategoryNamesAttribute(): array
+    {
+        return $this->ageCategories->pluck('nom')->toArray();
     }
 
     /**
