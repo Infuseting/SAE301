@@ -159,8 +159,12 @@ class LeaderboardService
 
     public function recalculateTeamAverages(int $raceId): void
     {
+        // Determine the correct column name for user reference in has_participate
+        $hasIdUsersColumn = DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
         $teamResults = DB::table('leaderboard_users as lr')
-            ->join('has_participate as hp', 'lr.user_id', '=', 'hp.id')
+            ->join('has_participate as hp', 'lr.user_id', '=', "hp.{$userIdColumn}")
             ->where('lr.race_id', $raceId)
             ->select(
                 'hp.equ_id',

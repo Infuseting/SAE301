@@ -411,4 +411,120 @@ class LeaderboardApiTest extends TestCase
             ->assertJsonPath('data.temps_formatted', '01:01:01.50')
             ->assertJsonPath('data.malus_formatted', '01:00.00');
     }
+
+    // ============================================
+    // RACE FILTERING TESTS
+    // ============================================
+
+    /**
+     * Test API individual leaderboard filters by race correctly.
+     */
+    public function test_api_individual_leaderboard_filters_by_race(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $race1 = Race::factory()->create();
+        $race2 = Race::factory()->create();
+        $participant = User::factory()->create();
+
+        LeaderboardUser::create(['user_id' => $participant->id, 'race_id' => $race1->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $participant->id, 'race_id' => $race2->race_id, 'temps' => 4000, 'malus' => 0]);
+
+        $response = $this->getJson("/api/leaderboard/{$race1->race_id}/individual");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('total', 1);
+        
+        // Verify correct race is filtered
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+    }
+
+    /**
+     * Test API team leaderboard filters by race correctly.
+     */
+    public function test_api_team_leaderboard_filters_by_race(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $race1 = Race::factory()->create();
+        $race2 = Race::factory()->create();
+        $team = Team::factory()->create();
+
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race1->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 2,
+        ]);
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race2->race_id,
+            'average_temps' => 4000,
+            'average_malus' => 0,
+            'average_temps_final' => 4000,
+            'member_count' => 2,
+        ]);
+
+        $response = $this->getJson("/api/leaderboard/{$race1->race_id}/teams");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('total', 1);
+        
+        // Verify correct race is filtered
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+    }
+
+    // ============================================
+    // PUBLIC LEADERBOARD API TESTS
+    // Note: Public API routes may be served via web routes, not API routes.
+    // These tests verify the behavior via web routes or can be adapted
+    // when public API endpoints are added.
+    // ============================================
+
+    // ============================================
+    // EDGE CASES
+    // ============================================
+
+    /**
+     * Test API handles empty leaderboard for non-existent race gracefully.
+     * Note: API returns empty results instead of 404 for races without entries.
+     */
+    public function test_api_handles_race_without_entries(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $race = Race::factory()->create();
+        // No leaderboard entries for this race
+
+        $response = $this->getJson("/api/leaderboard/{$race->race_id}/individual");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('total', 0);
+    }
+
+    /**
+     * Test API handles special characters in search.
+     */
+    public function test_api_handles_special_characters_in_search(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $race = Race::factory()->create();
+        $participant = User::factory()->create(['first_name' => 'Jean-Pierre', 'last_name' => "O'Connor"]);
+
+        LeaderboardUser::create(['user_id' => $participant->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+
+        $response = $this->getJson("/api/leaderboard/{$race->race_id}/individual?search=Jean-Pierre");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('total', 1);
+    }
 }

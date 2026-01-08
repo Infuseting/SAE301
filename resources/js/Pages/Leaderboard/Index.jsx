@@ -4,7 +4,7 @@ import Header from '@/Components/Header';
 
 /**
  * Public Leaderboard Index page - Shows all public race rankings
- * Features: search by race/name, filter by individual/team, export CSV
+ * Features: search by name/race, filter by individual/team, export CSV
  * Only shows users with public profiles
  */
 export default function LeaderboardIndex({ races, selectedRace, results, type, search }) {
@@ -13,7 +13,6 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
     
     const [searchTerm, setSearchTerm] = useState(search || '');
     const [selectedType, setSelectedType] = useState(type || 'individual');
-    const [selectedRaceId, setSelectedRaceId] = useState(selectedRace?.race_id || '');
 
     /**
      * Handle search form submission
@@ -21,19 +20,6 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
     const handleSearch = (e) => {
         e.preventDefault();
         router.get(route('leaderboard.index'), {
-            race_id: selectedRaceId,
-            type: selectedType,
-            search: searchTerm,
-        }, { preserveState: true });
-    };
-
-    /**
-     * Handle race selection change
-     */
-    const handleRaceChange = (raceId) => {
-        setSelectedRaceId(raceId);
-        router.get(route('leaderboard.index'), {
-            race_id: raceId,
             type: selectedType,
             search: searchTerm,
         }, { preserveState: true });
@@ -45,19 +31,18 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
     const handleTypeChange = (newType) => {
         setSelectedType(newType);
         router.get(route('leaderboard.index'), {
-            race_id: selectedRaceId,
             type: newType,
             search: searchTerm,
         }, { preserveState: true });
     };
 
     /**
-     * Handle CSV export
+     * Handle CSV export - exports first race from current results
      */
     const handleExport = () => {
-        if (selectedRaceId) {
+        if (results?.data?.length > 0 && results.data[0].race_id) {
             window.location.href = route('leaderboard.export', { 
-                raceId: selectedRaceId, 
+                raceId: results.data[0].race_id, 
                 type: selectedType 
             });
         }
@@ -111,26 +96,7 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
 
                         {/* Filters */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                {/* Race Selection */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        {messages.select_race || 'Sélectionner une course'}
-                                    </label>
-                                    <select
-                                        value={selectedRaceId}
-                                        onChange={(e) => handleRaceChange(e.target.value)}
-                                        className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                    >
-                                        <option value="">{messages.all_races || 'Toutes les courses'}</option>
-                                        {races.map((race) => (
-                                            <option key={race.race_id} value={race.race_id}>
-                                                {race.race_name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {/* Type Toggle */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -193,9 +159,9 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                     </label>
                                     <button
                                         onClick={handleExport}
-                                        disabled={!selectedRaceId}
+                                        disabled={!results?.data?.length || !results.data[0]?.race_id}
                                         className={`w-full px-4 py-2 rounded-lg font-medium transition flex items-center justify-center gap-2 ${
-                                            selectedRaceId
+                                            results?.data?.length && results.data[0]?.race_id
                                                 ? 'bg-gray-800 text-white hover:bg-gray-700'
                                                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                         }`}
@@ -236,11 +202,9 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     {isTeamView ? (messages.team || 'Équipe') : (messages.name || 'Nom')}
                                                 </th>
-                                                {!selectedRaceId && (
-                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        {messages.race || 'Course'}
-                                                    </th>
-                                                )}
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {messages.race || 'Course'}
+                                                </th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     {messages.time || 'Temps'}
                                                 </th>
@@ -296,14 +260,12 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    {!selectedRaceId && (
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div>
-                                                                <span className="text-gray-900">{result.race_name}</span>
-                                                                <span className="block text-xs text-gray-500">{formatDate(result.race_date)}</span>
-                                                            </div>
-                                                        </td>
-                                                    )}
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div>
+                                                            <span className="text-gray-900">{result.race_name}</span>
+                                                            <span className="block text-xs text-gray-500">{formatDate(result.race_date)}</span>
+                                                        </div>
+                                                    </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-gray-700 font-mono">
                                                         {isTeamView ? result.average_temps_formatted : result.temps_formatted}
                                                     </td>
@@ -334,7 +296,6 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                             {results.current_page > 1 && (
                                                 <button
                                                     onClick={() => router.get(route('leaderboard.index'), {
-                                                        race_id: selectedRaceId,
                                                         type: selectedType,
                                                         search: searchTerm,
                                                         page: results.current_page - 1,
@@ -347,7 +308,6 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                             {results.current_page < results.last_page && (
                                                 <button
                                                     onClick={() => router.get(route('leaderboard.index'), {
-                                                        race_id: selectedRaceId,
                                                         type: selectedType,
                                                         search: searchTerm,
                                                         page: results.current_page + 1,

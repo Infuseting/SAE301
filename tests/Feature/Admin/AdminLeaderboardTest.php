@@ -443,4 +443,316 @@ class AdminLeaderboardTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHasErrors('file');
     }
+
+    // ============================================
+    // IMPORT CSV WITH NAME FORMAT TESTS
+    // ============================================
+
+    /**
+     * Test admin can import CSV with name format (Rang,Nom,Temps,Malus,Temps Final).
+     */
+    public function test_admin_can_import_csv_with_name_format(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+
+        $csvContent = "Rang;Nom;Temps;Malus;Temps Final\n1;Jean Dupont;01:00:00.00;00:00.00;01:00:00.00";
+        
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.leaderboard.import'), [
+            'file' => $file,
+            'race_id' => $race->race_id,
+            'type' => 'individual',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        
+        $this->assertDatabaseHas('leaderboard_users', [
+            'user_id' => $user->id,
+            'race_id' => $race->race_id,
+        ]);
+    }
+
+    /**
+     * Test import CSV creates new user when not found.
+     */
+    public function test_import_csv_creates_user_when_not_found(): void
+    {
+        $race = Race::factory()->create();
+
+        $csvContent = "Rang;Nom;Temps;Malus;Temps Final\n1;Nouveau Coureur;02:30:00.00;00:00.00;02:30:00.00";
+        
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.leaderboard.import'), [
+            'file' => $file,
+            'race_id' => $race->race_id,
+            'type' => 'individual',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        
+        // Verify user was created
+        $this->assertDatabaseHas('users', [
+            'first_name' => 'Nouveau',
+            'last_name' => 'Coureur',
+        ]);
+    }
+
+    /**
+     * Test import CSV does not create duplicate users.
+     */
+    public function test_import_csv_does_not_create_duplicate_users(): void
+    {
+        $race = Race::factory()->create();
+        $existingUser = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+        
+        $initialUserCount = User::count();
+
+        $csvContent = "Rang;Nom;Temps;Malus;Temps Final\n1;Jean Dupont;01:00:00.00;00:00.00;01:00:00.00";
+        
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.leaderboard.import'), [
+            'file' => $file,
+            'race_id' => $race->race_id,
+            'type' => 'individual',
+        ]);
+
+        $response->assertRedirect();
+        
+        // No new users should be created
+        $this->assertEquals($initialUserCount, User::count());
+        
+        // Leaderboard entry should be linked to existing user
+        $this->assertDatabaseHas('leaderboard_users', [
+            'user_id' => $existingUser->id,
+            'race_id' => $race->race_id,
+        ]);
+    }
+
+    /**
+     * Test import CSV removes absent participants.
+     */
+    public function test_import_csv_removes_absent_participants(): void
+    {
+        $race = Race::factory()->create();
+        $user1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+        $user2 = User::factory()->create(['first_name' => 'Marie', 'last_name' => 'Martin']);
+        
+        // Both users have existing leaderboard entries
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        // Import CSV with only user1 (user2 is missing)
+        $csvContent = "Rang;Nom;Temps;Malus;Temps Final\n1;Jean Dupont;01:00:00.00;00:00.00;01:00:00.00";
+        
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.leaderboard.import'), [
+            'file' => $file,
+            'race_id' => $race->race_id,
+            'type' => 'individual',
+        ]);
+
+        $response->assertRedirect();
+        
+        // User1 should still be in leaderboard
+        $this->assertDatabaseHas('leaderboard_users', [
+            'user_id' => $user1->id,
+            'race_id' => $race->race_id,
+        ]);
+        
+        // User2 should be removed from leaderboard
+        $this->assertDatabaseMissing('leaderboard_users', [
+            'user_id' => $user2->id,
+            'race_id' => $race->race_id,
+        ]);
+    }
+
+    /**
+     * Test import CSV does not affect other races.
+     */
+    public function test_import_csv_does_not_affect_other_races(): void
+    {
+        $race1 = Race::factory()->create();
+        $race2 = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+        
+        // User has entry in race2
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race2->race_id, 'temps' => 4000, 'malus' => 0]);
+
+        // Import CSV for race1 only
+        $csvContent = "Rang;Nom;Temps;Malus;Temps Final\n1;Jean Dupont;01:00:00.00;00:00.00;01:00:00.00";
+        
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $this->actingAs($this->admin)->post(route('admin.leaderboard.import'), [
+            'file' => $file,
+            'race_id' => $race1->race_id,
+            'type' => 'individual',
+        ]);
+
+        // Race1 should have new entry
+        $this->assertDatabaseHas('leaderboard_users', [
+            'user_id' => $user->id,
+            'race_id' => $race1->race_id,
+        ]);
+        
+        // Race2 entry should be unchanged
+        $this->assertDatabaseHas('leaderboard_users', [
+            'user_id' => $user->id,
+            'race_id' => $race2->race_id,
+            'temps' => 4000,
+        ]);
+    }
+
+    // ============================================
+    // RACE FILTERING TESTS
+    // ============================================
+
+    /**
+     * Test admin leaderboard results are filtered by race.
+     */
+    public function test_admin_leaderboard_results_filtered_by_race(): void
+    {
+        $race1 = Race::factory()->create(['race_name' => 'Race 1']);
+        $race2 = Race::factory()->create(['race_name' => 'Race 2']);
+        $user = User::factory()->create();
+
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race1->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race2->race_id, 'temps' => 4000, 'malus' => 0]);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.leaderboard.results', ['raceId' => $race1->race_id]));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->has('results.data', 1)
+        );
+        
+        // Verify correct race data is returned
+        $this->assertEquals(1, $response->original->getData()['page']['props']['results']['total']);
+    }
+
+    /**
+     * Test admin team leaderboard results are filtered by race.
+     */
+    public function test_admin_team_leaderboard_results_filtered_by_race(): void
+    {
+        $race1 = Race::factory()->create(['race_name' => 'Race 1']);
+        $race2 = Race::factory()->create(['race_name' => 'Race 2']);
+        $team = Team::factory()->create();
+
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race1->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 2,
+        ]);
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race2->race_id,
+            'average_temps' => 4000,
+            'average_malus' => 0,
+            'average_temps_final' => 4000,
+            'member_count' => 2,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.leaderboard.results', [
+                'raceId' => $race1->race_id,
+                'type' => 'team',
+            ]));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->has('results.data', 1)
+        );
+        
+        // Verify correct race data is returned
+        $this->assertEquals(1, $response->original->getData()['page']['props']['results']['total']);
+    }
+
+    // ============================================
+    // TEAM CREATION AND CLEANUP TESTS
+    // ============================================
+
+    /**
+     * Test import creates team for user without team.
+     */
+    public function test_import_creates_team_for_user_without_team(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+        
+        // User has no team
+        $initialTeamCount = Team::count();
+
+        $csvContent = "Rang;Nom;Temps;Malus;Temps Final\n1;Jean Dupont;01:00:00.00;00:00.00;01:00:00.00";
+        
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $this->actingAs($this->admin)->post(route('admin.leaderboard.import'), [
+            'file' => $file,
+            'race_id' => $race->race_id,
+            'type' => 'individual',
+        ]);
+
+        // A solo team should be created
+        $this->assertGreaterThan($initialTeamCount, Team::count());
+    }
+
+    /**
+     * Test import does not create new team for user already in team.
+     */
+    public function test_import_does_not_create_team_for_user_with_team(): void
+    {
+        $race = Race::factory()->create();
+        $member = \App\Models\Member::factory()->create();
+        $user = User::factory()->create([
+            'first_name' => 'Jean',
+            'last_name' => 'Dupont',
+            'adh_id' => $member->adh_id,
+        ]);
+        $team = Team::factory()->create(['adh_id' => $member->adh_id]);
+        
+        // Link user to team
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        \Illuminate\Support\Facades\DB::table('has_participate')->insert([
+            $userIdColumn => $user->id,
+            'equ_id' => $team->equ_id,
+            'adh_id' => $member->adh_id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
+        $initialTeamCount = Team::count();
+
+        $csvContent = "Rang;Nom;Temps;Malus;Temps Final\n1;Jean Dupont;01:00:00.00;00:00.00;01:00:00.00";
+        
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $this->actingAs($this->admin)->post(route('admin.leaderboard.import'), [
+            'file' => $file,
+            'race_id' => $race->race_id,
+            'type' => 'individual',
+        ]);
+
+        // No new teams should be created
+        $this->assertEquals($initialTeamCount, Team::count());
+    }
 }
