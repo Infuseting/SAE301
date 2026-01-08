@@ -464,8 +464,7 @@ class AdminPermissionsTest extends TestCase
                 'price' => 10,
                 'priceMajor' => 20,
                 'priceMinor' => 15,
-                'priceMajorAdherent' => 18,
-                'priceMinorAdherent' => 12,
+                'priceAdherent' => 18,
                 'responsableId' => $this->adminUser->id,
                 'raid_id' => $this->raid->raid_id,
             ]);

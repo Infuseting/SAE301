@@ -340,8 +340,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     {[
                                         { label: 'Tarif Majeur', price: race.priceMajor, isMain: true },
                                         { label: 'Tarif Mineur', price: race.priceMinor },
-                                        { label: 'Tarif Adhérent Majeur', price: race.priceMajorAdherent, sub: 'Licenciés club' },
-                                        { label: 'Tarif Adhérent Mineur', price: race.priceMinorAdherent, sub: 'Licenciés club' },
+                                        { label: 'Tarif Adhérent', price: race.priceAdherent, sub: 'Licenciés club' },
                                     ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
                                         <div key={idx} className={`flex items-center justify-between p-3 rounded-xl border transition-colors text-sm ${t.isMain ? 'bg-blue-900 text-white border-blue-900 shadow-lg shadow-blue-200' : 'bg-blue-50/30 border-blue-50 text-blue-900'}`}>
                                             <div>

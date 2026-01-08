@@ -27,6 +27,17 @@ class StoreRaceRequest extends FormRequest
      */
     public function rules(): array
     {
+        $typeId = $this->input('type');
+        $isCompetitive = false;
+        
+        // Check if race type is competitive
+        if ($typeId) {
+            $type = \App\Models\ParamType::find($typeId);
+            if ($type && (strtolower($type->typ_name) === 'compétitif' || strtolower($type->typ_name) === 'competitif')) {
+                $isCompetitive = true;
+            }
+        }
+
         return [
             'title' => ['required', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:2000'],
@@ -44,12 +55,14 @@ class StoreRaceRequest extends FormRequest
             'maxTeams' => ['required', 'integer', 'gte:minTeams'],
             'mealPrice' => ['nullable', 'numeric', 'min:0'],
             'priceMajor' => ['required', 'numeric', 'min:0'],
-            'priceMinor' => ['required', 'numeric', 'min:0'],
-            'priceMajorAdherent' => ['nullable', 'numeric', 'min:0', 'lte:priceMajor'],
-            'priceMinorAdherent' => ['nullable', 'numeric', 'min:0', 'lte:priceMinor'],
+            // Minor prices are not required for competitive races
+            'priceMinor' => $isCompetitive ? ['nullable', 'numeric', 'min:0'] : ['required', 'numeric', 'min:0'],
+            'priceAdherent' => ['nullable', 'numeric', 'min:0', 'lte:priceMajor'],
             'responsableId' => ['required', 'integer', 'exists:users,id'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'],
             'raid_id' => ['nullable', 'integer', 'exists:raids,raid_id'],
+            'selectedAgeCategories' => ['nullable', 'array'],
+            'selectedAgeCategories.*' => ['integer', 'exists:age_categories,id'],
         ];
     }
 
@@ -63,6 +76,12 @@ class StoreRaceRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
+            // Validate that at least one age category is selected
+            $selectedCategories = $this->input('selectedAgeCategories', []);
+            if (!is_array($selectedCategories) || empty($selectedCategories)) {
+                $validator->errors()->add('selectedAgeCategories', 'Veuillez sélectionner au moins une catégorie d\'âge.');
+            }
+
             // Validate raid date range if raid is associated
             $raidId = $this->input('raid_id');
             if ($raidId) {
@@ -89,19 +108,16 @@ class StoreRaceRequest extends FormRequest
                 }
             }
 
-            // Validate that minor prices are not set for competitive races
+            // Validate that minor prices are not set for competitive races (if they are provided, they should be rejected)
             $typeId = $this->input('type');
             if ($typeId) {
                 $type = \App\Models\ParamType::find($typeId);
                 if ($type && (strtolower($type->typ_name) === 'compétitif' || strtolower($type->typ_name) === 'competitif')) {
                     $priceMinor = $this->input('priceMinor');
-                    $priceMinorAdherent = $this->input('priceMinorAdherent');
 
+                    // Only add error if a value is explicitly provided and greater than 0
                     if ($priceMinor && $priceMinor > 0) {
                         $validator->errors()->add('priceMinor', 'Les tarifs pour les mineurs ne sont pas autorisés pour les courses compétitives (réservées aux adultes).');
-                    }
-                    if ($priceMinorAdherent && $priceMinorAdherent > 0) {
-                        $validator->errors()->add('priceMinorAdherent', 'Les tarifs adhérents pour les mineurs ne sont pas autorisés pour les courses compétitives (réservées aux adultes).');
                     }
                 }
             }
@@ -129,14 +145,15 @@ class StoreRaceRequest extends FormRequest
             'type.exists' => 'Le type sélectionné est invalide.',
             'priceMajor.required' => 'Le prix pour les majeurs est obligatoire.',
             'priceMinor.required' => 'Le prix pour les mineurs est obligatoire.',
-            'priceMajorAdherent.numeric' => 'Le prix adhérent pour les majeurs doit être un nombre.',
-            'priceMajorAdherent.lte' => 'Le tarif adhérent majeur doit être inférieur ou égal au tarif majeur.',
-            'priceMinorAdherent.numeric' => 'Le prix adhérent pour les mineurs doit être un nombre.',
-            'priceMinorAdherent.lte' => 'Le tarif adhérent mineur doit être inférieur ou égal au tarif mineur.',
+            'priceAdherent.numeric' => 'Le prix adhérent doit être un nombre.',
+            'priceAdherent.lte' => 'Le tarif adhérent doit être inférieur ou égal au tarif majeur.',
             'responsableId.required' => 'Le responsable de la course est obligatoire.',
             'responsableId.exists' => 'Le responsable sélectionné est invalide.',
             'image.image' => 'Le fichier doit être une image.',
             'image.max' => 'L\'image ne doit pas dépasser 5 Mo.',
+            'selectedAgeCategories.required' => 'Veuillez sélectionner au moins une catégorie d\'âge.',
+            'selectedAgeCategories.min' => 'Veuillez sélectionner au moins une catégorie d\'âge.',
+            'selectedAgeCategories.*.exists' => 'Une ou plusieurs catégories d\'âge sélectionnées sont invalides.',
         ];
     }
 }

@@ -7,7 +7,6 @@ import { Trophy, Plus } from 'lucide-react';
 export default function NewRace({ auth, users = [], types = [], ageCategories = [], raid_id = null, raid = null }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedResponsable, setSelectedResponsable] = useState(null);
-    const [selectedAgeCategories, setSelectedAgeCategories] = useState([]);
 
     const { data, setData, post, processing, errors } = useForm({
         title: '',
@@ -25,13 +24,13 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         maxTeams: '1',
         priceMajor: '',
         priceMinor: '',
-        priceMajorAdherent: '',
-        priceMinorAdherent: '',
+        priceAdherent: '',
         difficulty: '',
         type: types.length > 0 ? types[0].id : '',
         mealPrice: '',
         image: null,
         raid_id: raid_id || '',
+        selectedAgeCategories: [],
     });
 
     // Date validation state
@@ -160,10 +159,11 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
      * @param {number} categoryId - The age category ID
      */
     const toggleAgeCategory = (categoryId) => {
-        setSelectedAgeCategories(prev => 
-            prev.includes(categoryId)
-                ? prev.filter(id => id !== categoryId)
-                : [...prev, categoryId]
+        const id = Number(categoryId);
+        setData('selectedAgeCategories', 
+            data.selectedAgeCategories.includes(id)
+                ? data.selectedAgeCategories.filter(catId => catId !== id)
+                : [...data.selectedAgeCategories, id]
         );
     };
 
@@ -185,13 +185,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Add selected age categories to form data
-        post(route('races.store'), {
-            data: {
-                ...data,
-                selectedAgeCategories: selectedAgeCategories,
-            },
-        });
+        // Submit form with all data including selectedAgeCategories
+        post(route('races.store'));
     };
 
     return (
@@ -524,8 +519,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                     <label key={category.id} className="flex items-center cursor-pointer p-2 hover:bg-gray-50 rounded-lg transition">
                                                         <input
                                                             type="checkbox"
-                                                            checked={selectedAgeCategories.includes(category.id)}
-                                                            onChange={() => toggleAgeCategory(category.id)}
+                                                        checked={data.selectedAgeCategories.includes(Number(category.id))}
+                                                        onChange={() => toggleAgeCategory(Number(category.id))}
                                                             className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
                                                         />
                                                         <span className="ml-2 text-gray-700 font-medium text-sm flex-1">
@@ -540,8 +535,12 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                 <p className="text-sm text-gray-500 italic">Aucune catégorie disponible</p>
                                             )}
                                         </div>
-                                        {selectedAgeCategories.length === 0 && (
+                                        <p className="mt-2 text-xs text-gray-600">Sélectionnées: {data.selectedAgeCategories.length}</p>
+                                        {data.selectedAgeCategories.length === 0 && (
                                             <p className="mt-2 text-xs text-red-600 font-medium">⚠️ Veuillez sélectionner au moins une catégorie d'âge</p>
+                                        )}
+                                        {errors.selectedAgeCategories && (
+                                            <p className="mt-2 text-xs text-red-600 font-medium">⚠️ {errors.selectedAgeCategories}</p>
                                         )}
                                     </div>
                                 </div>
@@ -605,8 +604,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                             <div className="flex items-center">
                                                 <input
                                                     type="number"
-                                                    name="priceMajorAdherent"
-                                                    value={data.priceMajorAdherent}
+                                                    name="priceAdherent"
+                                                    value={data.priceAdherent}
                                                     onChange={handleInputChange}
                                                     placeholder="0.00"
                                                     step="0.01"
@@ -615,6 +614,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                 />
                                                 <span className="ml-2 text-gray-500 text-sm">€</span>
                                             </div>
+                                            {errors.priceAdherent && <p className="mt-1 text-xs text-red-600">{errors.priceAdherent}</p>}
                                         </div>
                                     </div>
 
@@ -628,11 +628,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                 <strong>Mode compétitif :</strong> Les tarifs pour les mineurs ne sont pas disponibles car les courses compétitives sont réservées aux adultes (18 ans et plus).
                                             </p>
                                         </div>
-                                    ) : (
-                                        <p className="mt-3 text-xs text-gray-500 italic">
-                                            💡 Le tarif adhérent doit être inférieur ou égal aux autres tarifs
-                                        </p>
-                                    )}
+                                    ) : null}
 
                                 </div>
 

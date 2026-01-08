@@ -85,8 +85,7 @@ class Race extends Model
         'race_difficulty',
         'price_major',
         'price_minor',
-        'price_major_adherent',
-        'price_minor_adherent',
+        'price_adherent',
     ];
 
     /**
@@ -102,8 +101,7 @@ class Race extends Model
         'race_duration_minutes' => 'float',
         'price_major' => 'float',
         'price_minor' => 'float',
-        'price_major_adherent' => 'float',
-        'price_minor_adherent' => 'float',
+        'price_adherent' => 'float',
     ];
 
     /**
