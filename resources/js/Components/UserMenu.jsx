@@ -40,7 +40,7 @@ export default function UserMenu({ user }) {
 
                     {hasAdminAccess && (
                         <Dropdown.Link href={route("admin.dashboard")}>
-                            Admin
+                            Gestion
                         </Dropdown.Link>
                     )}
 
