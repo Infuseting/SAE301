@@ -3,16 +3,17 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import Slider from "rc-slider";
-import "rc-slider/assets/index.css";
 import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
 import ProfileCompletionModal from "@/Components/ProfileCompletionModal";
 
-export default function Welcome({ auth, upcomingRaids }) {
+export default function Welcome({ auth, upcomingRaids, ageCategories }) {
     const messages = usePage().props.translations?.messages || {};
+    const [location, setLocation] = useState("");
+    const [locationType, setLocationType] = useState("city");
     const [startDate, setStartDate] = useState(null);
-    const [distanceRange, setDistanceRange] = useState([0, 50]);
+    const [category, setCategory] = useState("all");
+    const [ageCategory, setAgeCategory] = useState("");
 
     return (
         <>
@@ -51,20 +52,20 @@ export default function Welcome({ auth, upcomingRaids }) {
                         </p>
 
                         {/* Search Bar Component */}
-                        <div className="w-full max-w-5xl bg-white rounded-2xl p-2 shadow-2xl flex flex-col md:flex-row gap-2">
+                        <div className="w-full max-w-5xl bg-white rounded-xl p-2 shadow-2xl flex flex-col md:flex-row gap-2">
                             {/* Where */}
-                            <div className="flex-[2] px-6 py-4 border-b md:border-b-0 md:border-r border-gray-100 relative group transition-colors hover:bg-gray-50/50 rounded-l-2xl">
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                            <div className="flex-[2] px-5 py-3 border-b md:border-b-0 md:border-r border-gray-100 relative group transition-colors hover:bg-gray-50/40 rounded-l-xl">
+                                <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                                     {messages.search_where}
                                 </label>
-                                <div className="flex items-center">
+                                <div className="flex items-center gap-2">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         strokeWidth={2}
                                         stroke="currentColor"
-                                        className="w-5 h-5 text-gray-300 mr-3 group-hover:text-emerald-500 transition-colors"
+                                        className="w-4 h-4 text-gray-300 group-hover:text-emerald-500 transition-colors flex-shrink-0"
                                     >
                                         <path
                                             strokeLinecap="round"
@@ -77,64 +78,27 @@ export default function Welcome({ auth, upcomingRaids }) {
                                             d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
                                         />
                                     </svg>
-                                    <div className="w-full">
-                                        <div className="flex justify-between items-baseline mb-2">
+                                    <div className="w-full flex gap-2.5 items-end">
+                                        <div className="flex-1">
+                                            <select 
+                                                value={locationType}
+                                                onChange={(e) => setLocationType(e.target.value)}
+                                                className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 font-medium cursor-pointer text-sm"
+                                            >
+                                                <option value="city">Ville</option>
+                                                <option value="department">Département</option>
+                                                <option value="region">Région</option>
+                                            </select>
+                                        </div>
+                                        <div className="flex-1">
                                             <input
                                                 type="text"
                                                 placeholder={
                                                     messages.search_placeholder_where
                                                 }
-                                                className="w-full bg-transparent border-none p-0 text-gray-900 placeholder-gray-400 focus:ring-0 font-semibold text-lg"
-                                            />
-                                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full whitespace-nowrap ml-2">
-                                                {distanceRange[0]}km -{" "}
-                                                {distanceRange[1]}km
-                                            </span>
-                                        </div>
-                                        <div className="px-1">
-                                            <Slider
-                                                range
-                                                min={0}
-                                                max={1000}
-                                                step={10}
-                                                defaultValue={[0, 50]}
-                                                value={distanceRange}
-                                                onChange={(value) =>
-                                                    setDistanceRange(value)
-                                                }
-                                                trackStyle={[
-                                                    {
-                                                        backgroundColor:
-                                                            "#10b981",
-                                                        height: 4,
-                                                    },
-                                                ]}
-                                                handleStyle={[
-                                                    {
-                                                        borderColor: "#10b981",
-                                                        backgroundColor: "#fff",
-                                                        opacity: 1,
-                                                        height: 16,
-                                                        width: 16,
-                                                        marginTop: -6,
-                                                        boxShadow:
-                                                            "0 2px 4px rgba(0,0,0,0.1)",
-                                                    },
-                                                    {
-                                                        borderColor: "#10b981",
-                                                        backgroundColor: "#fff",
-                                                        opacity: 1,
-                                                        height: 16,
-                                                        width: 16,
-                                                        marginTop: -6,
-                                                        boxShadow:
-                                                            "0 2px 4px rgba(0,0,0,0.1)",
-                                                    },
-                                                ]}
-                                                railStyle={{
-                                                    backgroundColor: "#f3f4f6",
-                                                    height: 4,
-                                                }}
+                                                value={location}
+                                                onChange={(e) => setLocation(e.target.value)}
+                                                className="w-full bg-transparent border-none p-0 text-gray-900 placeholder-gray-400 focus:ring-0 font-semibold text-sm"
                                             />
                                         </div>
                                     </div>
@@ -142,14 +106,14 @@ export default function Welcome({ auth, upcomingRaids }) {
                             </div>
 
                             {/* When */}
-                            <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100 flex items-center gap-3">
+                            <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100 flex items-center gap-2">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     strokeWidth={1.5}
                                     stroke="currentColor"
-                                    className="w-6 h-6 text-gray-400"
+                                    className="w-4 h-4 text-gray-400 flex-shrink-0"
                                 >
                                     <path
                                         strokeLinecap="round"
@@ -157,8 +121,8 @@ export default function Welcome({ auth, upcomingRaids }) {
                                         d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0h18M5.25 12h13.5h-13.5Zm0 3.75h13.5h-13.5Z"
                                     />
                                 </svg>
-                                <div className="w-full">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
+                                <div className="w-full min-w-0">
+                                    <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
                                         {messages.search_when}
                                     </label>
                                     <DatePicker
@@ -167,7 +131,7 @@ export default function Welcome({ auth, upcomingRaids }) {
                                         placeholderText={
                                             messages.search_placeholder_when
                                         }
-                                        className="w-full bg-transparent border-none p-0 text-gray-800 placeholder-gray-400 focus:ring-0 font-medium"
+                                        className="w-full bg-transparent border-none p-0 text-gray-800 placeholder-gray-400 focus:ring-0 font-medium text-sm"
                                         dateFormat="dd/MM/yyyy"
                                         popperContainer={({ children }) =>
                                             createPortal(
@@ -182,10 +146,13 @@ export default function Welcome({ auth, upcomingRaids }) {
 
                             {/* Type (Loisir/Compétition) */}
                             <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
+                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
                                     {messages.search_category}
                                 </label>
-                                <select className="w-full bg-transparent border-none p-0 text-gray-800 focus:ring-0 font-medium cursor-pointer">
+                                <select 
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className="w-full bg-transparent border-none p-0 text-gray-800 focus:ring-0 font-medium cursor-pointer text-sm">
                                     <option value="all">{messages.all}</option>
                                     <option value="loisir">
                                         {messages.leisure}
@@ -198,31 +165,46 @@ export default function Welcome({ auth, upcomingRaids }) {
 
                             {/* Age */}
                             <div className="flex-1 px-4 py-3">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
+                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
                                     {messages.search_age}
                                 </label>
-                                <select className="w-full bg-transparent border-none p-0 text-gray-800 focus:ring-0 font-medium cursor-pointer">
+                                <select 
+                                    value={ageCategory}
+                                    onChange={(e) => setAgeCategory(e.target.value)}
+                                    className="w-full bg-transparent border-none p-0 text-gray-800 focus:ring-0 font-medium cursor-pointer text-sm">
                                     <option value="">
                                         {messages.all_ages}
                                     </option>
-                                    {Object.entries(
-                                        messages.age_categories || {}
-                                    ).map(([key, label]) => (
-                                        <option key={key} value={key}>
-                                            {label}
+                                    {(ageCategories || []).map((cat) => (
+                                        <option key={cat.id} value={cat.nom}>
+                                            {cat.nom}
                                         </option>
                                     ))}
                                 </select>
                             </div>
-
-                            <button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-8 py-4 font-bold transition flex items-center justify-center gap-2 md:w-auto w-full">
+ 
+                            <button
+                                onClick={() => {
+                                    const params = new URLSearchParams();
+                                    if (location) {
+                                        params.append("location", location);
+                                        params.append("location_type", locationType);
+                                    }
+                                    if (startDate) params.append("date", startDate.toISOString().split('T')[0]);
+                                    if (category !== "all") params.append("category", category);
+                                    if (ageCategory) params.append("age_category", ageCategory);
+                                    
+                                    router.visit(route("raids.index") + (params.toString() ? `?${params.toString()}` : ""));
+                                }}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-6 py-3 font-bold transition flex items-center justify-center gap-2 md:w-auto w-full text-sm"
+                            >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     strokeWidth={2.5}
                                     stroke="currentColor"
-                                    className="w-5 h-5"
+                                    className="w-4 h-4"
                                 >
                                     <path
                                         strokeLinecap="round"

@@ -18,68 +18,48 @@ export default function Footer() {
                     </p>
                 </div>
 
-                {/* Navigation */}
-                <div>
-                    <h4 className="font-bold mb-4">
-                        {messages.footer_navigation}
-                    </h4>
-                    <ul className="space-y-2 text-gray-400 text-sm">
-                        <li>
-                            <Link
-                                href="/"
-                                className="hover:text-emerald-400 transition"
-                            >
-                                {messages.welcome_title || "Accueil"}
-                            </Link>
-                        </li>
-                        <li>
-                            <Link
-                                href={route("clubs.index")}
-                                className="hover:text-emerald-400 transition"
-                            >
-                                {messages.footer_links_clubs}
-                            </Link>
-                        </li>
-                    </ul>
-                </div>
+                {/* Navigation & Contact - Right aligned */}
+                <div className="md:col-span-2 md:col-start-3 grid md:grid-cols-2 gap-8">
+                    {/* Navigation */}
+                    <div>
+                        <h4 className="font-bold mb-4">
+                            {messages.footer_navigation}
+                        </h4>
+                        <ul className="space-y-2 text-gray-400 text-sm">
+                            <li>
+                                <Link
+                                    href="/"
+                                    className="hover:text-emerald-400 transition"
+                                >
+                                    {messages.welcome_title || "Accueil"}
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href={route("clubs.index")}
+                                    className="hover:text-emerald-400 transition"
+                                >
+                                    {messages.footer_links_clubs}
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href={route("raids.index")}
+                                    className="hover:text-emerald-400 transition"
+                                >
+                                    {messages.footer_links_raids}
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
 
-                {/* Legal */}
-                <div>
-                    <h4 className="font-bold mb-4">{messages.footer_legal}</h4>
-                    <ul className="space-y-2 text-gray-400 text-sm">
-                        <li>
-                            <a
-                                href="#"
-                                className="hover:text-emerald-400 transition"
-                            >
-                                {messages.footer_links_legal_notice}
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                href="#"
-                                className="hover:text-emerald-400 transition"
-                            >
-                                {messages.footer_links_privacy}
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                href="#"
-                                className="hover:text-emerald-400 transition"
-                            >
-                                {messages.footer_links_terms}
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                {/* Contact */}
-                <div>
-                    <h4 className="font-bold mb-4">
-                        {messages.footer_contact}
-                    </h4>
-                    <p className="text-gray-400 text-sm">contact@sae301.fr</p>
+                    {/* Contact */}
+                    <div>
+                        <h4 className="font-bold mb-4">
+                            {messages.footer_contact}
+                        </h4>
+                        <p className="text-gray-400 text-sm">contact@sae301.fr</p>
+                    </div>
                 </div>
             </div>
 
