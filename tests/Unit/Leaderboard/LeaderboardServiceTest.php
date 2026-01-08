@@ -193,6 +193,76 @@ class LeaderboardServiceTest extends TestCase
     }
 
     /**
+     * Test getTeamLeaderboard only returns teams for the selected race.
+     * Teams from other races should not appear.
+     */
+    public function test_get_team_leaderboard_filters_by_race(): void
+    {
+        $race1 = Race::factory()->create(['race_name' => 'Course 1']);
+        $race2 = Race::factory()->create(['race_name' => 'Course 2']);
+        
+        $teamRace1 = Team::factory()->create(['equ_name' => 'Team Race 1']);
+        $teamRace2 = Team::factory()->create(['equ_name' => 'Team Race 2']);
+        $teamBoth = Team::factory()->create(['equ_name' => 'Team Both Races']);
+
+        // Team 1 only in race 1
+        LeaderboardTeam::create([
+            'equ_id' => $teamRace1->equ_id,
+            'race_id' => $race1->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 2,
+        ]);
+
+        // Team 2 only in race 2
+        LeaderboardTeam::create([
+            'equ_id' => $teamRace2->equ_id,
+            'race_id' => $race2->race_id,
+            'average_temps' => 3700,
+            'average_malus' => 0,
+            'average_temps_final' => 3700,
+            'member_count' => 2,
+        ]);
+
+        // Team Both in both races
+        LeaderboardTeam::create([
+            'equ_id' => $teamBoth->equ_id,
+            'race_id' => $race1->race_id,
+            'average_temps' => 3800,
+            'average_malus' => 0,
+            'average_temps_final' => 3800,
+            'member_count' => 3,
+        ]);
+        LeaderboardTeam::create([
+            'equ_id' => $teamBoth->equ_id,
+            'race_id' => $race2->race_id,
+            'average_temps' => 3500,
+            'average_malus' => 0,
+            'average_temps_final' => 3500,
+            'member_count' => 3,
+        ]);
+
+        // Get leaderboard for race 1
+        $leaderboardRace1 = $this->service->getTeamLeaderboard($race1->race_id);
+        
+        $this->assertEquals(2, $leaderboardRace1['total'], 'Race 1 should have 2 teams');
+        $teamIdsRace1 = collect($leaderboardRace1['data'])->pluck('equ_id')->toArray();
+        $this->assertContains($teamRace1->equ_id, $teamIdsRace1, 'Team Race 1 should be in Race 1 leaderboard');
+        $this->assertContains($teamBoth->equ_id, $teamIdsRace1, 'Team Both should be in Race 1 leaderboard');
+        $this->assertNotContains($teamRace2->equ_id, $teamIdsRace1, 'Team Race 2 should NOT be in Race 1 leaderboard');
+
+        // Get leaderboard for race 2
+        $leaderboardRace2 = $this->service->getTeamLeaderboard($race2->race_id);
+        
+        $this->assertEquals(2, $leaderboardRace2['total'], 'Race 2 should have 2 teams');
+        $teamIdsRace2 = collect($leaderboardRace2['data'])->pluck('equ_id')->toArray();
+        $this->assertContains($teamRace2->equ_id, $teamIdsRace2, 'Team Race 2 should be in Race 2 leaderboard');
+        $this->assertContains($teamBoth->equ_id, $teamIdsRace2, 'Team Both should be in Race 2 leaderboard');
+        $this->assertNotContains($teamRace1->equ_id, $teamIdsRace2, 'Team Race 1 should NOT be in Race 2 leaderboard');
+    }
+
+    /**
      * Test getUserResults returns user's race results.
      */
     public function test_get_user_results(): void
@@ -434,10 +504,14 @@ class LeaderboardServiceTest extends TestCase
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
 
+        // Determine the correct column name for user reference in has_participate
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
         // Link users to team via has_participate (without race_id as it doesn't exist in schema)
         \DB::table('has_participate')->insert([
-            ['id' => $user1->id, 'equ_id' => $team->equ_id, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => $user2->id, 'equ_id' => $team->equ_id, 'created_at' => now(), 'updated_at' => now()],
+            [$userIdColumn => $user1->id, 'equ_id' => $team->equ_id, 'created_at' => now(), 'updated_at' => now()],
+            [$userIdColumn => $user2->id, 'equ_id' => $team->equ_id, 'created_at' => now(), 'updated_at' => now()],
         ]);
 
         // Add individual results
@@ -1403,5 +1477,1239 @@ class LeaderboardServiceTest extends TestCase
 
         // Verify team was deleted (since it was solo)
         $this->assertNull(Team::find($teamId), 'Solo team should be deleted when user is removed');
+    }
+
+    /**
+     * Test getPublicLeaderboard for teams filters by race correctly.
+     */
+    public function test_get_public_team_leaderboard_filters_by_race(): void
+    {
+        $race1 = Race::factory()->create(['race_name' => 'Public Race 1']);
+        $race2 = Race::factory()->create(['race_name' => 'Public Race 2']);
+        
+        $teamRace1 = Team::factory()->create(['equ_name' => 'Public Team 1']);
+        $teamRace2 = Team::factory()->create(['equ_name' => 'Public Team 2']);
+
+        // Team 1 only in race 1
+        LeaderboardTeam::create([
+            'equ_id' => $teamRace1->equ_id,
+            'race_id' => $race1->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 2,
+        ]);
+
+        // Team 2 only in race 2
+        LeaderboardTeam::create([
+            'equ_id' => $teamRace2->equ_id,
+            'race_id' => $race2->race_id,
+            'average_temps' => 3700,
+            'average_malus' => 0,
+            'average_temps_final' => 3700,
+            'member_count' => 2,
+        ]);
+
+        // Get public leaderboard for race 1 (team type)
+        $publicRace1 = $this->service->getPublicLeaderboard($race1->race_id, null, 'team');
+        
+        $this->assertEquals(1, $publicRace1['total'], 'Public Race 1 team leaderboard should have 1 team');
+        $teamIdsRace1 = collect($publicRace1['data'])->pluck('equ_id')->toArray();
+        $this->assertContains($teamRace1->equ_id, $teamIdsRace1, 'Public Team 1 should be in Race 1');
+        $this->assertNotContains($teamRace2->equ_id, $teamIdsRace1, 'Public Team 2 should NOT be in Race 1');
+
+        // Get public leaderboard for race 2 (team type)
+        $publicRace2 = $this->service->getPublicLeaderboard($race2->race_id, null, 'team');
+        
+        $this->assertEquals(1, $publicRace2['total'], 'Public Race 2 team leaderboard should have 1 team');
+        $teamIdsRace2 = collect($publicRace2['data'])->pluck('equ_id')->toArray();
+        $this->assertContains($teamRace2->equ_id, $teamIdsRace2, 'Public Team 2 should be in Race 2');
+        $this->assertNotContains($teamRace1->equ_id, $teamIdsRace2, 'Public Team 1 should NOT be in Race 2');
+    }
+
+    /**
+     * Test getPublicLeaderboard for teams without race filter shows all races.
+     */
+    public function test_get_public_team_leaderboard_shows_all_when_no_race_filter(): void
+    {
+        $race1 = Race::factory()->create(['race_name' => 'All Race 1']);
+        $race2 = Race::factory()->create(['race_name' => 'All Race 2']);
+        
+        $team1 = Team::factory()->create(['equ_name' => 'All Team 1']);
+        $team2 = Team::factory()->create(['equ_name' => 'All Team 2']);
+
+        LeaderboardTeam::create([
+            'equ_id' => $team1->equ_id,
+            'race_id' => $race1->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 2,
+        ]);
+
+        LeaderboardTeam::create([
+            'equ_id' => $team2->equ_id,
+            'race_id' => $race2->race_id,
+            'average_temps' => 3700,
+            'average_malus' => 0,
+            'average_temps_final' => 3700,
+            'member_count' => 2,
+        ]);
+
+        // Get public leaderboard without race filter (should show all)
+        $publicAll = $this->service->getPublicLeaderboard(null, null, 'team');
+        
+        $this->assertEquals(2, $publicAll['total'], 'Public leaderboard without filter should show all teams from all races');
+    }
+
+    // ============================================
+    // INDIVIDUAL LEADERBOARD TESTS
+    // ============================================
+
+    /**
+     * Test getIndividualLeaderboard filters by race correctly.
+     */
+    public function test_get_individual_leaderboard_filters_by_race(): void
+    {
+        $race1 = Race::factory()->create(['race_name' => 'Individual Race 1']);
+        $race2 = Race::factory()->create(['race_name' => 'Individual Race 2']);
+        
+        $user1 = User::factory()->create(['first_name' => 'User', 'last_name' => 'One']);
+        $user2 = User::factory()->create(['first_name' => 'User', 'last_name' => 'Two']);
+
+        // User 1 only in race 1
+        LeaderboardUser::create([
+            'user_id' => $user1->id,
+            'race_id' => $race1->race_id,
+            'temps' => 3600,
+            'malus' => 0,
+        ]);
+
+        // User 2 only in race 2
+        LeaderboardUser::create([
+            'user_id' => $user2->id,
+            'race_id' => $race2->race_id,
+            'temps' => 3700,
+            'malus' => 0,
+        ]);
+
+        // Get leaderboard for race 1
+        $leaderboardRace1 = $this->service->getIndividualLeaderboard($race1->race_id);
+        
+        $this->assertEquals(1, $leaderboardRace1['total']);
+        $userIdsRace1 = collect($leaderboardRace1['data'])->pluck('user_id')->toArray();
+        $this->assertContains($user1->id, $userIdsRace1);
+        $this->assertNotContains($user2->id, $userIdsRace1);
+
+        // Get leaderboard for race 2
+        $leaderboardRace2 = $this->service->getIndividualLeaderboard($race2->race_id);
+        
+        $this->assertEquals(1, $leaderboardRace2['total']);
+        $userIdsRace2 = collect($leaderboardRace2['data'])->pluck('user_id')->toArray();
+        $this->assertContains($user2->id, $userIdsRace2);
+        $this->assertNotContains($user1->id, $userIdsRace2);
+    }
+
+    /**
+     * Test individual leaderboard pagination.
+     */
+    public function test_individual_leaderboard_pagination(): void
+    {
+        $race = Race::factory()->create();
+        
+        // Create 25 users with results
+        for ($i = 1; $i <= 25; $i++) {
+            $user = User::factory()->create();
+            LeaderboardUser::create([
+                'user_id' => $user->id,
+                'race_id' => $race->race_id,
+                'temps' => 3600 + ($i * 10),
+                'malus' => 0,
+            ]);
+        }
+
+        // Get first page (default 20 per page)
+        $page1 = $this->service->getIndividualLeaderboard($race->race_id);
+        
+        $this->assertEquals(25, $page1['total']);
+        $this->assertEquals(1, $page1['current_page']);
+        $this->assertEquals(2, $page1['last_page']);
+        $this->assertCount(20, $page1['data']);
+    }
+
+    /**
+     * Test individual leaderboard ranks are correct.
+     */
+    public function test_individual_leaderboard_ranks_correctly(): void
+    {
+        $race = Race::factory()->create();
+        
+        $user1 = User::factory()->create(['first_name' => 'Fast', 'last_name' => 'Runner']);
+        $user2 = User::factory()->create(['first_name' => 'Medium', 'last_name' => 'Runner']);
+        $user3 = User::factory()->create(['first_name' => 'Slow', 'last_name' => 'Runner']);
+
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3700, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3500, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user3->id, 'race_id' => $race->race_id, 'temps' => 3900, 'malus' => 0]);
+
+        $leaderboard = $this->service->getIndividualLeaderboard($race->race_id);
+        
+        $this->assertEquals(1, $leaderboard['data'][0]['rank']);
+        $this->assertEquals($user1->id, $leaderboard['data'][0]['user_id']);
+        
+        $this->assertEquals(2, $leaderboard['data'][1]['rank']);
+        $this->assertEquals($user2->id, $leaderboard['data'][1]['user_id']);
+        
+        $this->assertEquals(3, $leaderboard['data'][2]['rank']);
+        $this->assertEquals($user3->id, $leaderboard['data'][2]['user_id']);
+    }
+
+    /**
+     * Test individual leaderboard includes malus in final time.
+     */
+    public function test_individual_leaderboard_includes_malus(): void
+    {
+        $race = Race::factory()->create();
+        
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        // User 1: fast time but big penalty
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3500, 'malus' => 500]);
+        // User 2: slower time but no penalty
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3800, 'malus' => 0]);
+
+        $leaderboard = $this->service->getIndividualLeaderboard($race->race_id);
+        
+        // User 2 should be first (3800 < 4000)
+        $this->assertEquals($user2->id, $leaderboard['data'][0]['user_id']);
+        $this->assertEquals($user1->id, $leaderboard['data'][1]['user_id']);
+    }
+
+    /**
+     * Test individual leaderboard search by first name.
+     */
+    public function test_individual_leaderboard_search_by_first_name(): void
+    {
+        $race = Race::factory()->create();
+        
+        $user1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+        $user2 = User::factory()->create(['first_name' => 'Pierre', 'last_name' => 'Martin']);
+
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        $searchResult = $this->service->getIndividualLeaderboard($race->race_id, 'Jean');
+        
+        $this->assertEquals(1, $searchResult['total']);
+        $this->assertEquals($user1->id, $searchResult['data'][0]['user_id']);
+    }
+
+    /**
+     * Test individual leaderboard search by last name.
+     */
+    public function test_individual_leaderboard_search_by_last_name(): void
+    {
+        $race = Race::factory()->create();
+        
+        $user1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+        $user2 = User::factory()->create(['first_name' => 'Pierre', 'last_name' => 'Martin']);
+
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        $searchResult = $this->service->getIndividualLeaderboard($race->race_id, 'Martin');
+        
+        $this->assertEquals(1, $searchResult['total']);
+        $this->assertEquals($user2->id, $searchResult['data'][0]['user_id']);
+    }
+
+    /**
+     * Test individual leaderboard search by email.
+     */
+    public function test_individual_leaderboard_search_by_email(): void
+    {
+        $race = Race::factory()->create();
+        
+        $user1 = User::factory()->create(['email' => 'jean@example.com']);
+        $user2 = User::factory()->create(['email' => 'pierre@example.com']);
+
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        $searchResult = $this->service->getIndividualLeaderboard($race->race_id, 'pierre@example');
+        
+        $this->assertEquals(1, $searchResult['total']);
+        $this->assertEquals($user2->id, $searchResult['data'][0]['user_id']);
+    }
+
+    /**
+     * Test individual leaderboard returns formatted times.
+     */
+    public function test_individual_leaderboard_returns_formatted_times(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create();
+
+        LeaderboardUser::create([
+            'user_id' => $user->id,
+            'race_id' => $race->race_id,
+            'temps' => 5461.5, // 1h 31m 1.5s
+            'malus' => 60,     // 1 minute
+        ]);
+
+        $leaderboard = $this->service->getIndividualLeaderboard($race->race_id);
+        
+        $this->assertArrayHasKey('temps_formatted', $leaderboard['data'][0]);
+        $this->assertArrayHasKey('malus_formatted', $leaderboard['data'][0]);
+        $this->assertArrayHasKey('temps_final_formatted', $leaderboard['data'][0]);
+    }
+
+    // ============================================
+    // TEAM LEADERBOARD TESTS
+    // ============================================
+
+    /**
+     * Test team leaderboard search by team name.
+     */
+    public function test_team_leaderboard_search_by_name(): void
+    {
+        $race = Race::factory()->create();
+        
+        $team1 = Team::factory()->create(['equ_name' => 'Les Champions']);
+        $team2 = Team::factory()->create(['equ_name' => 'Les Rapides']);
+
+        LeaderboardTeam::create([
+            'equ_id' => $team1->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 2,
+        ]);
+        LeaderboardTeam::create([
+            'equ_id' => $team2->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3700,
+            'average_malus' => 0,
+            'average_temps_final' => 3700,
+            'member_count' => 3,
+        ]);
+
+        $searchResult = $this->service->getTeamLeaderboard($race->race_id, 'Champions');
+        
+        $this->assertEquals(1, $searchResult['total']);
+        $this->assertEquals($team1->equ_id, $searchResult['data'][0]['equ_id']);
+    }
+
+    /**
+     * Test team leaderboard pagination.
+     */
+    public function test_team_leaderboard_pagination(): void
+    {
+        $race = Race::factory()->create();
+        
+        // Create 25 teams with results
+        for ($i = 1; $i <= 25; $i++) {
+            $team = Team::factory()->create(['equ_name' => "Team $i"]);
+            LeaderboardTeam::create([
+                'equ_id' => $team->equ_id,
+                'race_id' => $race->race_id,
+                'average_temps' => 3600 + ($i * 10),
+                'average_malus' => 0,
+                'average_temps_final' => 3600 + ($i * 10),
+                'member_count' => 2,
+            ]);
+        }
+
+        $page1 = $this->service->getTeamLeaderboard($race->race_id);
+        
+        $this->assertEquals(25, $page1['total']);
+        $this->assertEquals(1, $page1['current_page']);
+        $this->assertEquals(2, $page1['last_page']);
+        $this->assertCount(20, $page1['data']);
+    }
+
+    /**
+     * Test team leaderboard ranks correctly.
+     */
+    public function test_team_leaderboard_ranks_correctly(): void
+    {
+        $race = Race::factory()->create();
+        
+        $team1 = Team::factory()->create(['equ_name' => 'Fast Team']);
+        $team2 = Team::factory()->create(['equ_name' => 'Medium Team']);
+        $team3 = Team::factory()->create(['equ_name' => 'Slow Team']);
+
+        LeaderboardTeam::create(['equ_id' => $team2->equ_id, 'race_id' => $race->race_id, 'average_temps' => 3700, 'average_malus' => 0, 'average_temps_final' => 3700, 'member_count' => 2]);
+        LeaderboardTeam::create(['equ_id' => $team1->equ_id, 'race_id' => $race->race_id, 'average_temps' => 3500, 'average_malus' => 0, 'average_temps_final' => 3500, 'member_count' => 2]);
+        LeaderboardTeam::create(['equ_id' => $team3->equ_id, 'race_id' => $race->race_id, 'average_temps' => 3900, 'average_malus' => 0, 'average_temps_final' => 3900, 'member_count' => 2]);
+
+        $leaderboard = $this->service->getTeamLeaderboard($race->race_id);
+        
+        $this->assertEquals(1, $leaderboard['data'][0]['rank']);
+        $this->assertEquals($team1->equ_id, $leaderboard['data'][0]['equ_id']);
+        
+        $this->assertEquals(2, $leaderboard['data'][1]['rank']);
+        $this->assertEquals($team2->equ_id, $leaderboard['data'][1]['equ_id']);
+        
+        $this->assertEquals(3, $leaderboard['data'][2]['rank']);
+        $this->assertEquals($team3->equ_id, $leaderboard['data'][2]['equ_id']);
+    }
+
+    /**
+     * Test team leaderboard includes member count.
+     */
+    public function test_team_leaderboard_includes_member_count(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create(['equ_name' => 'Test Team']);
+
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 5,
+        ]);
+
+        $leaderboard = $this->service->getTeamLeaderboard($race->race_id);
+        
+        $this->assertEquals(5, $leaderboard['data'][0]['member_count']);
+    }
+
+    /**
+     * Test team leaderboard returns formatted times.
+     */
+    public function test_team_leaderboard_returns_formatted_times(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create();
+
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 5461.5,
+            'average_malus' => 60,
+            'average_temps_final' => 5521.5,
+            'member_count' => 2,
+        ]);
+
+        $leaderboard = $this->service->getTeamLeaderboard($race->race_id);
+        
+        $this->assertArrayHasKey('average_temps_formatted', $leaderboard['data'][0]);
+        $this->assertArrayHasKey('average_malus_formatted', $leaderboard['data'][0]);
+        $this->assertArrayHasKey('average_temps_final_formatted', $leaderboard['data'][0]);
+    }
+
+    // ============================================
+    // PUBLIC LEADERBOARD TESTS
+    // ============================================
+
+    /**
+     * Test public leaderboard only shows public profiles.
+     */
+    public function test_public_individual_leaderboard_hides_private_profiles(): void
+    {
+        $race = Race::factory()->create();
+        
+        $publicUser = User::factory()->create(['first_name' => 'Public', 'last_name' => 'User', 'is_public' => true]);
+        $privateUser = User::factory()->create(['first_name' => 'Private', 'last_name' => 'User', 'is_public' => false]);
+
+        LeaderboardUser::create(['user_id' => $publicUser->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $privateUser->id, 'race_id' => $race->race_id, 'temps' => 3500, 'malus' => 0]);
+
+        $publicLeaderboard = $this->service->getPublicLeaderboard($race->race_id, null, 'individual');
+        
+        $this->assertEquals(1, $publicLeaderboard['total']);
+        $this->assertEquals($publicUser->id, $publicLeaderboard['data'][0]['user_id']);
+    }
+
+    /**
+     * Test public leaderboard search works for user names.
+     */
+    public function test_public_individual_leaderboard_search_by_name(): void
+    {
+        $race = Race::factory()->create();
+        
+        $user1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont', 'is_public' => true]);
+        $user2 = User::factory()->create(['first_name' => 'Pierre', 'last_name' => 'Martin', 'is_public' => true]);
+
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        $searchResult = $this->service->getPublicLeaderboard($race->race_id, 'Jean', 'individual');
+        
+        $this->assertEquals(1, $searchResult['total']);
+        $this->assertEquals($user1->id, $searchResult['data'][0]['user_id']);
+    }
+
+    /**
+     * Test public leaderboard search works for race names.
+     */
+    public function test_public_individual_leaderboard_search_by_race_name(): void
+    {
+        $race1 = Race::factory()->create(['race_name' => 'Marathon Paris']);
+        $race2 = Race::factory()->create(['race_name' => 'Trail Lyon']);
+        
+        $user = User::factory()->create(['is_public' => true]);
+
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race1->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race2->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        // Search without race filter, by race name
+        $searchResult = $this->service->getPublicLeaderboard(null, 'Marathon', 'individual');
+        
+        $this->assertEquals(1, $searchResult['total']);
+        $this->assertEquals($race1->race_id, $searchResult['data'][0]['race_id']);
+    }
+
+    /**
+     * Test public team leaderboard search by team name.
+     */
+    public function test_public_team_leaderboard_search_by_team_name(): void
+    {
+        $race = Race::factory()->create();
+        
+        $team1 = Team::factory()->create(['equ_name' => 'Les Champions']);
+        $team2 = Team::factory()->create(['equ_name' => 'Les Rapides']);
+
+        LeaderboardTeam::create(['equ_id' => $team1->equ_id, 'race_id' => $race->race_id, 'average_temps' => 3600, 'average_malus' => 0, 'average_temps_final' => 3600, 'member_count' => 2]);
+        LeaderboardTeam::create(['equ_id' => $team2->equ_id, 'race_id' => $race->race_id, 'average_temps' => 3700, 'average_malus' => 0, 'average_temps_final' => 3700, 'member_count' => 2]);
+
+        $searchResult = $this->service->getPublicLeaderboard($race->race_id, 'Champions', 'team');
+        
+        $this->assertEquals(1, $searchResult['total']);
+        $this->assertEquals($team1->equ_id, $searchResult['data'][0]['equ_id']);
+    }
+
+    /**
+     * Test public team leaderboard search by race name.
+     */
+    public function test_public_team_leaderboard_search_by_race_name(): void
+    {
+        $race1 = Race::factory()->create(['race_name' => 'Marathon Paris']);
+        $race2 = Race::factory()->create(['race_name' => 'Trail Lyon']);
+        
+        $team = Team::factory()->create(['equ_name' => 'Test Team']);
+
+        LeaderboardTeam::create(['equ_id' => $team->equ_id, 'race_id' => $race1->race_id, 'average_temps' => 3600, 'average_malus' => 0, 'average_temps_final' => 3600, 'member_count' => 2]);
+        LeaderboardTeam::create(['equ_id' => $team->equ_id, 'race_id' => $race2->race_id, 'average_temps' => 3700, 'average_malus' => 0, 'average_temps_final' => 3700, 'member_count' => 2]);
+
+        // Search without race filter, by race name
+        $searchResult = $this->service->getPublicLeaderboard(null, 'Trail', 'team');
+        
+        $this->assertEquals(1, $searchResult['total']);
+        $this->assertEquals($race2->race_id, $searchResult['data'][0]['race_id']);
+    }
+
+    /**
+     * Test public leaderboard includes race info when no filter.
+     */
+    public function test_public_leaderboard_includes_race_info(): void
+    {
+        $race = Race::factory()->create(['race_name' => 'Test Race', 'race_date_start' => '2026-06-15']);
+        $user = User::factory()->create(['is_public' => true]);
+
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+
+        $leaderboard = $this->service->getPublicLeaderboard(null, null, 'individual');
+        
+        $this->assertEquals('Test Race', $leaderboard['data'][0]['race_name']);
+        $this->assertArrayHasKey('race_date', $leaderboard['data'][0]);
+    }
+
+    // ============================================
+    // USER RESULTS TESTS
+    // ============================================
+
+    /**
+     * Test getUserResults filters by user correctly.
+     */
+    public function test_get_user_results_filters_by_user(): void
+    {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $race = Race::factory()->create();
+
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        $results = $this->service->getUserResults($user1->id);
+        
+        $this->assertEquals(1, $results['total']);
+    }
+
+    /**
+     * Test getUserResults includes rank calculation.
+     */
+    public function test_get_user_results_includes_rank(): void
+    {
+        $user = User::factory()->create();
+        $otherUser1 = User::factory()->create();
+        $otherUser2 = User::factory()->create();
+        $race = Race::factory()->create();
+
+        // Create results: user is in second place
+        LeaderboardUser::create(['user_id' => $otherUser1->id, 'race_id' => $race->race_id, 'temps' => 3400, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $otherUser2->id, 'race_id' => $race->race_id, 'temps' => 3800, 'malus' => 0]);
+
+        $results = $this->service->getUserResults($user->id);
+        
+        $this->assertEquals(2, $results['data'][0]['rank']);
+        $this->assertEquals(3, $results['data'][0]['total_participants']);
+    }
+
+    /**
+     * Test getUserResults sort by best.
+     */
+    public function test_get_user_results_sort_by_best(): void
+    {
+        $user = User::factory()->create();
+        $race1 = Race::factory()->create();
+        $race2 = Race::factory()->create();
+
+        // User got 1st in race1, 3rd in race2
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race1->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race2->race_id, 'temps' => 4000, 'malus' => 0]);
+        
+        // Other users in race2 to make user's rank 3rd
+        $other1 = User::factory()->create();
+        $other2 = User::factory()->create();
+        LeaderboardUser::create(['user_id' => $other1->id, 'race_id' => $race2->race_id, 'temps' => 3500, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $other2->id, 'race_id' => $race2->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        $results = $this->service->getUserResults($user->id, null, 'best');
+        
+        // First result should be the one with rank 1
+        $this->assertEquals(1, $results['data'][0]['rank']);
+    }
+
+    /**
+     * Test getUserResults sort by worst.
+     */
+    public function test_get_user_results_sort_by_worst(): void
+    {
+        $user = User::factory()->create();
+        $race1 = Race::factory()->create();
+        $race2 = Race::factory()->create();
+
+        // User got 1st in race1, 3rd in race2
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race1->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race2->race_id, 'temps' => 4000, 'malus' => 0]);
+        
+        // Other users in race2 to make user's rank 3rd
+        $other1 = User::factory()->create();
+        $other2 = User::factory()->create();
+        LeaderboardUser::create(['user_id' => $other1->id, 'race_id' => $race2->race_id, 'temps' => 3500, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $other2->id, 'race_id' => $race2->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        $results = $this->service->getUserResults($user->id, null, 'worst');
+        
+        // First result should be the one with rank 3
+        $this->assertEquals(3, $results['data'][0]['rank']);
+    }
+
+    /**
+     * Test getUserTeamResults returns empty for user without team.
+     */
+    public function test_get_user_team_results_empty_for_user_without_team(): void
+    {
+        $user = User::factory()->create();
+        
+        $results = $this->service->getUserTeamResults($user->id);
+        
+        $this->assertEquals(0, $results['total']);
+        $this->assertEmpty($results['data']);
+    }
+
+    // ============================================
+    // CSV IMPORT EDGE CASES
+    // ============================================
+
+    /**
+     * Test import CSV handles empty temps value.
+     */
+    public function test_import_csv_handles_empty_temps(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Test', 'last_name' => 'User']);
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Test User,,00:00.00,";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        
+        $entry = LeaderboardUser::where('user_id', $user->id)->first();
+        $this->assertEquals(0, $entry->temps);
+    }
+
+    /**
+     * Test import CSV handles minutes:seconds format.
+     */
+    public function test_import_csv_handles_minutes_seconds_format(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Test', 'last_name' => 'User']);
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Test User,45:30,01:00,46:30";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        
+        $entry = LeaderboardUser::where('user_id', $user->id)->first();
+        $this->assertEquals(2730, $entry->temps); // 45*60 + 30
+        $this->assertEquals(60, $entry->malus);   // 1*60
+    }
+
+    /**
+     * Test import CSV handles decimal seconds.
+     */
+    public function test_import_csv_handles_decimal_seconds(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Test', 'last_name' => 'User']);
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Test User,01:30:45.75,00:00.50,01:30:46.25";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        
+        $entry = LeaderboardUser::where('user_id', $user->id)->first();
+        $this->assertEquals(5445.75, $entry->temps); // 1*3600 + 30*60 + 45.75
+    }
+
+    /**
+     * Test import CSV handles numeric time values.
+     */
+    public function test_import_csv_handles_numeric_time_values(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Test', 'last_name' => 'User']);
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Test User,3661.5,60,3721.5";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        
+        $entry = LeaderboardUser::where('user_id', $user->id)->first();
+        $this->assertEquals(3661.5, $entry->temps);
+        $this->assertEquals(60, $entry->malus);
+    }
+
+    /**
+     * Test import CSV with multiple users at once.
+     */
+    public function test_import_csv_with_multiple_users(): void
+    {
+        $race = Race::factory()->create();
+        
+        $user1 = User::factory()->create(['first_name' => 'User', 'last_name' => 'One']);
+        $user2 = User::factory()->create(['first_name' => 'User', 'last_name' => 'Two']);
+        $user3 = User::factory()->create(['first_name' => 'User', 'last_name' => 'Three']);
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,User One,01:00:00,00:00,01:00:00\n";
+        $csvContent .= "2,User Two,01:10:00,00:00,01:10:00\n";
+        $csvContent .= "3,User Three,01:20:00,00:00,01:20:00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(3, $result['success']);
+        $this->assertDatabaseCount('leaderboard_users', 3);
+    }
+
+    /**
+     * Test import CSV skips empty lines.
+     */
+    public function test_import_csv_skips_empty_lines(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Test', 'last_name' => 'User']);
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "\n";
+        $csvContent .= "1,Test User,01:00:00,00:00,01:00:00\n";
+        $csvContent .= "\n";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+    }
+
+    /**
+     * Test import CSV handles user with special characters in name.
+     */
+    public function test_import_csv_handles_special_characters_in_name(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Jean-Pierre', 'last_name' => "O'Brien"]);
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Jean-Pierre O'Brien,01:00:00,00:00,01:00:00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+    }
+
+    /**
+     * Test import CSV creates user with accented name.
+     */
+    public function test_import_csv_creates_user_with_accented_name(): void
+    {
+        $race = Race::factory()->create();
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Éloïse Müller,01:00:00,00:00,01:00:00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        $this->assertEquals(1, $result['created']);
+        
+        $user = User::where('first_name', 'Éloïse')->first();
+        $this->assertNotNull($user);
+        $this->assertEquals('Müller', $user->last_name);
+    }
+
+    /**
+     * Test import CSV case insensitive name matching.
+     */
+    public function test_import_csv_case_insensitive_name_matching(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,JEAN DUPONT,01:00:00,00:00,01:00:00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        $this->assertEquals(0, $result['created']); // Should match existing user
+    }
+
+    // ============================================
+    // CSV EXPORT TESTS
+    // ============================================
+
+    /**
+     * Test export CSV individual format.
+     */
+    public function test_export_csv_individual_format(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Test', 'last_name' => 'Runner']);
+
+        LeaderboardUser::create([
+            'user_id' => $user->id,
+            'race_id' => $race->race_id,
+            'temps' => 3661,
+            'malus' => 60,
+        ]);
+
+        $csv = $this->service->exportToCsv($race->race_id, 'individual');
+        
+        $this->assertStringContainsString('Rang', $csv);
+        $this->assertStringContainsString('Nom', $csv);
+        $this->assertStringContainsString('Test Runner', $csv);
+    }
+
+    /**
+     * Test export CSV team format.
+     */
+    public function test_export_csv_team_format(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create(['equ_name' => 'Test Team']);
+
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3661,
+            'average_malus' => 60,
+            'average_temps_final' => 3721,
+            'member_count' => 3,
+        ]);
+
+        $csv = $this->service->exportToCsv($race->race_id, 'team');
+        
+        $this->assertStringContainsString('Equipe', $csv);
+        $this->assertStringContainsString('Membres', $csv);
+        $this->assertStringContainsString('Test Team', $csv);
+    }
+
+    /**
+     * Test export CSV preserves ranking order.
+     */
+    public function test_export_csv_preserves_ranking_order(): void
+    {
+        $race = Race::factory()->create();
+        
+        $user1 = User::factory()->create(['first_name' => 'First', 'last_name' => 'Place']);
+        $user2 = User::factory()->create(['first_name' => 'Second', 'last_name' => 'Place']);
+
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 4000, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+
+        $csv = $this->service->exportToCsv($race->race_id, 'individual');
+        $lines = explode("\n", trim($csv));
+        
+        // First data line should be rank 1
+        $this->assertStringContainsString('1', $lines[1]);
+        $this->assertStringContainsString('First Place', $lines[1]);
+    }
+
+    /**
+     * Test export CSV empty race returns header only.
+     */
+    public function test_export_csv_empty_race(): void
+    {
+        $race = Race::factory()->create();
+
+        $csv = $this->service->exportToCsv($race->race_id, 'individual');
+        $lines = explode("\n", trim($csv));
+        
+        $this->assertCount(1, $lines); // Only header
+        $this->assertStringContainsString('Rang', $lines[0]);
+    }
+
+    // ============================================
+    // RECALCULATE TEAM AVERAGES TESTS
+    // ============================================
+
+    /**
+     * Test recalculate team averages with single member.
+     */
+    public function test_recalculate_team_averages_single_member(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create();
+        $user = User::factory()->create();
+
+        // Link user to team
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        \Illuminate\Support\Facades\DB::table('has_participate')->insert([
+            $userIdColumn => $user->id,
+            'equ_id' => $team->equ_id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 60]);
+
+        $this->service->recalculateTeamAverages($race->race_id);
+
+        $teamResult = LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first();
+        
+        $this->assertNotNull($teamResult);
+        $this->assertEquals(3600, $teamResult->average_temps);
+        $this->assertEquals(60, $teamResult->average_malus);
+        $this->assertEquals(3660, $teamResult->average_temps_final);
+        $this->assertEquals(1, $teamResult->member_count);
+    }
+
+    /**
+     * Test recalculate team averages with multiple members.
+     */
+    public function test_recalculate_team_averages_multiple_members(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        
+        \Illuminate\Support\Facades\DB::table('has_participate')->insert([
+            ['equ_id' => $team->equ_id, $userIdColumn => $user1->id, 'created_at' => now(), 'updated_at' => now()],
+            ['equ_id' => $team->equ_id, $userIdColumn => $user2->id, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 4000, 'malus' => 100]);
+
+        $this->service->recalculateTeamAverages($race->race_id);
+
+        $teamResult = LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first();
+        
+        $this->assertNotNull($teamResult);
+        $this->assertEquals(3800, $teamResult->average_temps);   // (3600 + 4000) / 2
+        $this->assertEquals(50, $teamResult->average_malus);     // (0 + 100) / 2
+        $this->assertEquals(3850, $teamResult->average_temps_final); // (3600 + 4100) / 2
+        $this->assertEquals(2, $teamResult->member_count);
+    }
+
+    // ============================================
+    // DELETE RESULT TESTS
+    // ============================================
+
+    /**
+     * Test delete result recalculates team averages.
+     */
+    public function test_delete_result_recalculates_team_averages(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        
+        \Illuminate\Support\Facades\DB::table('has_participate')->insert([
+            ['equ_id' => $team->equ_id, $userIdColumn => $user1->id, 'created_at' => now(), 'updated_at' => now()],
+            ['equ_id' => $team->equ_id, $userIdColumn => $user2->id, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        $result1 = LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 4000, 'malus' => 0]);
+
+        $this->service->recalculateTeamAverages($race->race_id);
+
+        // Delete first user's result
+        $this->service->deleteResult($result1->id);
+
+        $teamResult = LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first();
+        
+        // Team average should now be just user2's result
+        $this->assertEquals(4000, $teamResult->average_temps);
+        $this->assertEquals(1, $teamResult->member_count);
+    }
+
+    // ============================================
+    // EDGE CASES
+    // ============================================
+
+    /**
+     * Test leaderboard with zero temps.
+     */
+    public function test_leaderboard_with_zero_temps(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create();
+
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race->race_id, 'temps' => 0, 'malus' => 0]);
+
+        $leaderboard = $this->service->getIndividualLeaderboard($race->race_id);
+        
+        $this->assertEquals(1, $leaderboard['total']);
+        $this->assertEquals(0, $leaderboard['data'][0]['temps']);
+    }
+
+    /**
+     * Test leaderboard with very large temps.
+     */
+    public function test_leaderboard_with_large_temps(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create();
+
+        // 24 hours in seconds
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race->race_id, 'temps' => 86400, 'malus' => 0]);
+
+        $leaderboard = $this->service->getIndividualLeaderboard($race->race_id);
+        
+        $this->assertEquals(1, $leaderboard['total']);
+        $this->assertEquals(86400, $leaderboard['data'][0]['temps']);
+    }
+
+    /**
+     * Test team leaderboard with missing team reference.
+     * When team is deleted but LeaderboardTeam entry remains (no cascade),
+     * the entry should show 'Unknown' for team name.
+     * Note: If cascade delete is enabled, the LeaderboardTeam entry will be deleted too.
+     */
+    public function test_team_leaderboard_handles_missing_team_gracefully(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create();
+        $teamId = $team->equ_id;
+
+        $leaderboardEntry = LeaderboardTeam::create([
+            'equ_id' => $teamId,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 2,
+        ]);
+
+        // Delete the team - this may or may not cascade to LeaderboardTeam
+        $team->delete();
+
+        $leaderboard = $this->service->getTeamLeaderboard($race->race_id);
+        
+        // Check if cascade deleted the entry or if it remains with Unknown
+        $entryStillExists = LeaderboardTeam::find($leaderboardEntry->id);
+        if ($entryStillExists) {
+            // Entry exists, should show 'Unknown' team name
+            $this->assertEquals(1, $leaderboard['total']);
+            $this->assertEquals('Unknown', $leaderboard['data'][0]['team_name']);
+        } else {
+            // Cascade deleted the entry
+            $this->assertEquals(0, $leaderboard['total']);
+        }
+    }
+
+    /**
+     * Test individual leaderboard handles missing user gracefully.
+     * When user is deleted but LeaderboardUser entry remains,
+     * the entry should show 'Unknown' for user name.
+     */
+    public function test_individual_leaderboard_handles_missing_user_gracefully(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create();
+        $userId = $user->id;
+
+        $leaderboardEntry = LeaderboardUser::create([
+            'user_id' => $userId,
+            'race_id' => $race->race_id,
+            'temps' => 3600,
+            'malus' => 0,
+        ]);
+
+        // Delete the user - this may cascade to LeaderboardUser
+        $user->delete();
+
+        $leaderboard = $this->service->getIndividualLeaderboard($race->race_id);
+        
+        // Check if cascade deleted the entry or if it remains with Unknown
+        $entryStillExists = LeaderboardUser::find($leaderboardEntry->id);
+        if ($entryStillExists) {
+            $this->assertEquals(1, $leaderboard['total']);
+            $this->assertEquals('Unknown', $leaderboard['data'][0]['user_name']);
+        } else {
+            // Cascade deleted the entry
+            $this->assertEquals(0, $leaderboard['total']);
+        }
+    }
+
+    /**
+     * Test public leaderboard excludes results from deleted users.
+     */
+    public function test_public_leaderboard_handles_deleted_user(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['is_public' => true]);
+
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+
+        // Delete user
+        $user->delete();
+
+        $leaderboard = $this->service->getPublicLeaderboard($race->race_id, null, 'individual');
+        
+        // Should not include deleted user since they have no is_public status
+        $this->assertEquals(0, $leaderboard['total']);
+    }
+
+    /**
+     * Test import CSV returns removed count.
+     */
+    public function test_import_csv_returns_removed_count(): void
+    {
+        $race = Race::factory()->create();
+        $user1 = User::factory()->create(['first_name' => 'Keep', 'last_name' => 'User', 'email' => 'keep@imported.local']);
+        $user2 = User::factory()->create(['first_name' => 'Remove', 'last_name' => 'User', 'email' => 'remove@imported.local']);
+
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 3700, 'malus' => 0]);
+
+        // Import CSV with only user1
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Keep User,01:00:00,00:00,01:00:00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        $this->assertEquals(1, $result['removed']);
+    }
+
+    /**
+     * Test import CSV handles single name (no last name).
+     */
+    public function test_import_csv_handles_single_name(): void
+    {
+        $race = Race::factory()->create();
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Madonna,01:00:00,00:00,01:00:00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        
+        $user = User::where('first_name', 'Madonna')->first();
+        $this->assertNotNull($user);
+        $this->assertEquals('Unknown', $user->last_name);
+    }
+
+    /**
+     * Test multiple races don't interfere with each other.
+     */
+    public function test_multiple_races_isolation(): void
+    {
+        $race1 = Race::factory()->create();
+        $race2 = Race::factory()->create();
+        
+        $user = User::factory()->create(['is_public' => true]);
+
+        // Different times for same user in different races
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race1->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race2->race_id, 'temps' => 4000, 'malus' => 0]);
+
+        $leaderboard1 = $this->service->getIndividualLeaderboard($race1->race_id);
+        $leaderboard2 = $this->service->getIndividualLeaderboard($race2->race_id);
+        
+        $this->assertEquals(3600, $leaderboard1['data'][0]['temps']);
+        $this->assertEquals(4000, $leaderboard2['data'][0]['temps']);
     }
 }
