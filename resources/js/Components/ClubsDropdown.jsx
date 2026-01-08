@@ -7,18 +7,13 @@ export default function ClubsDropdown() {
     const messages = usePage().props.translations?.messages || {};
     const user = usePage().props.auth?.user;
 
-    // Don't render the component if user is not logged in
-    if (!user) {
-        return null;
-    }
-
     // Get user's clubs (clubs where user is a member)
     const userClubs = user?.clubs || [];
     const hasClubs = userClubs.length > 0;
 
     // Check if user can create clubs (must be adherent or admin)
     const userRoles = user?.roles || [];
-    const canCreateClub = userRoles.some(role => 
+    const canCreateClub = user && userRoles.some(role => 
         ['adherent', 'admin'].includes(role.name || role)
     );
 
@@ -79,8 +74,8 @@ export default function ClubsDropdown() {
             {isOpen && (
                 <div className="md:absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
-                        {/* My Clubs Section */}
-                        {hasClubs && (
+                        {/* My Clubs Section - Only for logged users */}
+                        {user && hasClubs && (
                             <>
                                 <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                     {messages.my_clubs || "My Clubs"}
@@ -115,7 +110,7 @@ export default function ClubsDropdown() {
                             </>
                         )}
 
-                        {/* Browse All Clubs */}
+                        {/* Browse All Clubs - Visible for everyone */}
                         <Link
                             href="/clubs"
                             className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition"
@@ -140,8 +135,8 @@ export default function ClubsDropdown() {
                             </div>
                         </Link>
 
-                        {/* Create Club - Only show if user is authenticated and has adherent/admin role */}
-                        {user && canCreateClub && (
+                        {/* Create Club - Only for authenticated users with adherent/admin role */}
+                        {canCreateClub && (
                             <Link
                                 href="/clubs/create"
                                 className="block px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 font-medium transition"
