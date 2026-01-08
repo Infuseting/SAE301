@@ -40,7 +40,9 @@ export default function Index({ auth, races }) {
                                     <div className="aspect-video relative overflow-hidden bg-gradient-to-br from-indigo-100 to-indigo-50">
                                         {race.image_url || race.imageUrl ? (
                                             <img
-                                                src={race.image_url || race.imageUrl}
+                                                src={(race.image_url || race.imageUrl).startsWith('/storage/') 
+                                                    ? (race.image_url || race.imageUrl) 
+                                                    : `/storage/${race.image_url || race.imageUrl}`}
                                                 alt={race.race_name || race.title}
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                             />

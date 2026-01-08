@@ -7,6 +7,17 @@ Composants réutilisables pour la gestion des uploads d'images dans l'applicatio
 1. **`ImageUpload.jsx`** - Composant UI complet avec drag & drop
 2. **`useImageUpload.js`** - Hook personnalisé pour la gestion d'état
 
+## Pages utilisant ImageUpload
+
+✅ **Migrées** :
+- `resources/js/Pages/Raid/Create.jsx` - Création de raid
+- `resources/js/Pages/Raid/Edit.jsx` - Édition de raid
+- `resources/js/Pages/Race/NewRace.jsx` - Création/édition de course
+- `resources/js/Pages/Team/CreateTeam.jsx` - Création d'équipe
+
+⚠️ **Non migrées** (logique spécifique) :
+- `resources/js/Pages/Profile/Partials/UpdateProfileInformationForm.jsx` - Compression d'image personnalisée
+
 ## Utilisation
 
 ### Exemple 1 : Utilisation basique avec useForm (Inertia)

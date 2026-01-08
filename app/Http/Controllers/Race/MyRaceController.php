@@ -38,7 +38,7 @@ class MyRaceController extends Controller
                     'description' => $race->race_description,
                     'date_start' => $race->race_date_start ? $race->race_date_start->toDateString() : null,
                     'date_end' => $race->race_date_end ? $race->race_date_end->toDateString() : null,
-                    'image' => $race->image_url,
+                    'image' => $race->image_url ? '/storage/' . $race->image_url : null,
                     'is_open' => $race->isOpen(),
                     'time' => $timeRecord ? [
                         'hours' => $timeRecord->time_hours,

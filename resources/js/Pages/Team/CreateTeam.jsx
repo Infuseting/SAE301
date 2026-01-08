@@ -6,6 +6,7 @@ import Checkbox from '@/Components/Checkbox';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import ImageUpload from '@/Components/ImageUpload';
 
 export default function CreateTeam() {
     const { data, setData, post, processing, errors } = useForm({
@@ -14,8 +15,8 @@ export default function CreateTeam() {
         teammates: [],
         join_team: true, // Le créateur participe-t-il à l'équipe ?
     });
-    const currentUser = usePage().props.auth?.user;
-    const [imagePreview, setImagePreview] = useState(null);
+    const [selectedLeader, setSelectedLeader] = useState(null);
+    const [showLeaderDropdown, setShowLeaderDropdown] = useState(false);
     const [showTeammateDropdown, setShowTeammateDropdown] = useState(false);
     const [teammateSearch, setTeammateSearch] = useState('');
     const [teammateSearchResults, setTeammateSearchResults] = useState([]);
@@ -55,20 +56,6 @@ export default function CreateTeam() {
         }
         
         post(route('team.store'));
-    };
-
-    const handleImageChange = (e) => {
-        const Label = document.getElementById('download_label');
-        const file = e.target.files[0];
-        if (file) {
-            Label.textContent = "Cliquez pour changer l'image";
-            setData('image', file);
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setImagePreview(event.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
     };
 
     const addTeammate = (userId, name, email) => {
@@ -157,56 +144,22 @@ export default function CreateTeam() {
                             <InputError message={errors.name} className="mt-1 text-sm" />
                         </div>
                         {/* Image Upload Field */}
-                        <div className="space-y-3">
-                            <InputLabel htmlFor="image" value={messages.team_image || 'Logo de l\'équipe'} />
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                {/* Upload Area */}
-                                <div className="sm:col-span-2">
-                                    <div className="relative">
-                                        <input
-                                            type="file"
-                                            id="image"
-                                            name="image"
-                                            accept="image/*"
-                                            onChange={handleImageChange}
-                                            className="hidden"
-                                        />
-                                        <label
-                                            htmlFor="image"
-                                            className="flex flex-col items-center justify-center w-full px-6 py-8 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer transition"
-                                            style={{borderColor: 'rgb(4, 120, 87)'}}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(4, 120, 87, 0.05)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <svg className="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                            </svg>
-                                            <span className="text-sm font-medium text-gray-700" id="download_label">
-                                                Cliquez pour télécharger
-                                            </span>
-                                            <span className="text-xs text-gray-500 mt-1">
-                                                PNG, JPG jusqu'à 10MB
-                                            </span>
-                                        </label>
-                                    </div>
-                                    <InputError message={errors.image} className="mt-2" />
-                                </div>
-                                {/* Image Preview */}
-                                {imagePreview && (
-                                    <div className="flex items-center justify-center">
-                                        <div className="relative w-full aspect-square">
-                                            <img
-                                                src={imagePreview}
-                                                alt="Aperçu"
-                                                className="w-full h-full object-cover rounded-lg"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        {/* Participation Option */}
-                        <div className="space-y-4 p-4 rounded-lg border border-gray-200" style={{backgroundColor: 'rgba(4, 120, 87, 0.05)'}}>
+                        <ImageUpload
+                            label={messages.team_image || "Logo de l'équipe"}
+                            name="image"
+                            onChange={(file) => setData('image', file)}
+                            error={errors.image}
+                            helperText="PNG, JPG jusqu'à 10MB"
+                        />
+
+                        {/* Checkbox Field */}
+                        <div className="flex items-start space-x-3 p-4 rounded-lg" style={{backgroundColor: 'rgba(4, 120, 87, 0.05)'}}>
+                            <Checkbox
+                                id="join_team"
+                                name="join_team"
+                                checked={data.join_team}
+                                onChange={(e) => setData('join_team', e.target.checked)}
+                            />
                             <div>
                                 <InputLabel value="Participation à l'équipe" />
                                 <p className="text-sm text-gray-600 mt-1 mb-4">

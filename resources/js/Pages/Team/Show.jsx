@@ -18,7 +18,7 @@ export default function Show({ team }) {
                                 {/* Team Image */}
                                 <div className="flex-shrink-0">
                                     <img
-                                        src={team.image || 'https://via.placeholder.com/200'}
+                                        src={team.image ? `/storage/${team.image}` : 'https://via.placeholder.com/200'}
                                         alt={team.name}
                                         className="h-48 w-48 rounded-lg object-cover"
                                     />
