@@ -117,6 +117,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
     // dashboard
     Route::get('/', [AdminController::class, 'index'])->name('dashboard')->middleware('can:access-admin');
+    Route::get('/races', [AdminController::class, 'racemanagement'])->name('races.index')->middleware('can:access-admin');
+    Route::get('/races/{id}/edit', [RaceController::class, 'edit'])->name('races.edit')->middleware('can:access-admin');
+    Route::get('/raids', [AdminController::class, 'raidmanagement'])->name('raids.index')->middleware('can:access-admin');
 
     // users
     Route::match(['get', 'post'], '/users', [UserController::class, 'index'])->name('users.index')->middleware('can:view users');
