@@ -23,8 +23,12 @@ export default function UserRolesDisplay({ className = '' }) {
                 label: messages.role_adherent || 'Adherent',
             },
             'responsable-club': {
-                color: 'bg-blue-100 text-blue-800 border-blue-200',
-                label: messages.role_responsable_club || 'Responsable Club',
+                color: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+                label: messages.role_responsable_club || 'Responsable de club',
+            },
+            'club-manager': {
+                color: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+                label: messages.role_responsable_club || 'Responsable de club',
             },
             'gestionnaire-raid': {
                 color: 'bg-purple-100 text-purple-800 border-purple-200',

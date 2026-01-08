@@ -2,7 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TeamAgeController;
+use App\Http\Controllers\Team\TeamAgeController;
+use App\Http\Controllers\Api\LeaderboardApiController;
 
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
 Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
@@ -22,6 +23,18 @@ Route::prefix('team')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Leaderboard Routes
+|--------------------------------------------------------------------------
+*/
+Route::prefix('leaderboard')->group(function () {
+    Route::get('/races', [LeaderboardApiController::class, 'races']);
+    Route::get('/{raceId}/individual', [LeaderboardApiController::class, 'individual']);
+    Route::get('/{raceId}/teams', [LeaderboardApiController::class, 'teams']);
+    Route::get('/{raceId}/user/{userId}', [LeaderboardApiController::class, 'userResult']);
+});
+
+/*
+|--------------------------------------------------------------------------
 | Club API Routes
 |--------------------------------------------------------------------------
 */
@@ -30,15 +43,20 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->as('api.')->group(function () {
+    // Current user
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    
     // Club CRUD
-    Route::apiResource('clubs', \App\Http\Controllers\ClubController::class);
+    Route::apiResource('clubs', \App\Http\Controllers\Club\ClubController::class);
 
     // Club member management
-    Route::post('/clubs/{club}/join', [\App\Http\Controllers\ClubMemberController::class, 'requestJoin']);
-    Route::post('/clubs/{club}/leave', [\App\Http\Controllers\ClubMemberController::class, 'leave']);
-    Route::post('/clubs/{club}/members/{user}/approve', [\App\Http\Controllers\ClubMemberController::class, 'approveJoin']);
-    Route::post('/clubs/{club}/members/{user}/reject', [\App\Http\Controllers\ClubMemberController::class, 'rejectJoin']);
-    Route::delete('/clubs/{club}/members/{user}', [\App\Http\Controllers\ClubMemberController::class, 'removeMember']);
+    Route::post('/clubs/{club}/join', [\App\Http\Controllers\Club\ClubMemberController::class, 'requestJoin']);
+    Route::post('/clubs/{club}/leave', [\App\Http\Controllers\Club\ClubMemberController::class, 'leave']);
+    Route::post('/clubs/{club}/members/{user}/approve', [\App\Http\Controllers\Club\ClubMemberController::class, 'approveJoin']);
+    Route::post('/clubs/{club}/members/{user}/reject', [\App\Http\Controllers\Club\ClubMemberController::class, 'rejectJoin']);
+    Route::delete('/clubs/{club}/members/{user}', [\App\Http\Controllers\Club\ClubMemberController::class, 'removeMember']);
 
     // Admin club approval
     Route::middleware('permission:accept-club')->prefix('admin')->group(function () {

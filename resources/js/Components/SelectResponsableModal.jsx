@@ -11,7 +11,12 @@ import { useState, useEffect } from 'react';
  */
 export default function SelectResponsableModal({ isOpen, onClose, onSelect, users = [] }) {
     const [searchQuery, setSearchQuery] = useState('');
-    const [filteredUsers, setFilteredUsers] = useState([]);
+    const [filteredUsers, setFilteredUsers] = useState(users);
+
+    // Update filtered users when users prop changes
+    useEffect(() => {
+        setFilteredUsers(users);
+    }, [users]);
 
     // Filter users based on search query
     useEffect(() => {
@@ -41,7 +46,7 @@ export default function SelectResponsableModal({ isOpen, onClose, onSelect, user
      */
     const handleSelectUser = (user) => {
         onSelect(user);
-        onClose();
+        // Note: onClose is called by the parent component (UserSelect) after handling the selection
     };
 
     if (!isOpen) return null;

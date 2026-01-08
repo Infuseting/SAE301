@@ -294,14 +294,14 @@ return [
     'ffso_id' => 'Identifiant FFSO',
     'club_description' => 'Description du Club',
     'club_image' => 'Logo/Image du Club',
-    'club_members' => 'Membres',
-    'club_managers' => 'Responsables',
+    'club_members' => 'Membre',
+    'club_managers' => 'Responsable',
     'pending_requests' => 'Demandes en Attente',
     'join_club' => 'Rejoindre le Club',
     'leave_club' => 'Quitter le Club',
     'manage_members' => 'Gérer les Membres',
-    'approve_club' => 'Approuver le Club',
-    'reject_club' => 'Rejeter le Club',
+    'approve_club' => 'Accepter',
+    'reject_club' => 'Refuser',
     'club_approved' => 'Le club ":name" a été approuvé',
     'club_rejected' => 'Le club a été rejeté',
     'club_created_pending' => 'Club créé avec succès ! Il sera visible une fois approuvé par un administrateur.',
@@ -320,6 +320,12 @@ return [
     'not_a_member' => 'Vous n\'êtes pas membre de ce club',
     'last_manager_cannot_leave' => 'Vous êtes le dernier responsable et ne pouvez pas quitter le club',
     'left_club' => 'Vous avez quitté le club',
+    'member_promoted' => ':name a été promu responsable du club',
+    'manager_demoted' => ':name a été rétrogradé en membre',
+    'cannot_demote_last_manager' => 'Impossible de rétrograder le dernier responsable du club',
+    'user_not_member' => 'Cet utilisateur n\'est pas membre de ce club',
+    'promote_to_manager' => 'Promouvoir responsable',
+    'demote_to_member' => 'Rétrograder en membre',
     'pending_approval' => 'En Attente d\'Approbation',
     'approved' => 'Approuvé',
     'members_count' => ':count membres',
@@ -399,5 +405,14 @@ return [
     'remove_teammate' => 'Supprimer',
     'no_teammates_added' => 'Aucun coéquipier ajouté pour le moment',
     'teammate_added' => 'Coéquipier ajouté',
-    'teammate_removed' => 'Coéquipier supprimé'
+    'teammate_removed' => 'Coéquipier supprimé',
+
+    // Leaderboard Navigation
+    'leaderboard' => 'Classement',
+    'public_leaderboard' => 'Classement public',
+    'my_leaderboard' => 'Mon classement',
+
+    // Courses Navigation
+    'view_all_races' => 'Voir toutes les courses',
+
 ];

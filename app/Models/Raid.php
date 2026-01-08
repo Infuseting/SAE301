@@ -73,6 +73,17 @@ class Raid extends Model
             'raid_date_end' => 'datetime',
         ];
     }
+
+    /**
+     * Get the route key name for model binding.
+     *
+     * @return string
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'raid_id';
+    }
+
     /**
      * Get the club this raid belongs to.
      */
@@ -127,4 +138,5 @@ class Raid extends Model
     {
         return now() > $this->raid_date_end;
     }
+    
 }

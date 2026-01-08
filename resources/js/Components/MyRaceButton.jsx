@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { RiRunLine } from "react-icons/ri";
+import { BiSolidTimer } from "react-icons/bi";
+import { LuLayoutGrid } from "react-icons/lu";
 
 export default function MyRaceButton() {
     const [isOpen, setIsOpen] = useState(false);
@@ -9,11 +11,11 @@ export default function MyRaceButton() {
     const user = usePage().props.auth.user;
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative text-center" ref={dropdownRef}>
             {/* Dropdown Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
+                className="inline-flex items-center px-3 py-2 md:border border-transparent text-md leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
             >
                 <RiRunLine className="h-5 w-5 mr-1" />
                 {messages.course || "Courses"}
@@ -35,14 +37,23 @@ export default function MyRaceButton() {
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                    <div className="py-1"></div>
-                    <Link
-                        href={route("myrace.index")}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                        {messages.my_courses || "Mes courses"}
-                    </Link>
+                <div className="md:absolute right-0 mt-2 w-56 rounded-md md:shadow-lg shadow-sm bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-1">
+                        <Link
+                            href={route("races.index")}
+                            className="block px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                        >
+                            <LuLayoutGrid className="inline mr-2 mb-1" />
+                            {messages.view_all_races || "Voir toutes les courses"}
+                        </Link>
+                        <Link
+                            href={route("myrace.index")}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                        >
+                            <BiSolidTimer className="inline mr-2 mb-1" />
+                            {messages.my_courses || "Mes courses"}
+                        </Link>
+                    </div>
                 </div>
             )}
         </div>

@@ -4,6 +4,11 @@ import LanguageSwitcher from "@/Components/LanguageSwitcher";
 import ClubsDropdown from "@/Components/ClubsDropdown";
 import UserMenu from "@/Components/UserMenu";
 import MyRaceButton from "./MyRaceButton";
+import RaidButton from "./RaidButton";
+import LeaderboardButton from "./LeaderboardButton";
+import BurgerMenu from "./BurgerMenu";
+
+import ManagerButton from "./ManagerButton";
 
 /**
  * Header component - Reusable header for all pages
@@ -21,7 +26,7 @@ export default function Header({ transparent = false, className = "" }) {
         : "bg-white border-b border-gray-100 shadow-sm";
 
     const logoClasses = transparent
-        ? "h-12 w-auto fill-current text-white"
+        ? "h-20 w-auto fill-current text-white"
         : "h-9 w-auto fill-current text-gray-800 hover:text-emerald-600 transition-colors";
 
     const linkClasses = transparent
@@ -37,27 +42,60 @@ export default function Header({ transparent = false, className = "" }) {
             <div
                 className={
                     transparent
-                        ? "max-w-7xl mx-auto flex items-center justify-between"
+                        ? "max-w-7xl mx-auto flex items-center justify-between "
                         : "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
                 }
             >
                 {!transparent && (
-                    <div className="flex h-16 justify-between w-full">
-                        <div className="flex items-center">
+                    <div className="flex h-16 items-center justify-between w-full">
+                        <div className="flex-1 flex justify-start">
                             <Link href="/">
                                 <ApplicationLogo className={logoClasses} />
                             </Link>
                         </div>
 
-                        <nav className="flex items-center gap-3">
+                        <nav className="hidden md:flex flex-none justify-center items-center gap-3">
+                            <div className="flex bg-white  p-1">
+                                {user && (
+                                    <>
+                                        <RaidButton />
+                                        <MyRaceButton />
+                                        <ClubsDropdown />
+                                        <LeaderboardButton />
+                                    </>
+                                )}
+                            </div>
+                        </nav>
+
+                        <div className=" hidden md:flex flex-1 flex items-center justify-end gap-3">
                             <LanguageSwitcher className="text-gray-700 hover:text-emerald-600 transition" />
-
-                            {user && <ClubsDropdown />}
-
-                            {user && <MyRaceButton />}
 
                             {user ? (
                                 <UserMenu user={user} />
+                            ) : (
+                                <div className="flex gap-4">
+                                    <Link
+                                        href={route("login")}
+                                        className={linkClasses}
+                                    >
+                                        {messages.login}
+                                    </Link>
+                                    <Link
+                                        href={route("register")}
+                                        className={buttonClasses}
+                                    >
+                                        {messages.register}
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+
+                        <nav className=" md:hidden flex items-center justify-between gap-6">
+                            <BurgerMenu />
+                            <LanguageSwitcher className="text-gray-700 hover:text-emerald-600 transition" />
+
+                            {user ? (
+                                <UserMenu user={user} className="text-white" />
                             ) : (
                                 <div className="flex gap-4">
                                     <Link
@@ -79,17 +117,56 @@ export default function Header({ transparent = false, className = "" }) {
                 )}
 
                 {transparent && (
-                    <>
-                        <Link href="/">
-                            <ApplicationLogo className={logoClasses} />
-                        </Link>
+                    <div className="flex items-center justify-between w-full">
+                        {/* 1. Section GAUCHE : Logo */}
+                        <div className="flex-1 flex  justify-start">
+                            <Link href="/" className="flex items-center ">
+                                <ApplicationLogo
+                                    className={logoClasses}
+                                    big={true}
+                                />
+                            </Link>
+                        </div>
 
-                        <nav className="flex items-center gap-6">
+                        {/* 2. Section MILIEU : Navigation centrée */}
+                        <nav className="hidden md:flex flex-none items-center justify-center">
+                            {user && (
+                                <div className="flex bg-white backdrop-blur-md  rounded-xl p-1 shadow-lg shadow-emerald-900/20">
+                                    <RaidButton />
+                                    <MyRaceButton />
+                                    <ClubsDropdown />
+                                    <LeaderboardButton />
+                                </div>
+                            )}
+                        </nav>
+
+                        {/* 3. Section DROITE : Actions & Langue */}
+                        <div className="hidden flex-1 md:flex items-center justify-end gap-6">
+                            {" "}
                             <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
+                            {user ? (
+                                <UserMenu user={user} className="text-white" />
+                            ) : (
+                                <div className="flex gap-4">
+                                    <Link
+                                        href={route("login")}
+                                        className={linkClasses}
+                                    >
+                                        {messages.login}
+                                    </Link>
+                                    <Link
+                                        href={route("register")}
+                                        className={buttonClasses}
+                                    >
+                                        {messages.register}
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
 
-                            {user && <ClubsDropdown />}
-
-                            {user && <MyRaceButton />}
+                        <nav className=" md:hidden flex items-center justify-between gap-6">
+                            <BurgerMenu />
+                            <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
 
                             {user ? (
                                 <UserMenu user={user} className="text-white" />
@@ -110,7 +187,7 @@ export default function Header({ transparent = false, className = "" }) {
                                 </div>
                             )}
                         </nav>
-                    </>
+                    </div>
                 )}
             </div>
         </header>

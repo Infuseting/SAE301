@@ -298,4 +298,25 @@ return [
     'role_guest' => 'Visitante',
     'no_roles_assigned' => 'Sin roles asignados',
 
+    // Clubs
+    'join_club' => 'Unirse al Club',
+    'leave_club' => 'Dejar el Club',
+    'manage_members' => 'Gestionar Miembros',
+    'approve_club' => 'Aceptar',
+    'reject_club' => 'Rechazar',
+    'member_promoted' => ':name ha sido promovido a responsable del club',
+    'manager_demoted' => ':name ha sido degradado a miembro',
+    'cannot_demote_last_manager' => 'No se puede degradar al último responsable del club',
+    'user_not_member' => 'Este usuario no es miembro de este club',
+    'promote_to_manager' => 'Promover a responsable',
+    'demote_to_member' => 'Degradar a miembro',
+
+    // Leaderboard Navigation
+    'leaderboard' => 'Clasificación',
+    'public_leaderboard' => 'Clasificación pública',
+    'my_leaderboard' => 'Mi clasificación',
+
+    // Courses Navigation
+    'view_all_races' => 'Ver todas las carreras',
+
 ];

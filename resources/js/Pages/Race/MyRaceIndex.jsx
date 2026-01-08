@@ -28,13 +28,24 @@ export default function MyRaceIndex({ races }) {
             <div className=" mt-20">
                 <main className="flex flex-col flex-grow p-6 items-center">
                     <div className="w-full md:w-[80%]">
-                        <p className="font-bold text-3xl ml-5">Mes courses</p>
+                        <p className="font-bold text-3xl ml-5">
+                            Historique de mes courses
+                        </p>
                     </div>
-                    <div className="w-full md:w-[80%] min-h-[600px] bg-gray-200 flex  rounded-xl shadow-md mt-6">
-                        {races.map((race) => (
-                            <MyRaceCard key={race.id} race={race} />
-                        ))}
-                    </div>
+                    {races.length === 0 && (
+                        <div className="w-full md:w-[80%] min-h-[600px] bg-gray-200 flex flex-col justify-center items-center rounded-xl shadow-md mt-6">
+                            <p className="text-gray-600 text-xl">
+                                Vous n'avez pas encore participé à des courses.
+                            </p>
+                        </div>
+                    )}
+                    {races.length > 0 && (
+                        <div className="w-full md:w-[80%] min-h-[600px] bg-gray-200 flex  rounded-xl shadow-md mt-6">
+                            {races.map((race) => (
+                                <MyRaceCard key={race.id} race={race} />
+                            ))}
+                        </div>
+                    )}
                 </main>
                 <Footer />
             </div>

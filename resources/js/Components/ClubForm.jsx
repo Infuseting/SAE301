@@ -19,7 +19,7 @@ export default function ClubForm({ club = null, submitRoute, submitLabel }) {
         club?.club_image ? `/storage/${club.club_image}` : null
     );
 
-    const { data, setData, post, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         club_name: club?.club_name || '',
         club_street: club?.club_street || '',
         club_city: club?.club_city || '',
@@ -27,6 +27,7 @@ export default function ClubForm({ club = null, submitRoute, submitLabel }) {
         ffso_id: club?.ffso_id || '',
         description: club?.description || '',
         club_image: null,
+        _method: isEditing ? 'PUT' : 'POST',
     });
 
     const handleImageChange = (e) => {
@@ -41,16 +42,21 @@ export default function ClubForm({ club = null, submitRoute, submitLabel }) {
         }
     };
 
+    /**
+     * Handle form submission
+     * Uses POST with _method for editing to support file uploads (FormData)
+     */
     const submit = (e) => {
         e.preventDefault();
 
         if (isEditing) {
             post(route(submitRoute, club.club_id), {
                 forceFormData: true,
-                _method: 'PUT',
             });
         } else {
-            post(route(submitRoute));
+            post(route(submitRoute), {
+                forceFormData: true,
+            });
         }
     };
 

@@ -300,8 +300,8 @@ return [
     'join_club' => 'Join Club',
     'leave_club' => 'Leave Club',
     'manage_members' => 'Manage Members',
-    'approve_club' => 'Approve Club',
-    'reject_club' => 'Reject Club',
+    'approve_club' => 'Accept',
+    'reject_club' => 'Reject',
     'club_approved' => 'Club ":name" has been approved',
     'club_rejected' => 'Club has been rejected',
     'club_created_pending' => 'Club created successfully! It will be visible once approved by an administrator.',
@@ -320,6 +320,12 @@ return [
     'not_a_member' => 'You are not a member of this club',
     'last_manager_cannot_leave' => 'You are the last manager and cannot leave the club',
     'left_club' => 'You have left the club',
+    'member_promoted' => ':name has been promoted to club manager',
+    'manager_demoted' => ':name has been demoted to member',
+    'cannot_demote_last_manager' => 'Cannot demote the last manager of the club',
+    'user_not_member' => 'This user is not a member of this club',
+    'promote_to_manager' => 'Promote to Manager',
+    'demote_to_member' => 'Demote to Member',
     'pending_approval' => 'Pending Approval',
     'approved' => 'Approved',
     'members_count' => ':count members',
@@ -368,5 +374,13 @@ return [
     'role_user' => 'User',
     'role_guest' => 'Guest',
     'no_roles_assigned' => 'No roles assigned',
+
+    // Leaderboard Navigation
+    'leaderboard' => 'Leaderboard',
+    'public_leaderboard' => 'Public leaderboard',
+    'my_leaderboard' => 'My leaderboard',
+
+    // Courses Navigation
+    'view_all_races' => 'View all races',
 
 ];

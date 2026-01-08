@@ -10,8 +10,9 @@ import SecondaryButton from '@/Components/SecondaryButton';
  * @param {Array} pendingRequests - Array of pending join requests (managers only)
  * @param {boolean} isManager - Whether current user is a manager
  * @param {number} clubId - Club ID for actions
+ * @param {boolean} compact - Whether to use compact layout (stacked) or default (side-by-side)
  */
-export default function ClubMembersList({ members = [], pendingRequests = [], isManager = false, clubId }) {
+export default function ClubMembersList({ members = [], pendingRequests = [], isManager = false, clubId, compact = false }) {
     const messages = usePage().props.translations?.messages || {};
 
     const { post, delete: destroy, processing } = useForm();
@@ -38,28 +39,30 @@ export default function ClubMembersList({ members = [], pendingRequests = [], is
                     <h3 className="text-lg font-bold text-gray-900 mb-4">{messages.pending_requests}</h3>
                     <div className="bg-amber-50 border border-amber-200 rounded-lg divide-y divide-amber-200">
                         {pendingRequests.map((request) => (
-                            <div key={request.id} className="p-4 flex items-center justify-between">
+                            <div key={request.id} className={`p-4 flex ${compact ? 'flex-col' : 'items-center justify-between'} gap-3`}>
                                 <div className="flex items-center space-x-3">
                                     <img
                                         src={request.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(request.name)}&background=10b981&color=fff`}
                                         alt={request.name}
-                                        className="w-10 h-10 rounded-full"
+                                        className="w-10 h-10 rounded-full flex-shrink-0"
                                     />
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{request.name}</p>
-                                        <p className="text-sm text-gray-500">{request.email}</p>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-semibold text-gray-900 truncate">{request.name}</p>
+                                        <p className="text-sm text-gray-500 truncate">{request.email}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                <div className={`flex items-center ${compact ? 'gap-2' : 'space-x-2'}`}>
                                     <PrimaryButton
                                         onClick={() => handleApprove(request.id)}
                                         disabled={processing}
+                                        className={compact ? 'flex-1 text-xs py-2' : ''}
                                     >
                                         {messages.approve_club || 'Approve'}
                                     </PrimaryButton>
                                     <SecondaryButton
                                         onClick={() => handleReject(request.id)}
                                         disabled={processing}
+                                        className={compact ? 'flex-1 text-xs py-2' : ''}
                                     >
                                         {messages.reject_club || 'Reject'}
                                     </SecondaryButton>
@@ -82,19 +85,19 @@ export default function ClubMembersList({ members = [], pendingRequests = [], is
                         </div>
                     ) : (
                         members.map((member) => (
-                            <div key={member.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition">
-                                <div className="flex items-center space-x-3">
+                            <div key={member.id} className={`p-4 flex ${compact ? 'flex-col' : 'items-center justify-between'} gap-3 hover:bg-gray-50 transition`}>
+                                <div className="flex items-center space-x-3 min-w-0">
                                     <img
                                         src={member.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=10b981&color=fff`}
                                         alt={member.name}
-                                        className="w-10 h-10 rounded-full"
+                                        className="w-10 h-10 rounded-full flex-shrink-0"
                                     />
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{member.name}</p>
-                                        <div className="flex items-center space-x-2">
-                                            <p className="text-sm text-gray-500">{member.email}</p>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-semibold text-gray-900 truncate">{member.name}</p>
+                                        <div className={`flex ${compact ? 'flex-col space-y-1' : 'items-center space-x-2'}`}>
+                                            <p className="text-sm text-gray-500 truncate">{member.email}</p>
                                             {member.pivot?.role === 'manager' && (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 w-fit">
                                                     {messages.club_managers || 'Manager'}
                                                 </span>
                                             )}
@@ -105,6 +108,7 @@ export default function ClubMembersList({ members = [], pendingRequests = [], is
                                     <DangerButton
                                         onClick={() => handleRemove(member.id)}
                                         disabled={processing}
+                                        className={compact ? 'w-full text-xs py-2' : ''}
                                     >
                                         {messages.remove || 'Remove'}
                                     </DangerButton>
