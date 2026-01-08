@@ -159,7 +159,7 @@ class TeamController extends Controller
         $team = Team::findOrFail($invitation->equ_id);
         
         // Add user to team if not already a member
-        if (!$team->users()->where('user_id', auth()->id())->exists()) {
+        if (!$team->users()->wherePivot('id_users', auth()->id())->exists()) {
             $team->users()->attach(auth()->id());
         }
         
