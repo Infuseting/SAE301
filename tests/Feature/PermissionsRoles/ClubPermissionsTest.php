@@ -148,7 +148,7 @@ class ClubPermissionsTest extends TestCase
             'club_street' => '123 Test Street',
             'club_city' => 'Test City',
             'club_postal_code' => '12345',
-            'ffso_id' => 'FFSO' . uniqid(),
+            'ffso_id' => 'FFCO' . uniqid(),
             'description' => 'Test club description',
         ];
     }

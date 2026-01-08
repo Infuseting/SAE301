@@ -59,7 +59,7 @@ class LicenceRoleTest extends TestCase
                 'birth_date' => $user->birth_date?->format('Y-m-d') ?? '1990-01-01',
                 'address' => $user->address ?? '123 Test Street',
                 'phone' => $user->phone ?? '+33612345678',
-                'license_number' => 'LICENCE-123456',
+                'license_number' => '123456',
             ]);
 
         $response->assertRedirect(route('profile.edit'));
@@ -71,7 +71,7 @@ class LicenceRoleTest extends TestCase
         $this->assertTrue($user->hasRole('adherent'));
         $this->assertNotNull($user->adh_id);
         $this->assertNotNull($user->member);
-        $this->assertEquals('LICENCE-123456', $user->member->adh_license);
+        $this->assertEquals('123456', $user->member->adh_license);
     }
 
     /**
@@ -81,7 +81,7 @@ class LicenceRoleTest extends TestCase
     {
         // Create user with existing licence
         $member = Member::factory()->create([
-            'adh_license' => 'LICENCE-123456',
+            'adh_license' => 'AB123456',
             'adh_end_validity' => now()->addYear(),
         ]);
 
@@ -123,7 +123,7 @@ class LicenceRoleTest extends TestCase
     {
         // Create user with existing licence and responsable-club role
         $member = Member::factory()->create([
-            'adh_license' => 'LICENCE-123456',
+            'adh_license' => 'AB123456',
             'adh_end_validity' => now()->addYear(),
         ]);
 
@@ -164,7 +164,7 @@ class LicenceRoleTest extends TestCase
     public function test_removing_licence_clears_adh_id(): void
     {
         $member = Member::factory()->create([
-            'adh_license' => 'LICENCE-123456',
+            'adh_license' => 'AB123456',
             'adh_end_validity' => now()->addYear(),
         ]);
 
@@ -199,7 +199,7 @@ class LicenceRoleTest extends TestCase
     public function test_updating_licence_keeps_adherent_role(): void
     {
         $member = Member::factory()->create([
-            'adh_license' => 'OLD-LICENCE',
+            'adh_license' => '123456',
             'adh_end_validity' => now()->addYear(),
         ]);
 
@@ -217,13 +217,13 @@ class LicenceRoleTest extends TestCase
                 'birth_date' => $user->birth_date?->format('Y-m-d') ?? '1990-01-01',
                 'address' => $user->address ?? '123 Test Street',
                 'phone' => $user->phone ?? '+33612345678',
-                'license_number' => 'NEW-LICENCE',
+                'license_number' => 'AB654321',
             ]);
 
         $user->refresh();
 
         // Verify adherent role is still there
         $this->assertTrue($user->hasRole('adherent'));
-        $this->assertEquals('NEW-LICENCE', $user->member->adh_license);
+        $this->assertEquals('AB654321', $user->member->adh_license);
     }
 }

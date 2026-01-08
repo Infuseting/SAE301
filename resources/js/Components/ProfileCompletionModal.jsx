@@ -6,7 +6,8 @@ import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
-import { useForm, usePage } from '@inertiajs/react';
+import LicenseValidationModal from '@/Components/LicenseValidationModal';
+import { useForm, usePage, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -23,6 +24,7 @@ import { createPortal } from 'react-dom';
 export default function ProfileCompletionModal() {
     const user = usePage().props.auth.user;
     const [isOpen, setIsOpen] = useState(false);
+    const [showLicenseModal, setShowLicenseModal] = useState(false);
 
     // Check if profile is incomplete
     useEffect(() => {
@@ -33,7 +35,7 @@ export default function ProfileCompletionModal() {
         }
     }, [user]);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, clearErrors } = useForm({
         birth_date: user.birth_date || '',
         address: user.address || '',
         phone: user.phone || '',
@@ -44,13 +46,44 @@ export default function ProfileCompletionModal() {
         e.preventDefault();
         post(route('profile.complete'), {
             onSuccess: () => setIsOpen(false),
+            onError: (errors) => {
+                // If there's a license number error, show the modal
+                if (errors.license_number && data.license_number) {
+                    setShowLicenseModal(true);
+                }
+            }
+        });
+    };
+
+    const handleConfirmWithoutLicense = () => {
+        setShowLicenseModal(false);
+        clearErrors('license_number');
+        
+        // Use router.post directly with explicit data (bypasses useForm state)
+        router.post(route('profile.complete'), {
+            birth_date: data.birth_date,
+            address: data.address,
+            phone: data.phone,
+            license_number: null, // Explicitly null, not empty string
+        }, {
+            onSuccess: () => {
+                setIsOpen(false);
+                setData('license_number', '');
+            },
         });
     };
 
     if (!isOpen) return null;
 
     return (
-        <Modal show={isOpen} maxWidth="lg">
+        <>
+            <LicenseValidationModal
+                show={showLicenseModal}
+                onClose={() => setShowLicenseModal(false)}
+                onConfirmWithoutLicense={handleConfirmWithoutLicense}
+            />
+            
+            <Modal show={isOpen} maxWidth="lg">
             <div className="p-6">
                 <h2 className="text-lg font-medium text-gray-900">
                     Finaliser votre inscription
@@ -108,15 +141,16 @@ export default function ProfileCompletionModal() {
                         </div>
 
                         <div className="border-t pt-4 mt-4">
-                            <InputLabel htmlFor="license_number" value="Numéro de licence (Facultatif)" />
+                            <InputLabel htmlFor="license_number" value="Numéro de licence FFCO (Facultatif)" />
                             <TextInput
                                 id="license_number"
                                 type="text"
                                 className="mt-1 block w-full"
                                 value={data.license_number}
                                 onChange={(e) => setData('license_number', e.target.value)}
-                                placeholder="Laisser vide si vous n'en avez pas"
+                                placeholder="Ex: 123456 ou AB12345"
                             />
+                            <p className="mt-1 text-xs text-gray-500">Format : 5-6 chiffres ou 1-2 lettres suivies de 5-6 chiffres (Fédération Française de Course d'Orientation)</p>
                             <InputError message={errors.license_number} className="mt-2" />
                         </div>
 
@@ -129,5 +163,6 @@ export default function ProfileCompletionModal() {
                 </form>
             </div>
         </Modal>
+        </>
     );
 }

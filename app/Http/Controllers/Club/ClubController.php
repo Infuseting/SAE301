@@ -72,6 +72,19 @@ class ClubController extends Controller
         }
 
         $clubs = $query->paginate(12);
+        
+        // Add user membership status to each club
+        if ($user) {
+            $clubs->getCollection()->transform(function ($club) use ($user) {
+                $membership = \DB::table('club_user')
+                    ->where('club_id', $club->club_id)
+                    ->where('user_id', $user->id)
+                    ->first();
+                    
+                $club->user_membership_status = $membership ? $membership->status : null;
+                return $club;
+            });
+        }
 
         return Inertia::render('Clubs/Index', [
             'clubs' => $clubs,
@@ -108,7 +121,7 @@ class ClubController extends Controller
      *                 @OA\Property(property="club_street", type="string", example="123 Rue de la Paix"),
      *                 @OA\Property(property="club_city", type="string", example="Paris"),
      *                 @OA\Property(property="club_postal_code", type="string", example="75001"),
-     *                 @OA\Property(property="ffso_id", type="string", example="FFSO-12345"),
+     *                 @OA\Property(property="ffso_id", type="string", example="FFCO-12345"),
      *                 @OA\Property(property="description", type="string", example="Club description"),
      *                 @OA\Property(property="club_image", type="string", format="binary")
      *             )
@@ -133,7 +146,7 @@ class ClubController extends Controller
             'club_postal_code' => 'required|string|max:20',
             'ffso_id' => 'required|string|max:50',
             'description' => 'nullable|string|max:1000',
-            'club_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'club_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         // Handle image upload
@@ -199,6 +212,16 @@ class ClubController extends Controller
         $isMember = $user && $club->hasMember($user);
         // Admin can manage all clubs, otherwise check if user is club manager
         $isManager = $user && ($user->hasRole('admin') || $club->hasManager($user));
+        
+        // Check if user has a pending request
+        $membershipStatus = null;
+        if ($user) {
+            $membership = \DB::table('club_user')
+                ->where('club_id', $club->club_id)
+                ->where('user_id', $user->id)
+                ->first();
+            $membershipStatus = $membership ? $membership->status : null;
+        }
 
         // Only show members if user is a member
         if ($isMember) {
@@ -226,6 +249,7 @@ class ClubController extends Controller
             'club' => $club,
             'isMember' => $isMember,
             'isManager' => $isManager,
+            'membershipStatus' => $membershipStatus,
         ]);
     }
 
@@ -235,7 +259,14 @@ class ClubController extends Controller
     public function edit(Club $club): Response
     {
         // Use policy for authorization (handles admin and club managers)
+        \Log::info("ClubController::edit - Before authorize", [
+            'user_id' => auth()->id(),
+            'club_id' => $club->club_id,
+        ]);
+        
         $this->authorize('update', $club);
+
+        \Log::info("ClubController::edit - After authorize (not blocked)");
 
         $club->load(['members', 'pendingRequests']);
 
@@ -296,7 +327,7 @@ class ClubController extends Controller
             'club_postal_code' => 'required|string|max:20',
             'ffso_id' => 'required|string|max:50',
             'description' => 'nullable|string|max:1000',
-            'club_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'club_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         // Handle image upload

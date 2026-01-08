@@ -187,6 +187,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Règles de validation personnalisées
+    |--------------------------------------------------------------------------
+    |
+    | Ici vous pouvez définir des messages personnalisés pour les règles
+    | de validation personnalisées.
+    |
+    */
+
+    'ffco_license_number' => 'Le :attribute doit être un numéro de licence FFCO valide (ex: 123456 ou AB12345).',
+
+    /*
+    |--------------------------------------------------------------------------
     | Attributs de validation personnalisés
     |--------------------------------------------------------------------------
     |

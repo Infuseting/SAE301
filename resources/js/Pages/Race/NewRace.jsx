@@ -5,6 +5,7 @@ import UserSelect from '@/Components/UserSelect';
 import Modal from '@/Components/Modal';
 import DangerButton from '@/Components/DangerButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import ImageUpload from '@/Components/ImageUpload';
 import { Trophy, ChevronRight } from 'lucide-react';
 
 /**
@@ -73,6 +74,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         endTime: extractTime(race?.race_date_end),
         minParticipants: race?.runner_params?.pac_nb_min || '1',
         maxParticipants: race?.runner_params?.pac_nb_max || '10',
+        minPerTeam: race?.team_params?.pae_team_count_min || '1',
         maxPerTeam: race?.team_params?.pae_team_count_max || '1',
         minTeams: race?.team_params?.pae_nb_min || '1',
         maxTeams: race?.team_params?.pae_nb_max || '1',
@@ -236,41 +238,45 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         setData(name, value);
     };
 
-    /**
-     * Handle image file selection and create preview
-     * @param {Event} e - File input change event
-     */
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setData('image', file);
-            // Optional: Add preview functionality if needed
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                // You can set a preview state here if you add one later
-                console.log('Image loaded:', file.name);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
     const handleSubmit = (e) => {
         e.preventDefault();
         
+        // Validation: Check if at least one age category is selected
+        if (data.selectedAgeCategories.length === 0) {
+            alert('Veuillez sélectionner au moins une catégorie d\'âge pour cette course.');
+            return;
+        }
+        
+        // Prepare submission data
+        const submissionData = { ...data };
+        
+        // Clear priceMinor if competitive race
+        if (isCompetitive) {
+            submissionData.priceMinor = '';
+        }
+        
         // Debug: Log all form data
-        console.log('Form data before submission:', data);
+        console.log('Form data before submission:', submissionData);
         console.log('Processing state:', processing);
-        console.log('Selected age categories:', data.selectedAgeCategories);
+        console.log('Selected age categories:', submissionData.selectedAgeCategories);
+        console.log('Is competitive:', isCompetitive);
+        console.log('Image file:', submissionData.image);
+        console.log('Image is File?:', submissionData.image instanceof File);
         
         if (isEditMode) {
             // Use router.post with _method: PUT for file uploads to work correctly
             router.post(route('races.update', race.race_id), {
                 _method: 'PUT',
-                ...data,
+                ...submissionData,
             }, {
                 forceFormData: true,
             });
         } else {
+            // Update data with cleaned values for create mode
+            Object.keys(submissionData).forEach(key => {
+                setData(key, submissionData[key]);
+            });
+            
             // Send form data with forceFormData to handle file upload
             post(route('races.store'), {
                 forceFormData: true,
@@ -372,9 +378,11 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.title}
                                         onChange={handleInputChange}
                                         placeholder="Nom de la course"
+                                        maxLength={100}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         required
                                     />
+                                    <p className="mt-1 text-xs text-gray-500">{data.title.length}/100 caractères</p>
                                 </div>
 
                                 <div>
@@ -402,8 +410,10 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         onChange={handleInputChange}
                                         placeholder="Décrivez la course (parcours, règles, etc.)"
                                         rows="4"
+                                        maxLength={2000}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
+                                    <p className="mt-1 text-xs text-gray-500">{data.description.length}/2000 caractères</p>
                                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                                 </div>
 
@@ -422,8 +432,13 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         name="startDate"
                                         value={data.startDate}
                                         onChange={handleDateChange}
-                                        min={Math.max(new Date().toISOString().split('T')[0], raid?.raid_date_start?.split('T')[0])}
-                                        max={raid?.raid_date_end?.split('T')[0]}
+                                        min={(() => {
+                                            const today = new Date().toISOString().split('T')[0];
+                                            if (!raid?.raid_date_start) return today;
+                                            const raidStart = raid.raid_date_start.split('T')[0];
+                                            return today > raidStart ? today : raidStart;
+                                        })()}
+                                        {...(raid?.raid_date_end && { max: raid.raid_date_end.split('T')[0] })}
                                         className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.startDate ? 'border-red-500' : 'border-gray-300'}`}
                                         required
                                     />
@@ -473,6 +488,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.difficulty}
                                         onChange={handleInputChange}
                                         placeholder="Ex: Facile, Expert, Technique..."
+                                        maxLength={255}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         required
                                     />
@@ -490,7 +506,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.endDate}
                                         onChange={handleDateChange}
                                         min={data.startDate || new Date().toISOString().split('T')[0]}
-                                        max={raid?.raid_date_end?.split('T')[0]}
+                                        {...(raid?.raid_date_end && { max: raid.raid_date_end.split('T')[0] })}
                                         className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.endDate ? 'border-red-500' : 'border-gray-300'}`}
                                     />
                                     {dateErrors.endDate && <p className="mt-1 text-sm text-red-600">{dateErrors.endDate}</p>}
@@ -579,6 +595,22 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Max par équipe - Ligne 7 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Min par équipe *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="minPerTeam"
+                                        value={data.minPerTeam}
+                                        onChange={handleInputChange}
+                                        placeholder="1"
+                                        required
+                                        min="1"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Max par équipe *
                                     </label>
                                     <input
@@ -586,7 +618,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         name="maxPerTeam"
                                         value={data.maxPerTeam}
                                         onChange={handleInputChange}
-                                        placeholder="0"
+                                        placeholder="1"
                                         required
                                         min="1"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -707,8 +739,17 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 <div className="col-span-1 lg:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-3">
                                         Catégories d'âges
+                                        <span className="text-red-500 ml-1">*</span>
                                         <span className="text-xs text-gray-500 ml-2">({data.selectedAgeCategories.length} sélectionnée{data.selectedAgeCategories.length !== 1 ? 's' : ''})</span>
                                     </label>
+                                    {data.selectedAgeCategories.length === 0 && (
+                                        <p className="text-sm text-amber-600 mb-3 flex items-center gap-2">
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                            </svg>
+                                            Veuillez sélectionner au moins une catégorie d'âge
+                                        </p>
+                                    )}
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                         {ageCategories.length > 0 ? (
                                             ageCategories.map((category) => {
@@ -768,32 +809,15 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Image (optionnel)
-                                    </label>
-                                    <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center mb-2 overflow-hidden">
-                                        {data.image ? (
-                                            <img
-                                                src={URL.createObjectURL(data.image)}
-                                                alt="Preview"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <span className="text-gray-400 text-sm">Aperçu image</span>
-                                        )}
-                                    </div>
-                                    <label className="text-indigo-600 hover:text-indigo-700 text-sm font-medium cursor-pointer">
-                                        Ajouter une image
-                                        <input
-                                            type="file"
-                                            name="image"
-                                            onChange={handleImageChange}
-                                            accept="image/*"
-                                            className="hidden"
-                                        />
-                                    </label>
-                                </div>
+                                <ImageUpload
+                                    label="Image de la course"
+                                    name="image"
+                                    onChange={(file) => setData('image', file)}
+                                    error={errors.image}
+                                    currentImage={race?.race_image ? `/storage/${race.race_image}` : null}
+                                    maxSize={5}
+                                    helperText="Image qui sera affichée sur la page de la course (optionnel)"
+                                />
                             </div>
 
                             {/* Bouton Submit */}

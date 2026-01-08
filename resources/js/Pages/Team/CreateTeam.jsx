@@ -141,8 +141,10 @@ export default function CreateTeam() {
                                 style={{focusRing: 'rgb(4, 120, 87)'}}
                                 isFocused={true}
                                 onChange={(e) => setData('name', e.target.value)}
+                                maxLength={32}
                                 required
                             />
+                            <p className="text-xs text-gray-500 mt-1">{data.name.length}/32 caractères</p>
                             <InputError message={errors.name} className="mt-1 text-sm" />
                         </div>
                         {/* Image Upload Field */}

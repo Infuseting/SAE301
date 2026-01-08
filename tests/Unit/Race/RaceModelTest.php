@@ -57,7 +57,7 @@ class RaceModelTest extends TestCase
             'club_street' => '123 Test Street',
             'club_city' => 'Test City',
             'club_postal_code' => '12345',
-            'ffso_id' => 'FFSO001',
+            'ffso_id' => 'FFCO001',
             'is_approved' => true,
             'created_by' => $user->id,
             'created_at' => now(),

@@ -30,11 +30,31 @@ class ClubFactory extends Factory
             'club_street' => $this->faker->streetAddress(),
             'club_city' => $this->faker->city(),
             'club_postal_code' => $this->faker->postcode(),
-            'ffso_id' => $this->faker->bothify('FFSO-####'),
+            'ffso_id' => $this->faker->bothify('FFCO-####'),
             'description' => $this->faker->paragraph(),
             'club_image' => null,
             'is_approved' => false,
-            'created_by' => User::factory(),
+            'created_by' => User::factory(),  // Auto-create a user if not provided
         ];
+    }
+
+    /**
+     * Indicate that the club is approved.
+     */
+    public function approved(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_approved' => true,
+        ]);
+    }
+
+    /**
+     * Indicate that the club is pending.
+     */
+    public function pending(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_approved' => false,
+        ]);
     }
 }

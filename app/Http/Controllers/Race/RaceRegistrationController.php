@@ -192,15 +192,16 @@ class RaceRegistrationController extends Controller
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        // Check team size - must match exactly maxPerTeam (pae_team_count_max)
-        $requiredTeamSize = $race->teamParams?->pae_team_count_max ?? 1;
+        // Check team size - must be between minPerTeam and maxPerTeam
+        $minTeamSize = $race->teamParams?->pae_team_count_min ?? 1;
+        $maxTeamSize = $race->teamParams?->pae_team_count_max ?? 1;
         
         $currentRunners = $team->users()->count();
 
-        if ($currentRunners !== $requiredTeamSize) {
+        if ($currentRunners < $minTeamSize || $currentRunners > $maxTeamSize) {
              return response()->json([
                 'success' => false,
-                'message' => "Le nombre de coureurs doit être exactement de $requiredTeamSize (actuellement $currentRunners).",
+                'message' => "Le nombre de coureurs doit être entre $minTeamSize et $maxTeamSize (actuellement $currentRunners).",
             ], 400);
         }
 

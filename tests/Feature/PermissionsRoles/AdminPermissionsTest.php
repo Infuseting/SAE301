@@ -71,7 +71,7 @@ class AdminPermissionsTest extends TestCase
             'club_street' => '123 Owner Street',
             'club_city' => 'Owner City',
             'club_postal_code' => '12345',
-            'ffso_id' => 'FFSO001',
+            'ffso_id' => 'FFCO001',
             'description' => 'Owner Club Description',
             'is_approved' => true,
             'created_by' => $this->regularOwner->id,
@@ -214,7 +214,7 @@ class AdminPermissionsTest extends TestCase
                 'club_street' => '123 Admin Street',
                 'club_city' => 'Admin City',
                 'club_postal_code' => '99999',
-                'ffso_id' => 'FFSO999',
+                'ffso_id' => 'FFCO999',
                 'description' => 'Admin Club Description',
             ]);
         
@@ -244,7 +244,7 @@ class AdminPermissionsTest extends TestCase
                 'club_street' => '456 Updated Street',
                 'club_city' => 'Updated City',
                 'club_postal_code' => '11111',
-                'ffso_id' => 'FFSO001',
+                'ffso_id' => 'FFCO001',
                 'description' => 'Admin Updated Description',
             ]);
         
@@ -263,7 +263,7 @@ class AdminPermissionsTest extends TestCase
             'club_street' => '123 Delete Street',
             'club_city' => 'Delete City',
             'club_postal_code' => '00000',
-            'ffso_id' => 'FFSO000',
+            'ffso_id' => 'FFCO000',
             'description' => 'Club to delete',
             'is_approved' => true,
             'created_by' => $this->regularOwner->id,
@@ -457,6 +457,7 @@ class AdminPermissionsTest extends TestCase
                 'maxParticipants' => 10,
                 'minTeams' => 1,
                 'maxTeams' => 20,
+                'minPerTeam' => 2,
                 'maxPerTeam' => 5,
                 'difficulty' => 'Moyen',
                 'type' => 1,
