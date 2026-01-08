@@ -179,8 +179,8 @@ return [
     // Homepage - Upcoming Races
     'upcoming_races_title' => 'Próximas Carreras',
     'upcoming_races_subtitle' => 'No te pierdas los próximos eventos cerca de ti.',
-    'upcoming_raids_title' => 'Raids Destacados',
-    'upcoming_raids_subtitle' => 'Los mejores raids de orientación seleccionados para ti.',
+    'upcoming_raids_title' => 'Raids Añadidos Recientemente',
+    'upcoming_raids_subtitle' => 'Descubre los últimos raids creados.',
     'view_calendar' => 'Ver calendario completo',
     'upcoming_races_list' => [
         [

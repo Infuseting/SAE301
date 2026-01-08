@@ -176,8 +176,8 @@ return [
     // Homepage - Upcoming Races
     'upcoming_races_title' => 'Anstehende Rennen',
     'upcoming_races_subtitle' => 'Verpassen Sie nicht bevorstehende Veranstaltungen in Ihrer Nähe.',
-    'upcoming_raids_title' => 'Hervorgehobene Überläufe',
-    'upcoming_raids_subtitle' => 'Die besten Orientierungsläufe für Sie ausgewählt.',
+    'upcoming_raids_title' => 'Kürzlich Hinzugefügte Überläufe',
+    'upcoming_raids_subtitle' => 'Entdecken Sie die neuesten erstellten Überläufe.',
     'view_calendar' => 'Ganzen Kalender anzeigen',
     'upcoming_races_list' => [
         [

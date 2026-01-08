@@ -197,8 +197,8 @@ return [
     // Homepage - Upcoming Races
     'upcoming_races_title' => 'Upcoming Races',
     'upcoming_races_subtitle' => 'Don\'t miss upcoming events near you.',
-    'upcoming_raids_title' => 'Featured Raids',
-    'upcoming_raids_subtitle' => 'The best orienteering raids selected for you.',
+    'upcoming_raids_title' => 'Recently Added Raids',
+    'upcoming_raids_subtitle' => 'Discover the latest raids created.',
     'view_calendar' => 'View full calendar',
     'upcoming_races_list' => [
         [
