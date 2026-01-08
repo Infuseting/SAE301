@@ -5,19 +5,6 @@ import UserAvatar from "@/Components/UserAvatar";
 export default function UserMenu({ user }) {
     const messages = usePage().props.translations?.messages || {};
 
-    /**
-     * Check if user has access to the admin panel.
-     * Users with any of these conditions can access /admin:
-     * - Has 'admin' role
-     * - Has 'access-admin' permission (gestionnaire-raid, responsable-club, responsable-course)
-     */
-    const hasAdminAccess =
-        user.roles?.some((role) => role.name === "admin" || role === "admin") ||
-        user.permissions?.some((perm) => {
-            const permName = perm.name || perm;
-            return permName === "access-admin";
-        });
-
     return (
         <div className="relative">
             <Dropdown>
@@ -37,12 +24,6 @@ export default function UserMenu({ user }) {
                     <Dropdown.Link href={route("profile.index")}>
                         {messages.profile || "Profile"}
                     </Dropdown.Link>
-
-                    {hasAdminAccess && (
-                        <Dropdown.Link href={route("admin.dashboard")}>
-                            Admin
-                        </Dropdown.Link>
-                    )}
 
                     <Dropdown.Link
                         href={route("logout")}
