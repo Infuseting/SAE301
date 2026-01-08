@@ -5,6 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import UserSelect from '@/Components/UserSelect';
+import ImageUpload from '@/Components/ImageUpload';
 
 /**
  * Create Raid Form Component
@@ -40,17 +41,6 @@ export default function Create() {
         post(route('raids.store'), {
             forceFormData: true,
         });
-    };
-
-    /**
-     * Handle image upload
-     * @param {Event} e - File input change event
-     */
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setData('raid_image', file);
-        }
     };
 
     /**
@@ -324,34 +314,14 @@ export default function Create() {
                                     </div>
 
                                     {/* Image Upload */}
-                                    <div>
-                                        <div className="flex items-center justify-center w-full">
-                                            <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                    <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                                    </svg>
-                                                    <p className="mb-2 text-sm text-gray-500">
-                                                        <span className="font-semibold">ajouter une image</span>
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">PNG, JPG (MAX. 5MB)</p>
-                                                </div>
-                                                <input
-                                                    id="raid_image"
-                                                    type="file"
-                                                    className="hidden"
-                                                    accept="image/*"
-                                                    onChange={handleImageUpload}
-                                                />
-                                            </label>
-                                        </div>
-                                        {data.raid_image && (
-                                            <p className="mt-2 text-sm text-gray-600">
-                                                Fichier sélectionné : {data.raid_image.name}
-                                            </p>
-                                        )}
-                                        <InputError message={errors.raid_image} className="mt-2" />
-                                    </div>
+                                    <ImageUpload
+                                        label="Image du raid"
+                                        name="raid_image"
+                                        onChange={(file) => setData('raid_image', file)}
+                                        error={errors.raid_image}
+                                        maxSize={5}
+                                        helperText="Image principale qui sera affichée sur la page du raid"
+                                    />
                                 </div>
                             </div>
                         </div>

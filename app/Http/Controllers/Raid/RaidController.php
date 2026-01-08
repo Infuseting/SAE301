@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRaidRequest;
 use App\Http\Requests\UpdateRaidRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -79,12 +80,13 @@ class RaidController extends Controller
         ]);
 
         // Get members (adherents) of this club from club_user table
-        $clubMembers = [];
+        $clubMembers = collect();
         if ($userClub) {
+            // Get all approved members of the club
             $clubMembers = \DB::table('club_user')
                 ->join('users', 'club_user.user_id', '=', 'users.id')
                 ->where('club_user.club_id', $userClub->club_id)
-                ->whereNotNull('users.adh_id') // Ensure they have an adherent ID
+                ->where('club_user.status', 'approved')
                 ->select('users.id', 'users.adh_id', 'users.first_name', 'users.last_name', 'users.email')
                 ->orderBy('users.last_name')
                 ->orderBy('users.first_name')
@@ -93,10 +95,24 @@ class RaidController extends Controller
                     return [
                         'id' => $user->id,
                         'adh_id' => $user->adh_id,
-                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'name' => trim($user->first_name . ' ' . $user->last_name),
                         'email' => $user->email,
                     ];
                 });
+
+            // If current user is not in the list but is the club creator, add them
+            $currentUserId = auth()->id();
+            $currentUserInList = $clubMembers->contains('id', $currentUserId);
+            
+            if (!$currentUserInList) {
+                $currentUser = auth()->user();
+                $clubMembers->prepend([
+                    'id' => $currentUser->id,
+                    'adh_id' => $currentUser->adh_id,
+                    'name' => trim($currentUser->first_name . ' ' . $currentUser->last_name),
+                    'email' => $currentUser->email,
+                ]);
+            }
 
             // Log club members
             \Log::info('Liste des responsables possibles:', [
@@ -183,7 +199,13 @@ class RaidController extends Controller
         if (empty($validated['raid_street'])) {
             $validated['raid_street'] = 'Non spécifiée';
         }
-
+        
+        // Handle image upload
+        if ($request->hasFile('raid_image')) {
+            $imagePath = $request->file('raid_image')->store('raids', 'public');
+            $validated['raid_image'] = $imagePath;
+        }
+        
         // Create registration period first
         $registrationPeriod = \App\Models\RegistrationPeriod::create([
             'ins_start_date' => $validated['ins_start_date'],
@@ -348,30 +370,45 @@ class RaidController extends Controller
             ->first(['club_id', 'club_name']);
 
         // Get adherents of the club for gestionnaire-raid assignment
-        $clubAdherents = [];
+        $clubMembers = collect();
         if ($raid->clu_id) {
-            $clubAdherents = User::whereHas('member')
-                ->whereHas('roles', function ($q) {
-                    $q->where('name', 'adherent');
-                })
-                ->whereHas('clubs', function ($q) use ($raid) {
-                    $q->where('clubs.club_id', $raid->clu_id);
-                })
-                ->get(['id', 'first_name', 'last_name', 'email', 'adh_id'])
+            // Get all approved members of the club
+            $clubMembers = \DB::table('club_user')
+                ->join('users', 'club_user.user_id', '=', 'users.id')
+                ->where('club_user.club_id', $raid->clu_id)
+                ->where('club_user.status', 'approved')
+                ->select('users.id', 'users.adh_id', 'users.first_name', 'users.last_name', 'users.email')
+                ->orderBy('users.last_name')
+                ->orderBy('users.first_name')
+                ->get()
                 ->map(function ($user) {
                     return [
                         'id' => $user->id,
-                        'name' => $user->first_name . ' ' . $user->last_name,
-                        'email' => $user->email,
                         'adh_id' => $user->adh_id,
+                        'name' => trim($user->first_name . ' ' . $user->last_name),
+                        'email' => $user->email,
                     ];
                 });
+
+            // If current user is not in the list but has access to edit, add them
+            $currentUserId = auth()->id();
+            $currentUserInList = $clubMembers->contains('id', $currentUserId);
+            
+            if (!$currentUserInList) {
+                $currentUser = auth()->user();
+                $clubMembers->prepend([
+                    'id' => $currentUser->id,
+                    'adh_id' => $currentUser->adh_id,
+                    'name' => trim($currentUser->first_name . ' ' . $currentUser->last_name),
+                    'email' => $currentUser->email,
+                ]);
+            }
         }
 
         return Inertia::render('Raid/Edit', [
             'raid' => $raid,
             'userClub' => $userClub,
-            'clubMembers' => $clubAdherents,
+            'clubMembers' => $clubMembers,
         ]);
     }
 
@@ -415,10 +452,26 @@ class RaidController extends Controller
      */
     public function update(UpdateRaidRequest $request, Raid $raid): RedirectResponse
     {
+        // Check authorization
         $this->authorize('update', $raid);
-
+        
         $validated = $request->validated();
-
+        
+        // Handle image upload if provided
+        if ($request->hasFile('raid_image')) {
+            // Delete old image if exists
+            if ($raid->raid_image) {
+                Storage::disk('public')->delete($raid->raid_image);
+            }
+            
+            // Store new image
+            $path = $request->file('raid_image')->store('raids', 'public');
+            $validated['raid_image'] = $path;
+        } elseif (!$request->has('raid_image')) {
+            // If no image in request, keep existing
+            unset($validated['raid_image']);
+        }
+        
         // Update registration period if it exists
         if ($raid->ins_id && $raid->registrationPeriod) {
             $raid->registrationPeriod->update([

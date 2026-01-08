@@ -111,7 +111,7 @@ class StoreRaidRequest extends FormRequest
             
             // Optional fields
             'raid_site_url' => ['nullable', 'url', 'max:255'],
-            'raid_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'raid_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'], // 5MB max
 
             // Gestionnaire raid assignment (user id)
             'gestionnaire_raid_id' => ['nullable', 'integer', 'exists:users,id'],

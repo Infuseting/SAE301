@@ -374,7 +374,7 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                         {raid.raid_image && !data.raid_image && (
                                             <div className="mb-4">
                                                 <img
-                                                    src={raid.raid_image}
+                                                    src={`/storage/${raid.raid_image}`}
                                                     alt={raid.raid_name}
                                                     className="w-full h-32 object-cover rounded-lg"
                                                 />

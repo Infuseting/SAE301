@@ -43,6 +43,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->as('api.')->group(function () {
+    // Current user
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    
     // Club CRUD
     Route::apiResource('clubs', \App\Http\Controllers\Club\ClubController::class);
 

@@ -85,7 +85,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/raids/create', [RaidController::class, 'create'])->name('raids.create');
         Route::post('/raids', [RaidController::class, 'store'])->name('raids.store');
         Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
-        Route::put('/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
+        Route::match(['put', 'patch'], '/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
         Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
     });
 
