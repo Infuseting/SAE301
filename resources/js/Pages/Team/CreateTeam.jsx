@@ -1,7 +1,6 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
 import Checkbox from '@/Components/Checkbox';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -12,46 +11,34 @@ export default function CreateTeam() {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         image: null,
-        leader_id: '',
         teammates: [],
-        join_team: false,
+        join_team: true, // Le créateur participe-t-il à l'équipe ?
     });
+    const currentUser = usePage().props.auth?.user;
     const [imagePreview, setImagePreview] = useState(null);
-    const [selectedLeader, setSelectedLeader] = useState(null);
-    const [showLeaderDropdown, setShowLeaderDropdown] = useState(false);
     const [showTeammateDropdown, setShowTeammateDropdown] = useState(false);
-    const [leaderSearch, setLeaderSearch] = useState('');
     const [teammateSearch, setTeammateSearch] = useState('');
-    const [leaderSearchResults, setLeaderSearchResults] = useState([]);
     const [teammateSearchResults, setTeammateSearchResults] = useState([]);
     const messages = usePage().props.translations?.messages || {};
 
-    // Debounced search effects
+    // evite trop d'appels (300ms)
     useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            performLeaderSearch(leaderSearch);
-        }, 300); // 300ms debounce
-
-        return () => clearTimeout(timeoutId);
-    }, [leaderSearch]);
-
-    useEffect(() => {
+        if (!teammateSearch.trim()) {
+            setTeammateSearchResults([]);
+            return;
+        }
         const timeoutId = setTimeout(() => {
             performTeammateSearch(teammateSearch);
-        }, 300); // 300ms debounce
-
+        }, 300); 
         return () => clearTimeout(timeoutId);
     }, [teammateSearch]);
 
-    // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (!event.target.closest('.dropdown-container')) {
-                setShowLeaderDropdown(false);
                 setShowTeammateDropdown(false);
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
@@ -60,6 +47,13 @@ export default function CreateTeam() {
 
     const submit = (e) => {
         e.preventDefault();
+        
+        // Vérifier qu'il y a au moins un participant
+        if (!data.join_team && data.teammates.length === 0) {
+            alert('L\'équipe doit avoir au moins un participant. Cochez "Je participe" ou ajoutez des coéquipiers.');
+            return;
+        }
+        
         post(route('team.store'));
     };
 
@@ -78,6 +72,13 @@ export default function CreateTeam() {
     };
 
     const addTeammate = (userId, name, email) => {
+        if (currentUser && userId === currentUser.id) {
+            alert('Vous ne pouvez pas vous ajouter en tant que coéquipier. Vous êtes déjà le chef de l\'équipe.');
+            setShowTeammateDropdown(false);
+            setTeammateSearch('');
+            return;
+        }
+
         const teammate = { id: userId, name, email };
         if (!data.teammates.some(t => t.id === userId)) {
             setData('teammates', [...data.teammates, teammate]);
@@ -86,64 +87,13 @@ export default function CreateTeam() {
         setTeammateSearch('');
     };
 
-    const selectLeader = (userId, name, email) => {
-        const leader = { id: userId, name, email };
-        setSelectedLeader(leader);
-        setData('leader_id', userId);
-        setShowLeaderDropdown(false);
-        setLeaderSearch('');
-    };
-
     const removeTeammate = (userId) => {
         setData('teammates', data.teammates.filter(t => t.id !== userId));
-    };
-
-    const removeLeader = () => {
-        setSelectedLeader(null);
-        setData('leader_id', '');
-        setLeaderSearch('');
-        setShowLeaderDropdown(false);
-    };
-
-    /**
-     * Searches for users to assign as team leader.
-     * Makes a debounced API call to fetch matching users.
-     * 
-     * @param {string} searchTerm - The search query (name or email)
-     */
-    const performLeaderSearch = async (searchTerm) => {
-        if (!searchTerm.trim()) {
-            setLeaderSearchResults([]);
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin'
-            });
-
-            if (!response.ok) {
-                console.error(`Search failed with status ${response.status}`);
-                setLeaderSearchResults([]);
-                return;
-            }
-
-            const users = await response.json();
-            setLeaderSearchResults(users);
-        } catch (error) {
-            console.error('Error searching users:', error);
-            setLeaderSearchResults([]);
-        }
     };
 
     /**
      * Searches for users to add as team members.
      * Makes a debounced API call to fetch matching users.
-     * 
      * @param {string} searchTerm - The search query (name or email)
      */
     const performTeammateSearch = async (searchTerm) => {
@@ -151,7 +101,6 @@ export default function CreateTeam() {
             setTeammateSearchResults([]);
             return;
         }
-
         try {
             const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
                 headers: {
@@ -160,13 +109,11 @@ export default function CreateTeam() {
                 },
                 credentials: 'same-origin'
             });
-
             if (!response.ok) {
                 console.error(`Search failed with status ${response.status}`);
                 setTeammateSearchResults([]);
                 return;
             }
-
             const users = await response.json();
             setTeammateSearchResults(users);
         } catch (error) {
@@ -174,11 +121,9 @@ export default function CreateTeam() {
             setTeammateSearchResults([]);
         }
     };
-
     return (
         <AuthenticatedLayout>
             <Head title={messages.create_team || 'Créer une équipe'} />
-            
             {/* Hero Section */}
             <div className="py-12 sm:py-16" style={{backgroundColor: 'rgb(4, 120, 87)'}}>
                 <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -190,12 +135,10 @@ export default function CreateTeam() {
                     </p>
                 </div>
             </div>
-
             {/* Main Content */}
             <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
                 <div className="bg-white rounded-xl shadow-md overflow-hidden">
                     <form onSubmit={submit} className="p-6 sm:p-8 space-y-8">
-                        
                         {/* Team Name Field */}
                         <div className="space-y-2">
                             <InputLabel htmlFor="name" value={messages.team_name || 'Nom de l\'équipe'} />
@@ -213,7 +156,6 @@ export default function CreateTeam() {
                             />
                             <InputError message={errors.name} className="mt-1 text-sm" />
                         </div>
-
                         {/* Image Upload Field */}
                         <div className="space-y-3">
                             <InputLabel htmlFor="image" value={messages.team_image || 'Logo de l\'équipe'} />
@@ -249,7 +191,6 @@ export default function CreateTeam() {
                                     </div>
                                     <InputError message={errors.image} className="mt-2" />
                                 </div>
-
                                 {/* Image Preview */}
                                 {imagePreview && (
                                     <div className="flex items-center justify-center">
@@ -264,113 +205,30 @@ export default function CreateTeam() {
                                 )}
                             </div>
                         </div>
-
-                        {/* Checkbox Field */}
-                        <div className="flex items-start space-x-3 p-4 rounded-lg" style={{backgroundColor: 'rgba(4, 120, 87, 0.05)'}}>
-                            <Checkbox
-                                id="join_team"
-                                name="join_team"
-                                checked={data.join_team}
-                                onChange={(e) => setData('join_team', e.target.checked)}
-                            />
+                        {/* Participation Option */}
+                        <div className="space-y-4 p-4 rounded-lg border border-gray-200" style={{backgroundColor: 'rgba(4, 120, 87, 0.05)'}}>
                             <div>
-                                <InputLabel htmlFor="join_team" value="Voulez-vous être membre de cette équipe ?" />
-                                <p className="text-sm text-gray-600 mt-1">
-                                    Cochez cette case pour rejoindre automatiquement l'équipe que vous créez.
+                                <InputLabel value="Participation à l'équipe" />
+                                <p className="text-sm text-gray-600 mt-1 mb-4">
+                                    En tant que créateur, vous êtes automatiquement le chef de cette équipe.
                                 </p>
                             </div>
-                        </div>
-
-                        {/* Team Leader Selection */}
-                        <div className="space-y-4 border-t border-gray-200 pt-8">
-                            <div className="flex items-center justify-between">
+                            {/* Join Team Checkbox */}
+                            <div className="flex items-start space-x-3">
+                                <Checkbox
+                                    id="join_team"
+                                    name="join_team"
+                                    checked={data.join_team}
+                                    onChange={(e) => setData('join_team', e.target.checked)}
+                                />
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">
-                                        {messages.team_leader || 'Chef de l\'équipe'}
-                                    </h3>
+                                    <InputLabel htmlFor="join_team" value="Je participe à cette équipe" />
                                     <p className="text-sm text-gray-600 mt-1">
-                                        {messages.team_leader_description || 'Sélectionnez le chef de votre équipe'}
+                                        Cochez cette case si vous souhaitez participer activement à l'équipe.
                                     </p>
                                 </div>
                             </div>
-
-                            {/* Leader Search and Selection */}
-                            {!selectedLeader && (
-                                <div className="relative dropdown-container">
-                                    <div className="flex flex-col sm:flex-row gap-2">
-                                        <div className="flex-1 relative">
-                                            <TextInput
-                                                value={leaderSearch}
-                                                onChange={(e) => setLeaderSearch(e.target.value)}
-                                                onFocus={() => setShowLeaderDropdown(true)}
-                                                placeholder="Rechercher un chef d'équipe..."
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-transparent transition"
-                                            />
-                                            {showLeaderDropdown && (
-                                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                                    {leaderSearchResults.length > 0 ? (
-                                                        leaderSearchResults.map((person) => (
-                                                            <div
-                                                                key={person.id}
-                                                                className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                                                onClick={() => selectLeader(person.id, person.name, person.email)}
-                                                            >
-                                                                <div className="font-medium text-gray-900">{person.name}</div>
-                                                                <div className="text-sm text-gray-600">{person.email}</div>
-                                                            </div>
-                                                        ))
-                                                    ) : leaderSearch ? (
-                                                        <div className="px-4 py-3 text-gray-500 text-center">
-                                                            Aucun résultat trouvé pour "{leaderSearch}"
-                                                        </div>
-                                                    ) : (
-                                                        <div className="px-4 py-3 text-gray-500 text-center">
-                                                            Tapez pour rechercher...
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Leader Display */}
-                            <div className="space-y-2">
-                                {selectedLeader ? (
-                                    <div
-                                        className="flex items-center justify-between p-4 border rounded-lg hover:opacity-90 transition"
-                                        style={{backgroundColor: 'rgba(4, 120, 87, 0.08)', borderColor: 'rgba(4, 120, 87, 0.3)'}}
-                                    >
-                                        <div className="flex-1">
-                                            <p className="font-medium text-gray-900">{selectedLeader.name}</p>
-                                            <p className="text-sm text-gray-600">{selectedLeader.email}</p>
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                Chef d'équipe
-                                            </span>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={removeLeader}
-                                            className="ml-4 px-3 py-1 text-sm rounded transition"
-                                            style={{color: 'rgb(220, 38, 38)', backgroundColor: 'rgba(220, 38, 38, 0.1)'}}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.1)'}
-                                        >
-                                            {messages.remove_leader || 'Supprimer'}
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="px-4 py-8 bg-gray-50 rounded-lg text-center">
-                                        <p className="text-gray-500">
-                                            {messages.no_leader_selected || 'Aucun chef sélectionné'}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                            <InputError message={errors.leader_id} className="mt-2" />
                         </div>
-
                         {/* Teammates Section */}
                         <div className="space-y-4 border-t border-gray-200 pt-8">
                             <div className="flex items-center justify-between">
@@ -383,7 +241,6 @@ export default function CreateTeam() {
                                     </p>
                                 </div>
                             </div>
-
                             {/* Teammate Search and Selection */}
                             <div className="relative dropdown-container">
                                 <div className="flex flex-col sm:flex-row gap-2">
@@ -422,7 +279,6 @@ export default function CreateTeam() {
                                     </div>
                                 </div>
                             </div>
-
                             {/* Teammates List */}
                             <div className="space-y-2">
                                 {data.teammates.length === 0 ? (
@@ -460,7 +316,6 @@ export default function CreateTeam() {
                             </div>
                             <InputError message={errors.teammates} className="mt-2" />
                         </div>
-
                         {/* Submit Button */}
                         <div className="pt-6 border-t border-gray-200 flex gap-3 justify-end">
                             <Link

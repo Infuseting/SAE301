@@ -4,8 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Team;
 use App\Models\User;
-use App\Models\Member;
-use App\Models\MedicalDoc;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
@@ -25,22 +23,59 @@ class TeamControllerTest extends TestCase
         Storage::fake('public');
     }
 
+    // ========================================
+    // TESTS DE CRÉATION BASIQUE
+    // ========================================
+
     /**
-     * Test team creation without image.
+     * Test team creation without image - creator participates.
      */
-    public function test_create_team_without_image(): void
+    public function test_create_team_without_image_creator_participates(): void
     {
-        // Create users
-        $leader = User::factory()->create();
+        $creator = User::factory()->create();
         $teammate1 = User::factory()->create();
         $teammate2 = User::factory()->create();
-        $creator = User::factory()->create();
 
-        // Act
         $response = $this->actingAs($creator)->post(route('team.store'), [
             'name' => 'Test Team',
             'image' => null,
-            'leader_id' => $leader->id,
+            'teammates' => [
+                ['id' => $teammate1->id],
+                ['id' => $teammate2->id],
+            ],
+            'join_team' => true,
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $response->assertSessionHas('success', 'Équipe créée avec succès!');
+
+        // Team created with creator as leader
+        $this->assertDatabaseHas('teams', [
+            'equ_name' => 'Test Team',
+            'equ_image' => null,
+            'user_id' => $creator->id,
+        ]);
+
+        // All 3 users attached (creator + 2 teammates)
+        $team = Team::where('equ_name', 'Test Team')->first();
+        $this->assertEquals(3, $team->users()->count());
+        $this->assertTrue($team->users()->where('users.id', $creator->id)->exists());
+        $this->assertTrue($team->users()->where('users.id', $teammate1->id)->exists());
+        $this->assertTrue($team->users()->where('users.id', $teammate2->id)->exists());
+    }
+
+    /**
+     * Test team creation without image - creator does not participate.
+     */
+    public function test_create_team_without_image_creator_does_not_participate(): void
+    {
+        $creator = User::factory()->create();
+        $teammate1 = User::factory()->create();
+        $teammate2 = User::factory()->create();
+
+        $response = $this->actingAs($creator)->post(route('team.store'), [
+            'name' => 'Team Without Creator',
+            'image' => null,
             'teammates' => [
                 ['id' => $teammate1->id],
                 ['id' => $teammate2->id],
@@ -48,182 +83,169 @@ class TeamControllerTest extends TestCase
             'join_team' => false,
         ]);
 
-        // Assert - Redirect and message
         $response->assertRedirect(route('dashboard'));
-        $response->assertSessionHas('success', 'Équipe créée avec succès!');
 
-        // Assert - Team created in database
-        $this->assertDatabaseHas('teams', [
-            'equ_name' => 'Test Team',
-            'equ_image' => null,
-            'adh_id' => $leader->id,
-        ]);
+        // Team created with creator as leader
+        $team = Team::where('equ_name', 'Team Without Creator')->first();
+        $this->assertEquals($creator->id, $team->user_id);
 
-        // Assert - Users are attached to team
-        $team = Team::where('equ_name', 'Test Team')->first();
-        $this->assertTrue($team->users()->whereIn('users.id', [
-            $leader->id,
-            $teammate1->id,
-            $teammate2->id,
-        ])->count() === 3);
+        // Only 2 teammates attached (creator not in participants)
+        $this->assertEquals(2, $team->users()->count());
+        $this->assertFalse($team->users()->where('users.id', $creator->id)->exists());
+        $this->assertTrue($team->users()->where('users.id', $teammate1->id)->exists());
+        $this->assertTrue($team->users()->where('users.id', $teammate2->id)->exists());
     }
 
     /**
-     * Test team creation with image using file content instead of generating.
+     * Test team creation with image.
      */
     public function test_create_team_with_image(): void
     {
+        // Skip if GD is not available
+        if (! function_exists('imagecreatetruecolor')) {
+            $this->markTestSkipped('GD extension is not installed.');
+        }
+
         Storage::fake('public');
 
-        // Create users
-        $leader = User::factory()->create();
-        $teammate = User::factory()->create();
         $creator = User::factory()->create();
+        $teammate = User::factory()->create();
 
-        // Create a fake file that mimics an image
-        $image = UploadedFile::fake()->create('team-logo.jpg', 100, 'image/jpeg');
+        $image = UploadedFile::fake()->image('team-logo.jpg', 100, 100);
 
-        // Act
         $response = $this->actingAs($creator)->post(route('team.store'), [
             'name' => 'Team with Image',
             'image' => $image,
-            'leader_id' => $leader->id,
             'teammates' => [
                 ['id' => $teammate->id],
             ],
             'join_team' => true,
         ]);
 
-        // Assert - Redirect
         $response->assertRedirect(route('dashboard'));
 
-        // Assert - Team created with image in database
         $team = Team::where('equ_name', 'Team with Image')->first();
         $this->assertNotNull($team);
         $this->assertNotNull($team->equ_image);
         $this->assertStringContainsString('teams/', $team->equ_image);
 
-        // Assert - Image file exists in storage
         Storage::disk('public')->assertExists($team->equ_image);
 
-        // Assert - All users attached (leader, teammate, and creator)
-        $this->assertTrue($team->users()->whereIn('users.id', [
-            $leader->id,
-            $teammate->id,
-            $creator->id,
-        ])->count() === 3);
+        // Creator and teammate attached
+        $this->assertEquals(2, $team->users()->count());
     }
 
     /**
-     * Test team creation with creator joining the team.
+     * Test team creation with only creator participating (no teammates).
      */
-    public function test_create_team_with_creator_joining(): void
+    public function test_create_team_with_only_creator(): void
     {
-        // Create users
-        $leader = User::factory()->create();
-        $teammate = User::factory()->create();
         $creator = User::factory()->create();
 
-        // Act
         $response = $this->actingAs($creator)->post(route('team.store'), [
-            'name' => 'Team with Creator',
+            'name' => 'Solo Team',
             'image' => null,
-            'leader_id' => $leader->id,
-            'teammates' => [
-                ['id' => $teammate->id],
-            ],
-            'join_team' => true, // Creator joins the team
+            'teammates' => [],
+            'join_team' => true,
         ]);
 
-        // Assert
         $response->assertRedirect(route('dashboard'));
 
-        // Check that creator is in the team
-        $team = Team::where('equ_name', 'Team with Creator')->first();
-        $teamUserIds = $team->users()->pluck('users.id')->toArray();
-
-        $this->assertContains($creator->id, $teamUserIds);
-        $this->assertContains($leader->id, $teamUserIds);
-        $this->assertContains($teammate->id, $teamUserIds);
+        $team = Team::where('equ_name', 'Solo Team')->first();
+        $this->assertEquals($creator->id, $team->user_id);
+        $this->assertEquals(1, $team->users()->count());
+        $this->assertTrue($team->users()->where('users.id', $creator->id)->exists());
     }
 
+    // ========================================
+    // TESTS DE VALIDATION - PARTICIPANTS
+    // ========================================
+
     /**
-     * Test team creation fails without leader_id.
+     * Test team creation fails without any participants.
      */
-    public function test_create_team_fails_without_leader_id(): void
+    public function test_create_team_fails_without_participants(): void
     {
         $creator = User::factory()->create();
 
-        // Act
         $response = $this->actingAs($creator)->post(route('team.store'), [
-            'name' => 'Invalid Team',
+            'name' => 'Empty Team',
             'image' => null,
-            'leader_id' => null,
             'teammates' => [],
             'join_team' => false,
         ]);
 
-        // Assert - Validation error
-        $response->assertSessionHasErrors('leader_id');
+        $response->assertSessionHasErrors('teammates');
 
-        // Assert - Team not created
         $this->assertDatabaseMissing('teams', [
-            'equ_name' => 'Invalid Team',
+            'equ_name' => 'Empty Team',
         ]);
     }
 
     /**
-     * Test team creation fails with invalid leader_id.
-     */
-    public function test_create_team_fails_with_invalid_leader_id(): void
-    {
-        $creator = User::factory()->create();
-
-        // Act
-        $response = $this->actingAs($creator)->post(route('team.store'), [
-            'name' => 'Invalid Team',
-            'image' => null,
-            'leader_id' => 99999, // Non-existent user
-            'teammates' => [],
-            'join_team' => false,
-        ]);
-
-        // Assert - Validation error
-        $response->assertSessionHasErrors('leader_id');
-
-        // Assert - Team not created
-        $this->assertDatabaseMissing('teams', [
-            'equ_name' => 'Invalid Team',
-        ]);
-    }
-
-    /**
-     * Test team creation fails with invalid teammate_id.
+     * Test team creation with invalid teammate_id.
      */
     public function test_create_team_fails_with_invalid_teammate_id(): void
     {
         $creator = User::factory()->create();
-        $leader = User::factory()->create();
 
-        // Act
         $response = $this->actingAs($creator)->post(route('team.store'), [
             'name' => 'Invalid Team',
             'image' => null,
-            'leader_id' => $leader->id,
             'teammates' => [
                 ['id' => 99999], // Non-existent user
             ],
-            'join_team' => false,
+            'join_team' => true,
         ]);
 
-        // Assert - Validation error
         $response->assertSessionHasErrors('teammates.0.id');
 
-        // Assert - Team not created
         $this->assertDatabaseMissing('teams', [
             'equ_name' => 'Invalid Team',
         ]);
     }
+
+    // ========================================
+    // TESTS DE VALIDATION - NOM
+    // ========================================
+
+    /**
+     * Test team creation fails without name.
+     */
+    public function test_create_team_fails_without_name(): void
+    {
+        $creator = User::factory()->create();
+
+        $response = $this->actingAs($creator)->post(route('team.store'), [
+            'name' => '',
+            'image' => null,
+            'teammates' => [],
+            'join_team' => true,
+        ]);
+
+        $response->assertSessionHasErrors('name');
+    }
+
+    /**
+     * Test team creation fails with name too long.
+     */
+    public function test_create_team_fails_with_name_too_long(): void
+    {
+        $creator = User::factory()->create();
+
+        $response = $this->actingAs($creator)->post(route('team.store'), [
+            'name' => str_repeat('a', 256), // 256 characters
+            'image' => null,
+            'teammates' => [],
+            'join_team' => true,
+        ]);
+
+        $response->assertSessionHasErrors('name');
+    }
+
+    // ========================================
+    // TESTS DE VALIDATION - IMAGE
+    // ========================================
 
     /**
      * Test team creation with large image fails.
@@ -232,25 +254,19 @@ class TeamControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $leader = User::factory()->create();
         $creator = User::factory()->create();
 
-        // Create a fake file larger than 2048KB
-        $image = UploadedFile::fake()->create('large-image.txt', 3000);
+        $image = UploadedFile::fake()->create('large-image.jpg', 3000, 'image/jpeg');
 
-        // Act
         $response = $this->actingAs($creator)->post(route('team.store'), [
             'name' => 'Team with Large Image',
             'image' => $image,
-            'leader_id' => $leader->id,
             'teammates' => [],
-            'join_team' => false,
+            'join_team' => true,
         ]);
 
-        // Assert - Validation error
         $response->assertSessionHasErrors('image');
 
-        // Assert - Team not created
         $this->assertDatabaseMissing('teams', [
             'equ_name' => 'Team with Large Image',
         ]);
@@ -263,58 +279,50 @@ class TeamControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $leader = User::factory()->create();
         $creator = User::factory()->create();
 
-        // Create a fake non-image file
         $file = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
 
-        // Act
         $response = $this->actingAs($creator)->post(route('team.store'), [
             'name' => 'Team with PDF',
             'image' => $file,
-            'leader_id' => $leader->id,
             'teammates' => [],
-            'join_team' => false,
+            'join_team' => true,
         ]);
 
-        // Assert - Validation error
         $response->assertSessionHasErrors('image');
 
-        // Assert - Team not created
         $this->assertDatabaseMissing('teams', [
             'equ_name' => 'Team with PDF',
         ]);
     }
+
+    // ========================================
+    // TESTS TABLE HAS_PARTICIPATE
+    // ========================================
 
     /**
      * Test has_participate table inserts correctly.
      */
     public function test_has_participate_table_inserts_correctly(): void
     {
-        // Create users
-        $leader = User::factory()->create();
-        $teammate = User::factory()->create();
         $creator = User::factory()->create();
+        $teammate = User::factory()->create();
 
-        // Act
         $this->actingAs($creator)->post(route('team.store'), [
             'name' => 'Table Test Team',
             'image' => null,
-            'leader_id' => $leader->id,
             'teammates' => [
                 ['id' => $teammate->id],
             ],
             'join_team' => true,
         ]);
 
-        // Get the team
         $team = Team::where('equ_name', 'Table Test Team')->first();
 
-        // Assert - Check has_participate records
         $this->assertDatabaseHas('has_participate', [
             'equ_id' => $team->equ_id,
-            'id_users' => $leader->id,
+            'id_users' => $creator->id,
         ]);
 
         $this->assertDatabaseHas('has_participate', [
@@ -322,12 +330,180 @@ class TeamControllerTest extends TestCase
             'id_users' => $teammate->id,
         ]);
 
-        $this->assertDatabaseHas('has_participate', [
-            'equ_id' => $team->equ_id,
-            'id_users' => $creator->id,
+        $this->assertEquals(2, $team->users()->count());
+    }
+
+    /**
+     * Test that duplicate teammates are not inserted.
+     */
+    public function test_duplicate_teammates_not_inserted(): void
+    {
+        $creator = User::factory()->create();
+        $teammate = User::factory()->create();
+
+        $this->actingAs($creator)->post(route('team.store'), [
+            'name' => 'Team Duplicate Test',
+            'image' => null,
+            'teammates' => [
+                ['id' => $teammate->id],
+                ['id' => $teammate->id], // Same teammate added twice
+            ],
+            'join_team' => true,
         ]);
 
-        // Assert - Count of users in team
-        $this->assertEquals(3, $team->users()->count());
+        $team = Team::where('equ_name', 'Team Duplicate Test')->first();
+
+        // Teammate should appear only once
+        $teammateCount = $team->users()->where('users.id', $teammate->id)->count();
+        $this->assertEquals(1, $teammateCount);
+
+        // Team should have 2 users (creator + teammate), not 3
+        $this->assertEquals(2, $team->users()->count());
+    }
+
+    /**
+     * Test creator not duplicated if also in teammates.
+     */
+    public function test_creator_not_duplicated_in_participants(): void
+    {
+        $creator = User::factory()->create();
+        $teammate = User::factory()->create();
+
+        $this->actingAs($creator)->post(route('team.store'), [
+            'name' => 'Creator Duplicate Test',
+            'image' => null,
+            'teammates' => [
+                ['id' => $teammate->id],
+                ['id' => $creator->id], // Creator trying to add themselves as teammate
+            ],
+            'join_team' => true,
+        ]);
+
+        $team = Team::where('equ_name', 'Creator Duplicate Test')->first();
+
+        // Creator should appear only once
+        $creatorCount = $team->users()->where('users.id', $creator->id)->count();
+        $this->assertEquals(1, $creatorCount);
+    }
+
+    // ========================================
+    // TESTS LEADER (user_id)
+    // ========================================
+
+    /**
+     * Test creator is always set as leader.
+     */
+    public function test_creator_is_always_leader(): void
+    {
+        $creator = User::factory()->create();
+        $teammate = User::factory()->create();
+
+        $this->actingAs($creator)->post(route('team.store'), [
+            'name' => 'Leader Test Team',
+            'image' => null,
+            'teammates' => [
+                ['id' => $teammate->id],
+            ],
+            'join_team' => false,
+        ]);
+
+        $team = Team::where('equ_name', 'Leader Test Team')->first();
+
+        // Creator should be the team leader
+        $this->assertEquals($creator->id, $team->user_id);
+        $this->assertEquals($creator->id, $team->leader->id);
+    }
+
+    // ========================================
+    // TESTS AUTHENTIFICATION
+    // ========================================
+
+    /**
+     * Test unauthenticated user cannot create team.
+     */
+    public function test_unauthenticated_user_cannot_create_team(): void
+    {
+        $response = $this->post(route('team.store'), [
+            'name' => 'Unauthorized Team',
+            'image' => null,
+            'teammates' => [],
+            'join_team' => true,
+        ]);
+
+        $response->assertRedirect(route('login'));
+
+        $this->assertDatabaseMissing('teams', [
+            'equ_name' => 'Unauthorized Team',
+        ]);
+    }
+
+    /**
+     * Test create team page is accessible to authenticated user.
+     */
+    public function test_create_team_page_accessible(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('team.create'));
+
+        $response->assertStatus(200);
+    }
+
+    /**
+     * Test create team page is not accessible to unauthenticated user.
+     */
+    public function test_create_team_page_not_accessible_to_guest(): void
+    {
+        $response = $this->get(route('team.create'));
+
+        $response->assertRedirect(route('login'));
+    }
+
+    // ========================================
+    // TESTS AVEC PLUSIEURS COÉQUIPIERS
+    // ========================================
+
+    /**
+     * Test team creation with many teammates.
+     */
+    public function test_create_team_with_many_teammates(): void
+    {
+        $creator = User::factory()->create();
+        $teammates = User::factory()->count(5)->create();
+
+        $response = $this->actingAs($creator)->post(route('team.store'), [
+            'name' => 'Big Team',
+            'image' => null,
+            'teammates' => $teammates->map(fn($t) => ['id' => $t->id])->toArray(),
+            'join_team' => true,
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+
+        $team = Team::where('equ_name', 'Big Team')->first();
+        
+        // 6 users total (creator + 5 teammates)
+        $this->assertEquals(6, $team->users()->count());
+    }
+
+    /**
+     * Test team creation with empty teammates array but creator participates.
+     */
+    public function test_create_team_with_empty_teammates_creator_joins(): void
+    {
+        $creator = User::factory()->create();
+
+        $response = $this->actingAs($creator)->post(route('team.store'), [
+            'name' => 'Creator Only Team',
+            'image' => null,
+            'teammates' => [],
+            'join_team' => true,
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+
+        $team = Team::where('equ_name', 'Creator Only Team')->first();
+        $this->assertEquals(1, $team->users()->count());
+        $this->assertTrue($team->users()->where('users.id', $creator->id)->exists());
     }
 }

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Team;
-use App\Models\Member;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -29,17 +28,17 @@ class TeamFactory extends Factory
         return [
             'equ_name' => fake()->words(2, true),
             'equ_image' => null,
-            'adh_id' => Member::factory(),
+            'users_id' => User::factory(),
         ];
     }
 
     /**
-     * Create a team for a specific user (uses the user's member id).
+     * Create a team for a specific user.
      */
     public function forUser(User $user): static
     {
         return $this->state(fn (array $attributes) => [
-            'adh_id' => $user->adh_id,
+            'users_id' => $user->id,
         ]);
     }
 
