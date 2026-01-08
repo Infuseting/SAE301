@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::table('races', function (Blueprint $table) {
             $table->unsignedBigInteger('raid_id')->nullable()->change();
-            $table->unsignedBigInteger('cla_id')->nullable()->change();
         });
     }
 
@@ -24,7 +23,6 @@ return new class extends Migration
     {
         Schema::table('races', function (Blueprint $table) {
             $table->unsignedBigInteger('raid_id')->nullable(false)->change();
-            $table->unsignedBigInteger('cla_id')->nullable(false)->change();
         });
     }
 };

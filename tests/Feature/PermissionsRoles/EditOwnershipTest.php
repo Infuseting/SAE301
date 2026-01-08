@@ -41,24 +41,24 @@ class EditOwnershipTest extends TestCase
     private int $club2Id;
     private Raid $raid1;
     private Raid $raid2;
+    private Raid $raidForGestionnaire;
     private Race $race1;
     private Race $race2;
     private Member $responsableClub1Member;
     private Member $responsableClub2Member;
     private Member $responsableCourse1Member;
     private Member $responsableCourse2Member;
+    private Member $gestionnaireMember;
 
     /**
      * Setup test environment before each test
      * 
-     * @TODO: Create raid_managers table migration to enable gestionnaire-raid tests
+     * Raid ownership is determined by adh_id on the raid (the member who is responsible)
+     * Race ownership is determined by adh_id on the race (the member who is responsible)
      */
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Skip all tests - raid_managers table doesn't exist yet
-        $this->markTestSkipped('EditOwnershipTest requires raid_managers table which has not been created yet');
 
         // Clear Spatie Permission cache before setting up roles/permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
@@ -213,7 +213,7 @@ class EditOwnershipTest extends TestCase
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam1 = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -235,7 +235,7 @@ class EditOwnershipTest extends TestCase
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam2 = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -253,21 +253,35 @@ class EditOwnershipTest extends TestCase
             'raid_id' => $this->raid2->raid_id,
         ]);
 
-        // Create gestionnaire-raid (can manage raid1)
+        // Create gestionnaire-raid (can manage raids where adh_id matches their member)
         $gestionnaireDoc = MedicalDoc::factory()->create();
-        $gestionnaireMember = Member::factory()->create();
+        $this->gestionnaireMember = Member::factory()->create();
         $this->gestionnaireRaidUser = User::factory()->create([
-            'adh_id' => $gestionnaireMember->adh_id,
+            'adh_id' => $this->gestionnaireMember->adh_id,
             'doc_id' => $gestionnaireDoc->doc_id,
         ]);
         $this->gestionnaireRaidUser->syncRoles(['gestionnaire-raid']);
 
-        // Add gestionnaire as manager of raid1
-        DB::table('raid_managers')->insert([
-            'raid_id' => $this->raid1->raid_id,
-            'user_id' => $this->gestionnaireRaidUser->id,
-            'created_at' => now(),
-            'updated_at' => now(),
+        // Create a raid specifically for the gestionnaire-raid user
+        // This raid's adh_id matches the gestionnaire's member adh_id
+        $regPeriodGestionnaire = RegistrationPeriod::create([
+            'ins_start_date' => now()->addDays(7),
+            'ins_end_date' => now()->addDays(21),
+        ]);
+
+        $this->raidForGestionnaire = Raid::create([
+            'raid_name' => 'Raid for Gestionnaire',
+            'raid_description' => 'Raid managed by gestionnaire',
+            'clu_id' => $this->club1Id,
+            'adh_id' => $this->gestionnaireMember->adh_id, // Gestionnaire's member is responsible
+            'raid_date_start' => now()->addMonth(),
+            'raid_date_end' => now()->addMonth()->addDays(2),
+            'ins_id' => $regPeriodGestionnaire->ins_id,
+            'raid_contact' => 'gestionnaire@test.com',
+            'raid_street' => '789 Gestionnaire Street',
+            'raid_city' => 'Gestionnaire City',
+            'raid_postal_code' => '33333',
+            'raid_number' => 3,
         ]);
 
         // Create admin user
@@ -291,10 +305,22 @@ class EditOwnershipTest extends TestCase
         }
 
         $permissions = [
-            'create-club', 'edit-own-club', 'delete-own-club', 'view-clubs',
-            'create-raid', 'edit-own-raid', 'delete-own-raid', 'view-raids',
-            'create-race', 'edit-own-race', 'delete-own-race', 'view-races',
-            'manage-all-raids', 'manage-all-clubs', 'manage-all-races', 'access-admin',
+            'create-club',
+            'edit-own-club',
+            'delete-own-club',
+            'view-clubs',
+            'create-raid',
+            'edit-own-raid',
+            'delete-own-raid',
+            'view-raids',
+            'create-race',
+            'edit-own-race',
+            'delete-own-race',
+            'view-races',
+            'manage-all-raids',
+            'manage-all-clubs',
+            'manage-all-races',
+            'access-admin',
             'register-to-race'
         ];
         foreach ($permissions as $permission) {
@@ -329,7 +355,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableClubUser1)
             ->get(route('raids.edit', $this->raid1->raid_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -340,7 +366,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableClubUser1)
             ->get(route('raids.edit', $this->raid2->raid_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -361,12 +387,16 @@ class EditOwnershipTest extends TestCase
                 'raid_city' => 'Updated City',
                 'raid_postal_code' => '99999',
             ]);
-        
+
         $response->assertRedirect();
     }
 
     /**
      * Test that responsable-club cannot update another club's raid
+     * 
+     * Note: Must send complete valid data so validation passes and authorization check in controller is reached.
+     * The StoreRaidRequest::authorize() only checks if user is club leader (not ownership).
+     * The actual ownership check is in RaidController::update() via $this->authorize('update', $raid).
      */
     public function test_responsable_club_cannot_update_other_clubs_raid(): void
     {
@@ -374,8 +404,20 @@ class EditOwnershipTest extends TestCase
             ->put(route('raids.update', $this->raid2->raid_id), [
                 'raid_name' => 'Hacked Raid Name',
                 'raid_description' => 'Hacked description',
+                'clu_id' => $this->club2Id,
+                'adh_id' => $this->responsableClub2Member->adh_id,
+                'raid_date_start' => now()->addMonth()->format('Y-m-d'),
+                'raid_date_end' => now()->addMonth()->addDays(2)->format('Y-m-d'),
+                'ins_start_date' => now()->addDays(7)->format('Y-m-d'),
+                'ins_end_date' => now()->addDays(21)->format('Y-m-d'),
+                'raid_contact' => 'hacker@test.com',
+                'raid_street' => '123 Hacker Street',
+                'raid_city' => 'Hack City',
+                'raid_postal_code' => '00000',
+                'raid_number' => 999,
+                'raid_site_url' => 'http://hacker.com',
             ]);
-        
+
         $response->assertStatus(403);
     }
 
@@ -386,7 +428,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableClubUser1)
             ->delete(route('raids.destroy', $this->raid1->raid_id));
-        
+
         $response->assertRedirect();
     }
 
@@ -397,7 +439,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableClubUser1)
             ->delete(route('raids.destroy', $this->raid2->raid_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -412,7 +454,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableCourseUser1)
             ->get(route('races.edit', $this->race1->race_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -423,7 +465,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableCourseUser1)
             ->get(route('races.edit', $this->race2->race_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -434,9 +476,25 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableCourseUser1)
             ->put(route('races.update', $this->race1->race_id), [
-                'race_name' => 'Updated Race Name',
+                'title' => 'Updated Race Name',
+                'description' => 'Updated description',
+                'startDate' => now()->addMonth()->format('Y-m-d'),
+                'startTime' => '10:00',
+                'endDate' => now()->addMonth()->format('Y-m-d'),
+                'endTime' => '18:00',
+                'minParticipants' => 2,
+                'maxParticipants' => 10,
+                'maxPerTeam' => 5,
+                'minTeams' => 1,
+                'maxTeams' => 20,
+                'priceMajor' => 25.00,
+                'priceMinor' => 15.00,
+                'difficulty' => 'medium',
+                'type' => 1,
+                'responsableId' => $this->responsableCourseUser1->id,
+                'raid_id' => $this->raid1->raid_id,
             ]);
-        
+
         $response->assertRedirect();
     }
 
@@ -447,9 +505,25 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableCourseUser1)
             ->put(route('races.update', $this->race2->race_id), [
-                'race_name' => 'Hacked Race Name',
+                'title' => 'Hacked Race Name',
+                'description' => 'Hacked description',
+                'startDate' => now()->addMonth()->format('Y-m-d'),
+                'startTime' => '10:00',
+                'endDate' => now()->addMonth()->format('Y-m-d'),
+                'endTime' => '18:00',
+                'minParticipants' => 2,
+                'maxParticipants' => 10,
+                'maxPerTeam' => 5,
+                'minTeams' => 1,
+                'maxTeams' => 20,
+                'priceMajor' => 25.00,
+                'priceMinor' => 15.00,
+                'difficulty' => 'medium',
+                'type' => 1,
+                'responsableId' => $this->responsableCourseUser1->id,
+                'raid_id' => $this->raid2->raid_id,
             ]);
-        
+
         $response->assertStatus(403);
     }
 
@@ -460,7 +534,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableCourseUser1)
             ->delete(route('races.destroy', $this->race1->race_id));
-        
+
         $response->assertRedirect();
     }
 
@@ -471,7 +545,7 @@ class EditOwnershipTest extends TestCase
     {
         $response = $this->actingAs($this->responsableCourseUser1)
             ->delete(route('races.destroy', $this->race2->race_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -481,23 +555,25 @@ class EditOwnershipTest extends TestCase
 
     /**
      * Test that gestionnaire-raid can edit raids they manage
+     * (raids where the adh_id matches their member's adh_id)
      */
     public function test_gestionnaire_raid_can_edit_managed_raid(): void
     {
         $response = $this->actingAs($this->gestionnaireRaidUser)
-            ->get(route('raids.edit', $this->raid1->raid_id));
-        
+            ->get(route('raids.edit', $this->raidForGestionnaire->raid_id));
+
         $response->assertStatus(200);
     }
 
     /**
      * Test that gestionnaire-raid cannot edit raids they don't manage
+     * (raids where adh_id doesn't match their member's adh_id)
      */
     public function test_gestionnaire_raid_cannot_edit_unmanaged_raid(): void
     {
         $response = $this->actingAs($this->gestionnaireRaidUser)
             ->get(route('raids.edit', $this->raid2->raid_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -561,7 +637,7 @@ class EditOwnershipTest extends TestCase
 
         $response = $this->actingAs($this->adminUser)
             ->delete(route('raids.destroy', $raidToDelete->raid_id));
-        
+
         $response->assertRedirect();
     }
 
@@ -576,18 +652,26 @@ class EditOwnershipTest extends TestCase
             'pac_nb_max' => 10,
         ]);
 
+        $paramTeam = ParamTeam::create([
+            'pae_nb_min' => 1,
+            'pae_nb_max' => 20,
+            'pae_team_count_max' => 5,
+        ]);
+
         $raceToDelete = Race::create([
             'race_name' => 'Race to Delete',
             'race_date_start' => now()->addMonth(),
             'race_date_end' => now()->addMonth(),
             'adh_id' => $this->responsableCourse2Member->adh_id,
             'pac_id' => $paramRunner->pac_id,
+            'pae_id' => $paramTeam->pae_id,
+            'typ_id' => 1,
             'raid_id' => $this->raid2->raid_id,
         ]);
 
         $response = $this->actingAs($this->adminUser)
             ->delete(route('races.destroy', $raceToDelete->race_id));
-        
+
         $response->assertRedirect();
     }
 
@@ -605,7 +689,7 @@ class EditOwnershipTest extends TestCase
             ->put(route('clubs.update', $this->club2Id), [
                 'club_name' => 'Hacked Club Name',
             ]);
-        
+
         $response->assertStatus(403);
     }
 
@@ -627,7 +711,7 @@ class EditOwnershipTest extends TestCase
                 'raid_city' => 'City',
                 'raid_postal_code' => '12345',
             ]);
-        
+
         // Should be redirected with error or forbidden
         $this->assertTrue(in_array($response->status(), [302, 403, 422]));
     }

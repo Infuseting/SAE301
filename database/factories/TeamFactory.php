@@ -59,6 +59,6 @@ class TeamFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'equ_image' => $imagePath,
-        ]);
+     ]);
     }
 }
