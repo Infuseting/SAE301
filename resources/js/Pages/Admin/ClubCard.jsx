@@ -19,12 +19,12 @@ export default function ClubCard({ club }) {
         >
             <h2 className="text-xl font-semibold">{club.club_name}</h2>
             <div className="h-48 border mb-2 flex items-center bg-gray-200 justify-center overflow-hidden rounded-xl mt-1">
-                {club.club_logo ? (
+                {club.club_image ? (
                     <img
                         src={
-                            club.club_logo.startsWith("/storage/")
-                                ? club.club_logo
-                                : `/storage/${club.club_logo}`
+                            club.club_image.startsWith("/storage/")
+                                ? club.club_image
+                                : `/storage/${club.club_image}`
                         }
                         alt={club.club_name}
                         className="w-full h-48 object-cover rounded mb-2"

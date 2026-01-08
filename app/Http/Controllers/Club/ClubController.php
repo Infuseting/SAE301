@@ -146,7 +146,7 @@ class ClubController extends Controller
             'club_postal_code' => 'required|string|max:20',
             'ffso_id' => 'required|string|max:50',
             'description' => 'nullable|string|max:1000',
-            'club_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'club_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         // Handle image upload
@@ -320,7 +320,7 @@ class ClubController extends Controller
             'club_postal_code' => 'required|string|max:20',
             'ffso_id' => 'required|string|max:50',
             'description' => 'nullable|string|max:1000',
-            'club_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'club_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         // Handle image upload
