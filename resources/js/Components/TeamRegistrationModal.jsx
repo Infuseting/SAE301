@@ -102,7 +102,7 @@ export default function TeamRegistrationModal({ isOpen, onClose, teams = [], min
                             filteredTeams.map(team => {
                                 const currentCount = team.members_count;
 
-                                const isValid = currentCount === maxRunners;
+                                const isValid = currentCount >= minRunners && currentCount <= maxRunners;
                                 
                                 // Vérifier si l'ajout de cette équipe dépasserait les limites
                                 const wouldExceedTeamLimit = isTeamsLimitReached;
@@ -119,7 +119,11 @@ export default function TeamRegistrationModal({ isOpen, onClose, teams = [], min
                                         statusMessage = `Limite de participants atteinte (${currentParticipantsCount + currentCount} > ${maxParticipants})`;
                                     }
                                 } else if (!isValid) {
-                                    statusMessage = `L'équipe doit avoir exactement ${maxRunners} membres (actuellement ${currentCount})`;
+                                    if (minRunners === maxRunners) {
+                                        statusMessage = `L'équipe doit avoir exactement ${maxRunners} membres (actuellement ${currentCount})`;
+                                    } else {
+                                        statusMessage = `L'équipe doit avoir entre ${minRunners} et ${maxRunners} membres (actuellement ${currentCount})`;
+                                    }
                                 }
 
                                 return (
@@ -237,7 +241,9 @@ export default function TeamRegistrationModal({ isOpen, onClose, teams = [], min
                                     <div className="flex items-center gap-2 text-red-500 text-xs font-bold max-w-[50%] text-right bg-red-50 px-3 py-2 rounded-lg">
                                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                         <span>
-                                            L'équipe doit avoir exactement {maxRunners} membres.
+                                            {minRunners === maxRunners 
+                                                ? `L'équipe doit avoir exactement ${maxRunners} membres.`
+                                                : `L'équipe doit avoir entre ${minRunners} et ${maxRunners} membres.`}
                                         </span>
                                     </div>
                                 )}

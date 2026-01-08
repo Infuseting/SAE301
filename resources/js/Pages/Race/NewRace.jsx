@@ -73,6 +73,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         endTime: extractTime(race?.race_date_end),
         minParticipants: race?.runner_params?.pac_nb_min || '1',
         maxParticipants: race?.runner_params?.pac_nb_max || '10',
+        minPerTeam: race?.team_params?.pae_team_count_min || '1',
         maxPerTeam: race?.team_params?.pae_team_count_max || '1',
         minTeams: race?.team_params?.pae_nb_min || '1',
         maxTeams: race?.team_params?.pae_nb_max || '1',
@@ -579,6 +580,22 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Max par équipe - Ligne 7 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Min par équipe *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="minPerTeam"
+                                        value={data.minPerTeam}
+                                        onChange={handleInputChange}
+                                        placeholder="1"
+                                        required
+                                        min="1"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Max par équipe *
                                     </label>
                                     <input
@@ -586,7 +603,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         name="maxPerTeam"
                                         value={data.maxPerTeam}
                                         onChange={handleInputChange}
-                                        placeholder="0"
+                                        placeholder="1"
                                         required
                                         min="1"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"

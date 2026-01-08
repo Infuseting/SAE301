@@ -46,6 +46,7 @@ class ParamTeam extends Model
     protected $fillable = [
         'pae_nb_min',
         'pae_nb_max',
+        'pae_team_count_min',
         'pae_team_count_max',
     ];
 
