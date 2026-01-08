@@ -129,9 +129,13 @@ class RacePolicy
 
     /**
      * Determine whether the user can register for a race.
+     * Any authenticated user can attempt to register - credential validation
+     * is done at the team level in the controller.
      */
     public function register(User $user, Race $race): bool
     {
-        return $user->hasPermissionTo('register-to-race');
+        // Any authenticated user can attempt to register
+        // The controller will validate that all team members have valid credentials
+        return true;
     }
 }

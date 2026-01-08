@@ -412,7 +412,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                 </thead>
                                                 <tbody className="divide-y divide-blue-50">
                                                     {participants.map((p, idx) => (
-                                                        <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                                                        <tr key={p.participant_id || idx} className="hover:bg-blue-50/30 transition-colors">
                                                             <td className="px-8 py-6">
                                                                 <div className="flex items-center gap-4">
                                                                     <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center font-black text-blue-600 uppercase italic">
@@ -421,6 +421,9 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                                     <div>
                                                                         <p className="text-sm font-black text-blue-900 uppercase italic">{p.first_name} {p.last_name}</p>
                                                                         <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">{p.equ_name}</p>
+                                                                        {p.bib_number && (
+                                                                            <p className="text-[10px] text-blue-400 font-bold">Dossard: {p.bib_number}</p>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </td>
@@ -436,10 +439,21 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                                         NON REQUIS
                                                                     </div>
                                                                 ) : p.is_pps_valid ? (
-                                                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-600">
+                                                                    <button 
+                                                                        onClick={() => handlePPSClick(p)}
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors cursor-pointer"
+                                                                    >
                                                                         <CheckCircle2 className="h-3 w-3" />
                                                                         VALIDE
-                                                                    </div>
+                                                                    </button>
+                                                                ) : p.pps_status === 'pending' ? (
+                                                                    <button 
+                                                                        onClick={() => handlePPSClick(p)}
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors cursor-pointer"
+                                                                    >
+                                                                        <Clock className="h-3 w-3" />
+                                                                        EN ATTENTE
+                                                                    </button>
                                                                 ) : (
                                                                     <button 
                                                                         onClick={() => handlePPSClick(p)}

@@ -91,6 +91,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show')->whereNumber('team');
     Route::post('/teams/{team}/invite-email', [TeamController::class, 'inviteByEmail'])->name('teams.invite-email');
     Route::post('/teams/{team}/invite/{user}', [TeamController::class, 'inviteByEmail'])->name('teams.invite-user');
+    
+    // Race participants management (per registration)
+    Route::get('/registrations/{registration}/runners', [App\Http\Controllers\Team\TeamRunnerController::class, 'index'])->name('registrations.runners.index');
+    Route::post('/registrations/{registration}/runners', [App\Http\Controllers\Team\TeamRunnerController::class, 'store'])->name('registrations.runners.store');
+    Route::put('/participants/{participant}', [App\Http\Controllers\Team\TeamRunnerController::class, 'update'])->name('participants.update');
+    Route::delete('/participants/{participant}', [App\Http\Controllers\Team\TeamRunnerController::class, 'destroy'])->name('participants.destroy');
+    Route::post('/participants/{participant}/verify-pps', [App\Http\Controllers\Team\TeamRunnerController::class, 'verifyPps'])->name('participants.verifyPps');
 });
 
 // Clubs CRUD routes - require adherent role (or admin) + valid licence
