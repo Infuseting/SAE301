@@ -7,6 +7,7 @@ use Illuminate\Foundation\Application;
 use Inertia\Response;
 use Inertia\Inertia;
 use App\Models\Raid;
+use App\Models\AgeCategory;
 
 class WelcomeController extends Controller
 {
@@ -30,12 +31,16 @@ class WelcomeController extends Controller
             ];
         });
 
+        // Get all age categories for the search filter
+        $ageCategories = AgeCategory::all();
+
         return Inertia::render('Welcome', [
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
             'laravelVersion' => Application::VERSION,
             'phpVersion' => PHP_VERSION,
             'upcomingRaids' => $upcomingRaids,
+            'ageCategories' => $ageCategories,
         ]);
     }
 }

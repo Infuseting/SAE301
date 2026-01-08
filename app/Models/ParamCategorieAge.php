@@ -39,8 +39,8 @@ class ParamCategorieAge extends Model
      *
      * @return BelongsTo
      */
-    public function ageCategorie(): BelongsTo
+    public function ageCategory(): BelongsTo
     {
-        return $this->belongsTo(AgeCategorie::class, 'age_categorie_id');
+        return $this->belongsTo(AgeCategory::class, 'age_categorie_id');
     }
 }

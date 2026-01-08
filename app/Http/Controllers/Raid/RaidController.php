@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Raid;
 
 use App\Models\Raid;
+use App\Models\AgeCategory;
 use App\Models\Club;
 use App\Models\User;
 use App\Models\Member;
@@ -45,17 +46,77 @@ class RaidController extends Controller
      */
     public function index(Request $request): Response
     {
-        // Get all raids with related data for client-side filtering
-        $raids = Raid::query()
+        // Build query for raids
+        $query = Raid::query()
             ->with(['club:club_id,club_name', 'registrationPeriod:ins_id,ins_start_date,ins_end_date'])
-            ->withCount('races')
-            ->orderBy('raid_date_start', 'asc')
-            ->get();
+            ->withCount('races');
+
+        // Filter by date if provided
+        if ($request->has('date') && !empty($request->input('date'))) {
+            $filterDate = \Carbon\Carbon::createFromFormat('Y-m-d', $request->input('date'))->startOfDay();
+            $query->where(function ($q) use ($filterDate) {
+                $q->whereBetween('raid_date_start', [
+                    $filterDate,
+                    $filterDate->copy()->endOfDay()
+                ])
+                ->orWhereBetween('raid_date_end', [
+                    $filterDate,
+                    $filterDate->copy()->endOfDay()
+                ])
+                ->orWhere(function ($subQ) use ($filterDate) {
+                    $subQ->where('raid_date_start', '<=', $filterDate)
+                      ->where('raid_date_end', '>=', $filterDate);
+                });
+            });
+        }
+
+        // Filter by category (race type) if provided
+        if ($request->has('category') && !empty($request->input('category')) && $request->input('category') !== 'all') {
+            $categoryFilter = $request->input('category');
+            // Map 'competition' to 'compétitif' for database matching
+            $typeName = $categoryFilter === 'competition' ? 'compétitif' : $categoryFilter;
+            $query->whereHas('races', function ($q) use ($typeName) {
+                $q->whereHas('type', function ($subQ) use ($typeName) {
+                    $subQ->where('param_type.typ_name', $typeName);
+                });
+            });
+        }
+
+        // Filter by age category if provided
+        if ($request->has('age_category') && !empty($request->input('age_category'))) {
+            $ageCategoryName = $request->input('age_category');
+            $query->whereHas('races', function ($q) use ($ageCategoryName) {
+                $q->whereHas('categorieAges.ageCategory', function ($subQ) use ($ageCategoryName) {
+                    $subQ->where('age_categories.nom', $ageCategoryName);
+                });
+            });
+        }
+
+        // Filter by location (city or postal code/department) if provided
+        if ($request->has('location') && !empty($request->input('location'))) {
+            $location = $request->input('location');
+            $query->where(function ($q) use ($location) {
+                // Search by city name
+                $q->where('raid_city', 'like', '%' . $location . '%')
+                // Or search by postal code (for department filtering)
+                ->orWhere('raid_postal_code', 'like', $location . '%');
+            });
+        }
+
+        $raids = $query->orderBy('raid_date_start', 'asc')->get();
+
+        // Get all age categories for the filter
+        $ageCategories = AgeCategory::all();
 
         return Inertia::render('Raid/List', [
             'raids' => $raids,
+            'ageCategories' => $ageCategories,
             'filters' => [
                 'q' => $request->input('q', ''),
+                'date' => $request->input('date', ''),
+                'category' => $request->input('category', 'all'),
+                'age_category' => $request->input('age_category', ''),
+                'location' => $request->input('location', ''),
             ],
         ]);
     }

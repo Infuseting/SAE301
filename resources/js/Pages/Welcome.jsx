@@ -3,16 +3,16 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import Slider from "rc-slider";
-import "rc-slider/assets/index.css";
 import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
 import ProfileCompletionModal from "@/Components/ProfileCompletionModal";
 
-export default function Welcome({ auth, upcomingRaids }) {
+export default function Welcome({ auth, upcomingRaids, ageCategories }) {
     const messages = usePage().props.translations?.messages || {};
+    const [location, setLocation] = useState("");
     const [startDate, setStartDate] = useState(null);
-    const [distanceRange, setDistanceRange] = useState([0, 50]);
+    const [category, setCategory] = useState("all");
+    const [ageCategory, setAgeCategory] = useState("");
 
     return (
         <>
@@ -84,57 +84,9 @@ export default function Welcome({ auth, upcomingRaids }) {
                                                 placeholder={
                                                     messages.search_placeholder_where
                                                 }
+                                                value={location}
+                                                onChange={(e) => setLocation(e.target.value)}
                                                 className="w-full bg-transparent border-none p-0 text-gray-900 placeholder-gray-400 focus:ring-0 font-semibold text-lg"
-                                            />
-                                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full whitespace-nowrap ml-2">
-                                                {distanceRange[0]}km -{" "}
-                                                {distanceRange[1]}km
-                                            </span>
-                                        </div>
-                                        <div className="px-1">
-                                            <Slider
-                                                range
-                                                min={0}
-                                                max={1000}
-                                                step={10}
-                                                defaultValue={[0, 50]}
-                                                value={distanceRange}
-                                                onChange={(value) =>
-                                                    setDistanceRange(value)
-                                                }
-                                                trackStyle={[
-                                                    {
-                                                        backgroundColor:
-                                                            "#10b981",
-                                                        height: 4,
-                                                    },
-                                                ]}
-                                                handleStyle={[
-                                                    {
-                                                        borderColor: "#10b981",
-                                                        backgroundColor: "#fff",
-                                                        opacity: 1,
-                                                        height: 16,
-                                                        width: 16,
-                                                        marginTop: -6,
-                                                        boxShadow:
-                                                            "0 2px 4px rgba(0,0,0,0.1)",
-                                                    },
-                                                    {
-                                                        borderColor: "#10b981",
-                                                        backgroundColor: "#fff",
-                                                        opacity: 1,
-                                                        height: 16,
-                                                        width: 16,
-                                                        marginTop: -6,
-                                                        boxShadow:
-                                                            "0 2px 4px rgba(0,0,0,0.1)",
-                                                    },
-                                                ]}
-                                                railStyle={{
-                                                    backgroundColor: "#f3f4f6",
-                                                    height: 4,
-                                                }}
                                             />
                                         </div>
                                     </div>
@@ -185,7 +137,10 @@ export default function Welcome({ auth, upcomingRaids }) {
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
                                     {messages.search_category}
                                 </label>
-                                <select className="w-full bg-transparent border-none p-0 text-gray-800 focus:ring-0 font-medium cursor-pointer">
+                                <select 
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className="w-full bg-transparent border-none p-0 text-gray-800 focus:ring-0 font-medium cursor-pointer">
                                     <option value="all">{messages.all}</option>
                                     <option value="loisir">
                                         {messages.leisure}
@@ -201,21 +156,33 @@ export default function Welcome({ auth, upcomingRaids }) {
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
                                     {messages.search_age}
                                 </label>
-                                <select className="w-full bg-transparent border-none p-0 text-gray-800 focus:ring-0 font-medium cursor-pointer">
+                                <select 
+                                    value={ageCategory}
+                                    onChange={(e) => setAgeCategory(e.target.value)}
+                                    className="w-full bg-transparent border-none p-0 text-gray-800 focus:ring-0 font-medium cursor-pointer">
                                     <option value="">
                                         {messages.all_ages}
                                     </option>
-                                    {Object.entries(
-                                        messages.age_categories || {}
-                                    ).map(([key, label]) => (
-                                        <option key={key} value={key}>
-                                            {label}
+                                    {(ageCategories || []).map((cat) => (
+                                        <option key={cat.id} value={cat.nom}>
+                                            {cat.nom}
                                         </option>
                                     ))}
                                 </select>
                             </div>
-
-                            <button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-8 py-4 font-bold transition flex items-center justify-center gap-2 md:w-auto w-full">
+ 
+                            <button
+                                onClick={() => {
+                                    const params = new URLSearchParams();
+                                    if (location) params.append("location", location);
+                                    if (startDate) params.append("date", startDate.toISOString().split('T')[0]);
+                                    if (category !== "all") params.append("category", category);
+                                    if (ageCategory) params.append("age_category", ageCategory);
+                                    
+                                    router.visit(route("raids.index") + (params.toString() ? `?${params.toString()}` : ""));
+                                }}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-8 py-4 font-bold transition flex items-center justify-center gap-2 md:w-auto w-full"
+                            >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
