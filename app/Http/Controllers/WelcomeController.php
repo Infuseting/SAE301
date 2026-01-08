@@ -26,7 +26,7 @@ class WelcomeController extends Controller
                 'date' => $raid->raid_date_start ? \Carbon\Carbon::parse($raid->raid_date_start)->format('d M Y') : '',
                 'location' => trim(($raid->raid_city ?? '') . ', ' . ($raid->raid_country ?? ''), ', '),
                 'type' => 'Raid',
-                'image' => $raid->raid_image ?? 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+                'image' => $raid->raid_image ? '/storage/' . $raid->raid_image : 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
             ];
         });
 
