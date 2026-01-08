@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Race;
 use App\Http\Controllers\Controller;
 use App\Models\Race;
 use App\Services\LicenceService;
+use App\Rules\NoConflictingRegistration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use OpenApi\Annotations as OA;
@@ -185,7 +186,11 @@ class RaceRegistrationController extends Controller
         }
 
         $validated = $request->validate([
-            'team_id' => 'required|exists:teams,equ_id',
+            'team_id' => [
+                'required',
+                'exists:teams,equ_id',
+                new NoConflictingRegistration($race)
+            ],
         ]);
 
         $team = \App\Models\Team::where('equ_id', $validated['team_id'])
@@ -203,6 +208,40 @@ class RaceRegistrationController extends Controller
                 'success' => false,
                 'message' => "Le nombre de coureurs doit être entre $minTeamSize et $maxTeamSize (actuellement $currentRunners).",
             ], 400);
+        }
+
+        // Check that all team members have valid licence or PPS
+        $teamMembers = $team->users()->get();
+        foreach ($teamMembers as $member) {
+            $hasValidLicence = false;
+            $hasValidPPS = false;
+
+            // Check for valid licence via Member
+            if ($member->member) {
+                $licence = $member->member->adh_license;
+                $licenceExpiry = $member->member->adh_end_validity;
+                if ($licence && $licenceExpiry && $licenceExpiry > now()) {
+                    $hasValidLicence = true;
+                }
+            }
+
+            // Check for valid PPS via MedicalDoc
+            if ($member->medicalDoc) {
+                $pps = $member->medicalDoc->doc_num_pps;
+                $ppsExpiry = $member->medicalDoc->doc_end_validity;
+                if ($pps && $ppsExpiry && $ppsExpiry > now() && !str_starts_with($pps, 'PENDING-')) {
+                    $hasValidPPS = true;
+                }
+            }
+
+            if (!$hasValidLicence && !$hasValidPPS) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('messages.member_missing_credentials', [
+                        'name' => $member->first_name . ' ' . $member->last_name
+                    ]),
+                ], 400);
+            }
         }
 
         try {
