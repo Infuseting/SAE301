@@ -127,4 +127,5 @@ class Raid extends Model
     {
         return now() > $this->raid_date_end;
     }
+    
 }

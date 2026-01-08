@@ -46,7 +46,7 @@ export default function RaidButton() {
                             {messages.raids || "Voir tous les raids"}
                         </Link>
                         <Link
-                            href={route("myrace.index")}
+                            href={route("myraid.index")}
                             className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                         >
                             <FaTrophy className="inline mr-2 mb-1" />

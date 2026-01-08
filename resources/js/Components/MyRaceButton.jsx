@@ -40,7 +40,7 @@ export default function MyRaceButton() {
                     <div className="py-1"></div>
                     <Link
                         href={route("myrace.index")}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:rounded-md text-left"
                     >
                         <BiSolidTimer className="inline mr-2 mb-1" />
                         {messages.my_courses || "Mes courses"}

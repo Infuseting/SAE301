@@ -294,4 +294,11 @@ class Race extends Model
     {
         return $this->raid ? $this->raid->isUpcoming() : true;
     }
+
+    public function times()
+{
+    // Une Race possède plusieurs entrées dans la table 'time'
+    // 'race_id' est la clé étrangère dans la table 'time'
+    return $this->hasMany(Time::class, 'race_id', 'race_id');
+}
 }
