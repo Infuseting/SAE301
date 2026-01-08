@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermission::class,
             'club_leader' => \App\Http\Middleware\EnsureUserIsClubLeader::class,
             'manager_licence' => \App\Http\Middleware\EnsureManagerHasValidLicence::class,
+            'admin_page' => \App\Http\Middleware\CheckAdminPageAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
