@@ -259,19 +259,24 @@ class ClubMemberController extends Controller
     {
         $user = auth()->user();
 
-        // Check if user is a member
-        if (!$club->hasMember($user)) {
+        // Check if user is a member OR has a pending request
+        $membership = \DB::table('club_user')
+            ->where('club_id', $club->club_id)
+            ->where('user_id', $user->id)
+            ->first();
+            
+        if (!$membership) {
             return back()->with('error', __('messages.not_a_member'));
         }
 
-        // Prevent last manager from leaving
-        if ($club->hasManager($user) && $club->managers()->count() === 1) {
+        // Prevent last manager from leaving (only for approved managers)
+        if ($membership->status === 'approved' && $membership->role === 'manager' && $club->managers()->count() === 1) {
             return back()->with('error', __('messages.last_manager_cannot_leave'));
         }
 
         // If user was a manager, check if they should keep the responsable-club role
         // (only if they manage other clubs)
-        if ($club->hasManager($user)) {
+        if ($membership->status === 'approved' && $membership->role === 'manager') {
             $otherManagedClubs = $user->clubs()
                 ->wherePivot('role', 'manager')
                 ->wherePivot('status', 'approved')
@@ -283,15 +288,23 @@ class ClubMemberController extends Controller
             }
         }
 
-        $club->members()->detach($user->id);
+        // Remove from club_user table (handles both approved members and pending requests)
+        \DB::table('club_user')
+            ->where('club_id', $club->club_id)
+            ->where('user_id', $user->id)
+            ->delete();
+
+        $successMessage = $membership->status === 'pending' 
+            ? __('messages.request_cancelled') 
+            : __('messages.left_club');
 
         activity()
             ->performedOn($club)
             ->causedBy($user)
-            ->log('User left club');
+            ->log($membership->status === 'pending' ? 'User cancelled join request' : 'User left club');
 
         return redirect()->route('clubs.index')
-            ->with('success', __('messages.left_club'));
+            ->with('success', $successMessage);
     }
 
     /**

@@ -1,12 +1,16 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ClubMembersList from '@/Components/ClubMembersList';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import Modal from '@/Components/Modal';
 
-export default function Show({ club, isMember, isManager }) {
+export default function Show({ club, isMember, isManager, membershipStatus }) {
     const messages = usePage().props.translations?.messages || {};
     const { post, processing } = useForm();
+    const [isHovered, setIsHovered] = useState(false);
+    const [showCancelModal, setShowCancelModal] = useState(false);
 
     const handleJoin = () => {
         post(route('clubs.join', club.club_id));
@@ -16,6 +20,16 @@ export default function Show({ club, isMember, isManager }) {
         if (confirm(messages.confirm_leave_club || 'Are you sure you want to leave this club?')) {
             post(route('clubs.leave', club.club_id));
         }
+    };
+    
+    const handleCancelRequest = () => {
+        setShowCancelModal(true);
+    };
+    
+    const confirmCancelRequest = () => {
+        post(route('clubs.leave', club.club_id), {
+            onSuccess: () => setShowCancelModal(false)
+        });
     };
 
     return (
@@ -79,6 +93,16 @@ export default function Show({ club, isMember, isManager }) {
                                         <Link href={route('clubs.edit', club.club_id)}>
                                             <SecondaryButton>{messages.edit_club}</SecondaryButton>
                                         </Link>
+                                    ) : membershipStatus === 'pending' ? (
+                                        <button
+                                            onClick={handleCancelRequest}
+                                            onMouseEnter={() => setIsHovered(true)}
+                                            onMouseLeave={() => setIsHovered(false)}
+                                            disabled={processing}
+                                            className="px-4 py-2 w-48 bg-amber-500 hover:bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-150 disabled:opacity-50"
+                                        >
+                                            {isHovered ? 'ANNULER' : 'EN ATTENTE'}
+                                        </button>
                                     ) : isMember ? (
                                         <SecondaryButton onClick={handleLeave} disabled={processing}>
                                             {messages.leave_club}
@@ -211,6 +235,39 @@ export default function Show({ club, isMember, isManager }) {
 
                 </div>
             </div>
+            
+            {/* Modal de confirmation d'annulation */}
+            <Modal show={showCancelModal} onClose={() => setShowCancelModal(false)} maxWidth="md">
+                <div className="p-6">
+                    <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-red-600">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                        </svg>
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
+                        Annuler votre demande ?
+                    </h3>
+                    <p className="text-sm text-gray-600 text-center mb-6">
+                        Êtes-vous sûr de vouloir annuler votre demande d'adhésion à ce club ?
+                    </p>
+                    <div className="flex gap-3 justify-end">
+                        <button
+                            onClick={() => setShowCancelModal(false)}
+                            disabled={processing}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-semibold text-sm transition-colors disabled:opacity-50"
+                        >
+                            Non, garder
+                        </button>
+                        <button
+                            onClick={confirmCancelRequest}
+                            disabled={processing}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md font-semibold text-sm transition-colors disabled:opacity-50"
+                        >
+                            Oui, annuler
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }

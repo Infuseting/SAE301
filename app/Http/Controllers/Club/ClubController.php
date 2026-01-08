@@ -72,6 +72,19 @@ class ClubController extends Controller
         }
 
         $clubs = $query->paginate(12);
+        
+        // Add user membership status to each club
+        if ($user) {
+            $clubs->getCollection()->transform(function ($club) use ($user) {
+                $membership = \DB::table('club_user')
+                    ->where('club_id', $club->club_id)
+                    ->where('user_id', $user->id)
+                    ->first();
+                    
+                $club->user_membership_status = $membership ? $membership->status : null;
+                return $club;
+            });
+        }
 
         return Inertia::render('Clubs/Index', [
             'clubs' => $clubs,
@@ -199,6 +212,16 @@ class ClubController extends Controller
         $isMember = $user && $club->hasMember($user);
         // Admin can manage all clubs, otherwise check if user is club manager
         $isManager = $user && ($user->hasRole('admin') || $club->hasManager($user));
+        
+        // Check if user has a pending request
+        $membershipStatus = null;
+        if ($user) {
+            $membership = \DB::table('club_user')
+                ->where('club_id', $club->club_id)
+                ->where('user_id', $user->id)
+                ->first();
+            $membershipStatus = $membership ? $membership->status : null;
+        }
 
         // Only show members if user is a member
         if ($isMember) {
@@ -226,6 +249,7 @@ class ClubController extends Controller
             'club' => $club,
             'isMember' => $isMember,
             'isManager' => $isManager,
+            'membershipStatus' => $membershipStatus,
         ]);
     }
 
