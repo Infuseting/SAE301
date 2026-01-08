@@ -441,12 +441,36 @@ class RaidController extends Controller
         $raid->is_upcoming = $raid->isUpcoming();
         $raid->is_finished = $raid->isFinished();
 
+        // Get registered members for raid managers
+        $registeredMembers = collect();
+        if ($isRaidManager) {
+            // Get all race IDs for this raid
+            $raceIds = $raid->races->pluck('race_id');
+            
+            // Get unique users registered through the registration table and has_participate
+            $registeredMembers = \DB::table('registration')
+                ->join('has_participate', 'registration.equ_id', '=', 'has_participate.equ_id')
+                ->join('users', 'has_participate.id_users', '=', 'users.id')
+                ->whereIn('registration.race_id', $raceIds)
+                ->select('users.id', 'users.first_name', 'users.last_name', 'users.email')
+                ->distinct()
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
+                    ];
+                });
+        }
+
         return Inertia::render('Raid/Index', [
             'raid' => $raid,
             'courses' => $courses,
             'isRaidManager' => $isRaidManager,
             'canEditRaid' => $user && $user->can('update', $raid),
             'canAddRace' => $user && $user->can('create', [\App\Models\Race::class, $raid]),
+            'registeredMembers' => $registeredMembers,
             'typeCategories' => \App\Models\ParamType::all()->map(function ($t) {
                 return [
                     'type_id' => $t->typ_id,
