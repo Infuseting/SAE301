@@ -39,18 +39,9 @@ Route::get('/map', [MapController::class, 'index'])->name('map.index');
 Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
 Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show')->whereNumber('raid');
 
-//myRaid
-Route::get('/my-raid', [App\Http\Controllers\Raid\MyRaidController::class, 'index'])->name('myraid.index');
-
-
-
-//myRace
-Route::get('/my-race', [MyRaceController::class, 'index'])->name('myrace.index');
-
 // Public leaderboard page
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
 Route::get('/leaderboard/export/{raceId}', [LeaderboardController::class, 'export'])->name('leaderboard.export');
-
 
 Route::middleware('auth')->group(function () {
     // Profile routes - always accessible (needed to update licence)
@@ -66,6 +57,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/licence', [LicenceController::class, 'storeLicence'])->name('licence.store');
     Route::post('/pps', [LicenceController::class, 'storePpsCode'])->name('pps.store');
     Route::get('/credentials/check', [LicenceController::class, 'checkCredentials'])->name('credentials.check');
+    //myRaid
+    Route::get('/my-raid', [App\Http\Controllers\Raid\MyRaidController::class, 'index'])->name('myraid.index');
+    //myRace
+    Route::get('/my-race', [MyRaceController::class, 'index'])->name('myrace.index');
 });
 
 // Routes that require valid licence for managers
