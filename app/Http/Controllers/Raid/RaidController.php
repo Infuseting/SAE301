@@ -804,9 +804,9 @@ class RaidController extends Controller
      */
     public function checkIn(Request $request, Raid $raid)
     {
-        // Check if user is raid manager
+        // Check if user is raid manager (club creator)
         $user = auth()->user();
-        $isRaidManager = $user && $raid->club && $raid->club->club_creator_id === $user->id;
+        $isRaidManager = $user && $raid->club && $raid->club->created_by === $user->id;
 
         if (!$isRaidManager) {
             return response()->json([
