@@ -5,17 +5,18 @@ import UserAvatar from "@/Components/UserAvatar";
 export default function UserMenu({ user }) {
     const messages = usePage().props.translations?.messages || {};
 
-    // Logic to determine if user has admin access.
-    // Adjust this check based on your specific Spatie permission implementation.
-    // Common patterns: user.roles array (of objects or strings), user.permissions array, or user.is_admin boolean.
-    // Converting to generic check:
+    /**
+     * Check if user has access to the admin panel.
+     * Users with any of these conditions can access /admin:
+     * - Has 'admin' role
+     * - Has 'access-admin' permission (gestionnaire-raid, responsable-club, responsable-course)
+     */
     const hasAdminAccess =
         user.roles?.some((role) => role.name === "admin" || role === "admin") ||
-        user.permissions?.some((perm) =>
-            ["view users", "edit users", "delete users", "view logs"].includes(
-                perm.name || perm
-            )
-        );
+        user.permissions?.some((perm) => {
+            const permName = perm.name || perm;
+            return permName === "access-admin";
+        });
 
     return (
         <div className="relative">

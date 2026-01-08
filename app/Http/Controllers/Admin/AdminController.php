@@ -101,4 +101,25 @@ class AdminController extends Controller
             'raids' => $raids,
         ]);
     }
+
+    /**
+     * Display the club management page for responsable-club users.
+     * Shows only clubs where the user is a leader or manager.
+     *
+     * @return \Inertia\Response
+     */
+    public function clubmanagement()
+    {
+        $user = Auth::user();
+
+        // Get clubs where user is leader or manager
+        $clubs = Club::whereHas('members', function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+                  ->whereIn('role', ['leader', 'manager']);
+        })->with('members:id,first_name,last_name,email')->get();
+
+        return inertia('Admin/ClubManagement', [
+            'clubs' => $clubs,
+        ]);
+    }
 }

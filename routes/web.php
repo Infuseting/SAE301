@@ -115,36 +115,43 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
-    // dashboard
-    Route::get('/', [AdminController::class, 'index'])->name('dashboard')->middleware('can:access-admin');
-    Route::get('/races', [AdminController::class, 'racemanagement'])->name('races.index')->middleware('can:access-admin');
-    Route::get('/races/{id}/edit', [RaceController::class, 'edit'])->name('races.edit')->middleware('can:access-admin');
-    Route::get('/raids', [AdminController::class, 'raidmanagement'])->name('raids.index')->middleware('can:access-admin');
+    // dashboard - accessible to all admin roles
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
 
-    // users
+    // Race management - requires access-admin-races permission
+    Route::get('/races', [AdminController::class, 'racemanagement'])->name('races.index')->middleware('admin_page:access-admin-races');
+    Route::get('/races/{id}/edit', [RaceController::class, 'edit'])->name('races.edit')->middleware('admin_page:access-admin-races');
+
+    // Raid management - requires access-admin-raids permission
+    Route::get('/raids', [AdminController::class, 'raidmanagement'])->name('raids.index')->middleware('admin_page:access-admin-raids');
+
+    // Club management - requires access-admin-clubs permission
+    Route::get('/clubs', [AdminController::class, 'clubmanagement'])->name('clubs.index')->middleware('admin_page:access-admin-clubs');
+
+    // users - admin only
     Route::match(['get', 'post'], '/users', [UserController::class, 'index'])->name('users.index')->middleware('can:view users');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('can:edit users');
     Route::post('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle')->middleware('can:edit users');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('can:delete users');
 
-    // role assignment
+    // role assignment - admin only
     Route::get('/roles', [UserController::class, 'getRoles'])->name('roles.index')->middleware('can:grant role');
     Route::post('/users/{user}/role', [UserController::class, 'assignRole'])->name('users.assignRole')->middleware('can:grant role');
     Route::delete('/users/{user}/role', [UserController::class, 'removeRole'])->name('users.removeRole')->middleware('can:grant role');
 
 
 
-    // logs
+    // logs - admin only
     Route::match(['get', 'post'], '/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
 
-    // leaderboard management
+    // leaderboard management - admin only
     Route::get('/leaderboard', [AdminLeaderboardController::class, 'index'])->name('leaderboard.index')->middleware('can:view users');
     Route::post('/leaderboard/import', [AdminLeaderboardController::class, 'import'])->name('leaderboard.import')->middleware('can:edit users');
     Route::get('/leaderboard/export/{raceId}', [AdminLeaderboardController::class, 'export'])->name('leaderboard.export')->middleware('can:view users');
     Route::get('/leaderboard/{raceId}/results', [AdminLeaderboardController::class, 'results'])->name('leaderboard.results')->middleware('can:view users');
     Route::delete('/leaderboard/results/{resultId}', [AdminLeaderboardController::class, 'destroy'])->name('leaderboard.destroy')->middleware('can:delete users');
 
-    // Club approval
+    // Club approval - admin only
     Route::get('/clubs/pending', [ClubApprovalController::class, 'index'])->name('clubs.pending')->middleware('can:accept-club');
     Route::post('/clubs/{club}/approve', [ClubApprovalController::class, 'approve'])->name('clubs.approve')->middleware('can:accept-club');
     Route::post('/clubs/{club}/reject', [ClubApprovalController::class, 'reject'])->name('clubs.reject')->middleware('can:accept-club');

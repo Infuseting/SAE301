@@ -11,12 +11,30 @@ export default function Dashboard({
     const { auth } = usePage().props;
     const user = auth?.user;
 
+    /**
+     * Helper function to check if user has a specific permission.
+     * @param {string} permissionName - The permission name to check
+     * @returns {boolean}
+     */
+    const hasPermission = (permissionName) => {
+        return user?.permissions?.some((perm) => {
+            const name = perm.name || perm;
+            return name === permissionName;
+        });
+    };
+
     // Check if user has permission to approve clubs
     const canApproveClubs =
-        user?.permissions?.includes("accept-club") ||
+        hasPermission("accept-club") ||
         user?.roles?.some((role) => role.name === "admin" || role === "admin");
 
+    // Check if user is admin
     const isAdmin = user?.roles?.some((role) => role.name === "admin");
+
+    // Check if user can access specific admin pages
+    const canAccessRaces = isAdmin || hasPermission("access-admin-races");
+    const canAccessRaids = isAdmin || hasPermission("access-admin-raids");
+    const canAccessClubs = isAdmin || hasPermission("access-admin-clubs");
 
     const raids = myresponsibleRaids || [];
     const races = myresponsibleRaces || [];
@@ -230,67 +248,100 @@ export default function Dashboard({
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-                        {/* Courses Management Card */}
-                        <div className="bg-white border-l-4 border-purple-500 p-6 shadow sm:rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-lg font-semibold text-gray-800">
-                                        Courses
-                                    </h2>
-                                    <p className="mt-3 text-gray-600">
-                                        {isAdmin
-                                            ? `Total : ${races.length} courses`
-                                            : `Vous êtes responsable de ${races.length} courses`}
-                                    </p>
+                        {/* Courses Management Card - Only show if user has permission */}
+                        {canAccessRaces && (
+                            <div className="bg-white border-l-4 border-purple-500 p-6 shadow sm:rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-lg font-semibold text-gray-800">
+                                            Courses
+                                        </h2>
+                                        <p className="mt-3 text-gray-600">
+                                            {isAdmin
+                                                ? `Total : ${races.length} courses`
+                                                : `Vous êtes responsable de ${races.length} courses`}
+                                        </p>
+                                    </div>
+                                    <RiRunLine className="w-12 h-12 text-purple-400" />
                                 </div>
-                                <RiRunLine className="w-12 h-12 text-purple-400" />
-                            </div>
-                            <div className="mt-4">
-                                <Link
-                                    href={route("admin.races.index")}
-                                    className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
-                                >
-                                    Gérer les courses
-                                    <svg
-                                        className="w-4 h-4 ml-1"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
+                                <div className="mt-4">
+                                    <Link
+                                        href={route("admin.races.index")}
+                                        className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
                                     >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M9 5l7 7-7 7"
-                                        />
-                                    </svg>
-                                </Link>
+                                        Gérer les courses
+                                        <svg
+                                            className="w-4 h-4 ml-1"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 5l7 7-7 7"
+                                            />
+                                        </svg>
+                                    </Link>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* Raids Management Card */}
-                        <div className="bg-white border-l-4 border-purple-500 p-6 shadow sm:rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-lg font-semibold text-gray-800">
-                                        Raids
-                                    </h2>
-                                    <p className="mt-3 text-gray-600">
-                                        {isAdmin
-                                            ? `Total : ${raids.length} raids`
-                                            : `Vous êtes responsable de ${raids.length} raids`}
-                                    </p>
+                        {/* Raids Management Card - Only show if user has permission */}
+                        {canAccessRaids && (
+                            <div className="bg-white border-l-4 border-purple-500 p-6 shadow sm:rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-lg font-semibold text-gray-800">
+                                            Raids
+                                        </h2>
+                                        <p className="mt-3 text-gray-600">
+                                            {isAdmin
+                                                ? `Total : ${raids.length} raids`
+                                                : `Vous êtes responsable de ${raids.length} raids`}
+                                        </p>
+                                    </div>
+                                    <FaRegCompass className="w-12 h-12 text-purple-400" />
                                 </div>
-                                <FaRegCompass className="w-12 h-12 text-purple-400" />
+                                <div className="mt-4">
+                                    <Link
+                                        href={route("admin.raids.index")}
+                                        className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
+                                    >
+                                        Gérer les raids
+                                        <svg
+                                            className="w-4 h-4 ml-1"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 5l7 7-7 7"
+                                            />
+                                        </svg>
+                                    </Link>
+                                </div>
                             </div>
-                            <div className="mt-4">
-                                <Link
-                                    href={route("admin.raids.index")}
-                                    className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
-                                >
-                                    Gérer les raids
+                        )}
+
+                        {/* Clubs Management Card - Only show if user has permission */}
+                        {canAccessClubs && (
+                            <div className="bg-white border-l-4 border-emerald-500 p-6 shadow sm:rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-lg font-semibold text-gray-800">
+                                            Clubs
+                                        </h2>
+                                        <p className="mt-3 text-gray-600">
+                                            Gérez vos clubs
+                                        </p>
+                                    </div>
                                     <svg
-                                        className="w-4 h-4 ml-1"
+                                        className="w-12 h-12 text-emerald-400"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         stroke="currentColor"
@@ -299,12 +350,33 @@ export default function Dashboard({
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                             strokeWidth={2}
-                                            d="M9 5l7 7-7 7"
+                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                                         />
                                     </svg>
-                                </Link>
+                                </div>
+                                <div className="mt-4">
+                                    <Link
+                                        href={route("admin.clubs.index")}
+                                        className="inline-flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-700"
+                                    >
+                                        Gérer les clubs
+                                        <svg
+                                            className="w-4 h-4 ml-1"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 5l7 7-7 7"
+                                            />
+                                        </svg>
+                                    </Link>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
