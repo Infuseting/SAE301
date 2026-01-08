@@ -463,8 +463,6 @@ class DemoDataSeeder extends Seeder
             foreach ($members as $index => $adhId) {
                 // Calculate corresponding user_id from adh_id (both ranges start at ID_START + 30)
                 $userId = $adhId;
-                // First member is the leader
-                $isLeader = ($index === 0);
                 
                 DB::table('has_participate')->insertOrIgnore([
                     // 'id' is auto-increment primary key, not manually set
@@ -473,7 +471,6 @@ class DemoDataSeeder extends Seeder
                     'reg_id' => null, // reg_id nullable - registration ID if exists
                     'par_time' => null, // par_time nullable - participation time if tracked
                     'id_users' => $userId, // Added by migration 2026_01_07_125534_add_id_users_to_has_participate_table
-                    'is_leader' => $isLeader, // From MySQL structure - first member is leader
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
