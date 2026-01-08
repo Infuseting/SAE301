@@ -78,32 +78,46 @@ export default function RegistrationConfirmStep({ race, user, registrationData, 
                     )}
 
                     {/* Selected team members or temporary team members */}
-                    {registrationData.selectedTeam?.members?.map((member, idx) => (
-                        <div key={idx} className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold text-slate-500">
-                                {member.name?.charAt(0)?.toUpperCase()}
+                    {registrationData.selectedTeam?.members
+                        ?.filter(member => member.id !== user?.id) // Filter out creator
+                        ?.map((member, idx) => (
+                            <div key={idx} className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold text-slate-500">
+                                    {member.name?.charAt(0)?.toUpperCase()}
+                                </div>
+                                <span className="text-slate-600">{member.name}</span>
                             </div>
-                            <span className="text-slate-600">{member.name}</span>
-                        </div>
-                    ))}
+                        ))}
 
                     {/* Temporary team members */}
                     {members.map((member, idx) => (
                         <div key={idx} className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold text-slate-500">
-                                {member.name?.charAt(0)?.toUpperCase() || '?'}
+                                {(member.name || member.email)?.charAt(0)?.toUpperCase() || '?'}
                             </div>
-                            <span className="text-slate-600">{member.name}</span>
-                            {member.status === 'pending_account' && (
-                                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                                    Invitation envoyée
-                                </span>
-                            )}
-                            {member.status === 'pending' && (
-                                <span className="text-xs text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
-                                    En attente
-                                </span>
-                            )}
+                            <div className="flex flex-col">
+                                <span className="font-medium text-slate-700">{member.name || member.email}</span>
+                                {member.name && member.email && member.name !== member.email && (
+                                    <span className="text-[10px] text-slate-400 truncate">{member.email}</span>
+                                )}
+                            </div>
+                            <div className="ml-auto flex items-center gap-2">
+                                {member.status === 'pending_account' && (
+                                    <span className="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                                        Invitation envoyée
+                                    </span>
+                                )}
+                                {member.status === 'pending' && (
+                                    <span className="text-xs text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                                        En attente
+                                    </span>
+                                )}
+                                {member.status === 'accepted' && (
+                                    <span className="text-xs text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">
+                                        Accepté
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>

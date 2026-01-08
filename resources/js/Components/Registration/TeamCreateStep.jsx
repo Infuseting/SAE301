@@ -25,12 +25,14 @@ export default function TeamCreateStep({
     const [error, setError] = useState(null);
 
     // Get team size limits from race params
-    const minMembers = race?.team_params?.pae_nb_min || 2;
-    const maxMembers = race?.team_params?.pae_nb_max || 5;
+    // pae_team_count_max = max members PER team (PAR EQUIPE MAX)
+    // pae_nb_min/max = min/max number of TEAMS
+    const maxMembersPerTeam = race?.team_params?.pae_team_count_max || 5;
+    const minMembers = 2; // Minimum 2 for a team
 
     // Account for whether creator is participating
     const effectiveMin = registrationData.isCreatorParticipating ? minMembers - 1 : minMembers;
-    const effectiveMax = registrationData.isCreatorParticipating ? maxMembers - 1 : maxMembers;
+    const effectiveMax = registrationData.isCreatorParticipating ? maxMembersPerTeam - 1 : maxMembersPerTeam;
 
     const members = registrationData.temporaryTeamMembers || [];
 
@@ -191,16 +193,18 @@ export default function TeamCreateStep({
                                     {member.profile_photo_url ? (
                                         <img
                                             src={member.profile_photo_url}
-                                            alt={member.name}
+                                            alt={member.name || member.email}
                                             className="w-full h-full rounded-full object-cover"
                                         />
                                     ) : (
-                                        member.name?.charAt(0)?.toUpperCase() || '?'
+                                        (member.name || member.email)?.charAt(0)?.toUpperCase() || '?'
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-slate-700 truncate">{member.name}</p>
-                                    <p className="text-slate-400 text-xs truncate">{member.email}</p>
+                                    <p className="font-medium text-slate-700 truncate">{member.name || member.email}</p>
+                                    {member.name && member.email && member.name !== member.email && (
+                                        <p className="text-slate-400 text-xs truncate">{member.email}</p>
+                                    )}
                                 </div>
                                 <div className={`flex items-center gap-1 text-xs ${status.color}`}>
                                     <StatusIcon className="h-3 w-3" />

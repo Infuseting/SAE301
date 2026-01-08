@@ -122,30 +122,21 @@ class TeamInvitationController extends Controller
      * @param TeamInvitation $invitation
      * @return JsonResponse
      */
-    public function accept(TeamInvitation $invitation): JsonResponse
+    public function accept(TeamInvitation $invitation)
     {
         $user = auth()->user();
 
         // Verify the invitation is for this user
-        if ($invitation->invitee_id !== $user->id) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.invalid_invitation'),
-            ], 403);
+        if ($invitation->email !== $user->email) {
+            return back()->with('error', __('messages.invalid_invitation'));
         }
 
         if ($invitation->isExpired()) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.invitation_expired'),
-            ], 422);
+            return back()->with('error', __('messages.invitation_expired'));
         }
 
         if (!$invitation->isPending()) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.invitation_already_processed'),
-            ], 422);
+            return back()->with('error', __('messages.invitation_already_processed'));
         }
 
         // Accept the invitation
@@ -153,7 +144,7 @@ class TeamInvitationController extends Controller
 
         // Add user to team if permanent team
         if ($invitation->team_id) {
-            $invitation->team->users()->attach($user->id);
+            $invitation->team->users()->syncWithoutDetaching([$user->id]);
         }
 
         // Update temporary team data if registration-based
@@ -161,10 +152,18 @@ class TeamInvitationController extends Controller
             $this->updateTemporaryTeamMemberStatus($invitation, 'confirmed');
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => __('messages.invitation_accepted'),
-        ]);
+        if (request()->wantsJson() && !request()->header('X-Inertia')) {
+            return response()->json([
+                'success' => true,
+                'message' => __('messages.invitation_accepted'),
+            ]);
+        }
+
+        $redirectRoute = $invitation->registration_id
+            ? route('races.show', $invitation->registration->race_id)
+            : ($invitation->team_id ? route('raids.index') : route('profile.invitations'));
+
+        return redirect()->to($redirectRoute)->with('success', __('messages.invitation_accepted'));
     }
 
     /**
@@ -173,31 +172,29 @@ class TeamInvitationController extends Controller
      * @param TeamInvitation $invitation
      * @return JsonResponse
      */
-    public function reject(TeamInvitation $invitation): JsonResponse
+    public function reject(TeamInvitation $invitation)
     {
         $user = auth()->user();
 
         // Verify the invitation is for this user
-        if ($invitation->invitee_id !== $user->id) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.invalid_invitation'),
-            ], 403);
+        if ($invitation->email !== $user->email) {
+            return back()->with('error', __('messages.invalid_invitation'));
         }
 
         if (!$invitation->isPending()) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.invitation_already_processed'),
-            ], 422);
+            return back()->with('error', __('messages.invitation_already_processed'));
         }
 
         $invitation->reject();
 
-        return response()->json([
-            'success' => true,
-            'message' => __('messages.invitation_rejected'),
-        ]);
+        if (request()->wantsJson() && !request()->header('X-Inertia')) {
+            return response()->json([
+                'success' => true,
+                'message' => __('messages.invitation_rejected'),
+            ]);
+        }
+
+        return back()->with('success', __('messages.invitation_rejected'));
     }
 
     /**
@@ -237,13 +234,14 @@ class TeamInvitationController extends Controller
         // Accept the invitation
         $invitation->accept();
 
-        // Add to team
-        if ($invitation->team_id) {
-            $invitation->team->users()->syncWithoutDetaching([$user->id]);
-        }
-
         if ($invitation->registration_id) {
             $this->updateTemporaryTeamMemberStatus($invitation, 'confirmed');
+            return redirect()->route('races.show', $invitation->registration->race_id)->with('success', __('messages.invitation_accepted'));
+        }
+
+        if ($invitation->team_id) {
+            $invitation->team->users()->syncWithoutDetaching([$user->id]);
+            return redirect()->route('raids.index')->with('success', __('messages.invitation_accepted'));
         }
 
         return redirect()->route('home')->with('success', __('messages.invitation_accepted'));

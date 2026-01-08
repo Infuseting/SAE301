@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { X, Users, Calendar, Check, Clock, Mail, AlertTriangle, Trash2 } from 'lucide-react';
 
 /**
@@ -10,7 +10,8 @@ import { X, Users, Calendar, Check, Clock, Mail, AlertTriangle, Trash2 } from 'l
  * @param {object} race - Race data
  * @param {object} registration - User's registration data
  */
-export default function RegistrationViewModal({ isOpen, onClose, race, registration }) {
+export default function RegistrationViewModal({ isOpen, onClose, race, registration, onEdit }) {
+    const { auth } = usePage().props;
     const [loading, setLoading] = useState(false);
     const [showConfirmCancel, setShowConfirmCancel] = useState(false);
 
@@ -49,6 +50,43 @@ export default function RegistrationViewModal({ isOpen, onClose, race, registrat
             }
         } catch (err) {
             console.error('Cancel error:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLeave = async () => {
+        setLoading(true);
+
+        const getCsrfToken = () => {
+            const name = 'XSRF-TOKEN=';
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const cookies = decodedCookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.indexOf(name) === 0) {
+                    return cookie.substring(name.length);
+                }
+            }
+            return '';
+        };
+
+        try {
+            const response = await fetch(route('race.registration.leave', registration.id), {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-XSRF-TOKEN': getCsrfToken(),
+                },
+                credentials: 'same-origin',
+            });
+
+            if (response.ok) {
+                onClose();
+                router.reload();
+            }
+        } catch (err) {
+            console.error('Leave error:', err);
         } finally {
             setLoading(false);
         }
@@ -127,10 +165,28 @@ export default function RegistrationViewModal({ isOpen, onClose, race, registrat
 
                             {/* Team members */}
                             <div className="space-y-2">
+                                {/* Team leader info - show actual creator */}
+                                {registration.is_creator_participating && registration.creator && (
+                                    <div className="flex items-center gap-3 py-2 bg-emerald-50 rounded-lg px-3">
+                                        <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">
+                                            {registration.creator.name?.charAt(0)?.toUpperCase() || 'C'}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-medium text-slate-700">{registration.creator.name}</p>
+                                            <p className="text-xs text-slate-400">{registration.creator.email}</p>
+                                        </div>
+                                        <span className="text-xs text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">
+                                            Chef d'équipe
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Other team members */}
                                 {registration.team_members?.map((member, idx) => {
                                     const getMemberStatusIcon = () => {
                                         switch (member.status) {
                                             case 'confirmed':
+                                            case 'accepted':
                                                 return <Check className="h-3 w-3 text-emerald-500" />;
                                             case 'pending':
                                                 return <Clock className="h-3 w-3 text-amber-500" />;
@@ -155,13 +211,54 @@ export default function RegistrationViewModal({ isOpen, onClose, race, registrat
                                     );
                                 })}
 
-                                {(!registration.team_members || registration.team_members.length === 0) && (
+                                {(!registration.team_members || registration.team_members.length === 0) && !registration.is_creator_participating && (
                                     <p className="text-sm text-slate-400 italic">Aucun membre</p>
                                 )}
                             </div>
                         </div>
 
-                        {/* Cancel section */}
+                        {/* Team status warnings */}
+                        {registration.is_temporary_team && (
+                            <>
+                                {registration.pending_invitations_count > 0 && (
+                                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
+                                        <Clock className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-bold text-amber-800">Invitations en attente</p>
+                                            <p className="text-sm text-amber-600 mt-1">
+                                                {registration.pending_invitations_count} membre{registration.pending_invitations_count > 1 ? 's' : ''} n'{registration.pending_invitations_count > 1 ? 'ont' : 'a'} pas encore accepté l'invitation.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!registration.is_team_complete && (
+                                    <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+                                        <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-bold text-red-800">Équipe incomplète</p>
+                                            <p className="text-sm text-red-600 mt-1">
+                                                Votre équipe ne respecte pas le nombre minimum de participants requis pour cette course.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {/* Edit button */}
+                        {registration.can_edit && (
+                            <div className="pt-4 border-t border-slate-100">
+                                <button
+                                    onClick={() => onEdit?.()}
+                                    className="w-full py-3 bg-blue-600 text-white font-bold text-sm uppercase tracking-wider rounded-xl hover:bg-blue-700 transition-colors"
+                                >
+                                    Modifier l'équipe
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Cancel/Leave section */}
                         {registration.status !== 'cancelled' && (
                             <div className="pt-4 border-t border-slate-100">
                                 {!showConfirmCancel ? (
@@ -170,16 +267,21 @@ export default function RegistrationViewModal({ isOpen, onClose, race, registrat
                                         className="w-full py-3 text-red-600 font-bold text-sm uppercase tracking-wider hover:bg-red-50 rounded-xl transition-colors flex items-center justify-center gap-2"
                                     >
                                         <Trash2 className="h-4 w-4" />
-                                        Annuler mon inscription
+                                        {registration.is_team_leader ? 'Annuler mon inscription' : 'Quitter l\'équipe'}
                                     </button>
                                 ) : (
                                     <div className="p-4 bg-red-50 border border-red-100 rounded-2xl space-y-4">
                                         <div className="flex items-start gap-3">
                                             <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
                                             <div>
-                                                <p className="font-bold text-red-800">Confirmer l'annulation ?</p>
+                                                <p className="font-bold text-red-800">
+                                                    {registration.is_team_leader ? 'Confirmer l\'annulation ?' : 'Confirmer le départ ?'}
+                                                </p>
                                                 <p className="text-sm text-red-600 mt-1">
-                                                    Cette action est irréversible. Vous devrez vous réinscrire si vous changez d'avis.
+                                                    {registration.is_team_leader
+                                                        ? 'Cette action annulera l\'inscription de toute l\'équipe. Vous devrez vous réinscrire si vous changez d\'avis.'
+                                                        : 'Vous allez quitter cette équipe. Le chef d\'équipe sera notifié de votre départ.'
+                                                    }
                                                 </p>
                                             </div>
                                         </div>
@@ -189,14 +291,14 @@ export default function RegistrationViewModal({ isOpen, onClose, race, registrat
                                                 disabled={loading}
                                                 className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 font-bold text-sm uppercase tracking-wider rounded-xl hover:bg-slate-50 transition-colors"
                                             >
-                                                Non, garder
+                                                Non, rester
                                             </button>
                                             <button
-                                                onClick={handleCancel}
+                                                onClick={registration.is_team_leader ? handleCancel : handleLeave}
                                                 disabled={loading}
                                                 className="flex-1 py-3 bg-red-600 text-white font-bold text-sm uppercase tracking-wider rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50"
                                             >
-                                                {loading ? 'Annulation...' : 'Oui, annuler'}
+                                                {loading ? (registration.is_team_leader ? 'Annulation...' : 'Départ...') : (registration.is_team_leader ? 'Oui, annuler' : 'Oui, quitter')}
                                             </button>
                                         </div>
                                     </div>

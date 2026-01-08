@@ -25,8 +25,7 @@ class ClubInvitation extends Model
      */
     protected $fillable = [
         'club_id',
-        'inviter_id',
-        'invitee_id',
+        'invited_by',
         'email',
         'token',
         'status',
@@ -56,9 +55,8 @@ class ClubInvitation extends Model
                 $invitation->token = Str::random(64);
             }
             if (empty($invitation->expires_at)) {
-                // Default: 7 days for existing users, 30 days for email invites
-                $days = $invitation->invitee_id ? 7 : 30;
-                $invitation->expires_at = now()->addDays($days);
+                // Default: 30 days for email invites
+                $invitation->expires_at = now()->addDays(30);
             }
         });
     }
@@ -76,7 +74,7 @@ class ClubInvitation extends Model
      */
     public function inviter(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'inviter_id');
+        return $this->belongsTo(User::class, 'invited_by');
     }
 
     /**
@@ -84,7 +82,7 @@ class ClubInvitation extends Model
      */
     public function invitee(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'invitee_id');
+        return $this->belongsTo(User::class, 'email', 'email');
     }
 
     /**
@@ -108,7 +106,7 @@ class ClubInvitation extends Model
      */
     public function isEmailInvitation(): bool
     {
-        return !$this->invitee_id && $this->email;
+        return (bool) $this->email;
     }
 
     /**
@@ -147,9 +145,9 @@ class ClubInvitation extends Model
     /**
      * Scope for invitations for a specific user.
      */
-    public function scopeForUser($query, int $userId)
+    public function scopeForUser($query, User $user)
     {
-        return $query->where('invitee_id', $userId);
+        return $query->where('email', $user->email);
     }
 
     /**

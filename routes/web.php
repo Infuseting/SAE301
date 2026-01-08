@@ -47,6 +47,10 @@ Route::get('/map', [App\Http\Controllers\MapController::class, 'index'])->name('
 Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
 Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show')->whereNumber('raid');
 
+// Temporary team invitations (public routes)
+Route::get('/invitation/{token}', [App\Http\Controllers\TemporaryTeamInvitationController::class, 'show'])->name('invitation.show');
+Route::get('/invitation/{token}/register', [App\Http\Controllers\TemporaryTeamInvitationController::class, 'register'])->name('invitation.register');
+Route::post('/invitation/{token}/register', [App\Http\Controllers\TemporaryTeamInvitationController::class, 'storeRegistration'])->name('invitation.store-registration');
 
 //myRace
 Route::get('/my-race', [App\Http\Controllers\Race\MyRaceController::class, 'index'])->name('myrace.index');
@@ -64,6 +68,7 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile/invitations', [App\Http\Controllers\ProfileController::class, 'invitations'])->name('profile.invitations');
     Route::get('/profile', [App\Http\Controllers\PublicProfileController::class, 'myProfile'])->name('profile.index');
     Route::get('/profile/{user}', [App\Http\Controllers\PublicProfileController::class, 'show'])->name('profile.show');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -111,6 +116,14 @@ Route::middleware('auth')->group(function () {
 
     // Race registration
     Route::delete('/registrations/{registration}', [App\Http\Controllers\RaceRegistrationController::class, 'cancel'])->name('race.registration.cancel');
+    Route::post('/registrations/{registration}/leave', [App\Http\Controllers\RaceRegistrationController::class, 'leaveTeam'])->name('race.registration.leave');
+    Route::get('/registrations/{registration}/edit', [App\Http\Controllers\RaceRegistrationController::class, 'edit'])->name('race.registration.edit');
+    Route::put('/registrations/{registration}', [App\Http\Controllers\RaceRegistrationController::class, 'update'])->name('race.registration.update');
+    Route::post('/registrations/{registration}/resend/{email}', [App\Http\Controllers\RaceRegistrationController::class, 'resendInvitation'])->name('race.registration.resend');
+
+    // Temporary team invitations (authenticated)
+    Route::post('/invitation/{token}/accept', [App\Http\Controllers\TemporaryTeamInvitationController::class, 'accept'])->name('invitation.accept');
+    Route::post('/invitation/{token}/reject', [App\Http\Controllers\TemporaryTeamInvitationController::class, 'reject'])->name('invitation.reject');
 
     // Club invitations
     Route::get('/clubs/{club}/invitations', [App\Http\Controllers\ClubInvitationController::class, 'index'])->name('clubs.invitations.index');
@@ -120,7 +133,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/club-invitations/{invitation}', [App\Http\Controllers\ClubInvitationController::class, 'destroy'])->name('clubs.invitations.destroy');
 
     // User invitations list (for profile)
-    Route::get('/profile/invitations', [App\Http\Controllers\ProfileController::class, 'invitations'])->name('profile.invitations');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {

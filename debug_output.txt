@@ -1,0 +1,13 @@
+﻿--- TEMPORARY TEAM INVITATIONS ---
+--- ALL TEMP INVITATIONS ---
+ID: 1 | Email: [serretarthur@gmail.com] (len: 22) | Status: pending | Exp: 2026-01-15 09:32:04
+ID: 2 | Email: [jean.dupont@example.com] (len: 23) | Status: pending | Exp: 2026-01-15 09:32:09
+ID: 3 | Email: [jabetmarin07@gmail.com] (len: 22) | Status: pending | Exp: 2026-01-15 09:32:10
+--- ALL TEAM INVITATIONS ---
+User Found: ID 384 | Email: serretarthur@gmail.com
+Pending Counts: Team (0) | Temp (1) | Club (0)
+ - Temp Invitation ID: 1 | Status: pending | Race: eezez
+
+--- TEAM INVITATIONS ---
+
+--- CLUB INVITATIONS ---

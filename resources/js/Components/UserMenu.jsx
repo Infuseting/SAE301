@@ -32,6 +32,10 @@ export default function UserMenu({ user }) {
                         {messages.profile || 'Profile'}
                     </Dropdown.Link>
 
+                    <Dropdown.Link href={route('profile.invitations')}>
+                        MES INVITATIONS
+                    </Dropdown.Link>
+
                     <Dropdown.Link href={route('raids.index')}>
                         {messages.raids || 'Raids'}
                     </Dropdown.Link>

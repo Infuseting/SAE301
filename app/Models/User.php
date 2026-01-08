@@ -246,11 +246,43 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has valid credentials (PPS OR License).
+     * 
+     * @return bool
+     */
+    public function hasValidCredentials(): bool
+    {
+        $hasLicense = false;
+        $hasPPS = false;
+        $now = now();
+
+        // Check License
+        if ($this->member && $this->member->adh_end_validity) {
+            $hasLicense = $now->lessThan($this->member->adh_end_validity);
+        }
+
+        // Check PPS
+        if ($this->medicalDoc && $this->medicalDoc->doc_end_validity) {
+            $hasPPS = $now->lessThan($this->medicalDoc->doc_end_validity);
+        }
+
+        return $hasLicense || $hasPPS;
+    }
+
+    /**
      * Get team invitations received by this user.
      */
     public function teamInvitations()
     {
         return $this->hasMany(TeamInvitation::class, 'invitee_id');
+    }
+
+    /**
+     * Get team invitations received by this user's email.
+     */
+    public function teamInvitationsByEmail()
+    {
+        return $this->hasMany(TeamInvitation::class, 'email', 'email');
     }
 
     /**
@@ -274,7 +306,7 @@ class User extends Authenticatable
      */
     public function clubInvitations()
     {
-        return $this->hasMany(ClubInvitation::class, 'invitee_id');
+        return $this->hasMany(ClubInvitation::class, 'email', 'email');
     }
 
     /**
@@ -294,28 +326,31 @@ class User extends Authenticatable
     }
 
     /**
-     * Get all pending invitations (team + club) for this user.
+     * Get temporary team invitations received by this user.
+     */
+    public function temporaryTeamInvitations()
+    {
+        return $this->hasMany(TemporaryTeamInvitation::class, 'email', 'email');
+    }
+
+    /**
+     * Get all pending invitations (team + club + temporary team) for this user.
      */
     public function getAllPendingInvitations(): array
     {
         return [
-            'team' => $this->pendingTeamInvitations()->with(['inviter', 'team', 'registration.race'])->get(),
+            'team' => $this->teamInvitations()->pending()->get()
+                ->merge($this->teamInvitationsByEmail()->pending()->get())
+                ->unique('id')
+                ->load(['inviter', 'team.users', 'race']),
+            'temp_team' => $this->temporaryTeamInvitations()
+                ->where('status', 'pending')
+                ->where('expires_at', '>', now())
+                ->with(['inviter', 'registration.race', 'registration.user'])
+                ->get(),
             'club' => $this->pendingClubInvitations()->with(['inviter', 'club'])->get(),
         ];
     }
 
-    /**
-     * Check if user has valid licence or PPS code for race registration.
-     */
-    public function hasValidCredentials(): bool
-    {
-        if ($this->member && $this->member->adh_license) {
-            $validity = $this->member->adh_end_validity;
-            if ($validity && \Carbon\Carbon::parse($validity)->isFuture()) {
-                return true;
-            }
-        }
-        // Add PPS check if stored in medical doc or elsewhere
-        return false;
-    }
+
 }

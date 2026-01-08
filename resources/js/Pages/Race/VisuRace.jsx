@@ -13,6 +13,18 @@ export default function VisuRace({ auth, race, isManager, participants = [], use
     const translations = usePage().props.translations?.messages || {};
     const [showRegistrationModal, setShowRegistrationModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+
+    const handleOpenEdit = () => {
+        setShowViewModal(false);
+        setEditMode(true);
+        setShowRegistrationModal(true);
+    };
+
+    const handleCloseRegistration = () => {
+        setShowRegistrationModal(false);
+        setEditMode(false);
+    };
 
     // If race not found, display error message
     if (error || !race) {
@@ -144,71 +156,101 @@ export default function VisuRace({ auth, race, isManager, participants = [], use
                             </div>
 
                             {/* Manager Panel */}
-                            {isManager && (
-                                <div className="space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <h2 className="text-2xl font-black text-blue-900 italic uppercase">Gestion des Inscriptions</h2>
-                                        <span className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase">
-                                            {participants.length} INSCRITS
-                                        </span>
-                                    </div>
+                            {/* Manager Section */}
+                            {
+                                isManager && (
+                                    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+                                        <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-xl border border-blue-100">
+                                            <div className="flex items-center justify-between mb-8">
+                                                <h2 className="text-2xl font-black text-blue-900 uppercase italic">
+                                                    ZONE GESTIONNAIRE
+                                                </h2>
+                                                <span className="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider">
+                                                    {participants.length} INSCRITS
+                                                </span>
+                                            </div>
 
-                                    <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-blue-50">
-                                        <div className="overflow-x-auto">
-                                            <table className="min-w-full divide-y divide-blue-50">
-                                                <thead className="bg-blue-50/50">
-                                                    <tr>
-                                                        <th className="px-8 py-5 text-left text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Participant / Équipe</th>
-                                                        <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Licence</th>
-                                                        <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">PPS</th>
-                                                        <th className="px-8 py-5 text-right text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Validation</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-blue-50">
-                                                    {participants.map((p, idx) => (
-                                                        <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
-                                                            <td className="px-8 py-6">
-                                                                <div className="flex items-center gap-4">
-                                                                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center font-black text-blue-600 uppercase italic">
-                                                                        {p.first_name[0]}{p.last_name[0]}
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="text-sm font-black text-blue-900 uppercase italic">{p.first_name} {p.last_name}</p>
-                                                                        <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">{p.equ_name}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-8 py-6 text-center">
-                                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase ${p.is_license_valid ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                                                                    {p.is_license_valid ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-                                                                    {p.adh_license || 'SANS'}
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-8 py-6 text-center">
-                                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase ${p.is_pps_valid ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                                                                    {p.is_pps_valid ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-                                                                    {p.pps_number ? 'VALIDE' : 'REQUIS'}
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-8 py-6 text-right">
-                                                                {p.reg_validated ? (
-                                                                    <span className="text-emerald-500 bg-emerald-50 p-2 rounded-xl block ml-auto w-fit">
-                                                                        <UserCheck className="h-5 w-5" />
-                                                                    </span>
-                                                                ) : (
-                                                                    <button className="text-blue-400 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-xl">
-                                                                        <ChevronRight className="h-5 w-5" />
-                                                                    </button>
-                                                                )}
-                                                            </td>
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full">
+                                                    <thead>
+                                                        <tr className="border-b-2 border-slate-100">
+                                                            <th className="text-left py-4 px-4 text-xs font-black text-slate-400 uppercase tracking-widest">Participant</th>
+                                                            <th className="text-left py-4 px-4 text-xs font-black text-slate-400 uppercase tracking-widest">Équipe</th>
+                                                            <th className="text-left py-4 px-4 text-xs font-black text-slate-400 uppercase tracking-widest">Email</th>
+                                                            <th className="text-left py-4 px-4 text-xs font-black text-slate-400 uppercase tracking-widest">Licence / PPS</th>
+                                                            <th className="text-left py-4 px-4 text-xs font-black text-slate-400 uppercase tracking-widest">Statut</th>
                                                         </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-50">
+                                                        {participants.map((p, idx) => (
+                                                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                                                <td className="py-4 px-4">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                                                            {p.first_name?.[0] || '?'}
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="font-bold text-slate-700">{p.first_name} {p.last_name}</p>
+                                                                            {p.is_leader && (
+                                                                                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                                                                                    Chef d'équipe
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="py-4 px-4 text-slate-600 font-medium">
+                                                                    {p.equ_name}
+                                                                </td>
+                                                                <td className="py-4 px-4 text-slate-500 text-sm">
+                                                                    {p.email}
+                                                                </td>
+                                                                <td className="py-4 px-4">
+                                                                    <div className="space-y-1">
+                                                                        {p.adh_license ? (
+                                                                            <div className={`text-xs px-2 py-1 rounded-lg inline-flex items-center gap-1 ${p.is_license_valid ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                                                                                <ShieldCheck className="w-3 h-3" />
+                                                                                Licence: {p.adh_license}
+                                                                            </div>
+                                                                        ) : p.pps_number ? (
+                                                                            <div className={`text-xs px-2 py-1 rounded-lg inline-flex items-center gap-1 ${p.is_pps_valid ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                                                                                <FileText className="w-3 h-3" />
+                                                                                PPS: Valide
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-xs text-slate-400 italic">Aucun document</span>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="py-4 px-4">
+                                                                    {p.status === 'confirmed' && (
+                                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-700">
+                                                                            <CheckCircle2 className="w-3.5 h-3.5" />
+                                                                            VALIDÉ
+                                                                        </span>
+                                                                    )}
+                                                                    {p.status === 'missing_credentials' && (
+                                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-red-100 text-red-700">
+                                                                            <AlertCircle className="w-3.5 h-3.5" />
+                                                                            MANQUE DOCS
+                                                                        </span>
+                                                                    )}
+                                                                    {p.status === 'invitation_pending' && (
+                                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-700">
+                                                                            <Clock className="w-3.5 h-3.5" />
+                                                                            INVIT. ATTENTE
+                                                                        </span>
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )
+                            }
                         </div>
 
                         {/* Right Side: Sidebar */}
@@ -280,10 +322,17 @@ export default function VisuRace({ auth, race, isManager, participants = [], use
                                 <div className="space-y-4">
                                     {[
                                         { label: 'Tarif Majeur', price: race.priceMajor, isMain: true },
-                                        { label: 'Tarif Mineur', price: race.priceMinor },
+                                        { label: 'Tarif Mineur', price: race.priceMinor, showOnlyIfNotCompetitive: true },
                                         { label: 'Tarif Adhérent Majeur', price: race.priceMajorAdherent, sub: 'Licenciés club' },
-                                        { label: 'Tarif Adhérent Mineur', price: race.priceMinorAdherent, sub: 'Licenciés club' },
-                                    ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
+                                        { label: 'Tarif Adhérent Mineur', price: race.priceMinorAdherent, sub: 'Licenciés club', showOnlyIfNotCompetitive: true },
+                                    ].filter(t => {
+                                        // Filter out null/undefined prices
+                                        if (t.price === null || t.price === undefined) return false;
+                                        // Filter out minor prices in competitive mode
+                                        const isCompetitive = race.raceType?.toLowerCase() === 'compétitif' || race.raceType?.toLowerCase() === 'competitif';
+                                        if (t.showOnlyIfNotCompetitive && isCompetitive) return false;
+                                        return true;
+                                    }).map((t, idx) => (
                                         <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${t.isMain ? 'bg-blue-900 text-white border-blue-900 shadow-xl shadow-blue-200' : 'bg-blue-50/30 border-blue-50 text-blue-900'}`}>
                                             <div>
                                                 <p className={`text-[10px] font-black uppercase tracking-widest ${t.isMain ? 'text-blue-100/40' : 'text-blue-400'}`}>{t.label}</p>
@@ -341,11 +390,15 @@ export default function VisuRace({ auth, race, isManager, participants = [], use
                 </div>
             </div>
 
+
+
             {/* Registration Modal */}
             <RegistrationModal
                 isOpen={showRegistrationModal}
-                onClose={() => setShowRegistrationModal(false)}
+                onClose={handleCloseRegistration}
                 race={race}
+                editMode={editMode}
+                initialData={userRegistration}
             />
 
             {/* View Registration Modal */}
@@ -354,7 +407,8 @@ export default function VisuRace({ auth, race, isManager, participants = [], use
                 onClose={() => setShowViewModal(false)}
                 race={race}
                 registration={userRegistration}
+                onEdit={handleOpenEdit}
             />
-        </AuthenticatedLayout>
+        </AuthenticatedLayout >
     );
 }

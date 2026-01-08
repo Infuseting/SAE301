@@ -8,25 +8,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
 /**
- * TeamInvitation model - Handles invitations to join teams for races.
- * Supports both existing users and email-based invitations for new users.
+ * TemporaryTeamInvitation model - Handles invitations for temporary race teams.
+ * Supports email-based invitations with token authentication.
  */
-class TeamInvitation extends Model
+class TemporaryTeamInvitation extends Model
 {
     use HasFactory;
 
     /**
      * The table associated with the model.
      */
-    protected $table = 'team_invitations';
+    protected $table = 'temporary_team_invitations';
 
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'equ_id',
-        'race_id',
-        'invited_by',
+        'registration_id',
+        'inviter_id',
         'email',
         'token',
         'status',
@@ -55,26 +54,17 @@ class TeamInvitation extends Model
                 $invitation->token = Str::random(64);
             }
             if (empty($invitation->expires_at)) {
-                // Default: 7 days
                 $invitation->expires_at = now()->addDays(7);
             }
         });
     }
 
     /**
-     * Get the race this invitation is for.
+     * Get the registration this invitation belongs to.
      */
-    public function race(): BelongsTo
+    public function registration(): BelongsTo
     {
-        return $this->belongsTo(Race::class, 'race_id', 'race_id');
-    }
-
-    /**
-     * Get the team this invitation is for.
-     */
-    public function team(): BelongsTo
-    {
-        return $this->belongsTo(Team::class, 'equ_id', 'equ_id');
+        return $this->belongsTo(RaceRegistration::class, 'registration_id', 'reg_id');
     }
 
     /**
@@ -90,7 +80,15 @@ class TeamInvitation extends Model
      */
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === 'pending' && !$this->isExpired();
+    }
+
+    /**
+     * Check if invitation is expired.
+     */
+    public function isExpired(): bool
+    {
+        return $this->expires_at->isPast() || $this->status === 'expired';
     }
 
     /**
@@ -127,19 +125,22 @@ class TeamInvitation extends Model
     }
 
     /**
+     * Scope for expired invitations.
+     */
+    public function scopeExpired($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('expires_at', '<=', now())
+                ->orWhere('status', 'expired');
+        });
+    }
+
+    /**
      * Scope for invitations by email.
      */
     public function scopeByEmail($query, string $email)
     {
         return $query->where('email', $email);
-    }
-
-    /**
-     * Scope for invitations for a specific user.
-     */
-    public function scopeForUser($query, User $user)
-    {
-        return $query->where('email', $user->email);
     }
 
     /**

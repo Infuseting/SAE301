@@ -40,20 +40,13 @@ class ClubInvitationController extends Controller
         }
 
         $validated = $request->validate([
-            'invitee_id' => 'nullable|exists:users,id',
-            'email' => 'required_without:invitee_id|email',
+            'email' => 'required|email',
             'role' => 'nullable|string|in:member,manager',
         ]);
 
         // Check if invitation already exists
         $existingInvitation = ClubInvitation::where('club_id', $club->club_id)
-            ->where(function ($q) use ($validated) {
-                if ($validated['invitee_id'] ?? null) {
-                    $q->where('invitee_id', $validated['invitee_id']);
-                } else {
-                    $q->where('email', $validated['email']);
-                }
-            })
+            ->where('email', $validated['email'])
             ->pending()
             ->first();
 
@@ -81,9 +74,8 @@ class ClubInvitationController extends Controller
         // Create invitation
         $invitation = ClubInvitation::create([
             'club_id' => $club->club_id,
-            'inviter_id' => $user->id,
-            'invitee_id' => $validated['invitee_id'] ?? null,
-            'email' => $validated['email'] ?? null,
+            'invited_by' => $user->id,
+            'email' => $validated['email'],
             'role' => $validated['role'] ?? 'member',
         ]);
 
@@ -103,30 +95,21 @@ class ClubInvitationController extends Controller
      * @param ClubInvitation $invitation
      * @return JsonResponse
      */
-    public function accept(ClubInvitation $invitation): JsonResponse
+    public function accept(ClubInvitation $invitation)
     {
         $user = auth()->user();
 
         // Verify the invitation is for this user
-        if ($invitation->invitee_id !== $user->id) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.invalid_invitation'),
-            ], 403);
+        if ($invitation->email !== $user->email) {
+            return back()->with('error', __('messages.invalid_invitation'));
         }
 
         if ($invitation->isExpired()) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.invitation_expired'),
-            ], 422);
+            return back()->with('error', __('messages.invitation_expired'));
         }
 
         if (!$invitation->isPending()) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.invitation_already_processed'),
-            ], 422);
+            return back()->with('error', __('messages.invitation_already_processed'));
         }
 
         // Accept the invitation
@@ -140,10 +123,15 @@ class ClubInvitationController extends Controller
             ]
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => __('messages.invitation_accepted'),
-        ]);
+        if (request()->wantsJson() && !request()->header('X-Inertia')) {
+            return response()->json([
+                'success' => true,
+                'message' => __('messages.invitation_accepted'),
+            ]);
+        }
+
+        return redirect()->route('clubs.show', $invitation->club_id)
+            ->with('success', __('messages.invitation_accepted'));
     }
 
     /**
@@ -152,31 +140,29 @@ class ClubInvitationController extends Controller
      * @param ClubInvitation $invitation
      * @return JsonResponse
      */
-    public function reject(ClubInvitation $invitation): JsonResponse
+    public function reject(ClubInvitation $invitation)
     {
         $user = auth()->user();
 
         // Verify the invitation is for this user
-        if ($invitation->invitee_id !== $user->id) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.invalid_invitation'),
-            ], 403);
+        if ($invitation->email !== $user->email) {
+            return back()->with('error', __('messages.invalid_invitation'));
         }
 
         if (!$invitation->isPending()) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.invitation_already_processed'),
-            ], 422);
+            return back()->with('error', __('messages.invitation_already_processed'));
         }
 
         $invitation->reject();
 
-        return response()->json([
-            'success' => true,
-            'message' => __('messages.invitation_rejected'),
-        ]);
+        if (request()->wantsJson() && !request()->header('X-Inertia')) {
+            return response()->json([
+                'success' => true,
+                'message' => __('messages.invitation_rejected'),
+            ]);
+        }
+
+        return back()->with('success', __('messages.invitation_rejected'));
     }
 
     /**

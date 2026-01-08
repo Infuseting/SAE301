@@ -18,7 +18,7 @@ import RegistrationConfirmStep from './RegistrationConfirmStep';
  * @param {function} onClose - Close modal handler
  * @param {object} race - Race data object
  */
-export default function RegistrationModal({ isOpen, onClose, race }) {
+export default function RegistrationModal({ isOpen, onClose, race, editMode = false, initialData = null }) {
     const { auth } = usePage().props;
     const user = auth?.user;
     const translations = usePage().props.translations?.messages || {};
@@ -39,13 +39,45 @@ export default function RegistrationModal({ isOpen, onClose, race }) {
         temporaryTeamMembers: [],
     });
 
+    // Initialize data if in edit mode
+    useEffect(() => {
+        if (isOpen && editMode && initialData) {
+            setRegistrationData({
+                isCreatorParticipating: initialData.is_creator_participating,
+                selectedTeam: initialData.team,
+                isTemporaryTeam: initialData.is_temporary_team,
+                temporaryTeamMembers: (initialData.team_members || []).map(m => ({
+                    ...m,
+                    name: m.name || (m.email ? m.email.split('@')[0] : '')
+                })),
+            });
+            // Skip directly to TeamCreateStep if it's a temporary team Edit
+            if (initialData.is_temporary_team) {
+                // We'll calculate the step index in getSteps
+            }
+        }
+    }, [isOpen, editMode, initialData]);
+
     // Define steps based on user state
     const getSteps = () => {
         const steps = [];
 
+        if (editMode && initialData) {
+            // Edit Mode Steps
+            if (initialData.is_temporary_team) {
+                steps.push({ id: 'create', label: 'Modifier', component: TeamCreateStep });
+                steps.push({ id: 'confirm', label: 'Confirmation', component: RegistrationConfirmStep });
+            } else {
+                // Permanent team edit NOT supported here (usually handled via team management)
+                steps.push({ id: 'options', label: 'Options', component: RegistrationOptionsStep });
+            }
+            return steps;
+        }
+
+        // Standard Registration Steps
         // Step 1: Auth (only if not logged in)
         if (!user) {
-            steps.push({ id: 'auth', label: 'Connexion', component: AuthRequiredStep });
+            steps.push({ id: 'auth', label: 'Connexion', component: AuthRequiredStep, props: { raceId: race?.id } });
         }
 
         // Step 2: Licence (only if no valid credentials)
@@ -128,15 +160,23 @@ export default function RegistrationModal({ isOpen, onClose, race }) {
         };
 
         try {
-            const response = await fetch(route('race.register', race.id), {
-                method: 'POST',
+            const url = editMode
+                ? route('race.registration.update', initialData.id)
+                : route('race.register', race.id);
+            const method = editMode ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-XSRF-TOKEN': getCsrfToken(),
                 },
                 credentials: 'same-origin',
-                body: JSON.stringify({
+                body: JSON.stringify(editMode ? {
+                    temporary_team_data: registrationData.temporaryTeamMembers,
+                    is_creator_participating: registrationData.isCreatorParticipating,
+                } : {
                     team_id: registrationData.selectedTeam?.id || null,
                     is_temporary_team: registrationData.isTemporaryTeam,
                     temporary_team_data: registrationData.temporaryTeamMembers,

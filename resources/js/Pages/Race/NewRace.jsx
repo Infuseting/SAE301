@@ -21,7 +21,7 @@ const extractDateTime = (dateTimeStr) => {
     }
 };
 
-export default function NewRace({ auth, users = [], types = [], raid_id = null, raid = null }) {
+export default function NewRace({ auth, users = [], types = [], raid_id = null, raid = null, race = null }) {
     // Extract raid date limits for validation
     const raidStart = raid?.raid_date_start ? extractDateTime(raid.raid_date_start) : { date: '', time: '' };
     const raidEnd = raid?.raid_date_end ? extractDateTime(raid.raid_date_end) : { date: '', time: '' };

@@ -77,6 +77,14 @@ class RaceRegistration extends Model
     }
 
     /**
+     * Alias for registeredBy() for consistency.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
      * Get invitations sent for this registration (temporary teams).
      */
     public function invitations(): HasMany
@@ -136,7 +144,7 @@ class RaceRegistration extends Model
 
         // For permanent teams, get members from the team
         if ($this->team && $this->team->users) {
-            return $this->team->users->map(function ($user) {
+            $members = $this->team->users->map(function ($user) {
                 return [
                     'user_id' => $user->id,
                     'email' => $user->email,
@@ -144,6 +152,18 @@ class RaceRegistration extends Model
                     'status' => 'confirmed',
                 ];
             })->toArray();
+
+            // Always remove the registration creator from members list
+            // They are displayed separately as team leader
+            if ($this->user_id) {
+                $members = array_filter($members, function ($member) {
+                    return $member['user_id'] !== $this->user_id;
+                });
+                // Reindex array
+                $members = array_values($members);
+            }
+
+            return $members;
         }
 
         return [];
@@ -189,11 +209,70 @@ class RaceRegistration extends Model
         $members = $this->temporary_team_data ?? [];
 
         foreach ($members as $member) {
-            if (($member['status'] ?? '') !== 'confirmed') {
+            if (($member['status'] ?? '') !== 'accepted') {
                 return false;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Check if team meets race requirements.
+     */
+    public function isTeamComplete(): bool
+    {
+        if (!$this->race) {
+            return false;
+        }
+
+        $teamParams = $this->race->teamParams;
+        if (!$teamParams) {
+            return true;
+        }
+
+        $memberCount = count($this->getTeamMembers());
+        $minMembers = $teamParams->pae_nb_min ?? 1;
+
+        return $memberCount >= $minMembers;
+    }
+
+    /**
+     * Check if registration can be edited.
+     */
+    public function canEdit(): bool
+    {
+        // Can edit if:
+        // - Uses temporary team
+        // - Is team leader
+        // - Status is pending or confirmed
+        // - Race hasn't started yet
+        return $this->is_temporary_team
+            && $this->is_team_leader
+            && in_array($this->status, ['pending', 'confirmed'])
+            && $this->race
+            && $this->race->race_date_start
+            && now()->isBefore($this->race->race_date_start);
+    }
+
+    /**
+     * Get count of pending invitations.
+     */
+    public function getPendingInvitationsCount(): int
+    {
+        if (!$this->usesTemporaryTeam()) {
+            return 0;
+        }
+
+        $members = $this->temporary_team_data ?? [];
+        $pendingCount = 0;
+
+        foreach ($members as $member) {
+            if (($member['status'] ?? '') === 'pending') {
+                $pendingCount++;
+            }
+        }
+
+        return $pendingCount;
     }
 }
