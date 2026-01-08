@@ -16,8 +16,9 @@ export default function UpdateProfileInformation({
     const user = usePage().props.auth.user;
     const messages = usePage().props.translations?.messages || {};
     const [showLicenseModal, setShowLicenseModal] = useState(false);
+    const [skipLicense, setSkipLicense] = useState(false);
 
-    const { data, setData, post, errors, processing, recentlySuccessful, clearErrors } =
+    const { data, setData, post, errors, processing, recentlySuccessful, clearErrors, transform } =
         useForm({
             first_name: user.first_name,
             last_name: user.last_name,
@@ -32,6 +33,15 @@ export default function UpdateProfileInformation({
             _method: 'PATCH',
         });
 
+    // Transform data before sending - remove license_number if user chose to skip
+    transform((data) => {
+        if (skipLicense) {
+            const { license_number, ...rest } = data;
+            return rest;
+        }
+        return data;
+    });
+
     const submit = (e) => {
         e.preventDefault();
 
@@ -39,9 +49,12 @@ export default function UpdateProfileInformation({
             forceFormData: true,
             onError: (errors) => {
                 // If there's a license number error, show the modal
-                if (errors.license_number && data.license_number) {
+                if (errors.license_number && data.license_number && !skipLicense) {
                     setShowLicenseModal(true);
                 }
+            },
+            onSuccess: () => {
+                setSkipLicense(false);
             }
         });
     };
@@ -50,32 +63,25 @@ export default function UpdateProfileInformation({
         setShowLicenseModal(false);
         clearErrors('license_number');
         
-        // Create FormData with all current data except license_number set to empty
-        const formData = new FormData();
-        formData.append('first_name', data.first_name);
-        formData.append('last_name', data.last_name);
-        formData.append('email', data.email);
-        formData.append('description', data.description || '');
-        formData.append('birth_date', data.birth_date);
-        formData.append('address', data.address);
-        formData.append('phone', data.phone);
-        formData.append('license_number', ''); // Empty license number
-        formData.append('is_public', data.is_public ? '1' : '0');
-        formData.append('_method', 'PATCH');
+        // Restore the original license value in the input
+        setData('license_number', user.license_number || '');
         
-        if (data.photo) {
-            formData.append('photo', data.photo);
-        }
+        // Mark to skip license in the next submission
+        setSkipLicense(true);
         
-        // Submit with the FormData
-        post(route('profile.update'), {
-            data: formData,
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                setData('license_number', '');
-            }
-        });
+        // Trigger form submission without license_number
+        setTimeout(() => {
+            post(route('profile.update'), {
+                forceFormData: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    setSkipLicense(false);
+                },
+                onError: () => {
+                    setSkipLicense(false);
+                }
+            });
+        }, 0);
     };
 
     return (
