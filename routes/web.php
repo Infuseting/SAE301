@@ -38,6 +38,10 @@ Route::get('/map', [MapController::class, 'index'])->name('map.index');
 Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
 Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show')->whereNumber('raid');
 
+//myRaid
+Route::get('/my-raid', [App\Http\Controllers\Raid\MyRaidController::class, 'index'])->name('myraid.index');
+
+
 
 //myRace
 Route::get('/my-race', [MyRaceController::class, 'index'])->name('myrace.index');

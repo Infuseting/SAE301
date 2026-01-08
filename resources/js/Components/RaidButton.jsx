@@ -1,23 +1,22 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
-import { RiRunLine } from "react-icons/ri";
-import { BiSolidTimer } from "react-icons/bi";
-
-export default function MyRaceButton() {
+import { FaRegCompass } from "react-icons/fa6";
+import { FaTrophy } from "react-icons/fa";
+import { LuLayoutGrid } from "react-icons/lu";
+export default function RaidButton() {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const messages = usePage().props.translations?.messages || {};
     const user = usePage().props.auth.user;
-
     return (
         <div className="relative text-center" ref={dropdownRef}>
             {/* Dropdown Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center px-3 py-2 md:border border-transparent text-md leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
+                className="inline-flex items-center  px-3 py-2 border border-transparent text-md leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
             >
-                <RiRunLine className="h-5 w-5 mr-1" />
-                {messages.course || "Courses"}
+                <FaRegCompass className="h-5 w-5 mr-1" />
+                {messages.raids || "Raids"}
                 <svg
                     className={`ml-2 h-4 w-4 transition-transform ${
                         isOpen ? "rotate-180" : ""
@@ -37,14 +36,23 @@ export default function MyRaceButton() {
             {/* Dropdown Menu */}
             {isOpen && (
                 <div className="md:absolute right-0 mt-2 w-56 rounded-md md:shadow-lg shadow-sm bg-white ring-1 ring-black ring-opacity-5 z-50">
-                    <div className="py-1"></div>
-                    <Link
-                        href={route("myrace.index")}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:rounded-md text-left"
-                    >
-                        <BiSolidTimer className="inline mr-2 mb-1" />
-                        {messages.my_courses || "Mes courses"}
-                    </Link>
+                    <div className="py-1">
+                        {" "}
+                        <Link
+                            href={route("raids.index")}
+                            className="block px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                        >
+                            <LuLayoutGrid className="inline mr-2 mb-1" />
+                            {messages.raids || "Voir tous les raids"}
+                        </Link>
+                        <Link
+                            href={route("myraid.index")}
+                            className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                            <FaTrophy className="inline mr-2 mb-1" />
+                            {messages.my_courses || "Mes raids"}
+                        </Link>
+                    </div>
                 </div>
             )}
         </div>
