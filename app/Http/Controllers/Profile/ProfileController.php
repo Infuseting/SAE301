@@ -196,10 +196,13 @@ class ProfileController extends Controller
         $user = $request->user();
         $data = $request->validated();
 
+        $licenseWasUpdated = false;
+
         // Handle License Number for Completion
         if (isset($data['license_number'])) {
             $licenseNumber = $data['license_number'];
             unset($data['license_number']);
+            $licenseWasUpdated = true;
 
             if ($licenseNumber) {
                 if ($user->member) {
@@ -212,10 +215,20 @@ class ProfileController extends Controller
                     ]);
                     $user->member()->associate($member);
                 }
+            } else {
+                // If license number is cleared/empty, remove adh_id from user
+                $user->adh_id = null;
             }
         }
 
         $user->update($data);
+
+        // Update role after saving user changes if license was updated
+        if ($licenseWasUpdated) {
+            // Refresh user and reload member relationship
+            $user->refresh()->load('member');
+            $this->licenceService->checkAndAssignAdherentRole($user);
+        }
 
         return Redirect::route('dashboard')->with('status', 'profile-completed');
     }

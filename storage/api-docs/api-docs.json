@@ -300,6 +300,247 @@
                 }
             }
         },
+        "/api/leaderboard/races": {
+            "get": {
+                "tags": [
+                    "Leaderboard"
+                ],
+                "summary": "Get list of races with leaderboards",
+                "operationId": "cd8f151dedbd5208912312bb0049bb27",
+                "responses": {
+                    "200": {
+                        "description": "List of races",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "race_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "race_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "race_date_start": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/leaderboard/{raceId}/individual": {
+            "get": {
+                "tags": [
+                    "Leaderboard"
+                ],
+                "summary": "Get individual leaderboard for a race",
+                "operationId": "bd10a9b312c81bbb6a1064b87576f216",
+                "parameters": [
+                    {
+                        "name": "raceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by user name or email",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Individual leaderboard results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/LeaderboardUser"
+                                            }
+                                        },
+                                        "current_page": {
+                                            "type": "integer"
+                                        },
+                                        "last_page": {
+                                            "type": "integer"
+                                        },
+                                        "per_page": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/leaderboard/{raceId}/teams": {
+            "get": {
+                "tags": [
+                    "Leaderboard"
+                ],
+                "summary": "Get team leaderboard for a race",
+                "operationId": "1993d7e92028fd98d257ae924453a1a8",
+                "parameters": [
+                    {
+                        "name": "raceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by team name",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Team leaderboard results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/LeaderboardTeam"
+                                            }
+                                        },
+                                        "current_page": {
+                                            "type": "integer"
+                                        },
+                                        "last_page": {
+                                            "type": "integer"
+                                        },
+                                        "per_page": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/leaderboard/{raceId}/user/{userId}": {
+            "get": {
+                "tags": [
+                    "Leaderboard"
+                ],
+                "summary": "Get specific user result in a race",
+                "operationId": "606d6129c4a663a71deb96383ccfbc4e",
+                "parameters": [
+                    {
+                        "name": "raceId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/LeaderboardUser"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Result not found"
+                    }
+                }
+            }
+        },
         "/api/user": {
             "get": {
                 "tags": [
@@ -330,6 +571,183 @@
                 ]
             }
         },
+        "/api/users/search": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Search users",
+                "description": "Returns users matching the search query for team creation",
+                "operationId": "searchUsers",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query (name or email)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 2
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "first_name": {
+                                                "type": "string"
+                                            },
+                                            "last_name": {
+                                                "type": "string"
+                                            },
+                                            "email": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Query parameter is required"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/user/set-password": {
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Set user password",
+                "description": "Sets the password for the authenticated user (typically for social login users)",
+                "operationId": "d2c0f0aaa3f34b36378e84042b60d602",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "new-password"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "new-password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Password updated successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/auth/{provider}/redirect": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Social Login Redirect",
+                "description": "Redirects the user to the OAuth provider (google, strava)",
+                "operationId": "9092f286b6771e3c94836b77bde93711",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "description": "The social provider",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "google"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect to provider"
+                    }
+                }
+            }
+        },
+        "/auth/{provider}/callback": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Social Login Callback",
+                "description": "Handle the callback from the OAuth provider",
+                "operationId": "bbb1507d0929f5cb8af8b8cc694b16f4",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "description": "The social provider",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "google"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect to dashboard or login"
+                    }
+                }
+            }
+        },
         "/api/clubs": {
             "get": {
                 "tags": [
@@ -337,7 +755,7 @@
                 ],
                 "summary": "Get list of approved clubs",
                 "description": "Returns a paginated list of approved clubs with optional search and filters",
-                "operationId": "c44731a8866e74bcd14a6b4f0f1f82b6",
+                "operationId": "9801fd4de8b5507925aa5c5b3704aab3",
                 "parameters": [
                     {
                         "name": "search",
@@ -385,7 +803,7 @@
                 ],
                 "summary": "Create a new club",
                 "description": "Creates a new club (pending approval)",
-                "operationId": "4e37feabfe957444c16ab299c31af0a7",
+                "operationId": "e4e716fdc922ce7ed912221a3db204fd",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -416,7 +834,7 @@
                                     },
                                     "ffso_id": {
                                         "type": "string",
-                                        "example": "FFSO-12345"
+                                        "example": "FFCO-12345"
                                     },
                                     "description": {
                                         "type": "string",
@@ -461,7 +879,7 @@
                 ],
                 "summary": "Get club details",
                 "description": "Returns club details. Members list is only visible to club members.",
-                "operationId": "b5900ff997f9d991c3a388875d8971f8",
+                "operationId": "e469e87b3381918c3febaf97164b7945",
                 "parameters": [
                     {
                         "name": "id",
@@ -495,7 +913,7 @@
                 ],
                 "summary": "Update club details",
                 "description": "Updates club details (club managers only)",
-                "operationId": "9a7201b06d26cfc6aa54fe93f98774d2",
+                "operationId": "652fb3c2a6172f3f8cf1044073afe8c3",
                 "parameters": [
                     {
                         "name": "id",
@@ -571,7 +989,7 @@
                 ],
                 "summary": "Delete a club",
                 "description": "Deletes a club (admin or club manager only)",
-                "operationId": "7ae9561f331895c99ba0d047eb68ba96",
+                "operationId": "67d7c6ac76a047dc4926dfe18534e54e",
                 "parameters": [
                     {
                         "name": "id",
@@ -608,7 +1026,7 @@
                 ],
                 "summary": "Request to join a club",
                 "description": "Authenticated user requests to join a club",
-                "operationId": "5f72860d473c52f4eada0f8bf90bfa72",
+                "operationId": "5c9af1d26cd034b0be9926a1271010eb",
                 "parameters": [
                     {
                         "name": "id",
@@ -648,7 +1066,7 @@
                 ],
                 "summary": "Approve a join request",
                 "description": "Club manager approves a pending join request",
-                "operationId": "d217126399286f1322240bfab8023e70",
+                "operationId": "7323033a242943f62ca68972038f6845",
                 "parameters": [
                     {
                         "name": "clubId",
@@ -694,7 +1112,7 @@
                 ],
                 "summary": "Reject a join request",
                 "description": "Club manager rejects a pending join request",
-                "operationId": "0e0b60f1ddb503dcc7e943da23f21d3d",
+                "operationId": "afab0caa189c3143fe749f2bbdea977d",
                 "parameters": [
                     {
                         "name": "clubId",
@@ -740,7 +1158,7 @@
                 ],
                 "summary": "Remove a member from club",
                 "description": "Club manager removes a member from the club",
-                "operationId": "ab3e6bfac9f3bc8bd8524bf47baa656b",
+                "operationId": "8b2102327b059c02b8477e0f1ee512e5",
                 "parameters": [
                     {
                         "name": "clubId",
@@ -786,7 +1204,7 @@
                 ],
                 "summary": "Leave a club",
                 "description": "Authenticated user leaves a club they are a member of",
-                "operationId": "8f7251fbd160fd5be77253dae896d7d3",
+                "operationId": "9f9665a3312780b589de64d0ed341806",
                 "parameters": [
                     {
                         "name": "id",
@@ -807,6 +1225,98 @@
                     },
                     "404": {
                         "description": "Club not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs/{clubId}/members/{userId}/promote": {
+            "post": {
+                "tags": [
+                    "Club Members"
+                ],
+                "summary": "Promote a member to manager",
+                "description": "Club manager promotes a member to manager role",
+                "operationId": "9bcdee061e8d5f6e95096e755fdc82ef",
+                "parameters": [
+                    {
+                        "name": "clubId",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Member promoted to manager"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Member not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs/{clubId}/members/{userId}/demote": {
+            "post": {
+                "tags": [
+                    "Club Members"
+                ],
+                "summary": "Demote a manager to member",
+                "description": "Club manager demotes another manager to regular member",
+                "operationId": "be54e5725af833ebc5b8f376ccdd636a",
+                "parameters": [
+                    {
+                        "name": "clubId",
+                        "in": "path",
+                        "description": "Club ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Manager demoted to member"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "400": {
+                        "description": "Cannot demote last manager"
                     }
                 },
                 "security": [
@@ -1008,7 +1518,7 @@
                 ],
                 "summary": "Check registration eligibility",
                 "description": "Checks if the authenticated user is eligible to register for a specific race",
-                "operationId": "525d0e8e902ea4cecb00247fe0f44338",
+                "operationId": "ff000b341856cfeba72dec51c8cebbd5",
                 "parameters": [
                     {
                         "name": "race",
@@ -1080,7 +1590,7 @@
                 ],
                 "summary": "Register for a race",
                 "description": "Registers the authenticated user for a specific race",
-                "operationId": "53361e2a09fec00912756878fa1dbc83",
+                "operationId": "1ba54c3ca329557c6700fe3a1acfad2f",
                 "parameters": [
                     {
                         "name": "race",
@@ -1160,18 +1670,23 @@
                     "Raids"
                 ],
                 "summary": "Get list of raids",
-                "description": "Returns list of all raids",
-                "operationId": "7383b27b4f0f3318f1bbaf594f189c31",
+                "description": "Returns all raids with related data for client-side filtering",
+                "operationId": "e98fa53564fcc9dc859d64ae5d5b94d7",
                 "responses": {
                     "200": {
                         "description": "Successful operation",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Raid"
-                                    }
+                                    "properties": {
+                                        "raids": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Raid"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1184,7 +1699,7 @@
                 ],
                 "summary": "Create a new raid",
                 "description": "Creates a new raid event. Only responsable-club can create raids.",
-                "operationId": "0b6a230086167f7a174917a7d4f4147c",
+                "operationId": "341d65a05c602741f0b9c8a18f9d1b99",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1314,7 +1829,7 @@
                 ],
                 "summary": "Get raid by ID",
                 "description": "Returns a single raid",
-                "operationId": "68387e0d2c9afb312cf35d19d2673da7",
+                "operationId": "d413a012728d0473397a134f277d5902",
                 "parameters": [
                     {
                         "name": "id",
@@ -1347,7 +1862,7 @@
                 ],
                 "summary": "Update raid",
                 "description": "Updates an existing raid",
-                "operationId": "ba2b5897eb580d5203730de7e02e28e0",
+                "operationId": "992240f4a74a2e2176f21b7b11726080",
                 "parameters": [
                     {
                         "name": "id",
@@ -1401,7 +1916,7 @@
                 ],
                 "summary": "Delete raid",
                 "description": "Deletes a raid",
-                "operationId": "ee76ac9a2e8d0f3ab51e7ca249790877",
+                "operationId": "7070b42480e1f4cc12835d4a83300f58",
                 "parameters": [
                     {
                         "name": "id",
@@ -1430,121 +1945,6 @@
                 ]
             }
         },
-        "/user/set-password": {
-            "put": {
-                "tags": [
-                    "Profile"
-                ],
-                "summary": "Set user password",
-                "description": "Sets the password for the authenticated user (typically for social login users)",
-                "operationId": "f42169590cddc344fa16ad50463857ed",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "password",
-                                    "password_confirmation"
-                                ],
-                                "properties": {
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "new-password"
-                                    },
-                                    "password_confirmation": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "new-password"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Password updated",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Password updated successfully"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                }
-            }
-        },
-        "/auth/{provider}/redirect": {
-            "get": {
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Social Login Redirect",
-                "description": "Redirects the user to the OAuth provider (google, strava)",
-                "operationId": "e5e9b27699f32085ee1b5fe32ad31cbe",
-                "parameters": [
-                    {
-                        "name": "provider",
-                        "in": "path",
-                        "description": "The social provider",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "google"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "302": {
-                        "description": "Redirect to provider"
-                    }
-                }
-            }
-        },
-        "/auth/{provider}/callback": {
-            "get": {
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Social Login Callback",
-                "description": "Handle the callback from the OAuth provider",
-                "operationId": "9bb78032557ba421a2eb86a61e143a34",
-                "parameters": [
-                    {
-                        "name": "provider",
-                        "in": "path",
-                        "description": "The social provider",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "google"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "302": {
-                        "description": "Redirect to dashboard or login"
-                    }
-                }
-            }
-        },
         "/api/team/age-thresholds": {
             "get": {
                 "tags": [
@@ -1552,7 +1952,7 @@
                 ],
                 "summary": "Get age thresholds",
                 "description": "Returns the current age thresholds (A, B, C) for team validation",
-                "operationId": "efd73c0a621ab9c964de0b500b8c8670",
+                "operationId": "e29009fb75e430e015db2654af4cc0ac",
                 "responses": {
                     "200": {
                         "description": "Age thresholds retrieved successfully",
@@ -1597,7 +1997,7 @@
                 ],
                 "summary": "Validate team ages",
                 "description": "Validates a team's age composition against the rules: all >= A, and if any < B then at least one >= C",
-                "operationId": "783a84e1d93e08b23fb0f2714626909b",
+                "operationId": "ef4e67c19bf5e850a24ce4270b5ff622",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1660,7 +2060,7 @@
                 ],
                 "summary": "Validate team by birthdates",
                 "description": "Validates a team's composition by calculating ages from birthdates",
-                "operationId": "11b2cd18c88f7df40048d7acb3d4bc16",
+                "operationId": "d3f7bf9e5890300895dc7dba7e599f0a",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1735,7 +2135,7 @@
                 ],
                 "summary": "Check participant eligibility",
                 "description": "Checks if a single participant meets the minimum age requirement",
-                "operationId": "3ef95bb35152694ff20944acb5108c29",
+                "operationId": "15f1b18edfdddbb8a96ae8c7323c2c8e",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1877,6 +2277,136 @@
                 },
                 "type": "object"
             },
+            "LeaderboardResult": {
+                "title": "LeaderboardResult",
+                "description": "Individual runner leaderboard result",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "race_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "temps": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 3600.5
+                    },
+                    "malus": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 60
+                    },
+                    "temps_final": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 3660.5
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "LeaderboardTeam": {
+                "title": "LeaderboardTeam",
+                "description": "Team leaderboard result with average scores",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "equ_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "race_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "average_temps": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 3600.5
+                    },
+                    "average_malus": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 60
+                    },
+                    "average_temps_final": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 3660.5
+                    },
+                    "member_count": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "LeaderboardUser": {
+                "title": "LeaderboardUser",
+                "description": "Individual runner leaderboard result",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "race_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "temps": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 3600.5
+                    },
+                    "malus": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 60
+                    },
+                    "temps_final": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 3660.5
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
             "MedicalDoc": {
                 "title": "Medical Document",
                 "description": "Medical document or PPS for a user",
@@ -1945,29 +2475,6 @@
                         "type": "string",
                         "format": "date-time",
                         "readOnly": true
-                    }
-                },
-                "type": "object"
-            },
-            "ParamDifficulty": {
-                "title": "ParamDifficulty",
-                "description": "Difficulty parameters model for races",
-                "properties": {
-                    "dif_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "dif_level": {
-                        "type": "string",
-                        "example": "medium"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time"
                     }
                 },
                 "type": "object"
@@ -2130,10 +2637,6 @@
                         "nullable": true
                     },
                     "raid_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "cla_id": {
                         "type": "integer",
                         "example": 1
                     },
@@ -2304,6 +2807,10 @@
         {
             "name": "Admin - Club Approval",
             "description": "Admin endpoints for club approval management"
+        },
+        {
+            "name": "Leaderboard",
+            "description": "API endpoints for leaderboard management"
         },
         {
             "name": "Clubs",

@@ -32,7 +32,7 @@ use OpenApi\Annotations as OA;
  * @property string $club_street
  * @property string $club_city
  * @property string $club_postal_code
- * @property string|null $ffso_id
+ * @property string|null $ffso_id FFCO club identifier
  * @property string|null $description
  * @property bool $is_approved
  * @property int|null $approved_by

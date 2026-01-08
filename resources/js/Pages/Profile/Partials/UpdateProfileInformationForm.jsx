@@ -5,6 +5,8 @@ import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import UserAvatar from '@/Components/UserAvatar';
+import LicenseValidationModal from '@/Components/LicenseValidationModal';
+import { useState } from 'react';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -13,8 +15,9 @@ export default function UpdateProfileInformation({
 }) {
     const user = usePage().props.auth.user;
     const messages = usePage().props.translations?.messages || {};
+    const [showLicenseModal, setShowLicenseModal] = useState(false);
 
-    const { data, setData, post, errors, processing, recentlySuccessful } =
+    const { data, setData, post, errors, processing, recentlySuccessful, clearErrors } =
         useForm({
             first_name: user.first_name,
             last_name: user.last_name,
@@ -34,11 +37,55 @@ export default function UpdateProfileInformation({
 
         post(route('profile.update'), {
             forceFormData: true,
+            onError: (errors) => {
+                // If there's a license number error, show the modal
+                if (errors.license_number && data.license_number) {
+                    setShowLicenseModal(true);
+                }
+            }
+        });
+    };
+
+    const handleConfirmWithoutLicense = () => {
+        setShowLicenseModal(false);
+        clearErrors('license_number');
+        
+        // Create FormData with all current data except license_number set to empty
+        const formData = new FormData();
+        formData.append('first_name', data.first_name);
+        formData.append('last_name', data.last_name);
+        formData.append('email', data.email);
+        formData.append('description', data.description || '');
+        formData.append('birth_date', data.birth_date);
+        formData.append('address', data.address);
+        formData.append('phone', data.phone);
+        formData.append('license_number', ''); // Empty license number
+        formData.append('is_public', data.is_public ? '1' : '0');
+        formData.append('_method', 'PATCH');
+        
+        if (data.photo) {
+            formData.append('photo', data.photo);
+        }
+        
+        // Submit with the FormData
+        post(route('profile.update'), {
+            data: formData,
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                setData('license_number', '');
+            }
         });
     };
 
     return (
         <section className={className}>
+            <LicenseValidationModal
+                show={showLicenseModal}
+                onClose={() => setShowLicenseModal(false)}
+                onConfirmWithoutLicense={handleConfirmWithoutLicense}
+            />
+            
             <header>
                 <h2 className="text-lg font-medium text-gray-900 ">
                     {messages.profile_information || 'Profile Information'}
@@ -229,14 +276,15 @@ export default function UpdateProfileInformation({
                     </div>
 
                     <div className="md:col-span-2">
-                        <InputLabel htmlFor="license_number" value="Numéro de Licence (Optionnel)" className="text-gray-700 font-medium mb-1" />
+                        <InputLabel htmlFor="license_number" value="Numéro de Licence FFCO (Optionnel)" className="text-gray-700 font-medium mb-1" />
                         <TextInput
                             id="license_number"
                             className="mt-1 block w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-[#9333ea] focus:ring-[#9333ea] transition-all duration-200"
                             value={data.license_number}
                             onChange={(e) => setData('license_number', e.target.value)}
-                            placeholder="Ex: 123456"
+                            placeholder="Ex: 123456 ou AB12345"
                         />
+                        <p className="mt-1 text-xs text-gray-500">Format : 5-6 chiffres ou 1-2 lettres suivies de 5-6 chiffres (Fédération Française de Course d'Orientation)</p>
                         <InputError className="mt-2" message={errors.license_number} />
                     </div>
                 </div>

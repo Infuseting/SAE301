@@ -121,7 +121,7 @@ class ClubController extends Controller
      *                 @OA\Property(property="club_street", type="string", example="123 Rue de la Paix"),
      *                 @OA\Property(property="club_city", type="string", example="Paris"),
      *                 @OA\Property(property="club_postal_code", type="string", example="75001"),
-     *                 @OA\Property(property="ffso_id", type="string", example="FFSO-12345"),
+     *                 @OA\Property(property="ffso_id", type="string", example="FFCO-12345"),
      *                 @OA\Property(property="description", type="string", example="Club description"),
      *                 @OA\Property(property="club_image", type="string", format="binary")
      *             )

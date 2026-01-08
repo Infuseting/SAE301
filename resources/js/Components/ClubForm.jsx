@@ -170,7 +170,7 @@ export default function ClubForm({ club = null, submitRoute, submitLabel }) {
                 </div>
             </div>
 
-            {/* FFSO ID - Now Required */}
+            {/* FFCO ID - Now Required */}
             <div>
                 <InputLabel htmlFor="ffso_id" value={messages.ffso_id} />
                 <TextInput
@@ -180,7 +180,7 @@ export default function ClubForm({ club = null, submitRoute, submitLabel }) {
                     value={data.ffso_id}
                     onChange={(e) => setData('ffso_id', e.target.value)}
                     required
-                    placeholder="Ex: FFSO-12345"
+                    placeholder="Ex: FFCO-12345"
                 />
                 <InputError message={errors.ffso_id} className="mt-2" />
             </div>

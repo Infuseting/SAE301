@@ -226,7 +226,7 @@ class LicenceRequirementTest extends TestCase
             'birth_date' => '1990-01-01',
             'address' => '123 Test Street',
             'phone' => '+33612345678',
-            'license_number' => 'NEW-LICENCE-2026',
+            'license_number' => 'AB123456',
         ]);
 
         // Verify requirement is now false
