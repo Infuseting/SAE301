@@ -401,7 +401,7 @@ class RaidController extends Controller
      */
     public function show(Raid $raid): Response
     {
-        $raid->load(['club', 'races.organizer.user', 'races.categorieAges.ageCategorie', 'registrationPeriod']);
+        $raid->load(['club', 'races.organizer.user', 'races.categorieAges.ageCategory', 'registrationPeriod']);
 
         $user = auth()->user();
         // Admin can manage all raids, otherwise check if user is raid manager or club manager
@@ -413,10 +413,10 @@ class RaidController extends Controller
             // Map age categories for display
             $ageCategories = $race->categorieAges->map(function ($categorieAge) {
                 return [
-                    'id' => $categorieAge->ageCategorie->id,
-                    'nom' => $categorieAge->ageCategorie->nom,
-                    'age_min' => $categorieAge->ageCategorie->age_min,
-                    'age_max' => $categorieAge->ageCategorie->age_max,
+                    'id' => $categorieAge->ageCategory->id,
+                    'nom' => $categorieAge->ageCategory->nom,
+                    'age_min' => $categorieAge->ageCategory->age_min,
+                    'age_max' => $categorieAge->ageCategory->age_max,
                 ];
             })->values();
 

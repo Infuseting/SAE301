@@ -84,7 +84,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         mealPrice: race?.race_meal_price || '',
         image: null,
         raid_id: race?.raid_id || raid_id || '',
-        selectedAgeCategories: race?.categorieAges?.map(pc => pc.ageCategorie.id) || [],
+        selectedAgeCategories: race?.categorieAges?.map(pc => pc.ageCategory?.id) || [],
     });
 
     // Date validation state

@@ -65,12 +65,18 @@ jobs:
           (cd /home/infuseting/docker && docker compose up -d sae301 --force-recreate)
           
           echo "=== Running Post-Deployment Commands ==="
+          docker exec sae301 php artisan cache:clear
+          docker exec sae301 php artisan config:clear
+          docker exec sae301 php artisan route:clear
+          docker exec sae301 php artisan view:clear
+          docker exec sae301 php artisan optimize:clear
+
           docker exec sae301 php artisan migrate 
           docker exec sae301 php artisan optimize
-          docker exec sae301 php artisan config:cache
           docker exec sae301 php artisan storage:link
           docker exec sae301 php artisan route:cache
           docker exec sae301 php artisan view:cache
+          
           
           docker exec sae301 php artisan l5-swagger:generate
           

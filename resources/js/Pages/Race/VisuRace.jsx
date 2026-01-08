@@ -48,7 +48,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
     const handleOpenRegistration = () => {
         if (registeredTeam) {
             setIsMyRegistrationModalOpen(true);
-        } else {L
+        } else {
             setIsTeamModalOpen(true);
         }
     };
@@ -89,6 +89,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
             </AuthenticatedLayout>
         );
     }
+
 
     const formatDate = (dateString) => {
         if (!dateString) return 'Non définie';
@@ -287,7 +288,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         <div className="space-y-3">
                                             {[
                                                 { label: 'Majeur', price: race.priceMajor, isMain: true },
-                                                { label: 'Mineur', price: race.priceMinor },
+                                                ...(!race.raceType === 'compétitif' ? [{ label: 'Mineur', price: race.priceMinor }] : []),
                                                 { label: 'Adhérent', price: race.priceAdherent, sub: 'Licenciés' },
                                             ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
                                                 <div key={idx} className="flex items-center justify-between p-3 rounded-xl border bg-blue-50/30 border-blue-50 text-blue-900 transition-colors">
@@ -332,7 +333,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                         <p className="text-xl font-black text-blue-900 italic">{race.maxTeams}</p>
                                                     </div>
                                                     <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
-                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Par Éq</p>
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Taille Éq</p>
                                                         <p className="text-xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
                                                     </div>
                                                 </div>
@@ -580,7 +581,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 <div className="space-y-4">
                                     {[
                                         { label: 'Tarif Majeur', price: race.priceMajor, isMain: true },
-                                        ...(!race.isCompetitive ? [{ label: 'Tarif Mineur', price: race.priceMinor }] : []),
+                                        ...(!race.raceType === 'compétitif' ? [{ label: 'Tarif Mineur', price: race.priceMinor }] : []),
                                         { label: 'Tarif Adhérent', price: race.priceAdherent, sub: 'Licenciés club' },
                                     ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
                                         <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${t.isMain ? 'bg-blue-900 text-white border-blue-900 shadow-xl shadow-blue-200' : 'bg-blue-50/30 border-blue-50 text-blue-900'}`}>
@@ -610,7 +611,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         <p className="text-2xl font-black text-blue-900 italic">{race.maxTeams}</p>
                                     </div>
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Par Équipe Max</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Taille Équipe</p>
                                         <p className="text-2xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
                                     </div>
                                 </div>
@@ -623,8 +624,8 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                 isOpen={isTeamModalOpen}
                 onClose={() => setIsTeamModalOpen(false)}
                 teams={userTeams}
-                minRunners={race.minMembers}
-                maxRunners={race.maxMembers}
+                minRunners={race.maxPerTeam}
+                maxRunners={race.maxPerTeam}
                 raceId={race.id}
                 racePrices={{
                     major: race.priceMajor,
@@ -632,6 +633,10 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                     adherent: race.priceAdherent
                 }}
                 isCompetitive={race.isCompetitive}
+                maxTeams={race.maxTeams}
+                maxParticipants={race.maxParticipants}
+                currentTeamsCount={race.teamsCount}
+                currentParticipantsCount={race.registeredCount}
             />
             <MyRegistrationModal
                 isOpen={isMyRegistrationModalOpen}

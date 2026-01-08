@@ -3,12 +3,16 @@ import { useForm, Link } from '@inertiajs/react';
 import { X, Search, Users, UserPlus, Check, AlertCircle } from 'lucide-react';
 import Modal from '@/Components/Modal'; // Assuming generic Modal exists, or I'll use a simple fixed div overlay if not
 
-export default function TeamRegistrationModal({ isOpen, onClose, teams = [], minRunners, maxRunners, raceId, racePrices = {}, isCompetitive = false }) {
+export default function TeamRegistrationModal({ isOpen, onClose, teams = [], minRunners, maxRunners, raceId, racePrices = {}, isCompetitive = false, maxTeams = 100, maxParticipants = 100, currentTeamsCount = 0, currentParticipantsCount = 0 }) {
     console.log('TeamRegistrationModal received teams:', teams);
     const [searchQuery, setSearchQuery] = useState('');
     const { data, setData, post, processing, errors, reset } = useForm({
         team_id: null,
     });
+
+    // Vérifier si les limites sont atteintes
+    const isTeamsLimitReached = currentTeamsCount >= maxTeams;
+    const isParticipantsLimitReached = currentParticipantsCount >= maxParticipants;
 
     const filteredTeams = useMemo(() => {
         return teams.filter(team =>
@@ -55,6 +59,22 @@ export default function TeamRegistrationModal({ isOpen, onClose, teams = [], min
                 </div>
 
                 <div className="p-8 space-y-8">
+                    {/* Message d'alerte si limites atteintes */}
+                    {(isTeamsLimitReached || isParticipantsLimitReached) && (
+                        <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 flex items-start gap-4">
+                            <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                            <div className="space-y-2">
+                                <h4 className="font-black text-red-900 uppercase text-sm">Inscriptions complètes</h4>
+                                <p className="text-sm text-red-700 font-medium leading-relaxed">
+                                    {isTeamsLimitReached && `Le nombre maximum d'équipes (${maxTeams}) est atteint.`}
+                                    {isParticipantsLimitReached && !isTeamsLimitReached && `Le nombre maximum de participants (${maxParticipants}) est atteint.`}
+                                    {isTeamsLimitReached && isParticipantsLimitReached && ` Les deux limites sont atteintes.`}
+                                    {' '}Aucune nouvelle inscription n'est possible pour le moment.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Search and Create */}
                     <div className="flex gap-4">
                         <div className="relative flex-1">
@@ -81,23 +101,25 @@ export default function TeamRegistrationModal({ isOpen, onClose, teams = [], min
                         {filteredTeams.length > 0 ? (
                             filteredTeams.map(team => {
                                 const currentCount = team.members_count;
-                                const withUserCount = currentCount + 1;
 
-                                const isValidAsIs = currentCount >= minRunners && currentCount <= maxRunners;
-                                const isValidWithUser = withUserCount >= minRunners && withUserCount <= maxRunners;
-                                const isCompatible = isValidAsIs || isValidWithUser;
+                                const isValid = currentCount === maxRunners;
+                                
+                                // Vérifier si l'ajout de cette équipe dépasserait les limites
+                                const wouldExceedTeamLimit = isTeamsLimitReached;
+                                const wouldExceedParticipantLimit = (currentParticipantsCount + currentCount) > maxParticipants;
+                                const isBlocked = wouldExceedTeamLimit || wouldExceedParticipantLimit;
+                                
+                                const isCompatible = isValid && !isBlocked;
 
                                 let statusMessage = "";
-                                if (!isCompatible) {
-                                    if (currentCount > maxRunners) {
-                                        statusMessage = `Trop de membres (${currentCount} > ${maxRunners})`;
-                                    } else if (withUserCount < minRunners) {
-                                        statusMessage = `Pas assez de membres (${currentCount} + vous < ${minRunners})`;
-                                    } else {
-                                        statusMessage = `Incompatible (${currentCount} membres)`;
+                                if (isBlocked) {
+                                    if (wouldExceedTeamLimit) {
+                                        statusMessage = `Limite d'équipes atteinte (${currentTeamsCount}/${maxTeams})`;
+                                    } else if (wouldExceedParticipantLimit) {
+                                        statusMessage = `Limite de participants atteinte (${currentParticipantsCount + currentCount} > ${maxParticipants})`;
                                     }
-                                } else if (isValidWithUser && !isValidAsIs) {
-                                    statusMessage = "Valide si vous participez";
+                                } else if (!isValid) {
+                                    statusMessage = `L'équipe doit avoir exactement ${maxRunners} membres (actuellement ${currentCount})`;
                                 }
 
                                 return (
@@ -162,11 +184,36 @@ export default function TeamRegistrationModal({ isOpen, onClose, teams = [], min
                                     <div>
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Prix Estimé</p>
                                         <div className="flex items-baseline gap-2 text-blue-600">
-                                            <span className="text-3xl font-black italic">{racePrices.major * totalRunners}</span>
+                                            <span className="text-3xl font-black italic">
+                                                {(() => {
+                                                    if (!selectedTeam) return racePrices.major * totalRunners;
+                                                    
+                                                    const licensedCount = selectedTeam.licensed_members_count || 0;
+                                                    const nonLicensedCount = totalRunners - licensedCount;
+                                                    
+                                                    const licensedPrice = racePrices.adherent ? licensedCount * racePrices.adherent : 0;
+                                                    const nonLicensedPrice = nonLicensedCount * racePrices.major;
+                                                    
+                                                    return licensedPrice + nonLicensedPrice;
+                                                })()}
+                                            </span>
                                             <span className="text-xs font-bold uppercase">€</span>
                                         </div>
                                         <p className="text-[9px] text-gray-500 font-medium mt-1">
-                                            Base tarif majeur ({racePrices.major}€/pers)
+                                            {(() => {
+                                                if (!selectedTeam) return `Base tarif majeur (${racePrices.major}€/pers)`;
+                                                
+                                                const licensedCount = selectedTeam.licensed_members_count || 0;
+                                                const nonLicensedCount = totalRunners - licensedCount;
+                                                
+                                                if (licensedCount > 0 && nonLicensedCount > 0) {
+                                                    return `${licensedCount} licencié(s) à ${racePrices.adherent}€ + ${nonLicensedCount} non-licencié(s) à ${racePrices.major}€`;
+                                                } else if (licensedCount > 0) {
+                                                    return `Tous licenciés (${racePrices.adherent}€/pers)`;
+                                                } else {
+                                                    return `Tarif majeur (${racePrices.major}€/pers)`;
+                                                }
+                                            })()}
                                         </p>
                                     </div>
                                 )}
@@ -190,7 +237,7 @@ export default function TeamRegistrationModal({ isOpen, onClose, teams = [], min
                                     <div className="flex items-center gap-2 text-red-500 text-xs font-bold max-w-[50%] text-right bg-red-50 px-3 py-2 rounded-lg">
                                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                         <span>
-                                            Le nombre de coureurs doit être compris entre {minRunners} et {maxRunners}.
+                                            L'équipe doit avoir exactement {maxRunners} membres.
                                         </span>
                                     </div>
                                 )}

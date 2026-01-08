@@ -20,7 +20,9 @@ export default function CreateTeam() {
     const [showTeammateDropdown, setShowTeammateDropdown] = useState(false);
     const [teammateSearch, setTeammateSearch] = useState('');
     const [teammateSearchResults, setTeammateSearchResults] = useState([]);
-    const messages = usePage().props.translations?.messages || {};
+    const { auth, translations } = usePage().props;
+    const currentUser = auth?.user;
+    const messages = translations?.messages || {};
 
     // evite trop d'appels (300ms)
     useEffect(() => {
@@ -152,7 +154,7 @@ export default function CreateTeam() {
                             helperText="PNG, JPG jusqu'à 10MB"
                         />
 
-                        {/* Checkbox Field */}
+                        {/* Join Team Checkbox */}
                         <div className="flex items-start space-x-3 p-4 rounded-lg" style={{backgroundColor: 'rgba(4, 120, 87, 0.05)'}}>
                             <Checkbox
                                 id="join_team"
@@ -161,25 +163,10 @@ export default function CreateTeam() {
                                 onChange={(e) => setData('join_team', e.target.checked)}
                             />
                             <div>
-                                <InputLabel value="Participation à l'équipe" />
-                                <p className="text-sm text-gray-600 mt-1 mb-4">
-                                    En tant que créateur, vous êtes automatiquement le chef de cette équipe.
+                                <InputLabel htmlFor="join_team" value="Je participe à cette équipe" />
+                                <p className="text-sm text-gray-600 mt-1">
+                                    En tant que créateur, vous êtes automatiquement le chef de cette équipe. Cochez cette case si vous souhaitez également participer activement à l'équipe.
                                 </p>
-                            </div>
-                            {/* Join Team Checkbox */}
-                            <div className="flex items-start space-x-3">
-                                <Checkbox
-                                    id="join_team"
-                                    name="join_team"
-                                    checked={data.join_team}
-                                    onChange={(e) => setData('join_team', e.target.checked)}
-                                />
-                                <div>
-                                    <InputLabel htmlFor="join_team" value="Je participe à cette équipe" />
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        Cochez cette case si vous souhaitez participer activement à l'équipe.
-                                    </p>
-                                </div>
                             </div>
                         </div>
                         {/* Teammates Section */}
