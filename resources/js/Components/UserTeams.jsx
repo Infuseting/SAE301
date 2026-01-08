@@ -79,25 +79,7 @@ export default function UserTeams({ teams = [] }) {
                                 {/* Divider */}
                                 <div className="border-t border-gray-100" />
 
-                                {/* Members List */}
-                                <div className="p-4">
-                                    <h4 className="text-sm font-medium text-gray-700 mb-2">Membres</h4>
-                                    <ul className="space-y-2">
-                                        {team.members?.slice(0, 5).map((member) => (
-                                            <li key={member.id} className="flex items-center text-sm text-gray-600">
-                                                <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600 mr-2">
-                                                    {member.name?.charAt(0)?.toUpperCase() || '?'}
-                                                </div>
-                                                <span className="truncate">{member.name}</span>
-                                            </li>
-                                        ))}
-                                        {team.members?.length > 5 && (
-                                            <li className="text-sm text-gray-400 italic">
-                                                +{team.members.length - 5} autre{team.members.length - 5 > 1 ? 's' : ''}
-                                            </li>
-                                        )}
-                                    </ul>
-                                </div>
+                                {/* View Team Button */}
                                 <Link href= {route('teams.show', team.id)}> 
                                     <button 
                                        

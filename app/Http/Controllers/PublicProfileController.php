@@ -48,6 +48,7 @@ class PublicProfileController extends Controller
                 'phone' => $user->phone,
                 'email' => $user->email,
                 'created_at' => $user->created_at,
+                'licence_end_validity' => $user->licence_end_validity,
             ],
             'teams' => $user->teams()->get()->map(function ($team) {
                 return [
