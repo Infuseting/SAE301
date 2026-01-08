@@ -2,7 +2,6 @@
 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\LicenceController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\Admin\AdminController;
@@ -18,6 +17,7 @@ use App\Http\Controllers\Leaderboard\LeaderboardController;
 use App\Http\Controllers\Leaderboard\MyLeaderboardController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Profile\PublicProfileController;
+use App\Http\Controllers\Profile\LicenceController;
 use App\Http\Controllers\Race\RaceRegistrationController;
 use App\Http\Controllers\Race\MyRaceController;
 use App\Http\Controllers\Race\RaceController;
@@ -53,6 +53,23 @@ Route::get('/leaderboard/export/{raceId}', [LeaderboardController::class, 'expor
 
 
 Route::middleware('auth')->group(function () {
+    // Profile routes - always accessible (needed to update licence)
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [PublicProfileController::class, 'myProfile'])->name('profile.index');
+    Route::get('/profile/{user}', [PublicProfileController::class, 'show'])->name('profile.show');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::put('/user/set-password', [SetPasswordController::class, 'store'])->name('password.set');
+    
+    // Licence and PPS management - always accessible
+    Route::post('/licence', [LicenceController::class, 'storeLicence'])->name('licence.store');
+    Route::post('/pps', [LicenceController::class, 'storePpsCode'])->name('pps.store');
+    Route::get('/credentials/check', [LicenceController::class, 'checkCredentials'])->name('credentials.check');
+});
+
+// Routes that require valid licence for managers
+Route::middleware(['auth', 'manager_licence'])->group(function () {
     // Race management (requires auth, authorization handled by controller/policy)
     Route::get('/races/create', [RaceController::class, 'show'])->name('races.create');
     Route::post('/races/create', [RaceController::class, 'store'])->name('races.store');
@@ -62,14 +79,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Welcome');
     })->name('dashboard');
-
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::get('/profile', [PublicProfileController::class, 'myProfile'])->name('profile.index');
-    Route::get('/profile/{user}', [PublicProfileController::class, 'show'])->name('profile.show');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::put('/user/set-password', [SetPasswordController::class, 'store'])->name('password.set');
 
     // My leaderboard - accessible to all authenticated users
     Route::get('/my-leaderboard', [MyLeaderboardController::class, 'index'])->name('my-leaderboard.index');
@@ -98,10 +107,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/clubs/{club}/members/{user}', [ClubMemberController::class, 'removeMember'])->name('clubs.members.remove');
     Route::post('/clubs/{club}/members/{user}/promote', [ClubMemberController::class, 'promoteToManager'])->name('clubs.members.promote');
     Route::post('/clubs/{club}/members/{user}/demote', [ClubMemberController::class, 'demoteFromManager'])->name('clubs.members.demote');
-    // Licence and PPS management
-    Route::post('/licence', [LicenceController::class, 'storeLicence'])->name('licence.store');
-    Route::post('/pps', [LicenceController::class, 'storePpsCode'])->name('pps.store');
-    Route::get('/credentials/check', [LicenceController::class, 'checkCredentials'])->name('credentials.check');
 
     // Race registration
     Route::get('/races/{race}/registration/check', [RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');

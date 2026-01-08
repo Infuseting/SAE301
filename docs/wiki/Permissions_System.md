@@ -118,7 +118,7 @@ graph TD
   - `app/Policies/RaidPolicy.php`
   - `app/Policies/RacePolicy.php`
 - **Controllers**:
-  - `app/Http/Controllers/LicenceController.php`
+  - `app/Http/Controllers/Profile/LicenceController.php`
   - `app/Http/Controllers/Race/RaceRegistrationController.php`
 - **Command**: `app/Console/Commands/CleanupExpiredLicences.php`
 

@@ -50,6 +50,15 @@ class Club extends Model
     protected $primaryKey = 'club_id';
 
     /**
+     * Get the route key for the model.
+     * This ensures Laravel route model binding uses club_id instead of id.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'club_id';
+    }
+
+    /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
