@@ -51,6 +51,8 @@ Route::get('/my-race', [MyRaceController::class, 'index'])->name('myrace.index')
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
 Route::get('/leaderboard/export/{raceId}', [LeaderboardController::class, 'export'])->name('leaderboard.export');
 
+// Accept invitation via token
+Route::get('/invitations/accept/{token}', [TeamController::class, 'acceptInvitation'])->name('invitations.accept');
 
 Route::middleware('auth')->group(function () {
     // Race management (requires auth, authorization handled by controller/policy)
