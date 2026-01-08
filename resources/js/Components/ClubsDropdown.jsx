@@ -5,7 +5,12 @@ export default function ClubsDropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const messages = usePage().props.translations?.messages || {};
-    const user = usePage().props.auth.user;
+    const user = usePage().props.auth?.user;
+
+    // Don't render the component if user is not logged in
+    if (!user) {
+        return null;
+    }
 
     // Get user's clubs (clubs where user is a member)
     const userClubs = user?.clubs || [];

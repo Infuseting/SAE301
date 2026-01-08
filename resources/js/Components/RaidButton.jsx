@@ -53,7 +53,6 @@ export default function RaidButton() {
             {isOpen && (
                 <div className="md:absolute right-0 mt-2 w-56 rounded-md md:shadow-lg shadow-sm bg-white ring-1 ring-black ring-opacity-5 z-50">
                     <div className="py-1">
-                        {" "}
                         <Link
                             href={route("raids.index")}
                             className="block px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
@@ -61,13 +60,15 @@ export default function RaidButton() {
                             <LuLayoutGrid className="inline mr-2 mb-1" />
                             {messages.raids || "Voir tous les raids"}
                         </Link>
-                        <Link
-                            href={route("myraid.index")}
-                            className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                            <FaTrophy className="inline mr-2 mb-1" />
-                            {messages.my_courses || "Mes raids"}
-                        </Link>
+                        {user && (
+                            <Link
+                                href={route("myraid.index")}
+                                className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                                <FaTrophy className="inline mr-2 mb-1" />
+                                {messages.my_courses || "Mes raids"}
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}
