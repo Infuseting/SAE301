@@ -62,7 +62,7 @@ class StoreRaceRequest extends FormRequest
             'priceMinor' => $isCompetitive ? ['nullable', 'numeric', 'min:0'] : ['required', 'numeric', 'min:0'],
             'priceAdherent' => ['nullable', 'numeric', 'min:0', 'lte:priceMajor'],
             'responsableId' => ['required', 'integer', 'exists:users,id'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'raid_id' => ['nullable', 'integer', 'exists:raids,raid_id'],
             'selectedAgeCategories' => ['nullable', 'array'],
             'selectedAgeCategories.*' => ['integer', 'exists:age_categories,id'],
