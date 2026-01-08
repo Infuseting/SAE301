@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('teams', function (Blueprint $table) {
             $table->id('equ_id');
-            $table->string('equ_name', 32);
+            $table->string('equ_name', 100);
             $table->string('equ_image')->nullable();
             $table->unsignedBigInteger('adh_id');
             $table->timestamps();

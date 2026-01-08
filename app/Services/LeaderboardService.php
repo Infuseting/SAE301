@@ -1837,13 +1837,15 @@ class LeaderboardService
             // Remove UTF-8 BOM if present
             $col = preg_replace('/^\xEF\xBB\xBF/', '', $col);
             $col = strtolower($col);
+            
+            // Normalize accented characters for more reliable matching
+            $col = str_replace('é', 'e', $col);
+            
             // Map column names
             $mapping = [
                 'clt' => 'clt',
                 'puce' => 'puce',
                 'equipe' => 'equipe',
-                'équipe' => 'equipe',
-                'catégorie' => 'category',
                 'categorie' => 'category',
                 'temps' => 'temps',
                 'pts' => 'points',

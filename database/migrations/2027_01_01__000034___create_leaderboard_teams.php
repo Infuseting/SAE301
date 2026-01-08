@@ -21,10 +21,10 @@ return new class extends Migration
             $table->decimal('average_malus', 10, 2)->default(0);
             $table->decimal('average_temps_final', 10, 2);
             $table->integer('member_count')->default(0);
-            $table->integer('points')->default(0);
-            $table->string('status', 50)->default('classé');
-            $table->string('category', 50)->nullable();
-            $table->string('puce', 50)->nullable();
+            $table->integer('points')->nullable()->comment('Points earned based on ranking, null = calculate dynamically');
+            $table->string('status', 50)->nullable()->default('classé')->comment('Status: classé, abandon, disqualifié, hors_classement');
+            $table->string('category', 50)->nullable()->comment('Category: Masculin, Féminin, Mixte');
+            $table->string('puce', 50)->nullable()->comment('Chip/puce number from CSV import');
             $table->unique(['equ_id', 'race_id'], 'unique_team_race');
             $table->timestamps();
         });
