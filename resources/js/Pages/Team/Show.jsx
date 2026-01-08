@@ -102,6 +102,7 @@ export default function Show({ team, auth, users }) {
                 users={users}
                 teamMembers={team.members}
                 auth={auth}
+                teamId={team.id}
                 onEmailInviteOpen={() => {
                     setShowInviteModal(false);
                     setShowEmailModal(true);

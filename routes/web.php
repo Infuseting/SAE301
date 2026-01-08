@@ -113,6 +113,7 @@ Route::middleware('auth')->group(function () {
     // Show team details
     Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show')->whereNumber('team');
     Route::post('/teams/{team}/invite-email', [TeamController::class, 'inviteByEmail'])->name('teams.invite-email');
+    Route::post('/teams/{team}/invite/{user}', [TeamController::class, 'inviteByEmail'])->name('teams.invite-user');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {

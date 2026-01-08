@@ -1,22 +1,25 @@
 import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
 
 /**
  * Modal for inviting existing users to a team.
  */
-export default function InviteUserModal({ isOpen, onClose, users, teamMembers, auth, onEmailInviteOpen }) {
+export default function InviteUserModal({ isOpen, onClose, users, teamMembers, auth, onEmailInviteOpen, teamId }) {
     const [searchQuery, setSearchQuery] = useState('');
+    const { post, processing } = useForm();
 
-    // Get IDs of team members to exclude from invitation
     const memberIds = teamMembers?.map(m => m.id) || [];
-
-    // Filter available users based on search query
     const availableUsers = (users || [])
-        .filter(user => user.id !== auth?.user?.id) // Exclude current user
-        .filter(user => !memberIds.includes(user.id)) // Exclude existing members
+        .filter(user => user.id !== auth?.user?.id)
+        .filter(user => !memberIds.includes(user.id))
         .filter(user => 
             (user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (user.email || '').toLowerCase().includes(searchQuery.toLowerCase())
         );
+
+    const handleInvite = (user) => {
+        post(`/teams/${teamId}/invite/${user.id}`, { preserveScroll: true });
+    };
 
     if (!isOpen) return null;
 
@@ -65,8 +68,12 @@ export default function InviteUserModal({ isOpen, onClose, users, teamMembers, a
                                                 <p className="text-sm text-gray-500">{user.email}</p>
                                             </div>
                                         </div>
-                                        <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                                            Inviter
+                                        <button 
+                                            onClick={() => handleInvite(user)}
+                                            disabled={processing}
+                                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+                                        >
+                                            {processing ? '...' : 'Inviter'}
                                         </button>
                                     </div>
                                 ))}

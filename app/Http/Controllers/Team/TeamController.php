@@ -115,23 +115,14 @@ class TeamController extends Controller
     }
 
     /**
-     * Send invitation email to a new user.
+     * Send invitation email to a user.
      */
-    public function inviteByEmail(Team $team, Request $request)
+    public function inviteByEmail(Team $team, Request $request, User $user = null)
     {
-        // Verify the user is the team creator
-        if ($request->user()->id !== $team->user_id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        // Validate email
-        $validated = $request->validate([
-            'email' => 'required|email',
-        ]);
-
-        // Send invitation email
-        Mail::to($validated['email'])->send(new TeamInvitation($team->equ_name, $request->user()->name));
-
-        return redirect()->back()->with('success', 'Email d\'invitation envoyé avec succès');
+        if ($request->user()->id !== $team->user_id) return response()->json(['error' => 'Unauthorized'], 403);
+        
+        $email = $user?->email ?? $request->validate(['email' => 'required|email'])['email'];
+        Mail::to($email)->send(new TeamInvitation($team->equ_name, $request->user()->name));
+        return redirect()->back()->with('success', 'Invitation envoyée');
     }
 }
