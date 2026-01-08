@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Team;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Models\Team;
@@ -22,67 +21,49 @@ class TeamController extends Controller
      * Store a newly created team with users.
      * 
      * Creates a new team, assigns the leader and teammates,
-     * and adds the creator based on their selected role (leader or teammate).
-     * Prevents duplicate entries and ensures the creator is not added multiple times.
+     * and optionally adds the creator if the join_team checkbox was selected.
      */
     public function store(Request $request)
     {
-        // Le créateur est toujours le leader
-        $creatorId = $request->user()->id;
-
         // Validate input
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'image' => 'nullable|image|max:2048',
+            'leader_id' => 'required|exists:users,id',
             'teammates' => 'nullable|array',
             'teammates.*.id' => 'integer|exists:users,id',
             'join_team' => 'nullable|boolean',
         ]);
 
-        // Vérifier qu'il y a au moins un participant (créateur ou coéquipiers)
-        $joinTeam = $validated['join_team'] ?? false;
-        $hasTeammates = !empty($validated['teammates']);
-        
-        if (!$joinTeam && !$hasTeammates) {
-            return back()->withErrors([
-                'teammates' => 'L\'équipe doit avoir au moins un participant. Cochez "Je participe" ou ajoutez des coéquipiers.'
-            ])->withInput();
-        }
-
-        // Create the team with the creator as leader
+        // Create the team with the leader's user ID
         $team = Team::create([
             'equ_name' => $validated['name'],
             'equ_image' => $request->file('image') ? $request->file('image')->store('teams', 'public') : null,
-            'user_id' => $creatorId,
+            'adh_id' => $validated['leader_id'],
+            'user_id' => $request->user()->id,
         ]);
-        
-        $usersToAttach = [];
 
-        if (!empty($validated['join_team']) && $validated['join_team']) {
-            // If the creator wants to join as a teammate, add them
-            $usersToAttach[] = $creatorId;
-        }
+        // Add leader to the team
+        $team->users()->attach($validated['leader_id']);
 
         // Add teammates to the team
         if (!empty($validated['teammates'])) {
-            $teammateIds = array_map(fn($teammate) => (int) $teammate['id'], $validated['teammates']);
-            foreach ($teammateIds as $id) {
-                if ($id !== $creatorId) {
-                    $usersToAttach[] = $id;
-                }
-            }
-        }        
-        if (!empty($usersToAttach)) {
-            $team->users()->attach(array_unique($usersToAttach));
+            $teammatIds = array_map(fn($teammate) => $teammate['id'], $validated['teammates']);
+            $team->users()->attach($teammatIds);
         }
-        
+
+        // Add creator to team if checkbox is checked
+        if ($validated['join_team'] ?? false) {
+            $team->users()->attach($request->user()->id);
+        }
+
         return redirect()->route('dashboard')->with('success', 'Équipe créée avec succès!');
     }
 
     /**
      * Display team details.
      */
-    public function show(Team $team)
+    public function show(Team $team, Request $request)
     {
         // Get team members
         $members = $team->users()->get()->map(fn($user) => [
@@ -97,7 +78,7 @@ class TeamController extends Controller
                 'name' => $team->equ_name,
                 'image' => $team->equ_image,
                 'members' => $members,
-                'creator_id' => $team->user_id,  
+                'creator_id' => $team->user_id,
             ],
         ]);
     }

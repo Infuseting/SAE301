@@ -4,7 +4,9 @@ import { Head } from '@inertiajs/react';
 /**
  * Display team details including members and information.
  */
-export default function Show({ team }) {
+export default function Show({ team, auth }) {
+    const isCreator = auth?.user?.id === team?.creator_id;
+
     return (
         <AuthenticatedLayout>
             <Head title={team.name} />
@@ -26,9 +28,16 @@ export default function Show({ team }) {
 
                                 {/* Team Info */}
                                 <div className="flex-1">
-                                    <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                                        {team.name}
-                                    </h1>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <h1 className="text-4xl font-bold text-gray-900">
+                                            {team.name}
+                                        </h1>
+                                        {isCreator && (
+                                            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                                Inviter
+                                            </button>
+                                        )}
+                                    </div>
                                     <div className="text-gray-600">
                                         <p className="mb-2">
                                             <span className="font-semibold">Membres:</span> {team.members?.length || 0}
