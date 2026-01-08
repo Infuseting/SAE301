@@ -1,3 +1,5 @@
+import { Link } from "@inertiajs/react";
+
 /**
  * UserLastRaces component - Displays user's teams in a card grid layout
  * @param {Array} teams - Array of team objects with name, image, and members
@@ -61,6 +63,16 @@ export default function UserLastRaces({ races = [] }) {
                                             <p className="text-lg font-bold text-blue-600">{race.position}</p>
                                         </div>
                                     </div>
+                                </div>
+                                <div className="mt-auto p-4 pt-0">
+                                    <Link href= {route('races.show', race.id)}> 
+                                        <button 
+                                            
+                                            className="inline-block w-full text-center bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                                        >
+                                            Voir la course
+                                        </button>
+                                    </Link>
                                 </div>
                             </div>
                         ))}

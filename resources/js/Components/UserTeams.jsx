@@ -26,7 +26,7 @@ export default function UserTeams({ teams = [] }) {
                 { id: 5, name: "Lucas Petit" },
             ]
         },
-        
+
     ];
 
     const displayTeams = teams;
@@ -35,9 +35,9 @@ export default function UserTeams({ teams = [] }) {
         <div className="py-6">
             <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Vos équipes
+                    Vos équipes | <a href="/createTeam" className="text-blue-500 hover:text-blue-600 ml-2">Créer une équipe</a>
                 </h2>
-                
+
                 {displayTeams.length === 0 ? (
                     <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm text-center text-gray-500">
                         Vous n'êtes membre d'aucune équipe pour le moment.
@@ -45,15 +45,15 @@ export default function UserTeams({ teams = [] }) {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {displayTeams.map((team) => (
-                            <div 
-                                key={team.id} 
+                            <div
+                                key={team.id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col"
                             >
                                 {/* Team Image - Fixed height at top */}
                                 <div className="w-full h-40 overflow-hidden bg-gray-100">
                                     {team.image ? (
-                                        <img 
-                                            src={team.image} 
+                                        <img
+                                            src={team.image}
                                             alt={team.name}
                                             className="w-full h-full object-cover"
                                         />
@@ -79,25 +79,7 @@ export default function UserTeams({ teams = [] }) {
                                 {/* Divider */}
                                 <div className="border-t border-gray-100" />
 
-                                {/* Members List */}
-                                <div className="p-4">
-                                    <h4 className="text-sm font-medium text-gray-700 mb-2">Membres</h4>
-                                    <ul className="space-y-2">
-                                        {team.members?.slice(0, 5).map((member) => (
-                                            <li key={member.id} className="flex items-center text-sm text-gray-600">
-                                                <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600 mr-2">
-                                                    {member.name?.charAt(0)?.toUpperCase() || '?'}
-                                                </div>
-                                                <span className="truncate">{member.name}</span>
-                                            </li>
-                                        ))}
-                                        {team.members?.length > 5 && (
-                                            <li className="text-sm text-gray-400 italic">
-                                                +{team.members.length - 5} autre{team.members.length - 5 > 1 ? 's' : ''}
-                                            </li>
-                                        )}
-                                    </ul>
-                                </div>
+                                {/* View Team Button */}
                                 <Link href= {route('teams.show', team.id)}> 
                                     <button 
                                        
@@ -112,5 +94,5 @@ export default function UserTeams({ teams = [] }) {
                 )}
             </div>
         </div>
-    ); 
+    );
 }

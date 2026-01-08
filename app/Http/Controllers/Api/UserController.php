@@ -58,7 +58,8 @@ class UserController extends Controller
      *              type="array",
      *              @OA\Items(
      *                  @OA\Property(property="id", type="integer"),
-     *                  @OA\Property(property="name", type="string"),
+     *                  @OA\Property(property="first_name", type="string"),
+     *                  @OA\Property(property="last_name", type="string"),
      *                  @OA\Property(property="email", type="string")
      *              )
      *          )
@@ -93,12 +94,11 @@ class UserController extends Controller
               ->orWhere('email', 'like', "%{$query}%");
         })
         ->select('id', 'first_name', 'last_name', 'email')
-        ->limit(20)
         ->get()
         ->map(function ($user) {
             return [
                 'id' => $user->id,
-                'name' => $user->name,
+                'name'  => trim($user->first_name . ' ' . $user->last_name),
                 'email' => $user->email,
             ];
         });

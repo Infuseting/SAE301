@@ -166,7 +166,7 @@ export default function VisuRace({ auth, race: raceData, error, errorMessage }) 
                             <div className="lg:w-1/3 h-64 lg:h-auto lg:min-h-[400px] relative">
                                 {race.imageUrl ? (
                                     <img
-                                        src={race.imageUrl}
+                                        src={race.imageUrl.startsWith('/storage/') ? race.imageUrl : `/storage/${race.imageUrl}`}
                                         alt={race.title}
                                         className="w-full h-full object-cover"
                                     />

@@ -48,7 +48,7 @@ class RaceController extends Controller
      */
     public function edit(int $id)
     {
-        $race = Race::with(['runnerParams', 'teamParams'])->findOrFail($id);
+        $race = Race::with(['runnerParams', 'teamParams', 'categorieAges.ageCategory'])->findOrFail($id);
         
         // Authorize the user to update this race (checks ownership)
         $this->authorize('update', $race);
@@ -111,13 +111,44 @@ class RaceController extends Controller
             ->get()
             ->toArray();
 
+        // Transform race data for edit mode
+        $raceData = $race ? [
+            'race_id' => $race->race_id,
+            'race_name' => $race->race_name,
+            'race_description' => $race->race_description,
+            'race_date_start' => $race->race_date_start,
+            'race_date_end' => $race->race_date_end,
+            'race_duration_minutes' => $race->race_duration_minutes,
+            'race_meal_price' => $race->race_meal_price,
+            'price_major' => $race->price_major,
+            'price_minor' => $race->price_minor,
+            'price_adherent' => $race->price_adherent,
+            'race_difficulty' => $race->race_difficulty,
+            'typ_id' => $race->typ_id,
+            'adh_id' => $race->adh_id,
+            'raid_id' => $race->raid_id,
+            'runner_params' => $race->runnerParams,
+            'team_params' => $race->teamParams,
+            'categorieAges' => $race->categorieAges->map(fn($pc) => [
+                'id' => $pc->id,
+                'race_id' => $pc->race_id,
+                'age_categorie_id' => $pc->age_categorie_id,
+                'ageCategory' => [
+                    'id' => $pc->ageCategory->id,
+                    'nom' => $pc->ageCategory->nom,
+                    'age_min' => $pc->ageCategory->age_min,
+                    'age_max' => $pc->ageCategory->age_max,
+                ]
+            ])->toArray()
+        ] : null;
+
         return Inertia::render('Race/NewRace', [    
             'users' => $users,
             'types' => $types,
             'ageCategories' => $ageCategories,
             'raid_id' => $raidId,
             'raid' => $raid,
-            'race' => $race, // null for create, race data for edit
+            'race' => $raceData,
             'auth' => [
                 'user' => Auth::user(),
             ],
@@ -132,6 +163,9 @@ class RaceController extends Controller
      */
     public function store(StoreRaceRequest $request)
     {
+        // Debug: Log all incoming request data
+        \Log::info('Race store request data:', $request->all());
+        
         $raid = $request->input('raid_id') ? Raid::find($request->input('raid_id')) : null;
 
         // Authorize the user to create a race for this raid
@@ -185,11 +219,23 @@ class RaceController extends Controller
 
         // Insert selected age categories
         $selectedCategories = $request->input('selectedAgeCategories', []);
+        
+        // Handle both array and JSON formats
+        if (is_string($selectedCategories)) {
+            $selectedCategories = json_decode($selectedCategories, true) ?? [];
+        }
+        if (!is_array($selectedCategories)) {
+            $selectedCategories = [];
+        }
+        
+        \Log::info('Selected age categories:', ['categories' => $selectedCategories, 'count' => count($selectedCategories), 'type' => gettype($selectedCategories)]);
+        
         if (!empty($selectedCategories)) {
             foreach ($selectedCategories as $ageCategorieId) {
+                \Log::info('Creating param categorie age:', ['race_id' => $race->race_id, 'age_categorie_id' => $ageCategorieId]);
                 ParamCategorieAge::create([
                     'race_id' => $race->race_id,
-                    'age_categorie_id' => $ageCategorieId,
+                    'age_categorie_id' => (int)$ageCategorieId,
                 ]);
             }
         }

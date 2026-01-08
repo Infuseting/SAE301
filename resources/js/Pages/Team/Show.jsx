@@ -18,7 +18,7 @@ export default function Show({ team }) {
                                 {/* Team Image */}
                                 <div className="flex-shrink-0">
                                     <img
-                                        src={team.image || 'https://via.placeholder.com/200'}
+                                        src={team.image ? `/storage/${team.image}` : 'https://via.placeholder.com/200'}
                                         alt={team.name}
                                         className="h-48 w-48 rounded-lg object-cover"
                                     />
@@ -32,6 +32,9 @@ export default function Show({ team }) {
                                     <div className="text-gray-600">
                                         <p className="mb-2">
                                             <span className="font-semibold">Membres:</span> {team.members?.length || 0}
+                                        </p>
+                                        <p>
+                                            <span className="font-semibold">Créée le:</span> {team.created_at}
                                         </p>
                                     </div>
                                 </div>

@@ -159,8 +159,12 @@ class LeaderboardService
 
     public function recalculateTeamAverages(int $raceId): void
     {
+        // Determine the correct column name for user reference in has_participate
+        $hasIdUsersColumn = DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
         $teamResults = DB::table('leaderboard_users as lr')
-            ->join('has_participate as hp', 'lr.user_id', '=', 'hp.id')
+            ->join('has_participate as hp', 'lr.user_id', '=', "hp.{$userIdColumn}")
             ->where('lr.race_id', $raceId)
             ->select(
                 'hp.equ_id',
@@ -979,25 +983,25 @@ class LeaderboardService
         }
 
         // Try exact match first_name + last_name
-        $user = User::whereRaw("CONCAT(first_name, ' ', last_name) = ?", [$fullName])->first();
+        $user = User::whereRaw("first_name || ' ' || last_name = ?", [$fullName])->first();
         if ($user) {
             return $user;
         }
 
         // Try reversed order last_name + first_name
-        $user = User::whereRaw("CONCAT(last_name, ' ', first_name) = ?", [$fullName])->first();
+        $user = User::whereRaw("last_name || ' ' || first_name = ?", [$fullName])->first();
         if ($user) {
             return $user;
         }
 
         // Try case-insensitive match
-        $user = User::whereRaw("LOWER(CONCAT(first_name, ' ', last_name)) = LOWER(?)", [$fullName])->first();
+        $user = User::whereRaw("LOWER(first_name || ' ' || last_name) = LOWER(?)", [$fullName])->first();
         if ($user) {
             return $user;
         }
 
         // Try case-insensitive reversed order
-        $user = User::whereRaw("LOWER(CONCAT(last_name, ' ', first_name)) = LOWER(?)", [$fullName])->first();
+        $user = User::whereRaw("LOWER(last_name || ' ' || first_name) = LOWER(?)", [$fullName])->first();
         if ($user) {
             return $user;
         }

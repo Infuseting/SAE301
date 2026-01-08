@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Team;
-use App\Models\Member;
 use App\Models\User;
+use App\Models\Member;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -34,12 +34,12 @@ class TeamFactory extends Factory
     }
 
     /**
-     * Create a team for a specific user (uses the user's member id).
+     * Create a team for a specific member.
      */
-    public function forUser(User $user): static
+    public function forMember(Member $member): static
     {
         return $this->state(fn (array $attributes) => [
-            'adh_id' => $user->adh_id,
+            'adh_id' => $member->adh_id,
         ]);
     }
 

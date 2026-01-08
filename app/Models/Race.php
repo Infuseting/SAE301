@@ -203,9 +203,16 @@ class Race extends Model
      *
      * @return BelongsToMany
      */
+    /**
+     * Get the teams participating in this race.
+     *
+     * @return BelongsToMany
+     */
     public function teams(): BelongsToMany
     {
-        return $this->belongsToMany(Team::class, 'races_has_teams', 'race_id', 'eq_id', 'race_id', 'eq_id');
+        return $this->belongsToMany(Team::class, 'registration', 'race_id', 'equ_id', 'race_id', 'equ_id')
+                    ->withPivot('reg_id', 'reg_points', 'reg_validated', 'reg_dossard')
+                    ->withTimestamps();
     }
 
     /**

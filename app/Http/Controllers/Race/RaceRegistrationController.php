@@ -165,4 +165,242 @@ class RaceRegistrationController extends Controller
             ], 500);
         }
     }
+    /**
+     * Register a team for a race
+     *
+     * @param Request $request
+     * @param Race $race
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function registerTeam(Request $request, Race $race)
+    {
+        $user = auth()->user();
+
+        // Check permission (assuming 'register' policy covers this or add new one)
+        if (!Gate::allows('register', $race)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.no_permission_to_register'),
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'team_id' => 'required|exists:teams,equ_id',
+        ]);
+
+        $team = \App\Models\Team::where('equ_id', $validated['team_id'])
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        // Check team size - must match exactly maxPerTeam (pae_team_count_max)
+        $requiredTeamSize = $race->teamParams?->pae_team_count_max ?? 1;
+        
+        $currentRunners = $team->users()->count();
+
+        if ($currentRunners !== $requiredTeamSize) {
+             return response()->json([
+                'success' => false,
+                'message' => "Le nombre de coureurs doit être exactement de $requiredTeamSize (actuellement $currentRunners).",
+            ], 400);
+        }
+
+        try {
+            // Check if team is already registered
+            $existing = $race->teams()->where('teams.equ_id', $team->equ_id)->exists();
+            if ($existing) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cette équipe est déjà inscrite.",
+                ], 400);
+            }
+
+            // Register team
+            // Create payment record
+            $paiId = \DB::table('inscriptions_payment')->insertGetId([
+                'pai_date' => now(),
+                'pai_is_paid' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Medical certificate is handled on-site, create a placeholder if needed
+            $docId = $user->doc_id;
+            if (!$docId) {
+                // Create a placeholder medical document (to be verified on-site)
+                $docId = \DB::table('medical_docs')->insertGetId([
+                    'doc_num_pps' => 'PENDING-' . time(),
+                    'doc_end_validity' => now()->addYear(),
+                    'doc_date_added' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            $race->teams()->attach($team->equ_id, [
+                'pay_id' => $paiId,
+                'doc_id' => $docId,
+                'reg_validated' => false,
+                'reg_points' => 0
+            ]);
+
+            return redirect()->back()->with('success', 'Équipe inscrite avec succès!');
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel a team registration from a race
+     */
+    public function cancelRegistration(Request $request, int $raceId, int $teamId)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            abort(401);
+        }
+
+        $race = Race::findOrFail($raceId);
+        $team = \App\Models\Team::findOrFail($teamId);
+
+        // Check if user is part of the team
+        $isTeamMember = \DB::table('has_participate')
+            ->where('equ_id', $team->equ_id)
+            ->where('id_users', $user->id)
+            ->exists();
+
+        if (!$isTeamMember) {
+            return back()->withErrors(['error' => 'Vous ne faites pas partie de cette équipe.']);
+        }
+
+        try {
+            // Remove team registration
+            $race->teams()->detach($team->equ_id);
+
+            return redirect()->back()->with('success', 'Inscription annulée avec succès.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Erreur lors de l\'annulation: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Update PPS information for a participant
+     * 
+     * @param Request $request
+     * @param int $raceId
+     * @param int $userId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updatePPS(Request $request, int $raceId, int $userId)
+    {
+        $authUser = auth()->user();
+        if (!$authUser) {
+            abort(401);
+        }
+
+        $race = Race::findOrFail($raceId);
+        
+        // Check if user is race manager
+        $isRaceManager = $authUser->hasRole('admin') || 
+            ($race->organizer && $authUser->adh_id === $race->organizer->adh_id) || 
+            ($race->raid && $race->raid->club && $race->raid->club->hasManager($authUser));
+
+        if (!$isRaceManager) {
+            abort(403, 'Non autorisé à modifier les informations PPS.');
+        }
+
+        $validated = $request->validate([
+            'pps_number' => 'required|string|max:255',
+            'pps_expiry' => 'required|date|after:today',
+        ]);
+
+        try {
+            $user = \App\Models\User::findOrFail($userId);
+            
+            // Update or create medical document
+            if ($user->doc_id) {
+                $medicalDoc = \App\Models\MedicalDoc::find($user->doc_id);
+                if ($medicalDoc) {
+                    $medicalDoc->update([
+                        'doc_num_pps' => $validated['pps_number'],
+                        'doc_end_validity' => $validated['pps_expiry'],
+                    ]);
+                }
+            } else {
+                $medicalDoc = \App\Models\MedicalDoc::create([
+                    'doc_num_pps' => $validated['pps_number'],
+                    'doc_end_validity' => $validated['pps_expiry'],
+                    'doc_date_added' => now(),
+                ]);
+                $user->update(['doc_id' => $medicalDoc->doc_id]);
+            }
+
+            return redirect()->back()->with('success', 'PPS mis à jour avec succès.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Erreur lors de la mise à jour du PPS: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Confirm team payment and validate all team members
+     * 
+     * @param Request $request
+     * @param int $raceId
+     * @param int $teamId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function confirmTeamPayment(Request $request, int $raceId, int $teamId)
+    {
+        $authUser = auth()->user();
+        if (!$authUser) {
+            abort(401);
+        }
+
+        $race = Race::findOrFail($raceId);
+        
+        // Check if user is race manager
+        $isRaceManager = $authUser->hasRole('admin') || 
+            ($race->organizer && $authUser->adh_id === $race->organizer->adh_id) || 
+            ($race->raid && $race->raid->club && $race->raid->club->hasManager($authUser));
+
+        if (!$isRaceManager) {
+            abort(403, 'Non autorisé à valider les paiements.');
+        }
+
+        try {
+            $team = \App\Models\Team::findOrFail($teamId);
+            
+            // Get payment IDs for this team and race
+            $paymentIds = \DB::table('registration')
+                ->where('equ_id', $team->equ_id)
+                ->where('race_id', $race->race_id)
+                ->pluck('pay_id');
+
+            if ($paymentIds->isEmpty()) {
+                return back()->withErrors(['error' => 'Aucune inscription trouvée pour cette équipe.']);
+            }
+
+            // Update payment status in inscriptions_payment table
+            \DB::table('inscriptions_payment')
+                ->whereIn('pai_id', $paymentIds)
+                ->update([
+                    'pai_is_paid' => true,
+                    'pai_date' => now(),
+                ]);
+
+            // Update registration validation for all team members
+            \DB::table('registration')
+                ->where('equ_id', $team->equ_id)
+                ->where('race_id', $race->race_id)
+                ->update(['reg_validated' => true]);
+
+            return redirect()->back()->with('success', 'Paiement confirmé. Tous les membres de l\'équipe sont maintenant validés.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Erreur lors de la confirmation du paiement: ' . $e->getMessage()]);
+        }
+    }
 }
+

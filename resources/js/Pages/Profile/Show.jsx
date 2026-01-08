@@ -136,6 +136,12 @@ export default function Show({ user, teams = [], races = [], isOwner }) {
                                     <span className="text-sm text-gray-600">{user.license_number}</span>
                                 </div>
                             )}
+                            {user.licence_end_validity && (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-700 font-medium">Validité de la licence:</span>
+                                    <span className="text-sm text-gray-600">jusqu'au {user.licence_end_validity}</span>
+                                </div>
+                            )}
                             {user.address && (
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-gray-700 font-medium">Adresse:</span>

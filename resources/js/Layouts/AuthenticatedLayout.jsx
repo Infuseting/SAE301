@@ -1,14 +1,20 @@
 import ProfileCompletionModal from '@/Components/ProfileCompletionModal';
+import LicenceRequiredModal from '@/Components/LicenceRequiredModal';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
 import { usePage } from '@inertiajs/react';
 
 export default function AuthenticatedLayout({ header, children }) {
-    const user = usePage().props.auth.user;
+    const { auth, requiresLicenceUpdate } = usePage().props;
+    const user = auth.user;
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col">
-            {user && <ProfileCompletionModal />}
+        <div className="min-h-screen bg-gray-100">
+            {/* Licence Required Modal - Shows first and blocks access */}
+            {user && <LicenceRequiredModal show={requiresLicenceUpdate} />}
+            
+            {/* Profile Completion Modal - Shows after licence is valid */}
+            {user && !requiresLicenceUpdate && <ProfileCompletionModal />}
 
             <Header />
 

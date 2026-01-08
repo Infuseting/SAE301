@@ -2,7 +2,6 @@
 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\LicenceController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\Admin\AdminController;
@@ -18,6 +17,7 @@ use App\Http\Controllers\Leaderboard\LeaderboardController;
 use App\Http\Controllers\Leaderboard\MyLeaderboardController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Profile\PublicProfileController;
+use App\Http\Controllers\Profile\LicenceController;
 use App\Http\Controllers\Race\RaceRegistrationController;
 use App\Http\Controllers\Race\MyRaceController;
 use App\Http\Controllers\Race\RaceController;
@@ -53,6 +53,23 @@ Route::get('/leaderboard/export/{raceId}', [LeaderboardController::class, 'expor
 
 
 Route::middleware('auth')->group(function () {
+    // Profile routes - always accessible (needed to update licence)
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [PublicProfileController::class, 'myProfile'])->name('profile.index');
+    Route::get('/profile/{user}', [PublicProfileController::class, 'show'])->name('profile.show');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::put('/user/set-password', [SetPasswordController::class, 'store'])->name('password.set');
+    
+    // Licence and PPS management - always accessible
+    Route::post('/licence', [LicenceController::class, 'storeLicence'])->name('licence.store');
+    Route::post('/pps', [LicenceController::class, 'storePpsCode'])->name('pps.store');
+    Route::get('/credentials/check', [LicenceController::class, 'checkCredentials'])->name('credentials.check');
+});
+
+// Routes that require valid licence for managers
+Route::middleware(['auth', 'manager_licence'])->group(function () {
     // Race management (requires auth, authorization handled by controller/policy)
     Route::get('/races/create', [RaceController::class, 'show'])->name('races.create');
     Route::post('/races/create', [RaceController::class, 'store'])->name('races.store');
@@ -62,14 +79,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Welcome');
     })->name('dashboard');
-
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::get('/profile', [PublicProfileController::class, 'myProfile'])->name('profile.index');
-    Route::get('/profile/{user}', [PublicProfileController::class, 'show'])->name('profile.show');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::put('/user/set-password', [SetPasswordController::class, 'store'])->name('password.set');
 
     // My leaderboard - accessible to all authenticated users
     Route::get('/my-leaderboard', [MyLeaderboardController::class, 'index'])->name('my-leaderboard.index');
@@ -98,14 +107,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('/clubs/{club}/members/{user}', [ClubMemberController::class, 'removeMember'])->name('clubs.members.remove');
     Route::post('/clubs/{club}/members/{user}/promote', [ClubMemberController::class, 'promoteToManager'])->name('clubs.members.promote');
     Route::post('/clubs/{club}/members/{user}/demote', [ClubMemberController::class, 'demoteFromManager'])->name('clubs.members.demote');
-    // Licence and PPS management
-    Route::post('/licence', [LicenceController::class, 'storeLicence'])->name('licence.store');
-    Route::post('/pps', [LicenceController::class, 'storePpsCode'])->name('pps.store');
-    Route::get('/credentials/check', [LicenceController::class, 'checkCredentials'])->name('credentials.check');
 
     // Race registration
     Route::get('/races/{race}/registration/check', [RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
+    Route::get('/races/{race}/registration/check', [RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
     Route::post('/races/{race}/register', [RaceRegistrationController::class, 'register'])->name('race.register');
+    Route::post('/races/{race}/register-team', [RaceRegistrationController::class, 'registerTeam'])->name('race.registerTeam');
+    Route::delete('/races/{race}/cancel-registration/{team}', [RaceRegistrationController::class, 'cancelRegistration'])->name('race.cancelRegistration');
+    
+    // Race management (for race managers)
+    Route::put('/races/{race}/update-pps/{user}', [RaceRegistrationController::class, 'updatePPS'])->name('race.updatePPS');
+    Route::post('/races/{race}/confirm-team-payment/{team}', [RaceRegistrationController::class, 'confirmTeamPayment'])->name('race.confirmTeamPayment');
     
     // Team creation routes
     Route::get('/createTeam', [TeamController::class, 'create'])->name('team.create');
@@ -115,33 +127,43 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
-    // dashboard
-    Route::get('/', [AdminController::class, 'index'])->name('dashboard')->middleware('can:access-admin');
+    // dashboard - accessible to all admin roles
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
 
-    // users
+    // Race management - requires access-admin-races permission
+    Route::get('/races', [AdminController::class, 'racemanagement'])->name('races.index')->middleware('admin_page:access-admin-races');
+    Route::get('/races/{id}/edit', [RaceController::class, 'edit'])->name('races.edit')->middleware('admin_page:access-admin-races');
+
+    // Raid management - requires access-admin-raids permission
+    Route::get('/raids', [AdminController::class, 'raidmanagement'])->name('raids.index')->middleware('admin_page:access-admin-raids');
+
+    // Club management - requires access-admin-clubs permission
+    Route::get('/clubs', [AdminController::class, 'clubmanagement'])->name('clubs.index')->middleware('admin_page:access-admin-clubs');
+
+    // users - admin only
     Route::match(['get', 'post'], '/users', [UserController::class, 'index'])->name('users.index')->middleware('can:view users');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('can:edit users');
     Route::post('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle')->middleware('can:edit users');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('can:delete users');
 
-    // role assignment
+    // role assignment - admin only
     Route::get('/roles', [UserController::class, 'getRoles'])->name('roles.index')->middleware('can:grant role');
     Route::post('/users/{user}/role', [UserController::class, 'assignRole'])->name('users.assignRole')->middleware('can:grant role');
     Route::delete('/users/{user}/role', [UserController::class, 'removeRole'])->name('users.removeRole')->middleware('can:grant role');
 
 
 
-    // logs
+    // logs - admin only
     Route::match(['get', 'post'], '/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
 
-    // leaderboard management
+    // leaderboard management - admin only
     Route::get('/leaderboard', [AdminLeaderboardController::class, 'index'])->name('leaderboard.index')->middleware('can:view users');
     Route::post('/leaderboard/import', [AdminLeaderboardController::class, 'import'])->name('leaderboard.import')->middleware('can:edit users');
     Route::get('/leaderboard/export/{raceId}', [AdminLeaderboardController::class, 'export'])->name('leaderboard.export')->middleware('can:view users');
     Route::get('/leaderboard/{raceId}/results', [AdminLeaderboardController::class, 'results'])->name('leaderboard.results')->middleware('can:view users');
     Route::delete('/leaderboard/results/{resultId}', [AdminLeaderboardController::class, 'destroy'])->name('leaderboard.destroy')->middleware('can:delete users');
 
-    // Club approval
+    // Club approval - admin only
     Route::get('/clubs/pending', [ClubApprovalController::class, 'index'])->name('clubs.pending')->middleware('can:accept-club');
     Route::post('/clubs/{club}/approve', [ClubApprovalController::class, 'approve'])->name('clubs.approve')->middleware('can:accept-club');
     Route::post('/clubs/{club}/reject', [ClubApprovalController::class, 'reject'])->name('clubs.reject')->middleware('can:accept-club');

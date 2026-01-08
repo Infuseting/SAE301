@@ -51,30 +51,22 @@ class HandleInertiaRequests extends Middleware
                 }
             }
 
-            $authData = null;
+            // Check if user is a manager without valid licence
+            $requiresLicenceUpdate = false;
             if ($request->user()) {
-                $user = $request->user()->load([
-                    'roles',
-                    'member',
-                    'medicalDoc',
-                    'clubs' => function ($query) {
-                        $query->where('club_user.status', 'approved')
-                            ->select('clubs.club_id', 'clubs.club_name');
-                    }
-                ])->append(['has_completed_profile', 'profile_photo_url']);
-
-                // Get licence info
+                // Load member relationship first
+                $request->user()->load('member');
+                
                 $licenceService = app(LicenceService::class);
-                $licenceInfo = $licenceService->getLicenceInfo($request->user());
-
-                $authData = array_merge(
-                    $user->toArray(),
-                    [
-                        'permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray(),
-                        'roles' => $request->user()->getRoleNames()->toArray(),
-                        'licence_info' => $licenceInfo,
-                    ]
-                );
+                $hasValidLicence = $licenceService->hasValidLicence($request->user());
+                $isManager = $request->user()->hasAnyRole([
+                    'responsable-club',
+                    'gestionnaire-raid',
+                    'responsable-course',
+                    'gestionnaire-equipe'
+                ]);
+                
+                $requiresLicenceUpdate = $isManager && !$hasValidLicence;
             }
 
             return [
@@ -83,6 +75,7 @@ class HandleInertiaRequests extends Middleware
                     'user' => $request->user() ? array_merge(
                         $request->user()->load([
                             'roles',
+                            'member',
                             'clubs' => function ($query) {
                                 $query->where('club_user.status', 'approved')
                                     ->select('clubs.club_id', 'clubs.club_name');
@@ -94,6 +87,7 @@ class HandleInertiaRequests extends Middleware
                         ]
                     ) : null,
                 ],
+                'requiresLicenceUpdate' => $requiresLicenceUpdate,
                 'locale' => $locale,
                 'translations' => $translations,
             ];

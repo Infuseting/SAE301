@@ -49,12 +49,13 @@ class PublicProfileController extends Controller
                 'phone' => $user->phone,
                 'email' => $user->email,
                 'created_at' => $user->created_at,
+                'licence_end_validity' => $user->licence_end_validity,
             ],
             'teams' => $user->teams()->get()->map(function ($team) {
                 return [
                     'id' => $team->equ_id,
                     'name' => $team->equ_name,
-                    'image' => $team->equ_image,
+                    'image' => $team->equ_image ? '/storage/' . $team->equ_image : null,
                     'members' => $team->users()->get()->map(fn ($u) => [
                         'id' => $u->id,
                         'name' => $u->name,

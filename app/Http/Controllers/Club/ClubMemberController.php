@@ -113,8 +113,8 @@ class ClubMemberController extends Controller
             abort(403, 'Only club managers can approve join requests');
         }
 
-        // Update the pivot status
-        $club->members()->updateExistingPivot($user->id, [
+        // Update the pivot status using allMembers() to include pending requests
+        $club->allMembers()->updateExistingPivot($user->id, [
             'status' => 'approved',
         ]);
 
@@ -165,8 +165,8 @@ class ClubMemberController extends Controller
             abort(403, 'Only club managers can reject join requests');
         }
 
-        // Remove the pending request
-        $club->members()->detach($user->id);
+        // Remove the pending request using allMembers() to include pending entries
+        $club->allMembers()->detach($user->id);
 
         activity()
             ->performedOn($club)

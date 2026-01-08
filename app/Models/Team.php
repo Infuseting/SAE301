@@ -18,6 +18,7 @@ class Team extends Model
     protected $fillable = [
         'equ_name',
         'equ_image',
+        'user_id',
         'adh_id',
     ];
 
@@ -32,16 +33,16 @@ class Team extends Model
     }
 
     /**
-     * Get participants via has_participate (using 'id' column).
+     * Get participants via has_participate (using adh_id).
      */
     public function participants(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'has_participate', 'equ_id', 'id');
+        return $this->belongsToMany(Member::class, 'has_participate', 'equ_id', 'adh_id');
     }
 
     /**
-     * Get users that belong to this team (using 'id_users' column).
-     * Uses the has_participate pivot table.
+     * Get users that belong to this team.
+     * Uses the has_participate pivot table with id_users.
      */
     public function users(): BelongsToMany
     {
@@ -49,10 +50,11 @@ class Team extends Model
     }
 
     /**
-     * Get the team leader (user who created the team).
+     * Get the team leader (user).
      */
     public function leader(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'adh_id', 'id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
+    
 }

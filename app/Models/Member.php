@@ -39,14 +39,6 @@ class Member extends Model
     ];
 
     /**
-     * Get the teams led by this member.
-     */
-    public function leaderTeams()
-    {
-        return $this->hasMany(Team::class, 'adh_id', 'adh_id');
-    }
-
-    /**
      * Get the teams this member belongs to via has_participate.
      */
     public function teams()
@@ -68,6 +60,15 @@ class Member extends Model
     public function user()
     {
         return $this->hasOne(User::class, 'adh_id', 'adh_id');
+    }
 
+    /**
+     * Get the formatted licence end validity date.
+     *
+     * @return string|null
+     */
+    public function endValidity(): ?string
+    {
+        return $this->adh_end_validity ? $this->adh_end_validity->format('d/m/Y') : null;
     }
 }

@@ -36,6 +36,13 @@ class SocialiteController extends Controller
      */
     public function redirect(Request $request, $provider)
     {
+        if ($request->has('redirect_uri')) {
+            $redirectUri = $request->get('redirect_uri');
+            // Ensure UTF-8 validity
+            if (mb_check_encoding($redirectUri, 'UTF-8')) {
+                $request->session()->put('redirect_uri', $redirectUri);
+            }
+        }
         return Socialite::driver($provider)->redirect();
     }
 
@@ -68,7 +75,11 @@ class SocialiteController extends Controller
                 ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
                 ->user();
         } catch (\Exception $e) {
-            return redirect()->route('login')->withErrors(['email' => 'Unable to login with ' . $provider . ': ' . $e->getMessage()]);
+            // Log the raw error for debugging
+            \Illuminate\Support\Facades\Log::error("Socialite Login Error ($provider): " . $e->getMessage());
+            
+            // Return a safe, generic error message to the user to avoid UTF-8 encoding issues in the session/view
+            return redirect()->route('login')->withErrors(['email' => "Unable to login with $provider. Please try again."]);
         }
 
         // If user is already logged in, link the account
@@ -109,6 +120,12 @@ class SocialiteController extends Controller
         if ($account) {
             Auth::login($account->user, true);
             $request->session()->regenerate();
+            
+            $redirectUri = $request->session()->pull('redirect_uri');
+            if ($redirectUri && filter_var($redirectUri, FILTER_VALIDATE_URL) && str_starts_with($redirectUri, url('/'))) {
+                return redirect()->to($redirectUri);
+            }
+
             return redirect()->intended('/');
         }
 
@@ -155,6 +172,11 @@ class SocialiteController extends Controller
 
         Auth::login($user, true);
         $request->session()->regenerate();
+
+        $redirectUri = $request->session()->pull('redirect_uri');
+        if ($redirectUri && filter_var($redirectUri, FILTER_VALIDATE_URL) && str_starts_with($redirectUri, url('/'))) {
+            return redirect()->to($redirectUri);
+        }
 
         return redirect('/');
     }

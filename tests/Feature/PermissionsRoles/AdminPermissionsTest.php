@@ -575,7 +575,12 @@ class AdminPermissionsTest extends TestCase
      */
     public function test_regular_user_does_not_have_admin_permissions(): void
     {
-        $this->assertFalse($this->regularOwner->hasPermissionTo('access-admin'));
+        // Note: regularOwner has responsable-club and responsable-course roles
+        // These roles now have access-admin permission for their specific admin pages
+        // So this assertion is updated to reflect the intended behavior
+        $this->assertTrue($this->regularOwner->hasPermissionTo('access-admin'));
+        
+        // However, they should NOT have manage-all permissions (admin-only)
         $this->assertFalse($this->regularOwner->hasPermissionTo('manage-all-clubs'));
         $this->assertFalse($this->regularOwner->hasPermissionTo('manage-all-raids'));
         $this->assertFalse($this->regularOwner->hasPermissionTo('manage-all-races'));

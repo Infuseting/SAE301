@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileCompletionRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Services\ProfileService;
+use App\Services\LicenceService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,10 +20,12 @@ use App\Models\Member;
 class ProfileController extends Controller
 {
     protected $profileService;
+    protected $licenceService;
 
-    public function __construct(ProfileService $profileService)
+    public function __construct(ProfileService $profileService, LicenceService $licenceService)
     {
         $this->profileService = $profileService;
+        $this->licenceService = $licenceService;
     }
 
     /**
@@ -120,9 +123,8 @@ class ProfileController extends Controller
         }
 
         // Handle License Number (Stored in Members table)
-        if (array_key_exists('license_number', $validated)) {
-            $licenseNumber = $validated['license_number'];
-            unset($validated['license_number']); // Remove from user attributes
+        if ($request->has('license_number')) {
+            $licenseNumber = $request->input('license_number');
 
             if ($licenseNumber) {
                 if ($request->user()->member) {
@@ -134,15 +136,22 @@ class ProfileController extends Controller
                         'adh_end_validity' => now()->addYear(), // Default 1 year validity
                         'adh_date_added' => now(),
                     ]);
-                    $request->user()->member()->associate($member);
+                    $request->user()->adh_id = $member->adh_id;
                 }
-            } elseif ($request->user()->member) {
-                // If license number is cleared/empty, should we clear it in member?
-                $request->user()->member->update(['adh_license' => '']);
+            } else {
+                // If license number is cleared/empty, remove adh_id from user
+                $request->user()->adh_id = null;
             }
         }
 
         $request->user()->save();
+
+        // Update role after saving user changes
+        if ($request->has('license_number')) {
+            // Refresh user and reload member relationship
+            $request->user()->refresh()->load('member');
+            $this->licenceService->checkAndAssignAdherentRole($request->user());
+        }
 
         if ($request->wantsJson() && !$request->header('X-Inertia')) {
             return response()->json(['data' => $request->user()], 200);

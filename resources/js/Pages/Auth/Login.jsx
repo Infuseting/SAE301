@@ -37,7 +37,11 @@ export default function Login({ status, canResetPassword }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('login'), {
+
+        const params = new URLSearchParams(window.location.search);
+        const redirectUri = params.get('redirect_uri');
+
+        post(route('login', { redirect_uri: redirectUri }), {
             onFinish: () => reset('password'),
         });
     };
@@ -53,7 +57,7 @@ export default function Login({ status, canResetPassword }) {
                 <p className="mt-2 text-sm text-gray-600 ">
                     {messages.continue_with_email || 'Or continue with email'}{' '}
                     <Link
-                        href={route('register')}
+                        href={route('register', { redirect_uri: new URLSearchParams(window.location.search).get('redirect_uri') })}
                         className="font-medium text-important hover:text-unimportant transition-colors"
                     >
                         {messages.create_account || 'create a new account'}
@@ -70,16 +74,16 @@ export default function Login({ status, canResetPassword }) {
             <div className="mt-6">
 
                 <div className="grid grid-cols-2 gap-3">
-                    <a href={route('socialite.redirect', 'google')} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
+                    <a href={route('socialite.redirect', { provider: 'google', redirect_uri: new URLSearchParams(window.location.search).get('redirect_uri') })} className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all duration-200">
                         <span className="sr-only">{messages.connect_google || 'Connect Google'}</span>
                         <div className="flex items-center gap-2">
                             <GoogleIcon /> <span>{messages.social_login_google || 'Google'}</span>
                         </div>
                     </a>
-                    <a href={route('socialite.redirect', 'strava')} className="w-full inline-flex justify-center py-2.5 px-4 border border-orange-300 rounded-xl shadow-sm bg-white text-sm font-bold text-orange-600 hover:bg-orange-50 hover:border-orange-400 transition-all duration-200">
+                    <a href={route('socialite.redirect', { provider: 'strava', redirect_uri: new URLSearchParams(window.location.search).get('redirect_uri') })} className="w-full inline-flex justify-center py-2.5 px-4 border border-orange-300 rounded-xl shadow-sm bg-white text-sm font-bold text-orange-600 hover:bg-orange-50 hover:border-orange-400 transition-all duration-200">
                         <span className="sr-only">{messages.connect_strava || 'Connect Strava'}</span>
                         <div className="flex items-center gap-2">
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" /></svg>
                             <span>{messages.social_login_strava || 'Strava'}</span>
                         </div>
                     </a>
