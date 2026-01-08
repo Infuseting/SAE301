@@ -1,6 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import React, { useState } from 'react';
+import TeamRegistrationModal from '@/Components/TeamRegistrationModal';
+import MyRegistrationModal from '@/Components/MyRegistrationModal';
+import UpdatePPSModal from '@/Components/UpdatePPSModal';
+import TeamPaymentModal from '@/Components/TeamPaymentModal';
 import {
     Calendar, Timer, MapPin, Users, Info, ChevronRight,
     Trophy, Heart, ShieldCheck, FileText, UserCheck,
@@ -8,8 +12,46 @@ import {
     CreditCard, Utensils
 } from 'lucide-react';
 
-export default function VisuRace({ auth, race, isManager, participants = [], error, errorMessage }) {
+export default function VisuRace({ auth, race, isManager, participants = [], error, errorMessage, userTeams = [], registeredByLeader = null, registeredTeam = null }) {
     const translations = usePage().props.translations?.messages || {};
+    const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+    const [isMyRegistrationModalOpen, setIsMyRegistrationModalOpen] = useState(false);
+    const [selectedParticipant, setSelectedParticipant] = useState(null);
+    const [selectedTeamForPayment, setSelectedTeamForPayment] = useState(null);
+
+    // Group participants by team
+    const teamGroups = participants.reduce((acc, participant) => {
+        if (!acc[participant.equ_id]) {
+            acc[participant.equ_id] = {
+                team_name: participant.equ_name,
+                team_id: participant.equ_id,
+                members: []
+            };
+        }
+        acc[participant.equ_id].members.push(participant);
+        return acc;
+    }, {});
+
+    const handlePPSClick = (participant) => {
+        setSelectedParticipant(participant);
+    };
+
+    const handlePaymentClick = (teamId) => {
+        const teamData = teamGroups[teamId];
+        const teamInfo = {
+            id: teamId,
+            name: teamData.team_name,
+            is_paid: teamData.members.every(p => p.reg_validated),
+            members: teamData.members.map(p => ({
+                first_name: p.first_name,
+                last_name: p.last_name,
+                validated: p.reg_validated,
+                price: p.price,
+                price_category: p.price_category
+            }))
+        };
+        setSelectedTeamForPayment(teamInfo);
+    };
 
     // If race not found, display error message
     if (error || !race) {
@@ -53,9 +95,11 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
     };
 
     const currentStatus = statusConfig[race.status] || statusConfig.planned;
+    const userIsLog = auth.user;
+    const userIsBusy = false;
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout user={auth.user}>
             <Head title={race.title} />
 
             {/* Header / Hero Section */}
@@ -168,7 +212,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                         <th className="px-8 py-5 text-left text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Participant / Équipe</th>
                                                         <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Licence</th>
                                                         <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">PPS</th>
-                                                        <th className="px-8 py-5 text-right text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Validation</th>
+                                                        <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Paiement</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-blue-50">
@@ -192,19 +236,38 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                                 </div>
                                                             </td>
                                                             <td className="px-8 py-6 text-center">
-                                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase ${p.is_pps_valid ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                                                                    {p.is_pps_valid ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-                                                                    {p.pps_number ? 'VALIDE' : 'REQUIS'}
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-8 py-6 text-right">
-                                                                {p.reg_validated ? (
-                                                                    <span className="text-emerald-500 bg-emerald-50 p-2 rounded-xl block ml-auto w-fit">
-                                                                        <UserCheck className="h-5 w-5" />
-                                                                    </span>
+                                                                {p.is_license_valid ? (
+                                                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-gray-100 text-gray-500">
+                                                                        NON REQUIS
+                                                                    </div>
+                                                                ) : p.is_pps_valid ? (
+                                                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-600">
+                                                                        <CheckCircle2 className="h-3 w-3" />
+                                                                        VALIDE
+                                                                    </div>
                                                                 ) : (
-                                                                    <button className="text-blue-400 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-xl">
-                                                                        <ChevronRight className="h-5 w-5" />
+                                                                    <button 
+                                                                        onClick={() => handlePPSClick(p)}
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-red-50 text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
+                                                                    >
+                                                                        <XCircle className="h-3 w-3" />
+                                                                        REQUIS
+                                                                    </button>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-8 py-6 text-center">
+                                                                {p.reg_validated ? (
+                                                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-600">
+                                                                        <CheckCircle2 className="h-3 w-3" />
+                                                                        PAYÉ
+                                                                    </div>
+                                                                ) : (
+                                                                    <button 
+                                                                        onClick={() => handlePaymentClick(p.equ_id)}
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors cursor-pointer"
+                                                                    >
+                                                                        <CreditCard className="h-3 w-3" />
+                                                                        EN ATTENTE
                                                                     </button>
                                                                 )}
                                                             </td>
@@ -230,11 +293,64 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         </h3>
                                     </div>
 
-                                    {!race.is_finished && race.isOpen ? (
-                                        <button className="w-full bg-emerald-500 hover:bg-emerald-400 py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3">
-                                            S'INSCRIRE MAINTENANT
+                                    {race.isOpen && !race.isAlreadyRegistered && !userIsLog ? (
+                                        <Link
+                                            href={route('register', { redirect_uri: window.location.href })}
+                                            className="w-full bg-emerald-500 hover:bg-emerald-400 py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3 text-white"
+                                        >
+                                            CREER MON COMPTE
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Link>
+                                    ) : race.isOpen && !race.isAlreadyRegistered && userIsBusy ? (
+                                        <div className="bg-white/5 border border-white/10 p-6 rounded-3xl">
+                                            <p className="text-xs font-bold text-emerald-100/60 leading-relaxed uppercase tracking-widest text-center">
+                                                Vous êtes déjà inscrit a une course sur ce creneau là
+                                            </p>
+                                        </div>
+                                    ) : (race.isOpen && race.registeredCount >= race.maxParticipants && race.maxTeams >= race.teamsCount) ? (
+                                        <div className="bg-white/5 border border-white/10 p-6 rounded-3xl">
+                                            <p className="text-xs font-bold text-emerald-100/60 leading-relaxed uppercase tracking-widest text-center">
+                                                Le nombre maximum d'inscrits est atteint.
+                                            </p>
+                                        </div>
+                                    ) : (!race.is_finished && race.isOpen && registeredByLeader) ? (
+                                        <div className="bg-blue-50 border-2 border-blue-200 p-6 rounded-2xl">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="bg-blue-500 rounded-full p-2 mt-0.5">
+                                                        <Info className="h-4 w-4 text-white" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className="text-xs font-black text-blue-900 uppercase tracking-widest mb-2">
+                                                            Inscription par un chef d'équipe
+                                                        </p>
+                                                        <p className="text-sm font-medium text-blue-700 leading-relaxed">
+                                                            Vous avez été inscrit par <span className="font-black">{registeredByLeader.leader_name}</span> dans l'équipe <span className="font-black italic">{registeredByLeader.team_name}</span> à cette course.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        
+                                    
+                                    ) : !race.is_finished && race.isOpen && !race.alreadyRegistered ? (
+                                        <div className="space-y-4">
+                                           
+                                            <button
+                                                onClick={() => setIsTeamModalOpen(true)}
+                                                className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all shadow-lg shadow-blue-900/50 uppercase flex items-center justify-center gap-3 text-white border border-blue-400/20"
+                                            >
+                                                S'INSCRIRE MAINTENANT
+                                                <Users className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    ) : race.isOpen && race.alreadyRegistered ? (
+                                        <button 
+                                            onClick={() => setIsMyRegistrationModalOpen(true)}
+                                            className="w-full bg-emerald-500 hover:bg-emerald-400 py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3"
+                                        >
+                                            VOIR MON INSCRIPTION
                                             <ChevronRight className="h-4 w-4" />
                                         </button>
+
                                     ) : race.status === 'completed' ? (
                                         <button className="w-full bg-white/10 hover:bg-white/20 py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all border border-white/20 uppercase flex items-center justify-center gap-3">
                                             VOIR LES RÉSULTATS
@@ -274,7 +390,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 <div className="space-y-4">
                                     {[
                                         { label: 'Tarif Majeur', price: race.priceMajor, isMain: true },
-                                        { label: 'Tarif Mineur', price: race.priceMinor },
+                                        ...(!race.raceType === 'compétitif' ? [{ label: 'Tarif Mineur', price: race.priceMinor }] : []),
                                         { label: 'Tarif Adhérent', price: race.priceAdherent, sub: 'Licenciés club' },
                                     ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
                                         <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${t.isMain ? 'bg-blue-900 text-white border-blue-900 shadow-xl shadow-blue-200' : 'bg-blue-50/30 border-blue-50 text-blue-900'}`}>
@@ -296,16 +412,16 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 </h4>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Équipes Min</p>
-                                        <p className="text-2xl font-black text-blue-900 italic">{race.minTeams}</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Membres Min</p>
+                                        <p className="text-2xl font-black text-blue-900 italic">{race.minMembers}</p>
                                     </div>
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Équipes Max</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Max Équipes</p>
                                         <p className="text-2xl font-black text-blue-900 italic">{race.maxTeams}</p>
                                     </div>
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Par Équipe Max</p>
-                                        <p className="text-2xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Membres Max</p>
+                                        <p className="text-2xl font-black text-blue-900 italic">{race.maxMembers}</p>
                                     </div>
                                 </div>
                             </div>
@@ -333,6 +449,38 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                     </div>
                 </div>
             </div>
+            <TeamRegistrationModal
+                isOpen={isTeamModalOpen}
+                onClose={() => setIsTeamModalOpen(false)}
+                teams={userTeams}
+                minRunners={race.minMembers}
+                maxRunners={race.maxMembers}
+                raceId={race.id}
+                racePrices={{
+                    major: race.priceMajor,
+                    minor: race.priceMinor,
+                    adherent: race.priceAdherent
+                }}
+                isCompetitive={race.isCompetitive}
+            />
+            <MyRegistrationModal
+                isOpen={isMyRegistrationModalOpen}
+                onClose={() => setIsMyRegistrationModalOpen(false)}
+                registeredTeam={registeredTeam}
+                raceId={race.id}
+            />
+            <UpdatePPSModal
+                isOpen={selectedParticipant !== null}
+                onClose={() => setSelectedParticipant(null)}
+                participant={selectedParticipant}
+                raceId={race.id}
+            />
+            <TeamPaymentModal
+                isOpen={selectedTeamForPayment !== null}
+                onClose={() => setSelectedTeamForPayment(null)}
+                team={selectedTeamForPayment}
+                raceId={race.id}
+            />
         </AuthenticatedLayout>
     );
 }

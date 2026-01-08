@@ -105,7 +105,14 @@ Route::middleware('auth')->group(function () {
 
     // Race registration
     Route::get('/races/{race}/registration/check', [RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
+    Route::get('/races/{race}/registration/check', [RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
     Route::post('/races/{race}/register', [RaceRegistrationController::class, 'register'])->name('race.register');
+    Route::post('/races/{race}/register-team', [RaceRegistrationController::class, 'registerTeam'])->name('race.registerTeam');
+    Route::delete('/races/{race}/cancel-registration/{team}', [RaceRegistrationController::class, 'cancelRegistration'])->name('race.cancelRegistration');
+    
+    // Race management (for race managers)
+    Route::put('/races/{race}/update-pps/{user}', [RaceRegistrationController::class, 'updatePPS'])->name('race.updatePPS');
+    Route::post('/races/{race}/confirm-team-payment/{team}', [RaceRegistrationController::class, 'confirmTeamPayment'])->name('race.confirmTeamPayment');
     
     // Team creation routes
     Route::get('/createTeam', [TeamController::class, 'create'])->name('team.create');

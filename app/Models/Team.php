@@ -32,16 +32,16 @@ class Team extends Model
     }
 
     /**
-     * Get participants via has_participate (using 'id' column).
+     * Get participants via has_participate (using adh_id).
      */
     public function participants(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'has_participate', 'equ_id', 'id');
+        return $this->belongsToMany(Member::class, 'has_participate', 'equ_id', 'adh_id');
     }
 
     /**
-     * Get users that belong to this team (using 'id_users' column).
-     * Uses the has_participate pivot table.
+     * Get users that belong to this team.
+     * Uses the has_participate pivot table with id_users.
      */
     public function users(): BelongsToMany
     {

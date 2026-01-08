@@ -26,7 +26,7 @@ export default function UserTeams({ teams = [] }) {
                 { id: 5, name: "Lucas Petit" },
             ]
         },
-        
+
     ];
 
     const displayTeams = teams;
@@ -35,9 +35,9 @@ export default function UserTeams({ teams = [] }) {
         <div className="py-6">
             <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Vos équipes
+                    Vos équipes | <a href="/createTeam" className="text-blue-500 hover:text-blue-600 ml-2">Créer une équipe</a>
                 </h2>
-                
+
                 {displayTeams.length === 0 ? (
                     <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm text-center text-gray-500">
                         Vous n'êtes membre d'aucune équipe pour le moment.
@@ -45,15 +45,15 @@ export default function UserTeams({ teams = [] }) {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {displayTeams.map((team) => (
-                            <div 
-                                key={team.id} 
+                            <div
+                                key={team.id}
                                 className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col"
                             >
                                 {/* Team Image - Fixed height at top */}
                                 <div className="w-full h-40 overflow-hidden bg-gray-100">
                                     {team.image ? (
-                                        <img 
-                                            src={team.image} 
+                                        <img
+                                            src={team.image}
                                             alt={team.name}
                                             className="w-full h-full object-cover"
                                         />
@@ -98,9 +98,9 @@ export default function UserTeams({ teams = [] }) {
                                         )}
                                     </ul>
                                 </div>
-                                <Link href= {route('teams.show', team.id)}> 
-                                    <button 
-                                       
+                                <Link href={route('teams.show', team.id)}>
+                                    <button
+
                                         className="inline-block w-full text-center bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200"
                                     >
                                         Voir l'équipe
@@ -112,5 +112,5 @@ export default function UserTeams({ teams = [] }) {
                 )}
             </div>
         </div>
-    ); 
+    );
 }
