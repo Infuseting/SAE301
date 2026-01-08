@@ -107,8 +107,9 @@ class TeamController extends Controller
             'team' => [
                 'id' => $team->equ_id,
                 'name' => $team->equ_name,
-                'image' => $team->equ_image,
+                'image' => $team->equ_image ? '/storage/' . $team->equ_image : null,
                 'members' => $members,
+                'created_at' => $team->created_at->format('d/m/Y'),
                 'creator_id' => $team->user_id,  
             ],
             'users' => $users,
