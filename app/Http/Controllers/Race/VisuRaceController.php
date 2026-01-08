@@ -164,6 +164,10 @@ class VisuRaceController extends Controller
                     'nom' => $race->raid->club->club_name,
                 ] : null,
             ] : null,
+            'registrationPeriod' => $race->raid?->registrationPeriod ? [
+                'startDate' => $race->raid->registrationPeriod->ins_start_date?->toIso8601String(),
+                'endDate' => $race->raid->registrationPeriod->ins_end_date?->toIso8601String(),
+            ] : null,
             'categories' => [],
             'priceMajor' => $race->price_major,
             'priceMinor' => $race->price_minor,
