@@ -18,7 +18,7 @@ class Team extends Model
     protected $fillable = [
         'equ_name',
         'equ_image',
-        'adh_id',
+        'user_id',
     ];
 
     public function member(): BelongsTo
@@ -49,10 +49,10 @@ class Team extends Model
     }
 
     /**
-     * Get the team leader (user who created the team).
+     * Get the team leader (user).
      */
     public function leader(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'adh_id', 'id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 }

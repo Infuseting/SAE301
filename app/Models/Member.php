@@ -39,14 +39,6 @@ class Member extends Model
     ];
 
     /**
-     * Get the teams led by this member.
-     */
-    public function leaderTeams()
-    {
-        return $this->hasMany(Team::class, 'adh_id', 'adh_id');
-    }
-
-    /**
      * Get the teams this member belongs to via has_participate.
      */
     public function teams()
