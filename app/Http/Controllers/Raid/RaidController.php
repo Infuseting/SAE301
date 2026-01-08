@@ -401,7 +401,7 @@ class RaidController extends Controller
      */
     public function show(Raid $raid): Response
     {
-        $raid->load(['club', 'races.organizer.user', 'registrationPeriod']);
+        $raid->load(['club', 'races.organizer.user', 'races.categorieAges.ageCategorie', 'registrationPeriod']);
 
         $user = auth()->user();
         // Admin can manage all raids, otherwise check if user is raid manager or club manager
@@ -410,12 +410,24 @@ class RaidController extends Controller
         $courses = $raid->races->map(function ($race) use ($user, $isRaidManager) {
             $isRaceManager = $user && ($user->adh_id === $race->adh_id || $isRaidManager);
 
+            // Map age categories for display
+            $ageCategories = $race->categorieAges->map(function ($categorieAge) {
+                return [
+                    'id' => $categorieAge->ageCategorie->id,
+                    'nom' => $categorieAge->ageCategorie->nom,
+                    'age_min' => $categorieAge->ageCategorie->age_min,
+                    'age_max' => $categorieAge->ageCategorie->age_max,
+                ];
+            })->values();
+
             return [
                 'id' => $race->race_id,
                 'name' => $race->race_name,
                 'organizer_name' => $race->organizer && $race->organizer->user ? $race->organizer->user->name : 'N/A',
                 'difficulty' => $race->race_difficulty ?? 'N/A',
                 'start_date' => $race->race_date_start ? $race->race_date_start->toIso8601String() : null,
+                'duration_minutes' => $race->race_duration_minutes ?? 0,
+                'ageCategories' => $ageCategories,
                 'image' => $race->image_url ? '/storage/' . $race->image_url : null,
                 'is_open' => $race->isOpen(),
                 'registration_upcoming' => $race->isRegistrationUpcoming(),

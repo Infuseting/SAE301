@@ -166,16 +166,33 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
 
                                             <div className="grid grid-cols-2 gap-4 mb-8">
                                                 <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-                                                    <p className="text-[10px] text-blue-900/30 font-black uppercase tracking-widest mb-1">Date</p>
+                                                    <p className="text-[10px] text-blue-900/30 font-black uppercase tracking-widest mb-1">Date & Heure</p>
                                                     <p className="text-xs font-bold text-blue-900">
                                                         {new Date(course.start_date).toLocaleDateString()}
                                                     </p>
+                                                    <p className="text-xs font-bold text-emerald-600 italic">
+                                                        {new Date(course.start_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                    </p>
                                                 </div>
                                                 <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-                                                    <p className="text-[10px] text-blue-900/30 font-black uppercase tracking-widest mb-1">Âge min.</p>
-                                                    <p className="text-xs font-bold text-blue-900">{course.min_age} ANS</p>
+                                                    <p className="text-[10px] text-blue-900/30 font-black uppercase tracking-widest mb-1">Durée</p>
+                                                    <p className="text-xs font-bold text-blue-900">{course.duration_minutes} MIN</p>
                                                 </div>
                                             </div>
+
+                                            {/* Age Categories Details */}
+                                            {course.ageCategories.length > 0 && (
+                                                <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 mb-6">
+                                                    <p className="text-[10px] text-emerald-900/50 font-black uppercase tracking-widest mb-2">Catégories acceptées</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {course.ageCategories.map((cat) => (
+                                                            <span key={cat.id} className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-lg">
+                                                                {cat.nom} ({cat.age_min}–{cat.age_max} ans)
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             <div className="flex gap-3 mt-auto">
                                                 <Link href={route('races.show', course.id)} className="flex-1">

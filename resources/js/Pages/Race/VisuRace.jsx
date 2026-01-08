@@ -14,43 +14,15 @@ import {
 
 export default function VisuRace({ auth, race, isManager, participants = [], error, errorMessage, userTeams = [], registeredByLeader = null, registeredTeam = null }) {
     const translations = usePage().props.translations?.messages || {};
-    const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
-    const [isMyRegistrationModalOpen, setIsMyRegistrationModalOpen] = useState(false);
-    const [selectedParticipant, setSelectedParticipant] = useState(null);
-    const [selectedTeamForPayment, setSelectedTeamForPayment] = useState(null);
+    const [activeTab, setActiveTab] = useState('tarifs');
 
-    // Group participants by team
-    const teamGroups = participants.reduce((acc, participant) => {
-        if (!acc[participant.equ_id]) {
-            acc[participant.equ_id] = {
-                team_name: participant.equ_name,
-                team_id: participant.equ_id,
-                members: []
-            };
-        }
-        acc[participant.equ_id].members.push(participant);
-        return acc;
-    }, {});
-
-    const handlePPSClick = (participant) => {
-        setSelectedParticipant(participant);
-    };
-
-    const handlePaymentClick = (teamId) => {
-        const teamData = teamGroups[teamId];
-        const teamInfo = {
-            id: teamId,
-            name: teamData.team_name,
-            is_paid: teamData.members.every(p => p.reg_validated),
-            members: teamData.members.map(p => ({
-                first_name: p.first_name,
-                last_name: p.last_name,
-                validated: p.reg_validated,
-                price: p.price,
-                price_category: p.price_category
-            }))
-        };
-        setSelectedTeamForPayment(teamInfo);
+    // Check if current date is within registration period
+    const isRegistrationOpen = () => {
+        if (!race.registrationPeriod) return false;
+        const now = new Date();
+        const startDate = new Date(race.registrationPeriod.startDate);
+        const endDate = new Date(race.registrationPeriod.endDate);
+        return now >= startDate && now <= endDate;
     };
 
     // If race not found, display error message
@@ -88,6 +60,14 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
         });
     };
 
+    const formatTime = (dateString) => {
+        if (!dateString) return '';
+        return new Date(dateString).toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     const statusConfig = {
         completed: { label: 'Épreuve Terminée', icon: <CheckCircle2 className="h-4 w-4" />, color: 'bg-gray-900 text-white' },
         ongoing: { label: 'En cours', icon: <Clock className="h-4 w-4" />, color: 'bg-emerald-500 text-white' },
@@ -102,8 +82,8 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
         <AuthenticatedLayout user={auth.user}>
             <Head title={race.title} />
 
-            {/* Header / Hero Section */}
-            <div className="bg-blue-900 pt-10 pb-16 relative overflow-hidden border-b-8 border-emerald-500">
+            {/* Header / Hero Section - Compact */}
+            <div className="bg-blue-900 py-8 relative overflow-hidden border-b-4 border-emerald-500">
                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                     <Trophy className="w-96 h-96 -rotate-12" />
                 </div>
@@ -111,16 +91,17 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
                     {/* Back Button */}
                     {race.raidId && (
-                        <Link href={route('raids.show', race.raidId)} className="inline-flex items-center gap-2 text-sm font-medium text-emerald-400 hover:text-white mb-6 transition-colors">
+                        <Link href={route('raids.show', race.raidId)} className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-white mb-4 transition-colors uppercase tracking-widest">
                             <ChevronRight className="w-4 h-4 rotate-180" />
                             Retour au raid
                         </Link>
                     )}
 
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
-                        {/* Left side - Image */}
-                        <div className="w-full md:w-64 flex-shrink-0">
-                            <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl relative bg-gradient-to-br from-blue-800 to-emerald-800 flex items-center justify-center">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        {/* Left side - Image + Title */}
+                        <div className="flex-1 flex items-start gap-4 space-y-3">
+                            {/* Small Image or Placeholder */}
+                            <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden shadow-lg bg-gradient-to-br from-blue-800 to-emerald-800 flex items-center justify-center">
                                 {race.imageUrl ? (
                                     <img
                                         src={race.imageUrl.startsWith('/storage/') ? race.imageUrl : `/storage/${race.imageUrl}`}
@@ -128,52 +109,35 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center gap-2">
-                                        <Trophy className="w-12 h-12 text-white/30" />
-                                        <p className="text-white/50 font-bold text-xs uppercase tracking-wider">Pas d'image</p>
-                                    </div>
+                                    <Trophy className="w-8 h-8 text-white/40" />
                                 )}
                             </div>
-                        </div>
+                            
+                            <div className="flex-1">
+                                <div className="space-y-3">
+                                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-lg ${currentStatus.color}`}>
+                                        {currentStatus.icon}
+                                        {currentStatus.label}
+                                    </span>
 
-                        {/* Right side - Race info */}
-                        <div className="flex-1 space-y-6">
-                            <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg ${currentStatus.color}`}>
-                                {currentStatus.icon}
-                                {currentStatus.label}
-                            </span>
-
-                            <div>
-                                <h1 className="text-5xl font-black text-white italic tracking-tighter mb-4 leading-none uppercase">
-                                    {race.title}
-                                </h1>
-                                <div className="flex flex-wrap items-center gap-6 text-blue-100/60 text-sm font-bold uppercase tracking-widest">
-                                    <div className="flex items-center gap-2">
-                                        <MapPin className="h-4 w-4 text-emerald-400" />
-                                        {race.location}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Calendar className="h-4 w-4 text-emerald-400" />
-                                        {formatDate(race.raceDate)}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                                        {race.difficulty}
+                                    <div>
+                                        <h1 className="text-4xl font-black text-white italic tracking-tighter leading-none uppercase">
+                                            {race.title}
+                                        </h1>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            {isManager && (
-                                <Link href={route('races.edit', race.id)}>
-                                    <button className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-2xl font-black text-xs transition-all backdrop-blur-md border border-white/20 flex items-center gap-2 tracking-widest uppercase">
-                                        <Settings className="h-4 w-4" />
-                                        CONFIGURER
-                                    </button>
-                                </Link>
-                            )}
-                        </div>
+                        {/* Right side - Config button */}
+                        {isManager && (
+                            <Link href={route('races.edit', race.id)}>
+                                <button className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-black text-xs transition-all backdrop-blur-md border border-white/20 flex items-center gap-2 tracking-widest uppercase">
+                                    <Settings className="h-4 w-4" />
+                                    CONFIGURER
+                                </button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>
@@ -182,16 +146,209 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                         {/* Left Side: Description & Details */}
-                        <div className="lg:col-span-8 space-y-10">
-                            {/* Description Card */}
-                            <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-blue-50">
-                                <h2 className="text-2xl font-black text-blue-900 italic mb-6 flex items-center gap-3 uppercase">
-                                    <Info className="h-6 w-6 text-emerald-500" />
-                                    Présentation de l'épreuve
-                                </h2>
-                                <p className="text-lg text-blue-800/70 leading-relaxed font-medium">
+                        <div className="lg:col-span-8 space-y-6">
+                            {/* Essential Info Card */}
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-50">
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <MapPin className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Lieu</p>
+                                            <p className="text-sm font-bold text-blue-900">{race.raid?.location || race.location || 'Lieu à définir'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Calendar className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Date & Heure</p>
+                                            <p className="text-sm font-bold text-blue-900">
+                                                {formatDate(race.raceDate)} à <span className="text-emerald-600 font-black">{formatTime(race.raceDate)}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <ShieldCheck className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Difficulté</p>
+                                            <p className="text-sm font-bold text-blue-900">{race.difficulty}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Description Card - Compact */}
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-50">
+                                <p className="text-base text-blue-800/70 leading-relaxed font-medium">
                                     {race.description}
                                 </p>
+                            </div>
+
+                            {/* Age Categories Display */}
+                            {race.ageCategories && race.ageCategories.length > 0 && (
+                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-50">
+                                    <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                        <Users className="h-5 w-5 text-emerald-500" />
+                                        Catégories d'âges acceptées
+                                    </h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {race.ageCategories.map((category) => (
+                                            <div 
+                                                key={category.id}
+                                                className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-3 text-center hover:shadow-md transition-all"
+                                            >
+                                                <p className="text-xs font-black text-emerald-700 uppercase tracking-widest">{category.nom}</p>
+                                                <p className="text-sm font-bold text-emerald-900 mt-1">
+                                                    {category.age_min}{category.age_max ? `–${category.age_max}` : '+'} ans
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Tabs for Tarifs, Équipes, Organisateur */}
+                            <div className="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden">
+                                <div className="flex border-b border-blue-50">
+                                    <button
+                                        onClick={() => setActiveTab('tarifs')}
+                                        className={`flex-1 px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${
+                                            activeTab === 'tarifs'
+                                                ? 'bg-emerald-50 text-emerald-600 border-b-2 border-emerald-500'
+                                                : 'text-blue-400 hover:bg-blue-50/50'
+                                        }`}
+                                    >
+                                        <CreditCard className="h-3 w-3 inline mr-1.5" />
+                                        Tarifs
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('equipes')}
+                                        className={`flex-1 px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${
+                                            activeTab === 'equipes'
+                                                ? 'bg-emerald-50 text-emerald-600 border-b-2 border-emerald-500'
+                                                : 'text-blue-400 hover:bg-blue-50/50'
+                                        }`}
+                                    >
+                                        <Users className="h-3 w-3 inline mr-1.5" />
+                                        Équipes
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('responsable')}
+                                        className={`flex-1 px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${
+                                            activeTab === 'responsable'
+                                                ? 'bg-emerald-50 text-emerald-600 border-b-2 border-emerald-500'
+                                                : 'text-blue-400 hover:bg-blue-50/50'
+                                        }`}
+                                    >
+                                        <ShieldCheck className="h-3 w-3 inline mr-1.5" />
+                                        Responsable
+                                    </button>
+                                </div>
+
+                                <div className="p-6 space-y-4">
+                                    {/* Tarifs Tab */}
+                                    {activeTab === 'tarifs' && (
+                                        <div className="space-y-3">
+                                            {[
+                                                { label: 'Majeur', price: race.priceMajor, isMain: true },
+                                                { label: 'Mineur', price: race.priceMinor },
+                                                { label: 'Adhérent', price: race.priceAdherent, sub: 'Licenciés' },
+                                            ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-3 rounded-xl border bg-blue-50/30 border-blue-50 text-blue-900 transition-colors">
+                                                    <div>
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-blue-400">{t.label}</p>
+                                                        {t.sub && <p className="text-[8px] font-bold text-blue-800/40">{t.sub}</p>}
+                                                    </div>
+                                                    <span className="text-lg font-black italic text-blue-900">{t.price}€</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Équipes Tab */}
+                                    {activeTab === 'equipes' && (
+                                        <div className="space-y-4">
+                                            {/* Participants */}
+                                            <div>
+                                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Coureurs</p>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Min</p>
+                                                        <p className="text-xl font-black text-blue-900 italic">{race.minParticipants}</p>
+                                                    </div>
+                                                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Max</p>
+                                                        <p className="text-xl font-black text-blue-900 italic">{race.maxParticipants}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Teams */}
+                                            <div>
+                                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Équipes</p>
+                                                <div className="grid grid-cols-3 gap-3">
+                                                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Min</p>
+                                                        <p className="text-xl font-black text-blue-900 italic">{race.minTeams}</p>
+                                                    </div>
+                                                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Max</p>
+                                                        <p className="text-xl font-black text-blue-900 italic">{race.maxTeams}</p>
+                                                    </div>
+                                                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Par Éq</p>
+                                                        <p className="text-xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Catégories d'âges Tab */}
+                                    {activeTab === 'categories' && (
+                                        <div className="space-y-3">
+                                            {race.ageCategories && race.ageCategories.length > 0 ? (
+                                                race.ageCategories.map((category) => (
+                                                    <div
+                                                        key={category.id}
+                                                        className="p-4 rounded-xl border-2 border-emerald-300 bg-emerald-50/50 shadow-sm hover:shadow-md transition-all"
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <p className="text-sm font-black text-emerald-900 uppercase italic">{category.nom}</p>
+                                                                <p className="text-xs text-emerald-700 font-bold mt-1">
+                                                                    {category.age_min} {category.age_max ? `- ${category.age_max}` : '+'} ans
+                                                                </p>
+                                                            </div>
+                                                            <div className="bg-emerald-500 rounded-full p-2">
+                                                                <CheckCircle2 className="w-5 h-5 text-white" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-center text-blue-600 text-sm font-bold py-4">Aucune catégorie d'âge définie</p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Responsable Tab */}
+                                    {activeTab === 'responsable' && (
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-3 bg-gray-50/50 p-3 rounded-2xl border border-gray-100">
+                                                <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200 flex-shrink-0">
+                                                    <span className="text-white font-black text-lg italic">{race.organizer.name[0]}</span>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-black text-blue-900 uppercase italic leading-none">{race.organizer.name}</p>
+                                                    <p className="text-[8px] font-bold text-blue-700/40 uppercase tracking-widest mt-0.5">ORGANISATEUR</p>
+                                                </div>
+                                            </div>
+                                            <button className="w-full py-3 text-[9px] font-black text-blue-600 uppercase tracking-[0.15em] hover:bg-blue-50 rounded-xl border border-blue-100 transition-colors">
+                                                Contacter
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Manager Panel */}
@@ -284,91 +441,84 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                         {/* Right Side: Sidebar */}
                         <div className="lg:col-span-4 space-y-8">
                             {/* Registration Box */}
-                            <div className="bg-emerald-900 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-emerald-950/20 relative overflow-hidden group">
-                                <div className="relative z-10 space-y-8">
+                            <div className="bg-emerald-900 rounded-2xl p-6 text-white shadow-2xl shadow-emerald-950/20 relative overflow-hidden group">
+                                <div className="relative z-10 space-y-6">
                                     <div className="space-y-2">
                                         <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">État de l'épreuve</p>
-                                        <h3 className="text-3xl font-black italic uppercase leading-none">
+                                        <h3 className="text-2xl font-black italic uppercase leading-none">
                                             {race.status === 'completed' ? 'INSCRIPTIONS CLOSES' : race.isOpen ? 'VIVEZ L\'EXPÉRIENCE' : 'BIENTÔT DISPONIBLE'}
                                         </h3>
                                     </div>
 
-                                    {race.isOpen && !race.isAlreadyRegistered && !userIsLog ? (
-                                        <Link
-                                            href={route('register', { redirect_uri: window.location.href })}
-                                            className="w-full bg-emerald-500 hover:bg-emerald-400 py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3 text-white"
-                                        >
-                                            CREER MON COMPTE
-                                            <ChevronRight className="h-4 w-4" />
-                                        </Link>
-                                    ) : race.isOpen && !race.isAlreadyRegistered && userIsBusy ? (
-                                        <div className="bg-white/5 border border-white/10 p-6 rounded-3xl">
-                                            <p className="text-xs font-bold text-emerald-100/60 leading-relaxed uppercase tracking-widest text-center">
-                                                Vous êtes déjà inscrit a une course sur ce creneau là
-                                            </p>
-                                        </div>
-                                    ) : (race.isOpen && race.registeredCount >= race.maxParticipants && race.maxTeams >= race.teamsCount) ? (
-                                        <div className="bg-white/5 border border-white/10 p-6 rounded-3xl">
-                                            <p className="text-xs font-bold text-emerald-100/60 leading-relaxed uppercase tracking-widest text-center">
-                                                Le nombre maximum d'inscrits est atteint.
-                                            </p>
-                                        </div>
-                                    ) : (!race.is_finished && race.isOpen && registeredByLeader) ? (
-                                        <div className="bg-blue-50 border-2 border-blue-200 p-6 rounded-2xl">
-                                                <div className="flex items-start gap-3">
-                                                    <div className="bg-blue-500 rounded-full p-2 mt-0.5">
-                                                        <Info className="h-4 w-4 text-white" />
+                                    {!race.is_finished && race.isOpen && isRegistrationOpen() ? (
+                                        <div className="space-y-3">
+                                            <button className="w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3">
+                                                S'INSCRIRE MAINTENANT
+                                                <ChevronRight className="h-4 w-4" />
+                                            </button>
+                                            {race.registrationPeriod && (
+                                                <div className="bg-white/10 p-3 rounded-lg text-center space-y-2">
+                                                    <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Périoide d'inscription</p>
+                                                    <div className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-100">
+                                                        <Clock className="h-3 w-3" />
+                                                        <span>
+                                                            {new Date(race.registrationPeriod.startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(' ', ', ')}
+                                                        </span>
                                                     </div>
-                                                    <div className="flex-1">
-                                                        <p className="text-xs font-black text-blue-900 uppercase tracking-widest mb-2">
-                                                            Inscription par un chef d'équipe
-                                                        </p>
-                                                        <p className="text-sm font-medium text-blue-700 leading-relaxed">
-                                                            Vous avez été inscrit par <span className="font-black">{registeredByLeader.leader_name}</span> dans l'équipe <span className="font-black italic">{registeredByLeader.team_name}</span> à cette course.
-                                                        </p>
+                                                    <p className="text-emerald-400 text-xs">jusqu'au</p>
+                                                    <div className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-100">
+                                                        <Clock className="h-3 w-3" />
+                                                        <span>
+                                                            {new Date(race.registrationPeriod.endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(' ', ', ')}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        
-                                    
-                                    ) : !race.is_finished && race.isOpen && !race.alreadyRegistered ? (
-                                        <div className="space-y-4">
-                                           
-                                            <button
-                                                onClick={() => setIsTeamModalOpen(true)}
-                                                className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all shadow-lg shadow-blue-900/50 uppercase flex items-center justify-center gap-3 text-white border border-blue-400/20"
-                                            >
-                                                S'INSCRIRE MAINTENANT
-                                                <Users className="h-4 w-4" />
-                                            </button>
+                                            )}
                                         </div>
-                                    ) : race.isOpen && race.alreadyRegistered ? (
-                                        <button 
-                                            onClick={() => setIsMyRegistrationModalOpen(true)}
-                                            className="w-full bg-emerald-500 hover:bg-emerald-400 py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3"
-                                        >
-                                            VOIR MON INSCRIPTION
-                                            <ChevronRight className="h-4 w-4" />
-                                        </button>
-
+                                    ) : !isRegistrationOpen() && race.registrationPeriod ? (
+                                        <div className="space-y-3">
+                                            <button disabled className="w-full bg-gray-600 cursor-not-allowed py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-gray-950 uppercase flex items-center justify-center gap-3 opacity-50">
+                                                INSCRIPTIONS FERMÉES
+                                                <ChevronRight className="h-4 w-4" />
+                                            </button>
+                                            <div className="bg-white/10 p-3 rounded-lg text-center space-y-2">
+                                                <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Périoide d'inscription</p>
+                                                <div className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-100">
+                                                    <Clock className="h-3 w-3" />
+                                                    <span>
+                                                        {new Date(race.registrationPeriod.startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(' ', ', ')}
+                                                    </span>
+                                                </div>
+                                                <p className="text-emerald-400 text-xs">jusqu'au</p>
+                                                <div className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-100">
+                                                    <Clock className="h-3 w-3" />
+                                                    <span>
+                                                        {new Date(race.registrationPeriod.endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(' ', ', ')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     ) : race.status === 'completed' ? (
-                                        <button className="w-full bg-white/10 hover:bg-white/20 py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all border border-white/20 uppercase flex items-center justify-center gap-3">
+                                        <button className="w-full bg-white/10 hover:bg-white/20 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all border border-white/20 uppercase flex items-center justify-center gap-3">
                                             VOIR LES RÉSULTATS
                                             <ChevronRight className="h-4 w-4" />
                                         </button>
                                     ) : (
-                                        <div className="bg-white/5 border border-white/10 p-6 rounded-3xl">
+                                        <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
                                             <p className="text-xs font-bold text-emerald-100/60 leading-relaxed uppercase tracking-widest text-center">
-                                                Revenez le {new Date(race.raceDate).toLocaleDateString()} pour l'ouverture des inscriptions.
+                                                {race.registrationPeriod ? 
+                                                    `Inscriptions du ${new Date(race.registrationPeriod.startDate).toLocaleDateString('fr-FR')} au ${new Date(race.registrationPeriod.endDate).toLocaleDateString('fr-FR')}`
+                                                    : 'Dates d\'inscription à définir'
+                                                }
                                             </p>
                                         </div>
                                     )}
 
-                                    <div className="pt-8 border-t border-white/10 grid grid-cols-2 gap-6">
+                                    <div className="pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-sm">
                                         <div>
                                             <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Participants</p>
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-2xl font-black italic leading-none">{race.registeredCount}</span>
+                                                <span className="text-xl font-black italic leading-none">{race.registeredCount}</span>
                                                 <span className="text-xs font-bold text-white/30 uppercase">/ {race.maxParticipants}</span>
                                             </div>
                                         </div>
@@ -390,15 +540,28 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 <div className="space-y-4">
                                     {[
                                         { label: 'Tarif Majeur', price: race.priceMajor, isMain: true },
-                                        ...(!race.raceType === 'compétitif' ? [{ label: 'Tarif Mineur', price: race.priceMinor }] : []),
+                                        { label: 'Tarif Mineur', price: race.priceMinor },
                                         { label: 'Tarif Adhérent', price: race.priceAdherent, sub: 'Licenciés club' },
                                     ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
                                         <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${t.isMain ? 'bg-blue-900 text-white border-blue-900 shadow-xl shadow-blue-200' : 'bg-blue-50/30 border-blue-50 text-blue-900'}`}>
                                             <div>
-                                                <p className={`text-[10px] font-black uppercase tracking-widest ${t.isMain ? 'text-blue-100/40' : 'text-blue-400'}`}>{t.label}</p>
-                                                {t.sub && <p className={`text-[10px] font-bold ${t.isMain ? 'text-blue-200' : 'text-blue-800/40'}`}>{t.sub}</p>}
+                                                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">CLUB</p>
+                                                <p className="text-xs font-bold text-blue-900">{race.raid.club.nom}</p>
                                             </div>
-                                            <span className="text-lg font-black italic">{t.price}€</span>
+                                        )}
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="bg-blue-50/50 p-2 rounded-lg">
+                                                <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Début</p>
+                                                <p className="text-[10px] font-bold text-blue-900">
+                                                    {new Date(race.raid.dateStart).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' })}
+                                                </p>
+                                            </div>
+                                            <div className="bg-blue-50/50 p-2 rounded-lg">
+                                                <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Fin</p>
+                                                <p className="text-[10px] font-bold text-blue-900">
+                                                    {new Date(race.raid.dateEnd).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' })}
+                                                </p>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -412,39 +575,19 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 </h4>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Membres Min</p>
-                                        <p className="text-2xl font-black text-blue-900 italic">{race.minMembers}</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Équipes Min</p>
+                                        <p className="text-2xl font-black text-blue-900 italic">{race.minTeams}</p>
                                     </div>
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Max Équipes</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Équipes Max</p>
                                         <p className="text-2xl font-black text-blue-900 italic">{race.maxTeams}</p>
                                     </div>
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Membres Max</p>
-                                        <p className="text-2xl font-black text-blue-900 italic">{race.maxMembers}</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Par Équipe Max</p>
+                                        <p className="text-2xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Organizer Card */}
-                            <div className="bg-white rounded-[2.5rem] p-8 border border-blue-50 shadow-sm space-y-6">
-                                <h4 className="text-xs font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <Users className="h-4 w-4 text-emerald-500" />
-                                    VOTRE RESPONSABLE
-                                </h4>
-                                <div className="flex items-center gap-4 bg-gray-50/50 p-4 rounded-3xl border border-gray-100">
-                                    <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                                        <span className="text-white font-black text-xl italic">{race.organizer.name[0]}</span>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-black text-blue-900 uppercase italic leading-none mb-1">{race.organizer.name}</p>
-                                        <p className="text-[10px] font-bold text-blue-700/40 uppercase tracking-widest">ORGANISATEUR</p>
-                                    </div>
-                                </div>
-                                <button className="w-full py-4 text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] hover:bg-blue-50 rounded-2xl border border-blue-100 transition-colors">
-                                    CONTACTER LE RESPONSABLE
-                                </button>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
