@@ -4,6 +4,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import ImageUpload from '@/Components/ImageUpload';
+import UserSelect from '@/Components/UserSelect';
 import { Head, useForm, usePage, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -100,7 +101,7 @@ export default function Edit({ raid, userClub, clubMembers }) {
         <AuthenticatedLayout>
             <Head title={`Modifier ${raid.raid_name}`} />
 
-            {/* Header */}
+            {/* Green Header */}
             <div className="bg-emerald-600 py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-center relative">
@@ -123,7 +124,7 @@ export default function Edit({ raid, userClub, clubMembers }) {
                             {/* Left Column - Required Elements */}
                             <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
                                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                    Informations du raid
+                                    Informations générales
                                 </h2>
 
                                 {/* Raid Name */}
@@ -160,25 +161,27 @@ export default function Edit({ raid, userClub, clubMembers }) {
 
                                 {/* Date Range */}
                                 <div>
-                                    <InputLabel value="Date de début et de fin" />
+                                    <InputLabel value="Date du raid" />
                                     <div className="grid grid-cols-2 gap-4 mt-2">
                                         <div>
+                                            <label className="text-sm text-gray-600">Début</label>
                                             <TextInput
                                                 type="datetime-local"
                                                 name="raid_date_start"
                                                 value={data.raid_date_start}
-                                                className="block w-full"
+                                                className="block w-full mt-1"
                                                 onChange={(e) => setData('raid_date_start', e.target.value)}
                                                 required
                                             />
                                             <InputError message={errors.raid_date_start} className="mt-2" />
                                         </div>
                                         <div>
+                                            <label className="text-sm text-gray-600">Fin</label>
                                             <TextInput
                                                 type="datetime-local"
                                                 name="raid_date_end"
                                                 value={data.raid_date_end}
-                                                className="block w-full"
+                                                className="block w-full mt-1"
                                                 onChange={(e) => setData('raid_date_end', e.target.value)}
                                                 min={data.raid_date_start || undefined}
                                                 required
@@ -188,62 +191,87 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                     </div>
                                 </div>
 
-                                {/* Address Fields */}
+                                {/* Registration Period */}
                                 <div>
-                                    <InputLabel htmlFor="raid_street" value="Rue" />
-                                    <TextInput
-                                        id="raid_street"
-                                        type="text"
-                                        name="raid_street"
-                                        value={data.raid_street}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) => setData('raid_street', e.target.value)}
-                                        required
-                                    />
-                                    <InputError message={errors.raid_street} className="mt-2" />
+                                    <InputLabel value="Période d'inscription" />
+                                    <div className="grid grid-cols-2 gap-4 mt-2">
+                                        <div>
+                                            <label className="text-sm text-gray-600">Début des inscriptions</label>
+                                            <TextInput
+                                                type="datetime-local"
+                                                name="ins_start_date"
+                                                value={data.ins_start_date}
+                                                className="block w-full mt-1"
+                                                onChange={(e) => setData('ins_start_date', e.target.value)}
+                                                max={getMaxInscriptionDate()}
+                                                required
+                                            />
+                                            <InputError message={errors.ins_start_date} className="mt-2" />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm text-gray-600">Fin des inscriptions</label>
+                                            <TextInput
+                                                type="datetime-local"
+                                                name="ins_end_date"
+                                                value={data.ins_end_date}
+                                                className="block w-full mt-1"
+                                                onChange={(e) => setData('ins_end_date', e.target.value)}
+                                                min={data.ins_start_date || undefined}
+                                                max={getMaxInscriptionDate()}
+                                                required
+                                            />
+                                            <InputError message={errors.ins_end_date} className="mt-2" />
+                                        </div>
+                                    </div>
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        Les inscriptions doivent se terminer au plus tard la veille du début du raid
+                                    </p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <InputLabel htmlFor="raid_city" value="Ville" />
-                                        <TextInput
-                                            id="raid_city"
-                                            type="text"
-                                            name="raid_city"
-                                            value={data.raid_city}
-                                            className="mt-1 block w-full"
-                                            onChange={(e) => setData('raid_city', e.target.value)}
-                                            required
-                                        />
-                                        <InputError message={errors.raid_city} className="mt-2" />
-                                    </div>
-                                    <div>
-                                        <InputLabel htmlFor="raid_postal_code" value="Code postal" />
-                                        <TextInput
-                                            id="raid_postal_code"
-                                            type="text"
-                                            name="raid_postal_code"
-                                            value={data.raid_postal_code}
-                                            className="mt-1 block w-full"
-                                            onChange={(e) => setData('raid_postal_code', e.target.value)}
-                                            required
-                                        />
-                                        <InputError message={errors.raid_postal_code} className="mt-2" />
-                                    </div>
-                                </div>
-
+                                {/* Lieu */}
                                 <div>
-                                    <InputLabel htmlFor="raid_number" value="Numéro" />
-                                    <TextInput
-                                        id="raid_number"
-                                        type="number"
-                                        name="raid_number"
-                                        value={data.raid_number}
-                                        className="mt-1 block w-full"
-                                        onChange={(e) => setData('raid_number', e.target.value)}
-                                        required
-                                    />
-                                    <InputError message={errors.raid_number} className="mt-2" />
+                                    <InputLabel value="Lieu" />
+                                    <div className="grid grid-cols-2 gap-4 mt-2">
+                                        <div>
+                                            <InputLabel htmlFor="raid_city" value="Ville *" />
+                                            <TextInput
+                                                id="raid_city"
+                                                type="text"
+                                                name="raid_city"
+                                                value={data.raid_city}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setData('raid_city', e.target.value)}
+                                                required
+                                            />
+                                            <InputError message={errors.raid_city} className="mt-2" />
+                                        </div>
+                                        <div>
+                                            <InputLabel htmlFor="raid_postal_code" value="Code postal *" />
+                                            <TextInput
+                                                id="raid_postal_code"
+                                                type="text"
+                                                name="raid_postal_code"
+                                                value={data.raid_postal_code}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setData('raid_postal_code', e.target.value)}
+                                                required
+                                            />
+                                            <InputError message={errors.raid_postal_code} className="mt-2" />
+                                        </div>
+                                    </div>
+                                    <div className="mt-4">
+                                        <InputLabel htmlFor="raid_street" value="Rue (optionnel)" />
+                                        <TextInput
+                                            id="raid_street"
+                                            type="text"
+                                            name="raid_street"
+                                            value={data.raid_street}
+                                            className="mt-1 block w-full"
+                                            onChange={(e) => setData('raid_street', e.target.value)}
+                                            placeholder="Adresse du point de rendez-vous"
+                                        />
+                                        <InputError message={errors.raid_street} className="mt-2" />
+                                    </div>
                                 </div>
                             </div>
 
@@ -252,15 +280,41 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                 {/* Contact Info */}
                                 <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
                                     <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                        Contact et Organisation
+                                        Organisation
                                     </h2>
+
+                                    {/* Club Display (auto-assigned) */}
+                                    <div>
+                                        <InputLabel value="Club organisateur" />
+                                        <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                                            {getClubName()}
+                                        </div>
+                                    </div>
+
+                                    {/* Organizer Selection - Club Members */}
+                                    <div>
+                                        <InputLabel htmlFor="adh_id" value="Responsable du raid" />
+                                        <div className="mt-1">
+                                            <UserSelect
+                                                users={clubMembers}
+                                                selectedId={data.adh_id}
+                                                onSelect={(user) => setData('adh_id', user.adh_id)}
+                                                label="Responsable"
+                                                idKey="adh_id"
+                                            />
+                                        </div>
+                                        <InputError message={errors.adh_id} className="mt-2" />
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            Membres adhérents du club {userClub?.club_name || ''}
+                                        </p>
+                                    </div>
 
                                     {/* Contact */}
                                     <div>
-                                        <InputLabel htmlFor="raid_contact" value="Téléphone ou adresse mail de contact" />
+                                        <InputLabel htmlFor="raid_contact" value="Email de contact" />
                                         <TextInput
                                             id="raid_contact"
-                                            type="text"
+                                            type="email"
                                             name="raid_contact"
                                             value={data.raid_contact}
                                             className="mt-1 block w-full"
@@ -270,77 +324,12 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                         />
                                         <InputError message={errors.raid_contact} className="mt-2" />
                                     </div>
-
-                                    {/* Organizer Selection - Club Adherents */}
-                                    <div>
-                                        <InputLabel htmlFor="adh_id" value="Responsable du raid" />
-                                        <select
-                                            id="adh_id"
-                                            name="adh_id"
-                                            value={data.adh_id || ''}
-                                            onChange={(e) => setData('adh_id', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                        >
-                                            <option value="">Sélectionner un responsable...</option>
-                                            {clubMembers?.map((member) => (
-                                                <option key={member.id} value={member.adh_id}>
-                                                    {member.name} ({member.email})
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <InputError message={errors.adh_id} className="mt-2" />
-                                    </div>
-
-                                    {/* Club Display */}
-                                    <div>
-                                        <InputLabel value="Club de rattachement" />
-                                        <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
-                                            {getClubName()}
-                                        </div>
-                                    </div>
-
-                                    {/* Registration Period */}
-                                    <div>
-                                        <InputLabel value="Période d'inscription" />
-                                        <div className="space-y-3 mt-2">
-                                            <div>
-                                                <label className="text-sm text-gray-600">Début des inscriptions</label>
-                                                <TextInput
-                                                    type="datetime-local"
-                                                    name="ins_start_date"
-                                                    value={data.ins_start_date}
-                                                    className="block w-full mt-1"
-                                                    onChange={(e) => setData('ins_start_date', e.target.value)}
-                                                    max={getMaxInscriptionDate()}
-                                                    required
-                                                />
-                                                <InputError message={errors.ins_start_date} className="mt-2" />
-                                            </div>
-                                            <div>
-                                                <label className="text-sm text-gray-600">Fin des inscriptions</label>
-                                                <TextInput
-                                                    type="datetime-local"
-                                                    name="ins_end_date"
-                                                    value={data.ins_end_date}
-                                                    className="block w-full mt-1"
-                                                    onChange={(e) => setData('ins_end_date', e.target.value)}
-                                                    min={data.ins_start_date || undefined}
-                                                    max={getMaxInscriptionDate()}
-                                                    required
-                                                />
-                                                <InputError message={errors.ins_end_date} className="mt-2" />
-                                            </div>
-                                        </div>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            Les inscriptions doivent se terminer au plus tard la veille du début du raid
-                                        </p>
-                                    </div>
                                 </div>
 
                                 {/* Optional Elements */}
                                 <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
                                     <h2 className="text-lg font-semibold text-gray-900">
-                                        Eléments facultatifs
+                                        Informations complémentaires
                                     </h2>
 
                                     {/* Website URL */}
@@ -365,7 +354,8 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                         onChange={(file) => setData('raid_image', file)}
                                         error={errors.raid_image}
                                         currentImage={raid.raid_image ? `/storage/${raid.raid_image}` : null}
-                                        helperText="Image principale qui sera affichée sur la page du raid (max 5MB)"
+                                        maxSize={5}
+                                        helperText="Image principale qui sera affichée sur la page du raid"
                                     />
                                 </div>
 

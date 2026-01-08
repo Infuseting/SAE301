@@ -68,7 +68,7 @@ export default function Create() {
             <Head title={messages.new_raid || 'Nouveau raid'} />
 
             {/* Green Header */}
-            <div className="bg-green-500 py-6">
+            <div className="bg-emerald-600 py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-center relative">
                         <Link href={route('home')} className="text-white hover:text-white/80 absolute left-0">
@@ -119,7 +119,7 @@ export default function Create() {
                                         value={data.raid_description}
                                         onChange={(e) => setData('raid_description', e.target.value)}
                                         rows={6}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                         required
                                     />
                                     <InputError message={errors.raid_description} className="mt-2" />
@@ -331,7 +331,7 @@ export default function Create() {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-16 py-3 bg-gray-800 text-white font-semibold rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="px-16 py-3 bg-emerald-600 text-white font-semibold rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 Créer le raid
                             </button>

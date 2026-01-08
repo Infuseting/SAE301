@@ -24,7 +24,7 @@ class MyRaidController extends Controller
                 'description' => $raid->raid_description,
                 'date_start' => $raid->raid_date_start?->toDateString(),
                 'date_end' => $raid->raid_date_end?->toDateString(),
-                'image' => $raid->image_url,
+                'image' => $raid->raid_image ? '/storage/' . $raid->raid_image : null,
                 'is_open' => $raid->isOpen(),
             ];
         });

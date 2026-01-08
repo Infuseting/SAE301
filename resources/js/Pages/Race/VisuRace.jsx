@@ -79,7 +79,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                             <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl relative bg-gradient-to-br from-blue-800 to-emerald-800 flex items-center justify-center">
                                 {race.imageUrl ? (
                                     <img
-                                        src={race.imageUrl}
+                                        src={race.imageUrl.startsWith('/storage/') ? race.imageUrl : `/storage/${race.imageUrl}`}
                                         alt={race.title}
                                         className="w-full h-full object-cover"
                                     />
