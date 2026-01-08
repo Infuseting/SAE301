@@ -7,6 +7,10 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Invitation;
+use App\Mail\TeamInvitation;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class TeamController extends Controller
 {
@@ -91,6 +95,14 @@ class TeamController extends Controller
             'avatar' => $user->avatar,
         ])->toArray();
 
+        // Get all users for invitation
+        $users = User::all()->map(fn($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => $user->avatar,
+        ])->toArray();
+
         return Inertia::render('Team/Show', [
             'team' => [
                 'id' => $team->equ_id,
@@ -98,7 +110,32 @@ class TeamController extends Controller
                 'image' => $team->equ_image ? '/storage/' . $team->equ_image : null,
                 'members' => $members,
                 'created_at' => $team->created_at->format('d/m/Y'),
+                'creator_id' => $team->user_id,  
             ],
+            'users' => $users,
         ]);
+    }
+
+    /**
+     * Send invitation email to a user.
+     */
+    public function inviteByEmail(Team $team, Request $request, User $user = null)
+    {
+        if ($request->user()->id !== $team->user_id) return response()->json(['error' => 'Unauthorized'], 403);
+        
+        $email = $user?->email ?? $request->validate(['email' => 'required|email'])['email'];
+        
+        Invitation::create([
+            'inviter_id' => $request->user()->id,
+            'invitee_id' => $user?->id,
+            'equ_id' => $team->equ_id,
+            'email' => $email,
+            'token' => Str::random(64),
+            'status' => 'pending',
+            'expires_at' => now()->addDays(7),
+        ]);
+        
+        Mail::to($email)->send(new TeamInvitation($team->equ_name, $request->user()->name));
+        return redirect()->back()->with('success', 'Invitation envoyée');
     }
 }
