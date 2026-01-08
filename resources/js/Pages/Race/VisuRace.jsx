@@ -15,6 +15,43 @@ import {
 export default function VisuRace({ auth, race, isManager, participants = [], error, errorMessage, userTeams = [], registeredByLeader = null, registeredTeam = null }) {
     const translations = usePage().props.translations?.messages || {};
     const [activeTab, setActiveTab] = useState('tarifs');
+    const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+    const [isMyRegistrationModalOpen, setIsMyRegistrationModalOpen] = useState(false);
+    const [selectedParticipant, setSelectedParticipant] = useState(null);
+    const [selectedTeamForPayment, setSelectedTeamForPayment] = useState(null);
+
+    // Handler functions for modals
+    const handlePPSClick = (participant) => {
+        setSelectedParticipant(participant);
+    };
+
+    const handlePaymentClick = (teamId) => {
+        // Get all participants from this team
+        const teamMembers = participants.filter(p => p.equ_id === teamId);
+        if (teamMembers.length > 0) {
+            const teamData = {
+                id: teamId,
+                name: teamMembers[0].equ_name,
+                members: teamMembers.map(member => ({
+                    id: member.id_users,
+                    first_name: member.first_name,
+                    last_name: member.last_name,
+                    price: member.price,
+                    price_category: member.price_category,
+                    validated: member.reg_validated
+                }))
+            };
+            setSelectedTeamForPayment(teamData);
+        }
+    };
+
+    const handleOpenRegistration = () => {
+        if (registeredTeam) {
+            setIsMyRegistrationModalOpen(true);
+        } else {L
+            setIsTeamModalOpen(true);
+        }
+    };
 
     // Check if current date is within registration period
     const isRegistrationOpen = () => {
@@ -452,8 +489,11 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
 
                                     {!race.is_finished && race.isOpen && isRegistrationOpen() ? (
                                         <div className="space-y-3">
-                                            <button className="w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3">
-                                                S'INSCRIRE MAINTENANT
+                                            <button 
+                                                onClick={handleOpenRegistration}
+                                                className="w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3"
+                                            >
+                                                {registeredTeam ? 'VOIR MON INSCRIPTION' : 'S\'INSCRIRE MAINTENANT'}
                                                 <ChevronRight className="h-4 w-4" />
                                             </button>
                                             {race.registrationPeriod && (

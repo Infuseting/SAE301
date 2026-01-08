@@ -1,20 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from '@inertiajs/react';
-import { X, CreditCard, CheckCircle2, Users } from 'lucide-react';
+import { X, CreditCard, CheckCircle2, Users, AlertTriangle } from 'lucide-react';
 import Modal from '@/Components/Modal';
 
 export default function TeamPaymentModal({ isOpen, onClose, team, raceId }) {
     const { post, processing } = useForm();
+    const [showConfirmation, setShowConfirmation] = useState(false);
 
     const handleConfirmPayment = () => {
-        if (!confirm('Confirmer que cette équipe a payé ? Tous les membres seront validés.')) {
-            return;
-        }
-
-        post(route('race.confirmTeamPayment', { race: raceId, team: team.id }), {
+        post(route('race.confirmTeamPayment', { race: raceId, team: team?.id }), {
+            preserveScroll: true,
             onSuccess: () => {
+                setShowConfirmation(false);
                 onClose();
+                // Force page reload to update participant list
+                window.location.reload();
             },
+            onError: (errors) => {
+                console.error('Payment confirmation error:', errors);
+                setShowConfirmation(false);
+            }
         });
     };
 
@@ -149,17 +154,70 @@ export default function TeamPaymentModal({ isOpen, onClose, team, raceId }) {
                         </button>
                         {!team.is_paid && (
                             <button
-                                onClick={handleConfirmPayment}
+                                onClick={() => setShowConfirmation(true)}
                                 disabled={processing}
                                 className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 <CheckCircle2 className="w-4 h-4" />
-                                {processing ? 'Validation...' : 'Confirmer le paiement'}
+                                Confirmer le paiement
                             </button>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* Confirmation Modal */}
+            {showConfirmation && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl max-w-md w-full mx-4 shadow-2xl">
+                        <div className="p-6 space-y-6">
+                            {/* Warning Icon */}
+                            <div className="flex justify-center">
+                                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+                                    <AlertTriangle className="w-8 h-8 text-orange-600" />
+                                </div>
+                            </div>
+
+                            {/* Title & Message */}
+                            <div className="text-center space-y-2">
+                                <h3 className="text-xl font-black text-gray-900 uppercase italic">
+                                    Confirmer le paiement ?
+                                </h3>
+                                <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                                    Tous les membres de l'équipe <span className="font-black text-blue-600">{team.name}</span> seront marqués comme ayant payé et leur inscription sera validée.
+                                </p>
+                                <div className="bg-emerald-50 rounded-xl p-4 mt-4">
+                                    <p className="text-xs text-emerald-900 font-black uppercase tracking-wider mb-2">
+                                        Montant total
+                                    </p>
+                                    <p className="text-3xl font-black text-emerald-600 italic">
+                                        {totalPrice.toFixed(2)}€
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowConfirmation(false)}
+                                    disabled={processing}
+                                    className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    onClick={handleConfirmPayment}
+                                    disabled={processing}
+                                    className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    {processing ? 'Validation...' : 'Confirmer'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </Modal>
     );
 }

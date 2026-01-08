@@ -375,10 +375,19 @@ class RaceRegistrationController extends Controller
         try {
             $team = \App\Models\Team::findOrFail($teamId);
             
-            // Update payment status in inscriptions_payment table
-            \DB::table('inscriptions_payment')
+            // Get payment IDs for this team and race
+            $paymentIds = \DB::table('registration')
                 ->where('equ_id', $team->equ_id)
                 ->where('race_id', $race->race_id)
+                ->pluck('pay_id');
+
+            if ($paymentIds->isEmpty()) {
+                return back()->withErrors(['error' => 'Aucune inscription trouvée pour cette équipe.']);
+            }
+
+            // Update payment status in inscriptions_payment table
+            \DB::table('inscriptions_payment')
+                ->whereIn('pai_id', $paymentIds)
                 ->update([
                     'pai_is_paid' => true,
                     'pai_date' => now(),

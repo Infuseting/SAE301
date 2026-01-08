@@ -236,6 +236,24 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         setData(name, value);
     };
 
+    /**
+     * Handle image file selection and create preview
+     * @param {Event} e - File input change event
+     */
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData('image', file);
+            // Optional: Add preview functionality if needed
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                // You can set a preview state here if you add one later
+                console.log('Image loaded:', file.name);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         
