@@ -58,10 +58,11 @@ class LeaderboardController extends Controller
             
             if ($type === 'team') {
                 // Use importTeamCsvV2 which supports the new format: CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS
+                // Points from CSV are imported as-is without recalculation
                 $results = $this->leaderboardService->importTeamCsvV2(
                     $request->file('file'),
                     $request->integer('race_id'),
-                    false // Use points from CSV instead of recalculating
+                    false // Use points from CSV as-is
                 );
             } else {
                 $results = $this->leaderboardService->importCsv(

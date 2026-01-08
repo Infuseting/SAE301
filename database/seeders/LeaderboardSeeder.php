@@ -14,6 +14,7 @@ use App\Models\LeaderboardTeam;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Seeder for populating leaderboard test data.
@@ -147,18 +148,23 @@ class LeaderboardSeeder extends Seeder
             }
         }
 
-        // Create teams
+        // Create teams with different categories
         $teamsData = [
-            ['equ_name' => 'Les Faucons Rapides'],
-            ['equ_name' => 'Les Aigles des Montagnes'],
-            ['equ_name' => 'Les Loups Solitaires'],
+            ['equ_name' => 'Les Faucons Rapides', 'category' => 'Masculin'],
+            ['equ_name' => 'Les Aigles des Montagnes', 'category' => 'Mixte'],
+            ['equ_name' => 'Les Loups Solitaires', 'category' => 'Masculin'],
+            ['equ_name' => 'Les Gazelles', 'category' => 'Féminin'],
+            ['equ_name' => 'Team Endurance', 'category' => 'Mixte'],
+            ['equ_name' => 'Les Intrépides', 'category' => 'Masculin'],
         ];
 
         $teamIds = [];
+        $teamCategories = [];
         foreach ($teamsData as $teamData) {
             $existingTeam = DB::table('teams')->where('equ_name', $teamData['equ_name'])->first();
             if ($existingTeam) {
                 $teamIds[] = $existingTeam->equ_id;
+                $teamCategories[$existingTeam->equ_id] = $teamData['category'];
             } else {
                 $teamId = DB::table('teams')->insertGetId([
                     'equ_name' => $teamData['equ_name'],
@@ -167,30 +173,51 @@ class LeaderboardSeeder extends Seeder
                     'updated_at' => now(),
                 ]);
                 $teamIds[] = $teamId;
+                $teamCategories[$teamId] = $teamData['category'];
                 $this->command->info("Created team: {$teamData['equ_name']}");
             }
         }
 
         // Link users to teams via has_participate
+        // Note: Each user can only be in ONE team at a time (unique constraint)
+        // So we assign users to distinct teams only
         $teamAssignments = [
-            [$teamIds[0], [$userIds[0], $userIds[1], $userIds[2]]],
-            [$teamIds[1], [$userIds[3], $userIds[4], $userIds[5]]],
-            [$teamIds[2], [$userIds[6], $userIds[7]]],
+            [$teamIds[0], [$userIds[0], $userIds[1]]],           // Les Faucons Rapides
+            [$teamIds[1], [$userIds[2], $userIds[3]]],           // Les Aigles des Montagnes  
+            [$teamIds[2], [$userIds[4], $userIds[5]]],           // Les Loups Solitaires
+            [$teamIds[3], [$userIds[6], $userIds[7]]],           // Les Gazelles
         ];
+
+        // Check if table has id_users column
+        $hasIdUsersColumn = Schema::hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
 
         foreach ($teamAssignments as [$teamId, $teamUserIds]) {
             foreach ($teamUserIds as $userId) {
-                $exists = DB::table('has_participate')
-                    ->where('id', $userId)
-                    ->where('equ_id', $teamId)
+                // Check if user already has a participation entry
+                $existsForUser = DB::table('has_participate')
+                    ->where($userIdColumn, $userId)
                     ->exists();
-                if (!$exists) {
-                    DB::table('has_participate')->insert([
-                        'id' => $userId,
+                    
+                if (!$existsForUser) {
+                    $insertData = [
+                        $userIdColumn => $userId,
                         'equ_id' => $teamId,
                         'created_at' => now(),
                         'updated_at' => now(),
-                    ]);
+                    ];
+                    
+                    // Add adh_id if column exists
+                    if (Schema::hasColumn('has_participate', 'adh_id')) {
+                        $insertData['adh_id'] = $member->adh_id;
+                    }
+                    
+                    try {
+                        DB::table('has_participate')->insert($insertData);
+                        $this->command->info("Linked user {$userId} to team {$teamId}");
+                    } catch (\Exception $e) {
+                        $this->command->warn("Could not link user {$userId} to team {$teamId}: " . $e->getMessage());
+                    }
                 }
             }
         }
@@ -198,8 +225,14 @@ class LeaderboardSeeder extends Seeder
         // Create individual leaderboard results
         $this->command->info('Creating individual leaderboard results...');
         
+        // Check if points column exists in leaderboard_users
+        $hasPointsColumn = Schema::hasColumn('leaderboard_users', 'points');
+        
         $individualCount = 0;
         foreach ($raceIds as $raceIndex => $raceId) {
+            // Collect all results for this race to calculate points based on ranking
+            $raceResults = [];
+            
             foreach ($userIds as $userIndex => $userId) {
                 // Generate realistic times based on race type
                 $raceName = $racesData[$raceIndex]['race_name'] ?? '';
@@ -211,21 +244,45 @@ class LeaderboardSeeder extends Seeder
                 
                 $temps = $baseTime + ($userIndex * rand(100, 500));
                 $malus = rand(0, 5) > 3 ? rand(30, 300) : 0;
+                $tempsFinal = $temps + $malus;
+
+                $raceResults[] = [
+                    'user_id' => $userId,
+                    'race_id' => $raceId,
+                    'temps' => round($temps, 2),
+                    'malus' => round($malus, 2),
+                    'temps_final' => round($tempsFinal, 2),
+                ];
+            }
+
+            // Sort by temps_final to determine ranking
+            usort($raceResults, fn($a, $b) => $a['temps_final'] <=> $b['temps_final']);
+
+            // Calculate points based on ranking (222 for 1st, decreasing)
+            foreach ($raceResults as $rank => $result) {
+                $points = max(222 - ($rank * 3), 100); // Min 100 points
 
                 $exists = DB::table('leaderboard_users')
-                    ->where('user_id', $userId)
-                    ->where('race_id', $raceId)
+                    ->where('user_id', $result['user_id'])
+                    ->where('race_id', $result['race_id'])
                     ->exists();
 
                 if (!$exists) {
-                    DB::table('leaderboard_users')->insert([
-                        'user_id' => $userId,
-                        'race_id' => $raceId,
-                        'temps' => round($temps, 2),
-                        'malus' => round($malus, 2),
+                    $insertData = [
+                        'user_id' => $result['user_id'],
+                        'race_id' => $result['race_id'],
+                        'temps' => $result['temps'],
+                        'malus' => $result['malus'],
                         'created_at' => now(),
                         'updated_at' => now(),
-                    ]);
+                    ];
+                    
+                    // Add points column only if it exists
+                    if ($hasPointsColumn) {
+                        $insertData['points'] = $points;
+                    }
+                    
+                    DB::table('leaderboard_users')->insert($insertData);
                     $individualCount++;
                 }
             }
@@ -234,8 +291,17 @@ class LeaderboardSeeder extends Seeder
         // Create team leaderboard results
         $this->command->info('Creating team leaderboard results...');
         
+        // Check which columns exist in leaderboard_teams
+        $teamHasPoints = Schema::hasColumn('leaderboard_teams', 'points');
+        $teamHasStatus = Schema::hasColumn('leaderboard_teams', 'status');
+        $teamHasCategory = Schema::hasColumn('leaderboard_teams', 'category');
+        $teamHasPuce = Schema::hasColumn('leaderboard_teams', 'puce');
+        
         $teamCount = 0;
         foreach ($raceIds as $raceId) {
+            // Collect all team results for this race
+            $teamResults = [];
+            
             foreach ($teamAssignments as $teamIndex => [$teamId, $teamUserIds]) {
                 $memberResults = DB::table('leaderboard_users')
                     ->where('race_id', $raceId)
@@ -247,24 +313,59 @@ class LeaderboardSeeder extends Seeder
                     $avgMalus = $memberResults->avg('malus');
                     $avgTempsFinal = $avgTemps + $avgMalus;
 
-                    $exists = DB::table('leaderboard_teams')
-                        ->where('equ_id', $teamId)
-                        ->where('race_id', $raceId)
-                        ->exists();
+                    $teamResults[] = [
+                        'team_id' => $teamId,
+                        'team_index' => $teamIndex,
+                        'avg_temps' => round($avgTemps, 2),
+                        'avg_malus' => round($avgMalus, 2),
+                        'avg_temps_final' => round($avgTempsFinal, 2),
+                        'member_count' => $memberResults->count(),
+                        'category' => $teamCategories[$teamId] ?? 'Mixte',
+                    ];
+                }
+            }
 
-                    if (!$exists) {
-                        DB::table('leaderboard_teams')->insert([
-                            'equ_id' => $teamId,
-                            'race_id' => $raceId,
-                            'average_temps' => round($avgTemps, 2),
-                            'average_malus' => round($avgMalus, 2),
-                            'average_temps_final' => round($avgTempsFinal, 2),
-                            'member_count' => $memberResults->count(),
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                        $teamCount++;
+            // Sort by average temps_final to determine ranking
+            usort($teamResults, fn($a, $b) => $a['avg_temps_final'] <=> $b['avg_temps_final']);
+
+            // Calculate points based on ranking
+            foreach ($teamResults as $rank => $result) {
+                $points = max(222 - ($rank * 3), 100); // Min 100 points
+                $puce = '700' . str_pad($result['team_id'], 4, '0', STR_PAD_LEFT);
+
+                $exists = DB::table('leaderboard_teams')
+                    ->where('equ_id', $result['team_id'])
+                    ->where('race_id', $raceId)
+                    ->exists();
+
+                if (!$exists) {
+                    $insertData = [
+                        'equ_id' => $result['team_id'],
+                        'race_id' => $raceId,
+                        'average_temps' => $result['avg_temps'],
+                        'average_malus' => $result['avg_malus'],
+                        'average_temps_final' => $result['avg_temps_final'],
+                        'member_count' => $result['member_count'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                    
+                    // Add optional columns if they exist
+                    if ($teamHasPoints) {
+                        $insertData['points'] = $points;
                     }
+                    if ($teamHasStatus) {
+                        $insertData['status'] = 'classé';
+                    }
+                    if ($teamHasCategory) {
+                        $insertData['category'] = $result['category'];
+                    }
+                    if ($teamHasPuce) {
+                        $insertData['puce'] = $puce;
+                    }
+                    
+                    DB::table('leaderboard_teams')->insert($insertData);
+                    $teamCount++;
                 }
             }
         }

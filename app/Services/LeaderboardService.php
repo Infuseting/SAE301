@@ -20,6 +20,164 @@ use Exception;
 class LeaderboardService
 {
     /**
+     * Points configuration for ranking.
+     * Base points for 1st place, decreasing by step for each subsequent rank.
+     * Minimum points ensure everyone gets at least some points.
+     */
+    private const POINTS_BASE = 1000;      // Points for 1st place
+    private const POINTS_STEP = 10;        // Points decrease per rank
+    private const POINTS_MINIMUM = 10;     // Minimum points for any participant
+
+    /**
+     * Calculate points based on rank position (simple version).
+     * Uses a decreasing scale: 1st = 1000pts, 2nd = 990pts, etc.
+     * Minimum points ensure all participants get at least some reward.
+     *
+     * @param int $rank The rank position (1-based)
+     * @param int $totalParticipants Total number of participants (optional)
+     * @return int Calculated points
+     */
+    public function calculateSimplePointsForRank(int $rank, int $totalParticipants = 0): int
+    {
+        if ($rank < 1) {
+            return 0;
+        }
+
+        // Linear decreasing: base - (rank-1) * step
+        $points = self::POINTS_BASE - (($rank - 1) * self::POINTS_STEP);
+
+        // Ensure minimum points
+        return max($points, self::POINTS_MINIMUM);
+    }
+
+    /**
+     * Calculate points using a podium-based system.
+     * 1st = 1000, 2nd = 800, 3rd = 600, then decreasing by 10.
+     *
+     * @param int $rank The rank position
+     * @return int Calculated points
+     */
+    public function calculatePodiumPoints(int $rank): int
+    {
+        return match ($rank) {
+            1 => 1000,
+            2 => 800,
+            3 => 600,
+            default => max(500 - (($rank - 4) * self::POINTS_STEP), self::POINTS_MINIMUM),
+        };
+    }
+
+    /**
+     * Recalculate and save points for all participants in a race.
+     * Call this method to update null points in the database.
+     * If the points column doesn't exist, only calculates without saving.
+     *
+     * @param int $raceId The race ID
+     * @param string $type 'individual' or 'team'
+     * @param bool $forceRecalculate If true, recalculate even if points exist
+     * @return array Results with updated count
+     */
+    public function recalculatePointsForRace(int $raceId, string $type = 'individual', bool $forceRecalculate = false): array
+    {
+        $updated = 0;
+        $calculated = [];
+
+        if ($type === 'team') {
+            $tableName = 'leaderboard_teams';
+            $hasPointsColumn = \Schema::hasColumn($tableName, 'points');
+            
+            // Get all team results for this race, sorted by time
+            $results = LeaderboardTeam::where('race_id', $raceId)
+                ->orderBy('average_temps_final', 'asc')
+                ->get();
+
+            $rank = 1;
+            foreach ($results as $result) {
+                $shouldUpdate = $forceRecalculate || $result->points === null;
+                if ($shouldUpdate) {
+                    $points = $this->calculateSimplePointsForRank($rank, $results->count());
+                    $calculated[] = [
+                        'id' => $result->id,
+                        'equ_id' => $result->equ_id,
+                        'rank' => $rank,
+                        'points' => $points,
+                    ];
+                    
+                    if ($hasPointsColumn) {
+                        $result->points = $points;
+                        $result->save();
+                        $updated++;
+                    }
+                }
+                $rank++;
+            }
+        } else {
+            $tableName = 'leaderboard_users';
+            $hasPointsColumn = \Schema::hasColumn($tableName, 'points');
+            
+            // Get all individual results for this race, sorted by time
+            $results = LeaderboardUser::where('race_id', $raceId)
+                ->orderBy('temps_final', 'asc')
+                ->get();
+
+            $rank = 1;
+            foreach ($results as $result) {
+                $shouldUpdate = $forceRecalculate || $result->points === null;
+                if ($shouldUpdate) {
+                    $points = $this->calculateSimplePointsForRank($rank, $results->count());
+                    $calculated[] = [
+                        'id' => $result->id,
+                        'user_id' => $result->user_id,
+                        'rank' => $rank,
+                        'points' => $points,
+                    ];
+                    
+                    if ($hasPointsColumn) {
+                        $result->points = $points;
+                        $result->save();
+                        $updated++;
+                    }
+                }
+                $rank++;
+            }
+        }
+
+        return [
+            'race_id' => $raceId,
+            'type' => $type,
+            'total' => $type === 'team' ? LeaderboardTeam::where('race_id', $raceId)->count() : LeaderboardUser::where('race_id', $raceId)->count(),
+            'updated' => $updated,
+            'calculated' => count($calculated),
+            'has_points_column' => $hasPointsColumn ?? false,
+            'results' => $calculated,
+        ];
+    }
+
+    /**
+     * Recalculate points for all races.
+     *
+     * @param string $type 'individual', 'team', or 'all'
+     * @param bool $forceRecalculate If true, recalculate even if points exist
+     * @return array Results summary
+     */
+    public function recalculateAllPoints(string $type = 'all', bool $forceRecalculate = false): array
+    {
+        $results = ['individual' => [], 'team' => []];
+        $races = Race::pluck('race_id');
+
+        foreach ($races as $raceId) {
+            if ($type === 'all' || $type === 'individual') {
+                $results['individual'][] = $this->recalculatePointsForRace($raceId, 'individual', $forceRecalculate);
+            }
+            if ($type === 'all' || $type === 'team') {
+                $results['team'][] = $this->recalculatePointsForRace($raceId, 'team', $forceRecalculate);
+            }
+        }
+
+        return $results;
+    }
+
+    /**
      * Import individual results from CSV file.
      * Supports two formats:
      * - Legacy format: user_id;temps;malus (separator: ;)
@@ -516,7 +674,15 @@ class LeaderboardService
         $results = $query->paginate($perPage);
 
         $rank = ($results->currentPage() - 1) * $perPage + 1;
-        $data = $results->getCollection()->map(function ($item) use (&$rank) {
+        $totalInRace = $raceId ? LeaderboardUser::where('race_id', $raceId)->count() : $results->total();
+        
+        $data = $results->getCollection()->map(function ($item) use (&$rank, $totalInRace) {
+            // Calculate points dynamically if null in database
+            $points = $item->points;
+            if ($points === null) {
+                $points = $this->calculateSimplePointsForRank($rank, $totalInRace);
+            }
+            
             return [
                 'rank' => $rank++,
                 'id' => $item->id,
@@ -533,7 +699,7 @@ class LeaderboardService
                 'malus_formatted' => $item->formatted_malus,
                 'temps_final' => $item->temps_final,
                 'temps_final_formatted' => $item->formatted_temps_final,
-                'points' => $item->points ?? 0,
+                'points' => $points,
             ];
         });
 
@@ -581,7 +747,15 @@ class LeaderboardService
         $results = $query->paginate($perPage);
 
         $rank = ($results->currentPage() - 1) * $perPage + 1;
-        $data = $results->getCollection()->map(function ($item) use (&$rank) {
+        $totalInRace = $raceId ? LeaderboardTeam::where('race_id', $raceId)->count() : $results->total();
+        
+        $data = $results->getCollection()->map(function ($item) use (&$rank, $totalInRace) {
+            // Calculate points dynamically if null in database
+            $calculatedPoints = $item->points;
+            if ($calculatedPoints === null) {
+                $calculatedPoints = $this->calculateSimplePointsForRank($rank, $totalInRace);
+            }
+            
             // Get team members list - try both relations (users via id_users, participants via id)
             $members = [];
             if ($item->team) {
@@ -630,7 +804,7 @@ class LeaderboardService
                 'average_temps_final_formatted' => $item->formatted_average_temps_final,
                 'member_count' => $item->member_count,
                 'members' => $members,
-                'points' => $item->points,
+                'points' => $calculatedPoints,
                 'status' => $item->status,
                 'category' => $item->category,
             ];
