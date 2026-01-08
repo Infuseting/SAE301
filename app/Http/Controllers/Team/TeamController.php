@@ -97,6 +97,7 @@ class TeamController extends Controller
                 'name' => $team->equ_name,
                 'image' => $team->equ_image,
                 'members' => $members,
+                'created_at' => $team->created_at->format('d/m/Y'),
             ],
         ]);
     }

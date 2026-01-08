@@ -121,6 +121,7 @@ class User extends Authenticatable
         'profile_photo_url',
         'name',
         'license_number',
+        'licence_end_validity',
     ];
 
     /**
@@ -154,6 +155,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the licence end validity date from the user's member record.
+     *
+     * @return \Illuminate\Database\Eloquent\Casts\Attribute
+     */
+    public function licenceEndValidity(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn() => $this->member?->endValidity(),
+        );
+    }
+
+    /**
      * Check if the user has completed their profile.
      * 
      * Verifies that birth_date, address, and phone are present,
@@ -183,6 +196,11 @@ class User extends Authenticatable
     public function getLicenseNumberAttribute()
     {
         return $this->member ? $this->member->adh_license : null;
+    }
+
+    public function endValidity()
+    {
+        return $this->member ? $this->member->adh_end_validity ? $this->member->adh_end_validity->format('d/m/Y') : null : null;
     }
 
     /**
