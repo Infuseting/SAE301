@@ -1,12 +1,13 @@
 import ProfileCompletionModal from '@/Components/ProfileCompletionModal';
 import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
 import { usePage } from '@inertiajs/react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-100 flex flex-col">
             {user && <ProfileCompletionModal />}
 
             <Header />
@@ -19,7 +20,9 @@ export default function AuthenticatedLayout({ header, children }) {
                 </header>
             )}
 
-            <main>{children}</main>
+            <main className="flex-1">{children}</main>
+
+            <Footer />
         </div>
     );
 }
