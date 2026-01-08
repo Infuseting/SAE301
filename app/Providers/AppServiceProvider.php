@@ -35,6 +35,11 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        // Register Policies
+        Gate::policy(\App\Models\Club::class, \App\Policies\ClubPolicy::class);
+        Gate::policy(\App\Models\Raid::class, \App\Policies\RaidPolicy::class);
+        Gate::policy(\App\Models\Race::class, \App\Policies\RacePolicy::class);
+
         Gate::define('access-admin', function (User $user) {
             return $user->hasRole('admin') || $user->hasAnyPermission(['view users', 'edit users', 'delete users', 'view logs']);
         });

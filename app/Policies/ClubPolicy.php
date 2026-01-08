@@ -53,15 +53,37 @@ class ClubPolicy
      * Determine whether the user can update the model.
      */
     public function update(User $user, Club $club): bool
-    {
+    {        
         // Admin can update any club
+        $userRoles = $user->roles->pluck('name')->toArray();
+        \Log::info("ClubPolicy::update - User roles", [
+            'user_id' => $user->id,
+            'roles' => $userRoles,
+            'hasAdminRole' => $user->hasRole('admin'),
+        ]);
+        
         if ($user->hasRole('admin')) {
+            \Log::info("ClubPolicy::update - Admin bypass", ['user_id' => $user->id]);
             return true;
         }
 
+        $isCreator = $club->created_by === $user->id;
+        $isManager = $club->hasManager($user);
+        $hasPermission = $user->hasPermissionTo('edit-own-club');
+        $result = ($isCreator || $isManager) && $hasPermission;
+        
+        \Log::info("ClubPolicy::update - Check", [
+            'user_id' => $user->id,
+            'club_id' => $club->club_id,
+            'created_by' => $club->created_by,
+            'isCreator' => $isCreator,
+            'isManager' => $isManager,
+            'hasPermission' => $hasPermission,
+            'result' => $result,
+        ]);
+
         // User must be the creator or a manager of the club
-        return ($club->created_by === $user->id || $club->hasManager($user)) 
-            && $user->hasPermissionTo('edit-own-club');
+        return $result;
     }
 
     /**

@@ -1,5 +1,4 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 
@@ -9,7 +8,6 @@ import { useState, useMemo } from 'react';
  * Design consistent with Clubs and Raids listing pages
  */
 export default function Index({ auth, races }) {
-    const Layout = auth?.user ? AuthenticatedLayout : GuestLayout;
     
     // Extract all races data for client-side filtering
     const allRaces = Array.isArray(races) ? races : [];
@@ -102,7 +100,7 @@ export default function Index({ auth, races }) {
     };
 
     return (
-        <Layout user={auth?.user}>
+        <AuthenticatedLayout>
             <Head title="Calendrier des Courses" />
 
             <div className="min-h-screen bg-gray-50 py-12">
@@ -285,6 +283,6 @@ export default function Index({ auth, races }) {
                     )}
                 </div>
             </div>
-        </Layout>
+        </AuthenticatedLayout>
     );
 }

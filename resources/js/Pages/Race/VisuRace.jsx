@@ -490,13 +490,23 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
 
                                     {!race.is_finished && race.isOpen && isRegistrationOpen() ? (
                                         <div className="space-y-3">
-                                            <button 
-                                                onClick={handleOpenRegistration}
-                                                className="w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3"
-                                            >
-                                                {registeredTeam ? 'VOIR MON INSCRIPTION' : 'S\'INSCRIRE MAINTENANT'}
-                                                <ChevronRight className="h-4 w-4" />
-                                            </button>
+                                            {auth?.user ? (
+                                                <button 
+                                                    onClick={handleOpenRegistration}
+                                                    className="w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3"
+                                                >
+                                                    {registeredTeam ? 'VOIR MON INSCRIPTION' : 'S\'INSCRIRE MAINTENANT'}
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </button>
+                                            ) : (
+                                                <Link 
+                                                    href={route('login', { redirect_uri: window.location.href })}
+                                                    className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-blue-950 uppercase flex items-center justify-center gap-3"
+                                                >
+                                                    SE CONNECTER À MON COMPTE
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </Link>
+                                            )}
                                             {race.registrationPeriod && (
                                                 <div className="bg-white/10 p-3 rounded-lg text-center space-y-2">
                                                     <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Périoide d'inscription</p>

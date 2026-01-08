@@ -259,7 +259,14 @@ class ClubController extends Controller
     public function edit(Club $club): Response
     {
         // Use policy for authorization (handles admin and club managers)
+        \Log::info("ClubController::edit - Before authorize", [
+            'user_id' => auth()->id(),
+            'club_id' => $club->club_id,
+        ]);
+        
         $this->authorize('update', $club);
+
+        \Log::info("ClubController::edit - After authorize (not blocked)");
 
         $club->load(['members', 'pendingRequests']);
 

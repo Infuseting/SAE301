@@ -33,6 +33,11 @@ class EnsureManagerHasValidLicence
             return $next($request);
         }
 
+        // Admin bypass - admins don't need a licence
+        if ($user->hasRole('admin')) {
+            return $next($request);
+        }
+
         // Check if user is a manager
         $isManager = $user->hasAnyRole([
             'responsable-club',
