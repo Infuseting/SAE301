@@ -639,6 +639,204 @@ class LeaderboardService
     }
 
     /**
+     * Get admin leaderboard including ALL users (public and private).
+     * Same format as public leaderboard but includes private users.
+     *
+     * @param int|null $raceId Filter by race ID
+     * @param string|null $search Search by race name or user name
+     * @param string $type 'individual' or 'team'
+     * @param int $perPage Results per page
+     * @return array
+     */
+    public function getAdminLeaderboard(?int $raceId = null, ?string $search = null, string $type = 'individual', int $perPage = 20): array
+    {
+        if ($type === 'team') {
+            return $this->getAdminTeamLeaderboard($raceId, $search, $perPage);
+        }
+
+        return $this->getAdminIndividualLeaderboard($raceId, $search, $perPage);
+    }
+
+    /**
+     * Get admin individual leaderboard (includes ALL users - public and private).
+     * Same format as public leaderboard but without visibility filter.
+     * Includes: rank, name, race, raw time, malus, final time, points, is_public status.
+     */
+    public function getAdminIndividualLeaderboard(?int $raceId = null, ?string $search = null, int $perPage = 20): array
+    {
+        $query = LeaderboardUser::with([
+                'user:id,first_name,last_name,email,is_public,profile_photo_path',
+                'race' => function ($q) {
+                    $q->select('race_id', 'race_name', 'race_date_start')->with('ageCategories:id,nom');
+                }
+            ])
+            ->orderBy('temps_final', 'asc');
+
+        if ($raceId) {
+            $query->where('race_id', $raceId);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($uq) use ($search) {
+                    $uq->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                })->orWhereHas('race', function ($rq) use ($search) {
+                    $rq->where('race_name', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $results = $query->paginate($perPage);
+
+        $rank = ($results->currentPage() - 1) * $perPage + 1;
+        $totalInRace = $raceId ? LeaderboardUser::where('race_id', $raceId)->count() : $results->total();
+        
+        $data = $results->getCollection()->map(function ($item) use (&$rank, $totalInRace) {
+            // Calculate points dynamically if null in database
+            $points = $item->points;
+            if ($points === null) {
+                $points = $this->calculateSimplePointsForRank($rank, $totalInRace);
+            }
+            
+            return [
+                'rank' => $rank++,
+                'id' => $item->id,
+                'user_id' => $item->user_id,
+                'user_name' => $item->user ? $item->user->first_name . ' ' . $item->user->last_name : 'Unknown',
+                'user_photo' => $item->user ? $item->user->profile_photo_path : null,
+                'is_public' => $item->user ? $item->user->is_public : false,
+                'race_id' => $item->race_id,
+                'race_name' => $item->race ? $item->race->race_name : 'Unknown',
+                'race_date' => $item->race ? $item->race->race_date_start : null,
+                'race_age_categories' => $item->race ? $item->race->age_category_names : [],
+                'temps' => $item->temps,
+                'temps_formatted' => $item->formatted_temps,
+                'malus' => $item->malus,
+                'malus_formatted' => $item->formatted_malus,
+                'temps_final' => $item->temps_final,
+                'temps_final_formatted' => $item->formatted_temps_final,
+                'points' => $points,
+            ];
+        });
+
+        return [
+            'data' => $data,
+            'current_page' => $results->currentPage(),
+            'last_page' => $results->lastPage(),
+            'per_page' => $results->perPage(),
+            'total' => $results->total(),
+        ];
+    }
+
+    /**
+     * Get admin team leaderboard (includes ALL teams).
+     * Same format as public team leaderboard.
+     * Includes team members list and age category from race.
+     */
+    public function getAdminTeamLeaderboard(?int $raceId = null, ?string $search = null, int $perPage = 20): array
+    {
+        $query = LeaderboardTeam::with([
+                'team' => function ($q) {
+                    $q->select('equ_id', 'equ_name', 'equ_image')
+                      ->with(['users:id,first_name,last_name', 'participants:id,first_name,last_name']);
+                },
+                'race' => function ($q) {
+                    $q->select('race_id', 'race_name', 'race_date_start')->with('ageCategories:id,nom');
+                }
+            ])
+            ->orderBy('average_temps_final', 'asc');
+
+        if ($raceId) {
+            $query->where('race_id', $raceId);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('team', function ($tq) use ($search) {
+                    $tq->where('equ_name', 'like', "%{$search}%");
+                })->orWhereHas('race', function ($rq) use ($search) {
+                    $rq->where('race_name', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $results = $query->paginate($perPage);
+
+        $rank = ($results->currentPage() - 1) * $perPage + 1;
+        $totalInRace = $raceId ? LeaderboardTeam::where('race_id', $raceId)->count() : $results->total();
+        
+        $data = $results->getCollection()->map(function ($item) use (&$rank, $totalInRace) {
+            // Calculate points dynamically if null in database
+            $calculatedPoints = $item->points;
+            if ($calculatedPoints === null) {
+                $calculatedPoints = $this->calculateSimplePointsForRank($rank, $totalInRace);
+            }
+            
+            // Get team members list - try both relations (users via id_users, participants via id)
+            $members = [];
+            if ($item->team) {
+                // Try 'users' relation first (id_users column)
+                if ($item->team->users && $item->team->users->isNotEmpty()) {
+                    $members = $item->team->users->map(function ($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->first_name . ' ' . $user->last_name,
+                        ];
+                    })->toArray();
+                }
+                // Fallback to 'participants' relation (id column)
+                elseif ($item->team->participants && $item->team->participants->isNotEmpty()) {
+                    $members = $item->team->participants->map(function ($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->first_name . ' ' . $user->last_name,
+                        ];
+                    })->toArray();
+                }
+            }
+
+            // Get age category from race relation
+            $ageCategory = null;
+            if ($item->race && $item->race->ageCategories->isNotEmpty()) {
+                $ageCategory = $item->race->ageCategories->pluck('nom')->implode(', ');
+            }
+
+            return [
+                'rank' => $rank++,
+                'id' => $item->id,
+                'equ_id' => $item->equ_id,
+                'team_name' => $item->team ? $item->team->equ_name : 'Unknown',
+                'team_image' => $item->team ? $item->team->equ_image : null,
+                'race_id' => $item->race_id,
+                'race_name' => $item->race ? $item->race->race_name : 'Unknown',
+                'race_date' => $item->race ? $item->race->race_date_start : null,
+                'race_age_categories' => $item->race ? $item->race->age_category_names : [],
+                'age_category' => $ageCategory,
+                'average_temps' => $item->average_temps,
+                'average_temps_formatted' => $item->formatted_average_temps,
+                'average_malus' => $item->average_malus,
+                'average_malus_formatted' => $item->formatted_average_malus,
+                'average_temps_final' => $item->average_temps_final,
+                'average_temps_final_formatted' => $item->formatted_average_temps_final,
+                'member_count' => $item->member_count,
+                'members' => $members,
+                'points' => $calculatedPoints,
+                'status' => $item->status,
+                'category' => $item->category,
+            ];
+        });
+
+        return [
+            'data' => $data,
+            'current_page' => $results->currentPage(),
+            'last_page' => $results->lastPage(),
+            'per_page' => $results->perPage(),
+            'total' => $results->total(),
+        ];
+    }
+
+    /**
      * Get public individual leaderboard (only public profiles).
      * Only shows users with is_public = true.
      * Includes: rank, name, race, raw time, malus, final time, points.

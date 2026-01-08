@@ -140,6 +140,7 @@ class LeaderboardController extends Controller
 
     /**
      * Display leaderboard results for a specific race.
+     * Uses admin leaderboard methods that include ALL users (including private profiles).
      *
      * @param Request $request
      * @param int $raceId
@@ -150,13 +151,16 @@ class LeaderboardController extends Controller
         $search = $request->input('search');
         $type = $request->input('type', 'individual');
 
-        $data = $type === 'team'
-            ? $this->leaderboardService->getTeamLeaderboard($raceId, $search)
-            : $this->leaderboardService->getIndividualLeaderboard($raceId, $search);
+        // Use admin leaderboard methods that include private users
+        $data = $this->leaderboardService->getAdminLeaderboard($raceId, $search, $type);
+        
+        // Get race info for the header
+        $race = $this->leaderboardService->getRaces()->firstWhere('race_id', $raceId);
 
         return Inertia::render('Admin/Leaderboard/Results', [
             'results' => $data,
             'raceId' => $raceId,
+            'race' => $race,
             'type' => $type,
             'search' => $search,
         ]);
