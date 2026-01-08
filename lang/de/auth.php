@@ -16,5 +16,6 @@ return [
     'failed' => 'Die angegebenen Anmeldedaten stimmen nicht überein.',
     'password' => 'Das angegebene Passwort ist falsch.',
     'throttle' => 'Zu viele Anmeldeversuche. Bitte versuchen Sie es in :seconds Sekunden erneut.',
+    'inactive' => 'Ihr Konto wurde deaktiviert. Bitte wenden Sie sich an einen Administrator.',
 
 ];

@@ -154,7 +154,7 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
     Route::get('/raids', [AdminController::class, 'raidmanagement'])->name('raids.index')->middleware('admin_page:access-admin-raids');
 
     // Club management - requires access-admin-clubs permission
-    Route::get('/clubs', [AdminController::class, 'clubmanagement'])->name('clubs.list')->middleware('admin_page:access-admin-clubs');
+    Route::get('/clubs', [AdminController::class, 'clubmanagement'])->name('clubs.index')->middleware('admin_page:access-admin-clubs');
 
     // users - ADMIN ONLY (requires admin role)
     Route::match(['get', 'post'], '/users', [UserController::class, 'index'])->name('users.index')->middleware('role:admin');

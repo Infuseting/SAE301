@@ -195,6 +195,10 @@ class LicenceRequirementTest extends TestCase
             ->withHeader('X-Inertia', 'true')
             ->post(route('clubs.store'), [
                 'club_name' => 'Test Club',
+                'club_street' => '123 Test Street',
+                'club_city' => 'Test City',
+                'club_postal_code' => '12345',
+                'ffso_id' => 'ABC123',
             ]);
 
         $response->assertStatus(403);

@@ -58,7 +58,7 @@ class AdminPermissionsTest extends TestCase
     /** @test */
     public function admin_can_access_admin_clubs_page(): void
     {
-        $response = $this->actingAs($this->admin)->get(route('admin.clubs.list'));
+        $response = $this->actingAs($this->admin)->get(route(name: 'admin.clubs.index'));
         $response->assertStatus(200);
     }
 
@@ -122,10 +122,9 @@ class AdminPermissionsTest extends TestCase
             ]);
 
         $response->assertRedirect();
-        // Club should be deleted or marked as not approved
-        $this->assertDatabaseHas('clubs', [
+        // Club should be deleted when rejected
+        $this->assertDatabaseMissing('clubs', [
             'club_id' => $club->club_id,
-            'is_approved' => false,
         ]);
     }
 
@@ -133,12 +132,12 @@ class AdminPermissionsTest extends TestCase
     public function admin_can_create_club(): void
     {
         $clubData = [
-            'name' => 'Admin Test Club',
+            'club_name' => 'Admin Test Club',
             'description' => 'Test Description',
-            'city' => 'Paris',
-            'department' => '75',
-            'postal_code' => '75001',
-            'address' => '1 Rue de Test',
+            'club_city' => 'Paris',
+            'club_postal_code' => '75001',
+            'club_street' => '1 Rue de Test',
+            'ffso_id' => 'FFSO123',
         ];
 
         $response = $this->actingAs($this->admin)->post(route('clubs.store'), $clubData);
@@ -167,12 +166,12 @@ class AdminPermissionsTest extends TestCase
 
         $response = $this->actingAs($this->admin)
             ->put(route('clubs.update', $club), [
-                'name' => 'Admin Updated Club',
+                'club_name' => 'Admin Updated Club',
+                'club_street' => $club->club_street,
+                'club_city' => $club->club_city,
+                'club_postal_code' => $club->club_postal_code,
+                'ffso_id' => $club->ffso_id,
                 'description' => $club->description,
-                'city' => $club->city,
-                'department' => $club->department,
-                'postal_code' => $club->postal_code,
-                'address' => $club->address,
             ]);
 
         $response->assertRedirect();
@@ -191,24 +190,38 @@ class AdminPermissionsTest extends TestCase
         $response = $this->actingAs($this->admin)->delete(route('clubs.destroy', $club));
 
         $response->assertRedirect();
-        $this->assertSoftDeleted('clubs', ['club_id' => $club->club_id]);
+        $this->assertDatabaseMissing('clubs', ['club_id' => $club->club_id]);
     }
 
     /** @test */
     public function admin_can_create_raid(): void
     {
         $club = Club::factory()->create();
+        $member = \App\Models\Member::factory()->create();
+        
+        // Create a user and link member to club
+        $user = \App\Models\User::factory()->create(['adh_id' => $member->adh_id]);
+        \DB::table('club_user')->insert([
+            'club_id' => $club->club_id,
+            'user_id' => $user->id,
+            'status' => 'approved',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $raidData = [
-            'name' => 'Admin Test Raid',
-            'description' => 'Test Description',
-            'club_id' => $club->id,
-            'start_date' => now()->addMonth()->format('Y-m-d'),
-            'end_date' => now()->addMonth()->addDays(2)->format('Y-m-d'),
-            'city' => 'Paris',
-            'department' => '75',
-            'address' => '1 Rue de Test',
-            'postal_code' => '75001',
+            'raid_name' => 'Admin Test Raid',
+            'raid_description' => 'Test Description',
+            'clu_id' => $club->club_id,
+            'raid_date_start' => now()->addMonth()->format('Y-m-d'),
+            'raid_date_end' => now()->addMonth()->addDays(2)->format('Y-m-d'),
+            'ins_start_date' => now()->addDays(5)->format('Y-m-d'),
+            'ins_end_date' => now()->addDays(20)->format('Y-m-d'),
+            'raid_city' => 'Paris',
+            'raid_street' => '1 Rue de Test',
+            'raid_postal_code' => '75001',
+            'raid_contact' => 'contact@example.com',
+            'adh_id' => $member->adh_id,
         ];
 
         $response = $this->actingAs($this->admin)->post(route('raids.store'), $raidData);
@@ -237,15 +250,19 @@ class AdminPermissionsTest extends TestCase
 
         $response = $this->actingAs($this->admin)
             ->put(route('raids.update', $raid), [
-                'name' => 'Admin Updated Raid',
-                'description' => $raid->description,
-                'club_id' => $raid->club_id,
-                'start_date' => $raid->start_date->format('Y-m-d'),
-                'end_date' => $raid->end_date->format('Y-m-d'),
-                'city' => $raid->city,
-                'department' => $raid->department,
-                'address' => $raid->address,
-                'postal_code' => $raid->postal_code,
+                'raid_name' => 'Admin Updated Raid',
+                'raid_description' => $raid->raid_description,
+                'clu_id' => $raid->clu_id,
+                'raid_date_start' => $raid->raid_date_start->format('Y-m-d'),
+                'raid_date_end' => $raid->raid_date_end->format('Y-m-d'),
+                'ins_start_date' => $raid->registrationPeriod->ins_start_date->format('Y-m-d'),
+                'ins_end_date' => $raid->registrationPeriod->ins_end_date->format('Y-m-d'),
+                'raid_city' => $raid->raid_city,
+                'raid_street' => $raid->raid_street,
+                'raid_postal_code' => $raid->raid_postal_code,
+                'raid_contact' => $raid->raid_contact,
+                'adh_id' => $raid->adh_id,
+                'raid_number' => $raid->raid_number,
             ]);
 
         $response->assertRedirect();
@@ -264,19 +281,34 @@ class AdminPermissionsTest extends TestCase
         $response = $this->actingAs($this->admin)->delete(route('raids.destroy', $raid));
 
         $response->assertRedirect();
-        $this->assertSoftDeleted('raids', ['raid_id' => $raid->raid_id]);
+        $this->assertDatabaseMissing('raids', ['raid_id' => $raid->raid_id]);
     }
 
     /** @test */
     public function admin_can_create_race(): void
     {
         $raid = Raid::factory()->create();
+        $type = \App\Models\ParamType::first();
+        $difficulty = \App\Models\ParamDifficulty::first();
+        $user = \App\Models\User::factory()->create();
 
         $raceData = [
-            'name' => 'Admin Test Race',
-            'raid_id' => $raid->id,
-            'start_date' => now()->addMonth()->format('Y-m-d H:i:s'),
-            'max_participants' => 100,
+            'title' => 'Admin Test Race',
+            'raid_id' => $raid->raid_id,
+            'startDate' => $raid->raid_date_start->format('Y-m-d'),
+            'startTime' => '09:00',
+            'endDate' => $raid->raid_date_start->format('Y-m-d'),
+            'endTime' => '12:00',
+            'minParticipants' => 10,
+            'maxParticipants' => 100,
+            'maxPerTeam' => 5,
+            'difficulty' => $difficulty->dif_id,
+            'type' => $type->typ_id,
+            'minTeams' => 2,
+            'maxTeams' => 20,
+            'priceMajor' => 25.00,
+            'priceMinor' => 15.00,
+            'responsableId' => $user->id,
         ];
 
         $response = $this->actingAs($this->admin)->post(route('races.store'), $raceData);
@@ -306,10 +338,22 @@ class AdminPermissionsTest extends TestCase
 
         $response = $this->actingAs($this->admin)
             ->put(route('races.update', $race), [
-                'name' => 'Admin Updated Race',
+                'title' => 'Admin Updated Race',
                 'raid_id' => $race->raid_id,
-                'start_date' => $race->start_date->format('Y-m-d H:i:s'),
-                'max_participants' => $race->max_participants,
+                'startDate' => $race->race_date_start->format('Y-m-d'),
+                'startTime' => $race->race_date_start->format('H:i'),
+                'endDate' => $race->race_date_end->format('Y-m-d'),
+                'endTime' => $race->race_date_end->format('H:i'),
+                'minParticipants' => $race->race_min_participants,
+                'maxParticipants' => $race->race_max_participants,
+                'maxPerTeam' => $race->race_max_per_team,
+                'difficulty' => $race->dif_id,
+                'type' => $race->typ_id,
+                'minTeams' => $race->race_min_teams,
+                'maxTeams' => $race->race_max_teams,
+                'priceMajor' => $race->race_price_adult,
+                'priceMinor' => 0,
+                'responsableId' => $race->res_adh_id,
             ]);
 
         $response->assertRedirect();
@@ -328,7 +372,7 @@ class AdminPermissionsTest extends TestCase
         $response = $this->actingAs($this->admin)->delete(route('races.destroy', $race));
 
         $response->assertRedirect();
-        $this->assertSoftDeleted('races', ['race_id' => $race->race_id]);
+        $this->assertDatabaseMissing('races', ['race_id' => $race->race_id]);
     }
 
     /** @test */
