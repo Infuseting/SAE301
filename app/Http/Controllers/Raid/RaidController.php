@@ -146,6 +146,7 @@ class RaidController extends Controller
                 'category' => $request->input('category', 'all'),
                 'age_category' => $request->input('age_category', ''),
                 'location' => $request->input('location', ''),
+                'location_type' => $request->input('location_type', 'city'),
             ],
         ]);
     }

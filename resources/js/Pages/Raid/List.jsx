@@ -1,5 +1,8 @@
 import { router, usePage } from '@inertiajs/react';
 import { useState, useEffect, useMemo } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { createPortal } from 'react-dom';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -8,7 +11,7 @@ import { Head, Link } from '@inertiajs/react';
  * Displays a paginated list of all raids with dynamic search functionality
  * Design consistent with profile, clubs/create, and races/create pages
  */
-export default function List({ raids, filters }) {
+export default function List({ raids, filters, ageCategories = [] }) {
     const messages = usePage().props.translations?.messages || {};
     const { auth } = usePage().props;
     const isClubLeader = auth?.user?.is_club_leader || false;
@@ -18,6 +21,11 @@ export default function List({ raids, filters }) {
     
     // Search state - initialized from URL params
     const [searchQuery, setSearchQuery] = useState(filters?.q || '');
+    const [startDate, setStartDate] = useState(filters?.date ? new Date(filters.date) : null);
+    const [category, setCategory] = useState(filters?.category || 'all');
+    const [ageCategory, setAgeCategory] = useState(filters?.age_category || '');
+    const [location, setLocation] = useState(filters?.location || '');
+    const [locationType, setLocationType] = useState(filters?.location_type || 'city');
     
     /**
      * Filter raids based on search query (client-side dynamic search)
@@ -87,42 +95,151 @@ export default function List({ raids, filters }) {
                     </div>
 
                     {/* Search Bar */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-8">
-                        <div className="flex flex-col md:flex-row gap-4">
-                            <div className="flex-1">
-                                <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Rechercher un raid par nom, ville ou club..."
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                />
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-8">
+                        <div className="flex flex-col md:flex-row gap-3">
+                            {/* Where */}
+                            <div className="flex-[2] px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100">
+                                <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                                    Localisation
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        strokeWidth={2}
+                                        stroke="currentColor"
+                                        className="w-4 h-4 text-gray-300 flex-shrink-0"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                        />
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                                        />
+                                    </svg>
+                                    <div className="w-full flex gap-2.5 items-end">
+                                        <div className="flex-1">
+                                            <select 
+                                                value={locationType}
+                                                onChange={(e) => setLocationType(e.target.value)}
+                                                className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 font-medium cursor-pointer text-sm"
+                                            >
+                                                <option value="city">Ville</option>
+                                                <option value="department">Département</option>
+                                                <option value="region">Région</option>
+                                            </select>
+                                        </div>
+                                        <div className="flex-1">
+                                            <input
+                                                type="text"
+                                                placeholder="Recherchez..."
+                                                value={location}
+                                                onChange={(e) => setLocation(e.target.value)}
+                                                className="w-full bg-transparent border-none p-0 text-gray-900 placeholder-gray-400 focus:ring-0 font-semibold text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            {searchQuery && (
-                                <button
-                                    type="button"
-                                    onClick={clearSearch}
-                                    className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                                >
-                                    Effacer
-                                </button>
-                            )}
+
+                            {/* When */}
+                            <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100">
+                                <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                                    Date
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        strokeWidth={1.5}
+                                        stroke="currentColor"
+                                        className="w-4 h-4 text-gray-400 flex-shrink-0"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0h18M5.25 12h13.5h-13.5Zm0 3.75h13.5h-13.5Z"
+                                        />
+                                    </svg>
+                                    <div className="w-full">
+                                        <DatePicker
+                                            selected={startDate}
+                                            onChange={(date) => setStartDate(date)}
+                                            placeholderText="Choisir une date"
+                                            className="w-full bg-transparent border-none p-0 text-gray-900 placeholder-gray-400 focus:ring-0 font-medium text-sm"
+                                            dateFormat="dd/MM/yyyy"
+                                            popperContainer={({ children }) =>
+                                                createPortal(
+                                                    children,
+                                                    document.body
+                                                )
+                                            }
+                                            popperClassName="!z-[100]"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Type */}
+                            <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100">
+                                <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                                    Type
+                                </label>
+                                <select 
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 font-medium cursor-pointer text-sm">
+                                    <option value="all">Tous</option>
+                                    <option value="loisir">Loisir</option>
+                                    <option value="competition">Compétition</option>
+                                </select>
+                            </div>
+
+                            {/* Age Category */}
+                            <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100">
+                                <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                                    Catégorie
+                                </label>
+                                <select 
+                                    value={ageCategory}
+                                    onChange={(e) => setAgeCategory(e.target.value)}
+                                    className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 font-medium cursor-pointer text-sm">
+                                    <option value="">Tous</option>
+                                    {(ageCategories || []).map((cat) => (
+                                        <option key={cat.id} value={cat.nom}>
+                                            {cat.nom}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Search Button */}
+                            <button
+                                onClick={() => {
+                                    const params = new URLSearchParams();
+                                    if (location) {
+                                        params.append("location", location);
+                                        params.append("location_type", locationType);
+                                    }
+                                    if (startDate) params.append("date", startDate.toISOString().split('T')[0]);
+                                    if (category !== "all") params.append("category", category);
+                                    if (ageCategory) params.append("age_category", ageCategory);
+                                    
+                                    router.visit(route("raids.index") + (params.toString() ? `?${params.toString()}` : ""));
+                                }}
+                                className="bg-gray-800 hover:bg-gray-700 text-white rounded-md px-6 py-3 font-semibold transition flex items-center justify-center gap-2 md:w-auto w-full text-sm"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.5 5.5a7.5 7.5 0 0 0 10.5 10.5Z" />
+                                </svg>
+                            </button>
                         </div>
-                        
-                        {/* Results Count */}
-                        {searchQuery && (
-                            <div className="mt-4 pt-4 border-t border-gray-100">
-                                <p className="text-sm text-gray-600">
-                                    {filteredRaids.length > 0 ? (
-                                        <>
-                                            <span className="font-semibold text-gray-900">{filteredRaids.length}</span> raid{filteredRaids.length > 1 ? 's' : ''} trouvé{filteredRaids.length > 1 ? 's' : ''} pour "<span className="font-medium">{searchQuery}</span>"
-                                        </>
-                                    ) : (
-                                        <>Aucun raid trouvé pour "<span className="font-medium">{searchQuery}</span>"</>
-                                    )}
-                                </p>
-                            </div>
-                        )}
                     </div>
 
                     {/* Empty State */}
