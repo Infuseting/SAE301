@@ -265,25 +265,27 @@ export default function Dashboard({
                                     <RiRunLine className="w-12 h-12 text-purple-400" />
                                 </div>
                                 <div className="mt-4">
-                                    <Link
-                                        href={route("admin.races.index")}
-                                        className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
-                                    >
-                                        Gérer les courses
-                                        <svg
-                                            className="w-4 h-4 ml-1"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
+                                    {races.length > 0 && (
+                                        <Link
+                                            href={route("admin.races.index")}
+                                            className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
                                         >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M9 5l7 7-7 7"
-                                            />
-                                        </svg>
-                                    </Link>
+                                            Gérer les courses
+                                            <svg
+                                                className="w-4 h-4 ml-1"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 5l7 7-7 7"
+                                                />
+                                            </svg>
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -305,25 +307,27 @@ export default function Dashboard({
                                     <FaRegCompass className="w-12 h-12 text-purple-400" />
                                 </div>
                                 <div className="mt-4">
-                                    <Link
-                                        href={route("admin.raids.index")}
-                                        className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
-                                    >
-                                        Gérer les raids
-                                        <svg
-                                            className="w-4 h-4 ml-1"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
+                                    {raids.length > 0 && (
+                                        <Link
+                                            href={route("admin.raids.index")}
+                                            className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
                                         >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M9 5l7 7-7 7"
-                                            />
-                                        </svg>
-                                    </Link>
+                                            Gérer les raids
+                                            <svg
+                                                className="w-4 h-4 ml-1"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 5l7 7-7 7"
+                                                />
+                                            </svg>
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         )}
