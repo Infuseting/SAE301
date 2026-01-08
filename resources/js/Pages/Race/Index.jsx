@@ -1,4 +1,4 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PublicLayout from '@/Layouts/PublicLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 
@@ -100,7 +100,7 @@ export default function Index({ auth, races }) {
     };
 
     return (
-        <AuthenticatedLayout>
+        <Layout user={auth?.user}>
             <Head title="Calendrier des Courses" />
 
             <div className="min-h-screen bg-gray-50 py-12">
@@ -283,6 +283,6 @@ export default function Index({ auth, races }) {
                     )}
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </Layout>
     );
 }
