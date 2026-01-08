@@ -33,7 +33,15 @@ class RunDevServer extends Command
      */
     public function handle(): int
     {
-        $this->info('Starting npm run dev and php artisan serve...');
+        // Create storage link first
+        $this->info('Creating storage link...');
+        $this->call('storage:link');
+        $this->info('Storage link created successfully!');
+
+        $this->info('Starting development servers in 2 seconds...');
+
+        sleep(2);
+        $this->newLine();
 
         // Initialize processes (or use mocks if provided)
         $npm = $this->processMocks['npm'] ?? new Process(['npm', 'run', 'dev']);
