@@ -272,4 +272,25 @@ return [
     'description_bio' => 'Beschreibung / Bio',
     'edit_profile' => 'Bearbeiten',
 
+    // Clubs
+    'join_club' => 'Dem Club beitreten',
+    'leave_club' => 'Club verlassen',
+    'manage_members' => 'Mitglieder verwalten',
+    'approve_club' => 'Akzeptieren',
+    'reject_club' => 'Ablehnen',
+    'member_promoted' => ':name wurde zum Club-Verantwortlichen befördert',
+    'manager_demoted' => ':name wurde zum Mitglied zurückgestuft',
+    'cannot_demote_last_manager' => 'Der letzte Verantwortliche des Clubs kann nicht zurückgestuft werden',
+    'user_not_member' => 'Dieser Benutzer ist kein Mitglied dieses Clubs',
+    'promote_to_manager' => 'Zum Verantwortlichen befördern',
+    'demote_to_member' => 'Zum Mitglied zurückstufen',
+
+    // Leaderboard Navigation
+    'leaderboard' => 'Rangliste',
+    'public_leaderboard' => 'Öffentliche Rangliste',
+    'my_leaderboard' => 'Meine Rangliste',
+
+    // Courses Navigation
+    'view_all_races' => 'Alle Rennen anzeigen',
+
 ];

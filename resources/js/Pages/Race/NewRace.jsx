@@ -1,39 +1,111 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
-import SelectResponsableModal from '@/Components/SelectResponsableModal';
+import { Head, useForm, router, Link } from '@inertiajs/react';
+import UserSelect from '@/Components/UserSelect';
+import Modal from '@/Components/Modal';
+import DangerButton from '@/Components/DangerButton';
+import SecondaryButton from '@/Components/SecondaryButton';
 
-export default function NewRace({ auth, users = [], types = [], raid_id = null, raid = null }) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedResponsable, setSelectedResponsable] = useState(null);
+/**
+ * Helper function to convert duration in minutes to H:mm format
+ * @param {number|null} minutes - Duration in minutes
+ * @returns {string} Duration string in H:mm format
+ */
+const convertMinutesToDuration = (minutes) => {
+    if (!minutes) return '';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}:${String(mins).padStart(2, '0')}`;
+};
 
-    const { data, setData, post, processing, errors } = useForm({
-        title: '',
-        description: '',
-        responsableId: '',
-        startDate: '',
-        startTime: '',
-        duration: '',
-        endDate: '',
-        endTime: '',
-        minParticipants: '',
-        maxParticipants: '',
-        maxPerTeam: '1',
-        minTeams: '1',
-        maxTeams: '1',
-        priceMajor: '',
-        priceMinor: '',
-        priceMajorAdherent: '',
-        priceMinorAdherent: '',
-        difficulty: '',
-        type: types.length > 0 ? types[0].id : '',
-        mealPrice: '',
+/**
+ * Helper function to extract date from datetime string
+ * @param {string|null} datetime - Datetime string
+ * @returns {string} Date string (YYYY-MM-DD)
+ */
+const extractDate = (datetime) => {
+    if (!datetime) return '';
+    return datetime.split('T')[0].split(' ')[0];
+};
+
+/**
+ * Helper function to extract time from datetime string
+ * @param {string|null} datetime - Datetime string
+ * @returns {string} Time string (HH:mm)
+ */
+const extractTime = (datetime) => {
+    if (!datetime) return '';
+    const timePart = datetime.split('T')[1] || datetime.split(' ')[1];
+    return timePart ? timePart.substring(0, 5) : '';
+};
+
+/**
+ * NewRace Component - Form for creating or editing a race
+ * @param {Object} props - Component props
+ * @param {Object} props.auth - Authentication data
+ * @param {Array} props.users - List of users for responsable selection
+ * @param {Array} props.types - List of race types
+ * @param {number|null} props.raid_id - Raid ID (for new races)
+ * @param {Object|null} props.raid - Raid data
+ * @param {Object|null} props.race - Race data (null for create, object for edit)
+ */
+export default function NewRace({ auth, users = [], types = [], raid_id = null, raid = null, race = null }) {
+    // Determine if we're in edit mode
+    const isEditMode = race !== null;
+    
+    // Find the user ID from adh_id for edit mode
+    const getResponsableUserId = () => {
+        if (!race || !race.adh_id) return '';
+        const user = users.find(u => u.adh_id === race.adh_id);
+        return user ? user.id : '';
+    };
+
+    const { data, setData, post, put, processing, errors } = useForm({
+        title: race?.race_name || '',
+        description: race?.race_description || '',
+        responsableId: getResponsableUserId(),
+        startDate: extractDate(race?.race_date_start),
+        startTime: extractTime(race?.race_date_start),
+        duration: convertMinutesToDuration(race?.race_duration_minutes),
+        endDate: extractDate(race?.race_date_end),
+        endTime: extractTime(race?.race_date_end),
+        minParticipants: race?.runner_params?.pac_nb_min || '',
+        maxParticipants: race?.runner_params?.pac_nb_max || '',
+        maxPerTeam: race?.team_params?.pae_team_count_max || '1',
+        minTeams: race?.team_params?.pae_nb_min || '1',
+        maxTeams: race?.team_params?.pae_nb_max || '1',
+        priceMajor: race?.price_major || '',
+        priceMinor: race?.price_minor || '',
+        priceAdherent: race?.price_adherent || '',
+        difficulty: race?.race_difficulty || '',
+        type: race?.typ_id || (types.length > 0 ? types[0].id : ''),
+        mealPrice: race?.race_meal_price || '',
         image: null,
-        raid_id: raid_id || '',
+        raid_id: race?.raid_id || raid_id || '',
     });
 
     // Date validation state
     const [dateErrors, setDateErrors] = useState({});
+    
+    // Delete confirmation modal state (only used in edit mode)
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    /**
+     * Handle race deletion
+     */
+    const handleDelete = () => {
+        router.delete(route('races.destroy', race.race_id), {
+            preserveScroll: true,
+            onSuccess: () => closeDeleteModal(),
+        });
+    };
+
+    /**
+     * Close delete confirmation modal
+     */
+    const closeDeleteModal = () => {
+        setShowDeleteModal(false);
+    };
 
     // Validate dates on change
     const validateDates = (fieldName, value) => {
@@ -73,7 +145,7 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
             const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
             const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
             let durationMinutes = 0;
-            
+
             if (duration && duration.includes(':')) {
                 const [h, m] = duration.split(':');
                 durationMinutes = parseInt(h) * 60 + parseInt(m);
@@ -114,26 +186,60 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
     };
 
 
-    /**
-     * Handle responsable selection from modal
-     * @param {object} user - The selected user object
-     */
-    const handleSelectResponsable = (user) => {
-        setSelectedResponsable(user);
-        setData('responsableId', user.id);
-    };
-
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('races.store'));
+        if (isEditMode) {
+            // Use router.post with _method: PUT for file uploads to work correctly
+            router.post(route('races.update', race.race_id), {
+                _method: 'PUT',
+                ...data,
+            }, {
+                forceFormData: true,
+            });
+        } else {
+            post(route('races.store'), {
+                forceFormData: true,
+            });
+        }
     };
+
+    // Page title and button text based on mode
+    const pageTitle = isEditMode ? 'Modifier la Course' : 'Créer une Nouvelle Course';
+    const submitButtonText = isEditMode 
+        ? (processing ? 'Modification en cours...' : 'Modifier la course')
+        : (processing ? 'Création en cours...' : 'Créer la course');
 
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Créer une Nouvelle Course</h2>}
         >
-            <Head title="Créer une Course" />
+            <Head title={pageTitle} />
+
+            {/* Header with back button for edit mode */}
+            {isEditMode ? (
+                <div className="bg-emerald-600 py-6">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-center relative">
+                            <Link href={route('races.show', race.race_id)} className="text-white hover:text-white/80 absolute left-0">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </Link>
+                            <h1 className="text-2xl font-bold text-white">
+                                Modifier la course
+                            </h1>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="bg-gray-800 py-6">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                        <h1 className="text-2xl font-bold text-white text-center">
+                            Créer une nouvelle course
+                        </h1>
+                    </div>
+                </div>
+            )}
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -206,37 +312,13 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Responsable de la course
                                         </label>
-                                        {selectedResponsable ? (
-                                            <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                                                <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                                    <span className="text-green-600 font-semibold text-sm">
-                                                        {selectedResponsable.name.charAt(0).toUpperCase()}
-                                                    </span>
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-medium text-gray-900">{selectedResponsable.name}</p>
-                                                    <p className="text-xs text-gray-500">{selectedResponsable.email}</p>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsModalOpen(true)}
-                                                    className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-                                                >
-                                                    Modifier
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsModalOpen(true)}
-                                                className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                </svg>
-                                                Sélectionner un responsable
-                                            </button>
-                                        )}
+                                        <UserSelect
+                                            users={users}
+                                            selectedId={data.responsableId}
+                                            onSelect={(user) => setData('responsableId', user.id)}
+                                            label="Responsable"
+                                        />
+                                        {errors.responsableId && <p className="mt-1 text-sm text-red-600">{errors.responsableId}</p>}
                                     </div>
 
                                     {/* Date et heure de départ */}
@@ -399,7 +481,7 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                 {/* Tarifs */}
                                 <div className="mb-8">
                                     <h4 className="text-sm font-semibold text-gray-900 mb-4">Tarifs d'inscription :</h4>
-                                    
+
                                     {/* Prix Majeurs */}
                                     <div className="mb-4">
                                         <label className="block text-xs font-medium text-gray-600 mb-2">Majeurs (18 ans et +)</label>
@@ -421,22 +503,6 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                                     <span className="ml-1 text-gray-500 text-sm">€</span>
                                                 </div>
                                             </div>
-                                            <div>
-                                                <label className="block text-xs text-gray-500 mb-1">Adhérent</label>
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="number"
-                                                        name="priceMajorAdherent"
-                                                        value={data.priceMajorAdherent}
-                                                        onChange={handleInputChange}
-                                                        placeholder="0.00"
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                    />
-                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
-                                                </div>
-                                            </div>
                                         </div>
                                         {errors.priceMajor && <p className="mt-1 text-sm text-red-600">{errors.priceMajor}</p>}
                                     </div>
@@ -444,42 +510,40 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                     {/* Prix Mineurs */}
                                     <div className="mb-4">
                                         <label className="block text-xs font-medium text-gray-600 mb-2">Mineurs (- de 18 ans)</label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label className="block text-xs text-gray-500 mb-1">Standard</label>
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="number"
-                                                        name="priceMinor"
-                                                        value={data.priceMinor}
-                                                        onChange={handleInputChange}
-                                                        placeholder="0.00"
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                        required
-                                                    />
-                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs text-gray-500 mb-1">Adhérent</label>
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="number"
-                                                        name="priceMinorAdherent"
-                                                        value={data.priceMinorAdherent}
-                                                        onChange={handleInputChange}
-                                                        placeholder="0.00"
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                                                    />
-                                                    <span className="ml-1 text-gray-500 text-sm">€</span>
-                                                </div>
-                                            </div>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="number"
+                                                name="priceMinor"
+                                                value={data.priceMinor}
+                                                onChange={handleInputChange}
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                min="0"
+                                                className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                                required
+                                            />
+                                            <span className="ml-1 text-gray-500 text-sm">€</span>
                                         </div>
                                         {errors.priceMinor && <p className="mt-1 text-sm text-red-600">{errors.priceMinor}</p>}
+                                    </div>
+
+                                    {/* Prix Adhérents */}
+                                    <div className="mb-4">
+                                        <label className="block text-xs font-medium text-gray-600 mb-2">Adhérents (licenciés)</label>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="number"
+                                                name="priceAdherent"
+                                                value={data.priceAdherent}
+                                                onChange={handleInputChange}
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                min="0"
+                                                className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                            />
+                                            <span className="ml-1 text-gray-500 text-sm">€</span>
+                                        </div>
+                                        {errors.priceAdherent && <p className="mt-1 text-sm text-red-600">{errors.priceAdherent}</p>}
                                     </div>
                                 </div>
 
@@ -550,7 +614,6 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                 </div>
                             </div>
 
-
                             {/* Bouton Submit */}
                             <div className="mt-8 flex justify-center">
                                 <button
@@ -559,22 +622,51 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                     className={`${processing ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-900'
                                         } text-white font-semibold py-3 px-12 rounded-lg transition`}
                                 >
-                                    {processing ? 'Création en cours...' : 'Créer la course'}
+                                    {submitButtonText}
                                 </button>
                             </div>
+
+                            {/* Danger Zone - Only in edit mode */}
+                            {isEditMode && (
+                                <div className="mt-8 bg-white rounded-lg shadow-md p-6 border-2 border-red-200">
+                                    <h2 className="text-lg font-semibold text-red-600 mb-4">
+                                        Zone de danger
+                                    </h2>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        La suppression de la course est irréversible. Toutes les inscriptions associées seront également supprimées.
+                                    </p>
+                                    <DangerButton type="button" onClick={() => setShowDeleteModal(true)}>
+                                        Supprimer la course
+                                    </DangerButton>
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>
             </div >
 
-            {/* Modal de sélection du responsable */}
-            < SelectResponsableModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)
-                }
-                onSelect={handleSelectResponsable}
-                users={users}
-            />
+            {/* Delete Confirmation Modal */}
+            <Modal show={showDeleteModal} onClose={closeDeleteModal}>
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900">
+                        Êtes-vous sûr de vouloir supprimer cette course ?
+                    </h2>
+
+                    <p className="mt-1 text-sm text-gray-600">
+                        La suppression de la course est irréversible. Toutes les inscriptions associées seront également supprimées.
+                    </p>
+
+                    <div className="mt-6 flex justify-end">
+                        <SecondaryButton type="button" onClick={closeDeleteModal}>
+                            Annuler
+                        </SecondaryButton>
+
+                        <DangerButton type="button" className="ms-3" onClick={handleDelete}>
+                            Oui, supprimer
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout >
     );
 }

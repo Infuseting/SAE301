@@ -9,7 +9,7 @@ use App\Models\Race;
 use App\Models\Raid;
 use App\Models\ParamRunner;
 use App\Models\ParamTeam;
-
+use App\Models\ParamDifficulty;
 use App\Models\ParamType;
 use App\Models\RegistrationPeriod;
 use App\Models\User;
@@ -226,6 +226,7 @@ class RacePermissionsTest extends TestCase
 
     /**
      * Get valid race data for creating a race
+     * Note: type 1 is "compétitif" which doesn't allow minor prices > 0
      */
     private function getValidRaceData(): array
     {
@@ -246,9 +247,8 @@ class RacePermissionsTest extends TestCase
             'licenseDiscount' => 0,
             'price' => 10,
             'priceMajor' => 20,
-            'priceMinor' => 15,
-            'priceMajorAdherent' => 18,
-            'priceMinorAdherent' => 12,
+            'priceMinor' => 0, // Competitive races don't allow minor prices
+            'priceAdherent' => 18,
             'responsableId' => $this->responsableCourseUser->id,
             'raid_id' => $this->raid->raid_id,
         ];
@@ -361,14 +361,36 @@ class RacePermissionsTest extends TestCase
     // ===========================================
 
     /**
-     * Test that a responsable-club without responsable-course role cannot create races
+     * Test that a responsable-club without responsable-course role cannot create races 
+     * if they are NOT the raid responsible
      */
-    public function test_responsable_club_without_course_role_cannot_create_race(): void
+    public function test_responsable_club_cannot_create_race_if_not_raid_responsible(): void
     {
+        // Set someone else as raid responsible
+        $someoneElse = Member::factory()->create();
+        $this->raid->update(['adh_id' => $someoneElse->adh_id]);
+
         $response = $this->actingAs($this->responsableClubUser)
             ->post(route('races.store'), $this->getValidRaceData());
         
         $response->assertStatus(403);
+    }
+
+    /**
+     * Test that a responsable-club CAN create races if they ARE the raid responsible
+     */
+    public function test_responsable_club_can_create_race_if_raid_responsible(): void
+    {
+        // Set responsable-club as raid responsible
+        $member = $this->responsableClubUser->member;
+        $this->raid->update(['adh_id' => $member->adh_id]);
+
+        $raceData = $this->getValidRaceData();
+        $response = $this->actingAs($this->responsableClubUser)
+            ->post(route('races.store'), $raceData);
+        
+        $response->assertRedirect();
+        $this->assertDatabaseHas('races', ['race_name' => $raceData['title']]);
     }
 
     // ===========================================
@@ -376,21 +398,27 @@ class RacePermissionsTest extends TestCase
     // ===========================================
 
     /**
-     * Test that gestionnaire-raid cannot create races (only manage raids)
+     * Test that gestionnaire-raid can create races for raids they manage
      */
-    public function test_gestionnaire_raid_cannot_access_race_creation_page(): void
+    public function test_gestionnaire_raid_can_create_race_for_their_raid(): void
     {
+        // Make gestionnaireRaidUser the responsible of the raid
+        $this->raid->update(['adh_id' => $this->gestionnaireRaidUser->adh_id]);
+
+        $raceData = $this->getValidRaceData();
         $response = $this->actingAs($this->gestionnaireRaidUser)
-            ->get(route('races.create'));
+            ->post(route('races.store'), $raceData);
         
-        $response->assertStatus(403);
+        $response->assertRedirect();
+        $this->assertDatabaseHas('races', ['race_name' => $raceData['title']]);
     }
 
     /**
-     * Test that gestionnaire-raid cannot create a race
+     * Test that gestionnaire-raid cannot create races for raids they DO NOT manage
      */
-    public function test_gestionnaire_raid_cannot_create_race(): void
+    public function test_gestionnaire_raid_cannot_create_race_for_other_raid(): void
     {
+        // raid adh_id is currently $responsableClubMember->adh_id, not $gestionnaireRaidUser->adh_id
         $response = $this->actingAs($this->gestionnaireRaidUser)
             ->post(route('races.store'), $this->getValidRaceData());
         
@@ -466,15 +494,9 @@ class RacePermissionsTest extends TestCase
 
     /**
      * Test that responsable-course cannot edit another user's race
-     * 
-     * @TODO: Implement ownership check in NewRaceController::show() for edit routes
-     * Currently the edit route uses the same controller method as create and doesn't
-     * check if the user owns the race being edited.
      */
     public function test_responsable_course_cannot_edit_other_users_race(): void
     {
-        $this->markTestSkipped('Race edit ownership check not yet implemented in controller');
-        
         // Create a race owned by another responsable-course
         $paramRunner = ParamRunner::create([
             'pac_nb_min' => 2,
@@ -570,13 +592,9 @@ class RacePermissionsTest extends TestCase
 
     /**
      * Test that admin can delete any race
-     * 
-     * @TODO: Implement races.destroy route and RaceController::destroy method
      */
     public function test_admin_can_delete_any_race(): void
     {
-        $this->markTestSkipped('Race delete route (races.destroy) not yet implemented');
-        
         // Create a race
         $paramRunner = ParamRunner::create([
             'pac_nb_min' => 2,

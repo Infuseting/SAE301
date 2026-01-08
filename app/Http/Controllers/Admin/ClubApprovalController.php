@@ -88,10 +88,10 @@ class ClubApprovalController extends Controller
                 $club->approved_at = now();
                 $club->save();
 
-                // Assign club-manager role to creator
+                // Assign responsable-club role to creator
                 $creator = $club->creator;
-                if (!$creator->hasRole('club-manager')) {
-                    $creator->assignRole('club-manager');
+                if (!$creator->hasRole('responsable-club')) {
+                    $creator->assignRole('responsable-club');
                 }
 
                 // Add creator as manager in club_user pivot

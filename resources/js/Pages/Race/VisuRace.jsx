@@ -59,14 +59,41 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
             <Head title={race.title} />
 
             {/* Header / Hero Section */}
-            <div className="bg-blue-900 py-16 relative overflow-hidden border-b-8 border-emerald-500">
+            <div className="bg-blue-900 pt-10 pb-16 relative overflow-hidden border-b-8 border-emerald-500">
                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                     <Trophy className="w-96 h-96 -rotate-12" />
                 </div>
 
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-                        <div className="space-y-6">
+                    {/* Back Button */}
+                    {race.raidId && (
+                        <Link href={route('raids.show', race.raidId)} className="inline-flex items-center gap-2 text-sm font-medium text-emerald-400 hover:text-white mb-6 transition-colors">
+                            <ChevronRight className="w-4 h-4 rotate-180" />
+                            Retour au raid
+                        </Link>
+                    )}
+
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
+                        {/* Left side - Image */}
+                        <div className="w-full md:w-64 flex-shrink-0">
+                            <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl relative bg-gradient-to-br from-blue-800 to-emerald-800 flex items-center justify-center">
+                                {race.imageUrl ? (
+                                    <img
+                                        src={race.imageUrl}
+                                        alt={race.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <Trophy className="w-12 h-12 text-white/30" />
+                                        <p className="text-white/50 font-bold text-xs uppercase tracking-wider">Pas d'image</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right side - Race info */}
+                        <div className="flex-1 space-y-6">
                             <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg ${currentStatus.color}`}>
                                 {currentStatus.icon}
                                 {currentStatus.label}
@@ -112,23 +139,6 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                         {/* Left Side: Description & Details */}
                         <div className="lg:col-span-8 space-y-10">
-                            {/* Hero Image */}
-                            <div className="aspect-video rounded-[3rem] overflow-hidden shadow-2xl relative group bg-gradient-to-br from-blue-50 to-emerald-50 flex items-center justify-center">
-                                {race.imageUrl ? (
-                                    <img
-                                        src={race.imageUrl}
-                                        alt={race.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                                    />
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center gap-4">
-                                        <Trophy className="w-24 h-24 text-blue-300 opacity-50" />
-                                        <p className="text-blue-400 font-black text-lg uppercase tracking-wider">Pas d'image disponible</p>
-                                    </div>
-                                )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-blue-900/60 to-transparent opacity-60" />
-                            </div>
-
                             {/* Description Card */}
                             <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-blue-50">
                                 <h2 className="text-2xl font-black text-blue-900 italic mb-6 flex items-center gap-3 uppercase">
@@ -265,8 +275,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     {[
                                         { label: 'Tarif Majeur', price: race.priceMajor, isMain: true },
                                         { label: 'Tarif Mineur', price: race.priceMinor },
-                                        { label: 'Tarif Adhérent Majeur', price: race.priceMajorAdherent, sub: 'Licenciés club' },
-                                        { label: 'Tarif Adhérent Mineur', price: race.priceMinorAdherent, sub: 'Licenciés club' },
+                                        { label: 'Tarif Adhérent', price: race.priceAdherent, sub: 'Licenciés club' },
                                     ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
                                         <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${t.isMain ? 'bg-blue-900 text-white border-blue-900 shadow-xl shadow-blue-200' : 'bg-blue-50/30 border-blue-50 text-blue-900'}`}>
                                             <div>

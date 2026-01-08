@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use OpenApi\Annotations as OA;
 
 /**
  * Club model representing orienteering clubs
@@ -177,7 +178,7 @@ class Club extends Model
      * Get the raids belonging to this club.
      */
     public function raids()
-    {
+ {
         return $this->hasMany(Raid::class, 'clu_id', 'club_id');
     }
 }

@@ -82,6 +82,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the teams that this user belongs to.
+     */
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'has_participate', 'id_users', 'equ_id');
+    }
+
+    /**
      * Get the user's full name.
      */
     protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
@@ -187,6 +195,12 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function races()
+    {
+        return $this->belongsToMany(Race::class, 'race_registrations', 'user_id', 'race_id');
+    }
+
+
     /**
      * Determine if the user is allowed to reset their password.
      * A user can reset their password if they have a local password set
@@ -214,8 +228,26 @@ class User extends Authenticatable
             return false;
         }
 
-        return \DB::table('clubs')
+        // Check if user is the creator of any club
+        $isCreator = \DB::table('clubs')
             ->where('created_by', $this->id)
             ->exists();
+
+        if ($isCreator) {
+            return true;
+        }
+
+        // Check if user has the responsable-club role
+        if ($this->hasRole('responsable-club')) {
+            return true;
+        }
+
+        // Check if user is a manager of any club in the pivot table
+        $isManager = $this->clubs()
+            ->wherePivot('role', 'manager')
+            ->wherePivot('status', 'approved')
+            ->exists();
+
+        return $isManager;
     }
 }

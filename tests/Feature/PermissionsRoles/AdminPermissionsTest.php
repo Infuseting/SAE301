@@ -10,7 +10,6 @@ use App\Models\Raid;
 use App\Models\ParamRunner;
 use App\Models\ParamTeam;
 use App\Models\ParamType;
-
 use App\Models\RegistrationPeriod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -445,6 +444,7 @@ class AdminPermissionsTest extends TestCase
      */
     public function test_admin_can_create_race(): void
     {
+        // Type 1 is "compétitif" which doesn't allow minor prices
         $response = $this->actingAs($this->adminUser)
             ->post(route('races.store'), [
                 'title' => 'Admin Created Race',
@@ -463,9 +463,8 @@ class AdminPermissionsTest extends TestCase
                 'licenseDiscount' => 0,
                 'price' => 10,
                 'priceMajor' => 20,
-                'priceMinor' => 15,
-                'priceMajorAdherent' => 18,
-                'priceMinorAdherent' => 12,
+                'priceMinor' => 0, // Competitive races don't allow minor prices
+                'priceAdherent' => 18,
                 'responsableId' => $this->adminUser->id,
                 'raid_id' => $this->raid->raid_id,
             ]);
@@ -487,13 +486,9 @@ class AdminPermissionsTest extends TestCase
 
     /**
      * Test that admin can delete any race (not their own)
-     * 
-     * @TODO: Implement races.destroy route
      */
     public function test_admin_can_delete_any_race(): void
     {
-        $this->markTestSkipped('Race delete route (races.destroy) not yet implemented');
-        
         // Create a new race to delete
         $paramRunner = ParamRunner::create([
             'pac_nb_min' => 2,

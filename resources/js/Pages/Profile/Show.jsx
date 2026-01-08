@@ -6,7 +6,7 @@ import UserTeams from '@/Components/UserTeams';
 import UserRolesDisplay from '@/Components/UserRolesDisplay';
 
 
-export default function Show({ user, isOwner }) {
+export default function Show({ user, teams = [], races = [], isOwner }) {
     const messages = usePage().props.translations?.messages || {};
     const { post } = useForm();
 
@@ -130,10 +130,6 @@ export default function Show({ user, isOwner }) {
                                 <path d="M18.1118 15.0928C19.0284 14.4702 19.7715 13.7805 20.3413 13.1634C20.9657 12.4872 20.9657 11.5128 20.3413 10.8366C18.8117 9.18002 16.0331 7 12 7C11.3594 7 10.7505 7.05499 10.1732 7.15415L8.50483 5.48582C9.5621 5.1826 10.7272 5 12 5C16.8112 5 20.0833 7.60905 21.8107 9.47978C23.1426 10.9222 23.1426 13.0778 21.8107 14.5202C21.2305 15.1486 20.476 15.8603 19.5474 16.5284L18.1118 15.0928Z" fill="#0F0F0F" />
                                 <path d="M2.00789 3.42207C1.61736 3.03155 1.61736 2.39838 2.00789 2.00786C2.39841 1.61733 3.03158 1.61733 3.4221 2.00786L22.0004 20.5862C22.391 20.9767 22.391 21.6099 22.0004 22.0004C21.6099 22.3909 20.9767 22.3909 20.5862 22.0004L2.00789 3.42207Z" fill="#0F0F0F" />
                             </svg>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-700 font-medium">ID:</span>
-                                <span className="text-sm text-gray-500 font-mono bg-gray-200 px-2 py-0.5 rounded">{user.id}</span>
-                            </div>
                             {user.license_number && (
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-gray-700 font-medium">Licence:</span>
@@ -171,9 +167,9 @@ export default function Show({ user, isOwner }) {
                     )}
                 </div>
             </div>
-            <UserTeams />
-            <UserLastRaces />
-
+            <UserTeams teams={teams} />
+            <UserLastRaces races={races} />
+            
         </AuthenticatedLayout >
     );
 }

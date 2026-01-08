@@ -103,14 +103,15 @@ class StoreRaidRequest extends FormRequest
             
             // Required fields
             'raid_contact' => ['required', 'email', 'max:100'],
-            'raid_street' => ['required', 'string', 'max:100'],
             'raid_city' => ['required', 'string', 'max:100'],
             'raid_postal_code' => ['required', 'string', 'max:20'],
-            'raid_number' => ['required', 'integer'],
+            
+            // Optional address field
+            'raid_street' => ['nullable', 'string', 'max:100'],
             
             // Optional fields
             'raid_site_url' => ['nullable', 'url', 'max:255'],
-            'raid_image' => ['nullable', 'string', 'max:255'],
+            'raid_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'], // 5MB max
 
             // Gestionnaire raid assignment (user id)
             'gestionnaire_raid_id' => ['nullable', 'integer', 'exists:users,id'],
@@ -140,7 +141,6 @@ class StoreRaidRequest extends FormRequest
             'raid_street' => 'street',
             'raid_city' => 'city',
             'raid_postal_code' => 'postal code',
-            'raid_number' => 'number',
         ];
     }
 

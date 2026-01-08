@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 // use Spatie\ActivityLog\Traits\LogsActivity;
 // use Spatie\ActivityLog\LogOptions;
 use OpenApi\Annotations as OA;
@@ -23,7 +24,6 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(property="race_meal_price", type="number", format="float", nullable=true, example=8.0),
  *     @OA\Property(property="race_duration_minutes", type="number", format="float", nullable=true, example=150),
  *     @OA\Property(property="raid_id", type="integer", example=1),
- *     @OA\Property(property="cla_id", type="integer", example=1),
  *     @OA\Property(property="adh_id", type="integer", example=1),
  *     @OA\Property(property="pac_id", type="integer", example=1),
  *     @OA\Property(property="pae_id", type="integer", example=1),
@@ -77,7 +77,6 @@ class Race extends Model
         'race_duration_minutes',
         'image_url',
         'raid_id',
-        'cla_id',
         'adh_id',
         'pac_id',
         'pae_id',
@@ -85,8 +84,7 @@ class Race extends Model
         'race_difficulty',
         'price_major',
         'price_minor',
-        'price_major_adherent',
-        'price_minor_adherent',
+        'price_adherent',
     ];
 
     /**
@@ -102,8 +100,7 @@ class Race extends Model
         'race_duration_minutes' => 'float',
         'price_major' => 'float',
         'price_minor' => 'float',
-        'price_major_adherent' => 'float',
-        'price_minor_adherent' => 'float',
+        'price_adherent' => 'float',
     ];
 
     /**
@@ -127,16 +124,6 @@ class Race extends Model
     public function raid(): BelongsTo
     {
         return $this->belongsTo(Raid::class, 'raid_id', 'raid_id');
-    }
-
-    /**
-     * Get the leaderboard associated with this race.
-     *
-     * @return BelongsTo
-     */
-    public function leaderboard(): BelongsTo
-    {
-        return $this->belongsTo(Leaderboard::class, 'cla_id', 'cla_id');
     }
 
     /**
@@ -199,6 +186,16 @@ class Race extends Model
         return $this->belongsToMany(Member::class, 'has_participate', 'race_id', 'adh_id', 'race_id', 'adh_id')
             ->withPivot('reg_id', 'par_time')
             ->withTimestamps();
+    }
+
+    /**
+     * Get the age categories parameters for this race.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function categorieAges(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ParamCategorieAge::class, 'race_id', 'race_id');
     }
 
     /**
@@ -293,5 +290,32 @@ class Race extends Model
     public function isRegistrationUpcoming(): bool
     {
         return $this->raid ? $this->raid->isUpcoming() : true;
+    }
+
+    /**
+     * Get the individual leaderboard results for this race.
+     *
+     * @return HasMany
+     */
+    public function leaderboardUsers(): HasMany
+    {
+        return $this->hasMany(LeaderboardUser::class, 'race_id', 'race_id');
+    }
+
+    /**
+     * Get the team leaderboard results for this race.
+     *
+     * @return HasMany
+     */
+    public function leaderboardTeams(): HasMany
+    {
+        return $this->hasMany(LeaderboardTeam::class, 'race_id', 'race_id');
+    }
+
+    public function times()
+    {
+        // Une Race possède plusieurs entrées dans la table 'time'
+        // 'race_id' est la clé étrangère dans la table 'time'
+        return $this->hasMany(Time::class, 'race_id', 'race_id');
     }
 }
