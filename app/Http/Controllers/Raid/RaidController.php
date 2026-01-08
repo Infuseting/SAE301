@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Raid;
 
 use App\Models\Raid;
 use App\Models\AgeCategory;
+use App\Data\FranceDepartments;
 use App\Models\Club;
 use App\Models\User;
 use App\Models\Member;
@@ -92,15 +93,43 @@ class RaidController extends Controller
             });
         }
 
-        // Filter by location (city or postal code/department) if provided
-        if ($request->has('location') && !empty($request->input('location'))) {
+        // Filter by location (city, department, or region) if provided
+        if ($request->has('location') && !empty($request->input('location')) && $request->has('location_type')) {
             $location = $request->input('location');
-            $query->where(function ($q) use ($location) {
+            $locationType = $request->input('location_type');
+
+            if ($locationType === 'city') {
                 // Search by city name
-                $q->where('raid_city', 'like', '%' . $location . '%')
-                // Or search by postal code (for department filtering)
-                ->orWhere('raid_postal_code', 'like', $location . '%');
-            });
+                $query->where('raid_city', 'like', '%' . $location . '%');
+            } elseif ($locationType === 'department') {
+                // Search by department name - get all postal code prefixes for this department
+                $departments = FranceDepartments::getDepartments();
+                $postalCodes = array_keys(array_filter($departments, fn($dept) => 
+                    strtolower($dept['name']) === strtolower($location)
+                ));
+                
+                if (!empty($postalCodes)) {
+                    $query->where(function ($q) use ($postalCodes) {
+                        foreach ($postalCodes as $code) {
+                            $q->orWhere('raid_postal_code', 'like', $code . '%');
+                        }
+                    });
+                }
+            } elseif ($locationType === 'region') {
+                // Search by region - get all postal codes for this region
+                $departments = FranceDepartments::getDepartments();
+                $postalCodes = array_keys(array_filter($departments, fn($dept) => 
+                    strtolower($dept['region']) === strtolower($location)
+                ));
+                
+                if (!empty($postalCodes)) {
+                    $query->where(function ($q) use ($postalCodes) {
+                        foreach ($postalCodes as $code) {
+                            $q->orWhere('raid_postal_code', 'like', $code . '%');
+                        }
+                    });
+                }
+            }
         }
 
         $raids = $query->orderBy('raid_date_start', 'asc')->get();
