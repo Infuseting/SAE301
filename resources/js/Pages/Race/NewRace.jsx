@@ -5,6 +5,7 @@ import UserSelect from '@/Components/UserSelect';
 import Modal from '@/Components/Modal';
 import DangerButton from '@/Components/DangerButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import ImageUpload from '@/Components/ImageUpload';
 
 /**
  * Helper function to convert duration in minutes to H:mm format
@@ -174,17 +175,6 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
         const { name, value } = e.target;
         setData(name, value);
     };
-
-    const [imagePreview, setImagePreview] = useState(null);
-
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setData('image', file);
-            setImagePreview(URL.createObjectURL(file));
-        }
-    };
-
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -589,29 +579,14 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
                                 </div>
 
                                 {/* Image */}
-                                <div className="mb-6">
-                                    <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center mb-3">
-                                        {data.image ? (
-                                            <img
-                                                src={URL.createObjectURL(data.image)}
-                                                alt="Preview"
-                                                className="w-full h-full object-cover rounded-lg"
-                                            />
-                                        ) : (
-                                            <span className="text-gray-400">Aperçu image</span>
-                                        )}
-                                    </div>
-                                    <label className="text-indigo-600 hover:text-indigo-700 text-sm font-medium cursor-pointer">
-                                        ajouter une image
-                                        <input
-                                            type="file"
-                                            name="image"
-                                            onChange={handleImageChange}
-                                            accept="image/*"
-                                            className="hidden"
-                                        />
-                                    </label>
-                                </div>
+                                <ImageUpload
+                                    label="Image de la course"
+                                    name="image"
+                                    onChange={(file) => setData('image', file)}
+                                    error={errors.image}
+                                    currentImage={race?.race_image ? `/storage/${race.race_image}` : null}
+                                    helperText="Image principale de la course (max 5MB)"
+                                />
                             </div>
 
                             {/* Bouton Submit */}
