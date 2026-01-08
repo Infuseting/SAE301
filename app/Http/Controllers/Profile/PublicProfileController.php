@@ -80,6 +80,7 @@ class PublicProfileController extends Controller
 
     /**
      * Get user races safely, handling missing table.
+     * Only returns races that have already passed, ordered by most recent first.
      *
      * @param  \App\Models\User  $user
      * @return array
@@ -87,13 +88,17 @@ class PublicProfileController extends Controller
     private function getUserRaces(User $user): array
     {
         try {
-            return $user->races()->get()->map(function ($race) {
-                return [
-                    'id' => $race->race_id,
-                    'name' => $race->race_name,
-                    'date' => $race->race_date,
-                ];
-            })->toArray();
+            return $user->races()
+                ->where('race_date', '<', now())
+                ->orderBy('race_date', 'desc')
+                ->get()
+                ->map(function ($race) {
+                    return [
+                        'id' => $race->race_id,
+                        'name' => $race->race_name,
+                        'date' => $race->race_date,
+                    ];
+                })->toArray();
         } catch (\Illuminate\Database\QueryException $e) {
             // Table doesn't exist yet, return empty array
             return [];
