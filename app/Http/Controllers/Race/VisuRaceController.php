@@ -19,8 +19,15 @@ class VisuRaceController extends Controller
      */
     public function show(int $id)
     {
-        // Find the race by ID
-        $race = Race::with(['organizer.user', 'raid.registrationPeriod', 'type', 'teamParams'])->find($id);
+        // Find the race by ID with related data including age categories
+        $race = Race::with([
+            'organizer.user',
+            'raid.registrationPeriod',
+            'raid.club',
+            'type',
+            'teamParams',
+            'categorieAges.ageCategorie'
+        ])->find($id);
 
         // If race not found, return error page
         if (!$race) {
@@ -89,6 +96,26 @@ class VisuRaceController extends Controller
                 'name' => trim(($race->organizer?->adh_firstname ?? '') . ' ' . ($race->organizer?->adh_lastname ?? '')) ?: ($race->organizer?->user?->name ?? 'Organisateur'),
                 'email' => $race->organizer?->user?->email ?? ''
             ],
+            'ageCategories' => $race->categorieAges->map(fn($pc) => [
+                'id' => $pc->ageCategorie->id,
+                'nom' => $pc->ageCategorie->nom,
+                'age_min' => $pc->ageCategorie->age_min,
+                'age_max' => $pc->ageCategorie->age_max,
+            ])->toArray(),
+            'raid' => $race->raid ? [
+                'id' => $race->raid->raid_id,
+                'nom' => $race->raid->raid_name,
+                'description' => $race->raid->raid_description,
+                'location' => trim(($race->raid->raid_street ?? '') . ' ' . ($race->raid->raid_city ?? '') . ' ' . ($race->raid->raid_postal_code ?? '')) ?: 'Lieu à définir',
+                'latitude' => $race->raid->raid_latitude,
+                'longitude' => $race->raid->raid_longitude,
+                'dateStart' => $race->raid->raid_date_start?->toIso8601String(),
+                'dateEnd' => $race->raid->raid_date_end?->toIso8601String(),
+                'club' => $race->raid->club ? [
+                    'id' => $race->raid->club->club_id,
+                    'nom' => $race->raid->club->club_name,
+                ] : null,
+            ] : null,
             'categories' => [],
             'priceMajor' => $race->price_major,
             'priceMinor' => $race->price_minor,

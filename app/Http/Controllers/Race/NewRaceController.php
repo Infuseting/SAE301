@@ -12,6 +12,7 @@ use App\Models\ParamTeam;
 use App\Models\Raid;
 use App\Models\PriceAgeCategory;
 use App\Models\AgeCategorie;
+use App\Models\ParamCategorieAge;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -145,6 +146,17 @@ class NewRaceController extends Controller
 
         // Create the race
         $race = Race::create($raceData);
+
+        // Insert selected age categories
+        $selectedCategories = $request->input('selectedAgeCategories', []);
+        if (!empty($selectedCategories)) {
+            foreach ($selectedCategories as $ageCategorieId) {
+                ParamCategorieAge::create([
+                    'race_id' => $race->race_id,
+                    'age_categorie_id' => $ageCategorieId,
+                ]);
+            }
+        }
 
         return redirect()->route('races.show', $race->race_id)
             ->with('success', 'La course a été créée avec succès!');

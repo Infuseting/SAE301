@@ -184,7 +184,14 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('races.store'));
+        
+        // Add selected age categories to form data
+        post(route('races.store'), {
+            data: {
+                ...data,
+                selectedAgeCategories: selectedAgeCategories,
+            },
+        });
     };
 
     return (
