@@ -8,6 +8,22 @@ export default function RaidButton() {
     const dropdownRef = useRef(null);
     const messages = usePage().props.translations?.messages || {};
     const user = usePage().props.auth.user;
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     return (
         <div className="relative text-center" ref={dropdownRef}>
             {/* Dropdown Button */}
