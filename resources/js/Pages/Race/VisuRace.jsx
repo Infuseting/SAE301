@@ -624,7 +624,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                 isOpen={isTeamModalOpen}
                 onClose={() => setIsTeamModalOpen(false)}
                 teams={userTeams}
-                minRunners={race.maxPerTeam}
+                minRunners={race.minPerTeam}
                 maxRunners={race.maxPerTeam}
                 raceId={race.id}
                 racePrices={{

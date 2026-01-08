@@ -185,6 +185,7 @@ class RaceController extends Controller
         $paramTeam = ParamTeam::create([
             'pae_nb_min' => $request->input('minTeams'),
             'pae_nb_max' => $request->input('maxTeams'),
+            'pae_team_count_min' => $request->input('minPerTeam'),
             'pae_team_count_max' => $request->input('maxPerTeam'),
         ]);
 
@@ -281,6 +282,7 @@ class RaceController extends Controller
             ParamTeam::where('pae_id', $race->pae_id)->update([
                 'pae_nb_min' => $request->input('minTeams'),
                 'pae_nb_max' => $request->input('maxTeams'),
+                'pae_team_count_min' => $request->input('minPerTeam'),
                 'pae_team_count_max' => $request->input('maxPerTeam'),
             ]);
         }

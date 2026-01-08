@@ -238,6 +238,7 @@ class VisuRaceController extends Controller
             'maxParticipants' => $race->runnerParams?->pac_nb_max ?? 100,
             'minTeams' => $race->teamParams?->pae_nb_min ?? 1,
             'maxTeams' => $race->teamParams?->pae_nb_max ?? 1,
+            'minPerTeam' => $race->teamParams?->pae_team_count_min ?? 1,
             'maxPerTeam' => $race->teamParams?->pae_team_count_max ?? 1,
             'createdAt' => $race->created_at?->toIso8601String(),
             'updatedAt' => $race->updated_at?->toIso8601String(),
