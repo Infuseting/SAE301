@@ -763,6 +763,7 @@ class LeaderboardService
      * Process a row from the new CSV format (with Nom column).
      * Finds user by concatenated first_name + last_name.
      * If user not found, creates a new user, team and participation.
+     * Also creates leaderboard_teams entry for newly created solo teams.
      *
      * @param array $data The row data as associative array
      * @param int $raceId The race ID
@@ -782,10 +783,13 @@ class LeaderboardService
         // Find user by full name (first_name + last_name)
         $user = $this->findUserByName($nom);
         $wasCreated = false;
+        $createdTeam = null;
 
         // If user not found, create new user with team and participation
         if (!$user) {
-            $user = $this->createUserFromName($nom, $raceId);
+            $result = $this->createUserFromName($nom, $raceId);
+            $user = $result['user'];
+            $createdTeam = $result['team'];
             $wasCreated = true;
             Log::info("Created new user from CSV import: {$nom} (ID: {$user->id})");
         }
@@ -794,6 +798,19 @@ class LeaderboardService
             ['user_id' => $user->id, 'race_id' => $raceId],
             ['temps' => $temps, 'malus' => $malus]
         );
+
+        // If a new team was created, add it to leaderboard_teams for this race
+        if ($createdTeam) {
+            LeaderboardTeam::updateOrCreate(
+                ['equ_id' => $createdTeam->equ_id, 'race_id' => $raceId],
+                [
+                    'average_temps' => $temps,
+                    'average_malus' => $malus,
+                    'average_temps_final' => $temps + $malus,
+                    'member_count' => 1,
+                ]
+            );
+        }
 
         return ['success' => true, 'created' => $wasCreated, 'user_id' => $user->id];
     }
@@ -899,9 +916,9 @@ class LeaderboardService
      *
      * @param string $fullName The full name (e.g., "Jean Dupont")
      * @param int $raceId The race ID to link participation to
-     * @return User The newly created user
+     * @return array Array with 'user' and 'team' keys
      */
-    private function createUserFromName(string $fullName, int $raceId): User
+    private function createUserFromName(string $fullName, int $raceId): array
     {
         // Parse name into first_name and last_name
         $nameParts = preg_split('/\s+/', trim($fullName));
@@ -973,7 +990,7 @@ class LeaderboardService
 
         DB::table('has_participate')->insert($participateData);
 
-        return $user;
+        return ['user' => $user, 'team' => $team];
     }
 
     /**
@@ -1034,7 +1051,8 @@ class LeaderboardService
     /**
      * Clean up data for imported users being removed from leaderboard.
      * Only affects users created via CSV import (email ending with @imported.local).
-     * Removes: has_participate entries, solo teams, members, medical_docs.
+     * Removes: has_participate entries and solo teams.
+     * Keeps: User, Member and MedicalDoc records (user can be re-added later).
      *
      * @param array $userIds Array of user IDs to check and clean up
      * @return void
@@ -1055,11 +1073,9 @@ class LeaderboardService
         }
 
         foreach ($importedUsers as $user) {
-            Log::info("Cleaning up imported user data: {$user->first_name} {$user->last_name} (ID: {$user->id})");
+            Log::info("Cleaning up imported user participation data: {$user->first_name} {$user->last_name} (ID: {$user->id})");
 
-            // Get associated IDs before deleting
             $adhId = $user->adh_id;
-            $docId = $user->doc_id;
 
             // Find and delete has_participate entries for this user
             $hasIdUsersColumn = DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
@@ -1070,24 +1086,12 @@ class LeaderboardService
                 ->delete();
 
             // Delete solo teams created for this member (teams with the member's adh_id)
+            // This will cascade delete leaderboard_teams entries via foreign key
             if ($adhId) {
                 Team::where('adh_id', $adhId)->delete();
             }
-
-            // Delete the user
-            $user->delete();
-
-            // Delete the member record if exists
-            if ($adhId) {
-                Member::where('adh_id', $adhId)->delete();
-            }
-
-            // Delete the medical doc record if exists
-            if ($docId) {
-                MedicalDoc::where('doc_id', $docId)->delete();
-            }
         }
 
-        Log::info("Cleaned up {$importedUsers->count()} imported users and their related data");
+        Log::info("Cleaned up participation data for {$importedUsers->count()} imported users");
     }
 }

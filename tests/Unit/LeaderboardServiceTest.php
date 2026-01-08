@@ -839,7 +839,8 @@ class LeaderboardServiceTest extends TestCase
     }
 
     /**
-     * Test removing imported users also cleans up their participation data.
+     * Test removing imported users cleans up their participation and team, but keeps user.
+     * User should NOT be deleted - only team and has_participate entries.
      */
     public function test_removing_imported_user_cleans_up_participation(): void
     {
@@ -874,15 +875,15 @@ class LeaderboardServiceTest extends TestCase
         $teamCount = Team::where('adh_id', $adhId)->count();
         $this->assertGreaterThan(0, $teamCount, 'Team should exist after import');
 
-        // Now import empty CSV to remove the user
+        // Now import empty CSV to remove from leaderboard
         $emptyCsv = "Rang,Nom,Temps,Malus,Temps Final\n";
         $file2 = UploadedFile::fake()->createWithContent('empty.csv', $emptyCsv);
 
         $result2 = $this->service->importCsv($file2, $race->race_id);
         $this->assertEquals(1, $result2['removed']);
 
-        // Verify user was deleted
-        $this->assertNull(User::find($userId), 'Imported user should be deleted');
+        // Verify user is NOT deleted (user should be kept for future re-import)
+        $this->assertNotNull(User::find($userId), 'Imported user should NOT be deleted');
 
         // Verify has_participate entry was deleted
         $participationCountAfter = \Illuminate\Support\Facades\DB::table('has_participate')
@@ -977,9 +978,10 @@ class LeaderboardServiceTest extends TestCase
     }
 
     /**
-     * Test imported user cleanup also removes member and medical doc.
+     * Test imported user cleanup keeps member and medical doc.
+     * Only team and participation should be deleted.
      */
-    public function test_imported_user_cleanup_removes_member_and_medical_doc(): void
+    public function test_imported_user_cleanup_keeps_member_and_medical_doc(): void
     {
         $race = Race::factory()->create();
 
@@ -1008,8 +1010,82 @@ class LeaderboardServiceTest extends TestCase
 
         $this->service->importCsv($file2, $race->race_id);
 
-        // Verify member and medical doc were deleted
-        $this->assertNull(\App\Models\Member::where('adh_id', $adhId)->first(), 'Member should be deleted');
-        $this->assertNull(\App\Models\MedicalDoc::where('doc_id', $docId)->first(), 'MedicalDoc should be deleted');
+        // Verify user, member and medical doc are NOT deleted
+        $this->assertNotNull(User::find($user->id), 'User should NOT be deleted');
+        $this->assertNotNull(\App\Models\Member::where('adh_id', $adhId)->first(), 'Member should NOT be deleted');
+        $this->assertNotNull(\App\Models\MedicalDoc::where('doc_id', $docId)->first(), 'MedicalDoc should NOT be deleted');
+    }
+
+    /**
+     * Test imported user's team appears in leaderboard_teams for the race.
+     */
+    public function test_imported_user_team_appears_in_leaderboard_teams(): void
+    {
+        $race = Race::factory()->create();
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Team Leader Test,01:30:00.00,00:01:00.00,01:31:00.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $this->service->importCsv($file, $race->race_id);
+
+        // Get the imported user
+        $user = User::where('first_name', 'Team')->where('last_name', 'Leader Test')->first();
+        $this->assertNotNull($user);
+
+        // Get the team created for this user
+        $team = Team::where('adh_id', $user->adh_id)->first();
+        $this->assertNotNull($team);
+
+        // Verify leaderboard_teams entry exists for this race
+        $leaderboardTeam = LeaderboardTeam::where('equ_id', $team->equ_id)
+            ->where('race_id', $race->race_id)
+            ->first();
+        
+        $this->assertNotNull($leaderboardTeam, 'Team should appear in leaderboard_teams');
+        $this->assertEquals(5400.00, (float) $leaderboardTeam->average_temps); // 1:30:00 = 5400
+        $this->assertEquals(60.00, (float) $leaderboardTeam->average_malus); // 1:00 = 60
+        $this->assertEquals(5460.00, (float) $leaderboardTeam->average_temps_final); // 5400 + 60
+        $this->assertEquals(1, $leaderboardTeam->member_count);
+    }
+
+    /**
+     * Test leaderboard_teams entry is removed when team is deleted on cleanup.
+     */
+    public function test_leaderboard_teams_entry_removed_on_cleanup(): void
+    {
+        $race = Race::factory()->create();
+
+        // Import to create user and team
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Leaderboard Team Test,01:30:00.00,00:00.00,01:30:00.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $this->service->importCsv($file, $race->race_id);
+
+        $user = User::where('first_name', 'Leaderboard')->where('last_name', 'Team Test')->first();
+        $team = Team::where('adh_id', $user->adh_id)->first();
+        
+        // Verify leaderboard_teams entry exists
+        $this->assertNotNull(
+            LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first(),
+            'LeaderboardTeam entry should exist'
+        );
+
+        // Import empty CSV to trigger cleanup
+        $emptyCsv = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $file2 = UploadedFile::fake()->createWithContent('empty.csv', $emptyCsv);
+
+        $this->service->importCsv($file2, $race->race_id);
+
+        // Verify leaderboard_teams entry was removed (cascade from team deletion)
+        $this->assertNull(
+            LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first(),
+            'LeaderboardTeam entry should be deleted when team is deleted'
+        );
     }
 }
