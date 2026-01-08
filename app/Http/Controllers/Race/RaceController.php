@@ -168,7 +168,6 @@ class RaceController extends Controller
             'pac_id' => $paramRunner->pac_id,
             'pae_id' => $paramTeam->pae_id,
             'image_url' => $imageUrl,
-            'cla_id' => $request->input('cla_id'),
             'raid_id' => $request->input('raid_id'),
         ];
 

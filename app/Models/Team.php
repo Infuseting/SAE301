@@ -4,38 +4,46 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-/**
- * Team model - Represents a team/équipe
- */
 class Team extends Model
 {
     use HasFactory;
 
-    /**
-     * The table associated with the model.
-     */
     protected $table = 'teams';
-
-    /**
-     * The primary key for the model.
-     */
     protected $primaryKey = 'equ_id';
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'equ_name',
         'equ_image',
         'adh_id',
     ];
 
+    public function member(): BelongsTo
+    {
+        return $this->belongsTo(Member::class, 'adh_id', 'adh_id');
+    }
+
+    public function leaderboardResults(): HasMany
+    {
+        return $this->hasMany(LeaderboardTeam::class, 'equ_id', 'equ_id');
+    }
+
     /**
-     * Get the users that belong to this team.
+     * Get participants via has_participate (using 'id' column).
+     */
+    public function participants(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'has_participate', 'equ_id', 'id');
+    }
+
+    /**
+     * Get users that belong to this team (using 'id_users' column).
      * Uses the has_participate pivot table.
      */
-    public function users()
+    public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'has_participate', 'equ_id', 'id_users');
     }
@@ -43,7 +51,7 @@ class Team extends Model
     /**
      * Get the team leader (user who created the team).
      */
-    public function leader()
+    public function leader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'adh_id', 'id');
     }

@@ -5,22 +5,26 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LicenceController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\WelcomeController;
-use App\Http\Controllers\Profile\ProfileController;
-use App\Http\Controllers\Profile\PublicProfileController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ClubApprovalController;
+use App\Http\Controllers\Admin\LeaderboardController as AdminLeaderboardController;
 use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\Club\ClubController;
 use App\Http\Controllers\Club\ClubMemberController;
+use App\Http\Controllers\Leaderboard\LeaderboardController;
+use App\Http\Controllers\Leaderboard\MyLeaderboardController;
+use App\Http\Controllers\Profile\ProfileController;
+use App\Http\Controllers\Profile\PublicProfileController;
 use App\Http\Controllers\Race\RaceRegistrationController;
 use App\Http\Controllers\Race\MyRaceController;
 use App\Http\Controllers\Race\RaceController;
 use App\Http\Controllers\Race\VisuRaceController;
 use App\Http\Controllers\Raid\RaidController;
 use App\Http\Controllers\Team\TeamController;
+use App\Http\Controllers\Team\TeamAgeController;
 use App\Models\Raid;
 
 
@@ -37,6 +41,10 @@ Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show')
 
 //myRace
 Route::get('/my-race', [MyRaceController::class, 'index'])->name('myrace.index');
+
+// Public leaderboard page
+Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
+Route::get('/leaderboard/export/{raceId}', [LeaderboardController::class, 'export'])->name('leaderboard.export');
 
 
 Route::middleware('auth')->group(function () {
@@ -57,6 +65,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/user/set-password', [SetPasswordController::class, 'store'])->name('password.set');
+
+    // My leaderboard - accessible to all authenticated users
+    Route::get('/my-leaderboard', [MyLeaderboardController::class, 'index'])->name('my-leaderboard.index');
+
+    // Team age validation page
+    Route::get('/team/age-validation', [TeamAgeController::class, 'index'])->name('team.age-validation');
 
     // Clubs routes
     Route::resource('clubs', ClubController::class);
@@ -112,6 +126,13 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
 
     // logs
     Route::match(['get', 'post'], '/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
+
+    // leaderboard management
+    Route::get('/leaderboard', [AdminLeaderboardController::class, 'index'])->name('leaderboard.index')->middleware('can:view users');
+    Route::post('/leaderboard/import', [AdminLeaderboardController::class, 'import'])->name('leaderboard.import')->middleware('can:edit users');
+    Route::get('/leaderboard/export/{raceId}', [AdminLeaderboardController::class, 'export'])->name('leaderboard.export')->middleware('can:view users');
+    Route::get('/leaderboard/{raceId}/results', [AdminLeaderboardController::class, 'results'])->name('leaderboard.results')->middleware('can:view users');
+    Route::delete('/leaderboard/results/{resultId}', [AdminLeaderboardController::class, 'destroy'])->name('leaderboard.destroy')->middleware('can:delete users');
 
     // Club approval
     Route::get('/clubs/pending', [ClubApprovalController::class, 'index'])->name('clubs.pending')->middleware('can:accept-club');

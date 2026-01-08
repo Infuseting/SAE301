@@ -32,6 +32,14 @@ export default function UserMenu({ user }) {
                         {messages.profile || 'Profile'}
                     </Dropdown.Link>
 
+                    <Dropdown.Link href={route('my-leaderboard.index')}>
+                        {messages.my_rankings || 'Mes Classements'}
+                    </Dropdown.Link>
+
+                    <Dropdown.Link href={route('leaderboard.index')}>
+                        {messages.general_leaderboard || 'Classement Général'}
+                    </Dropdown.Link>
+
                     <Dropdown.Link href={route('raids.index')}>
                         {messages.raids || 'Raids'}
                     </Dropdown.Link>
