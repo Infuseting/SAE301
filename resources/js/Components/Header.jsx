@@ -56,7 +56,7 @@ export default function Header({ transparent = false, className = "" }) {
 
                         <nav className="hidden md:flex flex-none justify-center items-center gap-3">
                             <div className="flex bg-white  p-1">
-                                {user && (
+                                { (
                                     <>
                                         <RaidButton />
                                         <MyRaceButton />
@@ -118,7 +118,6 @@ export default function Header({ transparent = false, className = "" }) {
 
                 {transparent && (
                     <div className="flex items-center justify-between w-full">
-                        {/* 1. Section GAUCHE : Logo */}
                         <div className="flex-1 flex  justify-start">
                             <Link href="/" className="flex items-center ">
                                 <ApplicationLogo
@@ -128,9 +127,8 @@ export default function Header({ transparent = false, className = "" }) {
                             </Link>
                         </div>
 
-                        {/* 2. Section MILIEU : Navigation centrée */}
                         <nav className="hidden md:flex flex-none items-center justify-center">
-                            {user && (
+                            {(
                                 <div className="flex bg-white backdrop-blur-md  rounded-xl p-1 shadow-lg shadow-emerald-900/20">
                                     <RaidButton />
                                     <MyRaceButton />
@@ -140,7 +138,6 @@ export default function Header({ transparent = false, className = "" }) {
                             )}
                         </nav>
 
-                        {/* 3. Section DROITE : Actions & Langue */}
                         <div className="hidden flex-1 md:flex items-center justify-end gap-6">
                             {" "}
                             <LanguageSwitcher className="text-white hover:text-emerald-400 transition" />
