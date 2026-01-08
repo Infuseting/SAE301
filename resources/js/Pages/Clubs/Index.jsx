@@ -159,9 +159,9 @@ export default function Index({ clubs, filters }) {
                                         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
                                             {/* Club Image/Placeholder */}
                                             <div className="relative h-48 overflow-hidden bg-gradient-to-br from-emerald-100 to-emerald-50">
-                                                {club.club_logo ? (
+                                                {club.club_image ? (
                                                     <img
-                                                        src={`/storage/${club.club_logo}`}
+                                                        src={`/storage/${club.club_image}`}
                                                         alt={club.club_name}
                                                         className="w-full h-full object-cover"
                                                     />

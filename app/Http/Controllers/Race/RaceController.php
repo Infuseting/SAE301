@@ -183,10 +183,10 @@ class RaceController extends Controller
 
         // Create ParamTeam entry for this race
         $paramTeam = ParamTeam::create([
-            'pae_nb_min' => $request->input('minTeams'),
-            'pae_nb_max' => $request->input('maxTeams'),
-            'pae_team_count_min' => $request->input('minPerTeam'),
-            'pae_team_count_max' => $request->input('maxPerTeam'),
+            'pae_nb_min' => $request->input('minTeams') ?: 1,
+            'pae_nb_max' => $request->input('maxTeams') ?: 1,
+            'pae_team_count_min' => $request->input('minPerTeam') ?: 1,
+            'pae_team_count_max' => $request->input('maxPerTeam') ?: 1,
         ]);
 
         // Handle image upload
@@ -280,10 +280,10 @@ class RaceController extends Controller
         // Update ParamTeam entry if exists
         if ($race->pae_id) {
             ParamTeam::where('pae_id', $race->pae_id)->update([
-                'pae_nb_min' => $request->input('minTeams'),
-                'pae_nb_max' => $request->input('maxTeams'),
-                'pae_team_count_min' => $request->input('minPerTeam'),
-                'pae_team_count_max' => $request->input('maxPerTeam'),
+                'pae_nb_min' => $request->input('minTeams') ?: 1,
+                'pae_nb_max' => $request->input('maxTeams') ?: 1,
+                'pae_team_count_min' => $request->input('minPerTeam') ?: 1,
+                'pae_team_count_max' => $request->input('maxPerTeam') ?: 1,
             ]);
         }
 

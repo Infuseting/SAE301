@@ -6,14 +6,14 @@ export default function RaidCard({ raid }) {
         <div key={raid.raid_id} className="border rounded-md p-4 w-[350px]">
             <h2 className="text-xl font-semibold">{raid.raid_name}</h2>
             <div className="h-48 border mb-2 flex items-center bg-gray-200 justify-center overflow-hidden rounded-xl mt-1">
-                {raid.image_url && (
+                {raid.raid_image && (
                     <img
                         src={
-                            raid.image_url.startsWith("/storage/")
-                                ? raid.image_url
-                                : `/storage/${raid.image_url}`
+                            raid.raid_image.startsWith("/storage/")
+                                ? raid.raid_image
+                                : `/storage/${raid.raid_image}`
                         }
-                        alt={raid.name}
+                        alt={raid.raid_name}
                         className="w-full h-48 object-cover rounded mb-2"
                     />
                 )}
