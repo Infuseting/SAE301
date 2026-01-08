@@ -28,8 +28,11 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
+        // Get pending invitation token before any session changes
+        $pendingToken = session('pending_invitation_token');
+        
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -63,6 +66,11 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
+
+        // Check for pending invitation and redirect to it
+        if ($pendingToken) {
+            return Inertia::location(route('invitations.show', $pendingToken));
+        }
 
         return redirect(route('home', absolute: false));
     }

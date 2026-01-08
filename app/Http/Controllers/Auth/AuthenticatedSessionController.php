@@ -27,13 +27,21 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
+        // Get pending invitation token before session regeneration
+        $pendingToken = session('pending_invitation_token');
+        
         $request->authenticate();
 
         $request->session()->regenerate();
+        
+        // Check for pending invitation and redirect to it
+        if ($pendingToken) {
+            return Inertia::location(route('invitations.show', $pendingToken));
+        }
 
-        return redirect('/');
+        return redirect()->intended('/');
     }
 
     /**

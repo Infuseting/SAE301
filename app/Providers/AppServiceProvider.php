@@ -13,6 +13,10 @@ use Symfony\Component\Mailer\Transport\Dsn;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
 use Laravel\Socialite\Contracts\Factory as SocialiteFactory;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
+use App\Http\Responses\LoginResponse;
+use App\Http\Responses\RegisterResponse;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,7 +25,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register custom LoginResponse for intended URL redirect
+        $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
+        // Register custom RegisterResponse for intended URL redirect
+        $this->app->singleton(RegisterResponseContract::class, RegisterResponse::class);
     }
 
     /**

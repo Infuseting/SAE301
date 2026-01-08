@@ -141,9 +141,9 @@ class TeamController extends Controller
     }
 
     /**
-     * Accept an invitation via token link.
+     * Show the invitation acceptance page.
      */
-    public function acceptInvitation($token)
+    public function showAcceptInvitation($token)
     {
         $invitation = Invitation::where('token', $token)->firstOrFail();
         
@@ -151,9 +151,34 @@ class TeamController extends Controller
             return redirect()->route('home')->with('error', 'Cette invitation a expiré ou a déjà été utilisée.');
         }
 
-        // If not authenticated, redirect to login
+        // If not authenticated, store token in session and redirect to login
         if (!auth()->check()) {
+            session()->put('pending_invitation_token', $token);
             return redirect()->route('login')->with('info', 'Connectez-vous pour accepter l\'invitation.');
+        }
+
+        $team = Team::findOrFail($invitation->equ_id);
+
+        return Inertia::render('Invitation/AcceptInvitation', [
+            'invitation' => [
+                'token' => $invitation->token,
+                'inviterName' => $invitation->inviter->name,
+            ],
+            'team' => [
+                'name' => $team->equ_name,
+            ],
+        ]);
+    }
+
+    /**
+     * Accept an invitation via token.
+     */
+    public function acceptInvitation($token)
+    {
+        $invitation = Invitation::where('token', $token)->firstOrFail();
+        
+        if ($invitation->expires_at < now() || $invitation->status !== 'pending') {
+            return redirect()->route('home')->with('error', 'Cette invitation a expiré ou a déjà été utilisée.');
         }
 
         $team = Team::findOrFail($invitation->equ_id);
