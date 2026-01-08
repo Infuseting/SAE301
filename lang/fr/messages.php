@@ -383,7 +383,7 @@ return [
     'role_user' => 'Utilisateur',
     'role_guest' => 'Visiteur',
     'no_roles_assigned' => 'Aucun rôle assigné',
-        // Teams
+    // Teams
     'create_team' => 'Créer une équipe',
     'create_team_subtext' => 'Créez une nouvelle équipe pour participer aux événements d\'orientation.',
     'team_name' => 'Nom de l\'équipe',
@@ -399,5 +399,15 @@ return [
     'remove_teammate' => 'Supprimer',
     'no_teammates_added' => 'Aucun coéquipier ajouté pour le moment',
     'teammate_added' => 'Coéquipier ajouté',
-    'teammate_removed' => 'Coéquipier supprimé'
+    'teammate_removed' => 'Coéquipier supprimé',
+
+    // Race Registration
+    'already_registered' => 'Vous êtes déjà inscrit à cette course',
+    'registration_successful' => 'Inscription enregistrée avec succès',
+    'registration_cancelled' => 'Inscription annulée',
+    'registration_closed' => 'Les inscriptions sont fermées',
+    'registration_not_started' => 'Les inscriptions ne sont pas encore ouvertes',
+    'need_valid_credentials' => 'Vous devez avoir une licence ou un code PPS valide',
+    'login_required' => 'Vous devez être connecté pour vous inscrire',
+    'unauthorized' => 'Action non autorisée',
 ];

@@ -46,8 +46,8 @@ class VisuRaceController extends Controller
                 ->leftJoin('medical_docs', 'users.doc_id', '=', 'medical_docs.doc_id')
                 ->where('registration.race_id', $race->race_id)
                 ->select([
-                    'users.first_name', 
-                    'users.last_name', 
+                    'users.first_name',
+                    'users.last_name',
                     'users.email',
                     'members.adh_license',
                     'members.adh_end_validity as license_expiry',
@@ -57,7 +57,7 @@ class VisuRaceController extends Controller
                     'teams.equ_name'
                 ])
                 ->get()
-                ->map(function($p) {
+                ->map(function ($p) {
                     $now = now();
                     $p->is_license_valid = $p->license_expiry && $now->lessThan($p->license_expiry);
                     $p->is_pps_valid = $p->pps_expiry && $now->lessThan($p->pps_expiry);
@@ -75,7 +75,7 @@ class VisuRaceController extends Controller
             'longitude' => $race->raid?->raid_longitude ?? 2.3522,
             'raceDate' => $race->race_date_start?->toIso8601String(),
             'endDate' => $race->race_date_end?->toIso8601String(),
-            'duration' => $race->race_duration_minutes ? floor($race->race_duration_minutes / 60) . ':' . str_pad((int)($race->race_duration_minutes % 60), 2, '0', STR_PAD_LEFT) : '0:00',
+            'duration' => $race->race_duration_minutes ? floor($race->race_duration_minutes / 60) . ':' . str_pad((int) ($race->race_duration_minutes % 60), 2, '0', STR_PAD_LEFT) : '0:00',
             'raceType' => $race->type?->typ_name ?? 'Classique',
             'difficulty' => $race->race_difficulty ?? 'Moyen',
             'status' => $this->getRaceStatus($race),
@@ -83,8 +83,8 @@ class VisuRaceController extends Controller
             'registrationUpcoming' => $race->isRegistrationUpcoming(),
             'imageUrl' => $race->image_url ? asset('storage/' . $race->image_url) : null,
             'description' => $race->race_description ?? 'Aucune description disponible.',
-            'maxParticipants' => 100, 
-            'registeredCount' => \DB::table('registration')->where('race_id', $race->race_id)->count(),
+            'maxParticipants' => 100,
+            'registeredCount' => $this->getParticipantCount($race),
             'organizer' => [
                 'id' => $race->organizer?->user?->id,
                 'name' => trim(($race->organizer?->adh_firstname ?? '') . ' ' . ($race->organizer?->adh_lastname ?? '')) ?: ($race->organizer?->user?->name ?? 'Organisateur'),
@@ -102,10 +102,35 @@ class VisuRaceController extends Controller
             'updatedAt' => $race->updated_at?->toIso8601String(),
         ];
 
+        // Check if current user is registered for this race
+        $userRegistration = null;
+        if ($user) {
+            $registration = \App\Models\RaceRegistration::where('race_id', $race->race_id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if ($registration) {
+                $userRegistration = [
+                    'id' => $registration->reg_id,
+                    'status' => $registration->status,
+                    'is_team_leader' => $registration->is_team_leader,
+                    'is_temporary_team' => $registration->is_temporary_team,
+                    'is_creator_participating' => $registration->is_creator_participating,
+                    'team_members' => $registration->getTeamMembers(),
+                    'team' => $registration->team ? [
+                        'id' => $registration->team->equ_id,
+                        'name' => $registration->team->equ_name,
+                    ] : null,
+                    'created_at' => $registration->created_at?->toIso8601String(),
+                ];
+            }
+        }
+
         return Inertia::render('Race/VisuRace', [
             'race' => $raceData,
             'isManager' => $isRaceManager,
             'participants' => $participants,
+            'userRegistration' => $userRegistration,
         ]);
     }
 
@@ -128,5 +153,37 @@ class VisuRaceController extends Controller
         }
 
         return 'planned';
+    }
+
+    /**
+     * Count total participants from race registrations.
+     * Counts team members from both permanent and temporary teams.
+     *
+     * @param Race $race
+     * @return int
+     */
+    private function getParticipantCount(Race $race): int
+    {
+        $registrations = \App\Models\RaceRegistration::where('race_id', $race->race_id)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->get();
+
+        $count = 0;
+
+        foreach ($registrations as $registration) {
+            if ($registration->usesTemporaryTeam()) {
+                // Temporary team: count creator + temporary members
+                if ($registration->is_creator_participating) {
+                    $count++;
+                }
+                $count += count($registration->temporary_team_data ?? []);
+            } else {
+                // Permanent team: just count team members (creator is included)
+                $members = $registration->getTeamMembers();
+                $count += count($members);
+            }
+        }
+
+        return $count;
     }
 }

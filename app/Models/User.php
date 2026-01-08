@@ -244,4 +244,78 @@ class User extends Authenticatable
 
         return $isManager;
     }
+
+    /**
+     * Get team invitations received by this user.
+     */
+    public function teamInvitations()
+    {
+        return $this->hasMany(TeamInvitation::class, 'invitee_id');
+    }
+
+    /**
+     * Get pending team invitations for this user.
+     */
+    public function pendingTeamInvitations()
+    {
+        return $this->teamInvitations()->pending();
+    }
+
+    /**
+     * Get team invitations sent by this user.
+     */
+    public function sentTeamInvitations()
+    {
+        return $this->hasMany(TeamInvitation::class, 'inviter_id');
+    }
+
+    /**
+     * Get club invitations received by this user.
+     */
+    public function clubInvitations()
+    {
+        return $this->hasMany(ClubInvitation::class, 'invitee_id');
+    }
+
+    /**
+     * Get pending club invitations for this user.
+     */
+    public function pendingClubInvitations()
+    {
+        return $this->clubInvitations()->pending();
+    }
+
+    /**
+     * Get race registrations created by this user.
+     */
+    public function raceRegistrations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(RaceRegistration::class, 'user_id');
+    }
+
+    /**
+     * Get all pending invitations (team + club) for this user.
+     */
+    public function getAllPendingInvitations(): array
+    {
+        return [
+            'team' => $this->pendingTeamInvitations()->with(['inviter', 'team', 'registration.race'])->get(),
+            'club' => $this->pendingClubInvitations()->with(['inviter', 'club'])->get(),
+        ];
+    }
+
+    /**
+     * Check if user has valid licence or PPS code for race registration.
+     */
+    public function hasValidCredentials(): bool
+    {
+        if ($this->member && $this->member->adh_license) {
+            $validity = $this->member->adh_end_validity;
+            if ($validity && \Carbon\Carbon::parse($validity)->isFuture()) {
+                return true;
+            }
+        }
+        // Add PPS check if stored in medical doc or elsewhere
+        return false;
+    }
 }

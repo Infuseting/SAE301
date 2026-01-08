@@ -99,10 +99,28 @@ Route::middleware('auth')->group(function () {
     // Race registration
     Route::get('/races/{race}/registration/check', [App\Http\Controllers\RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
     Route::post('/races/{race}/register', [App\Http\Controllers\RaceRegistrationController::class, 'register'])->name('race.register');
-    
+
     // Team creation routes
     Route::get('/createTeam', [App\Http\Controllers\TeamController::class, 'create'])->name('team.create');
     Route::post('/createTeam', [App\Http\Controllers\TeamController::class, 'store'])->name('team.store');
+
+    // Team invitations
+    Route::post('/team-invitations', [App\Http\Controllers\TeamInvitationController::class, 'store'])->name('team.invitations.store');
+    Route::post('/team-invitations/{invitation}/accept', [App\Http\Controllers\TeamInvitationController::class, 'accept'])->name('team.invitations.accept');
+    Route::post('/team-invitations/{invitation}/reject', [App\Http\Controllers\TeamInvitationController::class, 'reject'])->name('team.invitations.reject');
+
+    // Race registration
+    Route::delete('/registrations/{registration}', [App\Http\Controllers\RaceRegistrationController::class, 'cancel'])->name('race.registration.cancel');
+
+    // Club invitations
+    Route::get('/clubs/{club}/invitations', [App\Http\Controllers\ClubInvitationController::class, 'index'])->name('clubs.invitations.index');
+    Route::post('/clubs/{club}/invitations', [App\Http\Controllers\ClubInvitationController::class, 'store'])->name('clubs.invitations.store');
+    Route::post('/club-invitations/{invitation}/accept', [App\Http\Controllers\ClubInvitationController::class, 'accept'])->name('clubs.invitations.accept');
+    Route::post('/club-invitations/{invitation}/reject', [App\Http\Controllers\ClubInvitationController::class, 'reject'])->name('clubs.invitations.reject');
+    Route::delete('/club-invitations/{invitation}', [App\Http\Controllers\ClubInvitationController::class, 'destroy'])->name('clubs.invitations.destroy');
+
+    // User invitations list (for profile)
+    Route::get('/profile/invitations', [App\Http\Controllers\ProfileController::class, 'invitations'])->name('profile.invitations');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -132,6 +150,10 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
 });
 
 require __DIR__ . '/auth.php';
+
+// Public invitation acceptance routes (token-based, no auth required for viewing)
+Route::get('/invitations/team/{token}', [App\Http\Controllers\TeamInvitationController::class, 'acceptViaToken'])->name('invitations.team.accept');
+Route::get('/invitations/club/{token}', [App\Http\Controllers\ClubInvitationController::class, 'acceptViaToken'])->name('invitations.club.accept');
 
 Route::get('/auth/{provider}/redirect', [\App\Http\Controllers\SocialiteController::class, 'redirect'])->name('socialite.redirect');
 Route::get('/auth/{provider}/callback', [\App\Http\Controllers\SocialiteController::class, 'callback'])->name('socialite.callback');

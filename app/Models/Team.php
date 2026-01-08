@@ -47,4 +47,57 @@ class Team extends Model
     {
         return $this->belongsTo(User::class, 'adh_id', 'id');
     }
+
+    /**
+     * Get pending invitations for this team.
+     */
+    public function invitations()
+    {
+        return $this->hasMany(TeamInvitation::class, 'team_id', 'equ_id');
+    }
+
+    /**
+     * Get pending invitations.
+     */
+    public function pendingInvitations()
+    {
+        return $this->invitations()->pending();
+    }
+
+    /**
+     * Get race registrations using this team.
+     */
+    public function registrations()
+    {
+        return $this->hasMany(RaceRegistration::class, 'team_id', 'equ_id');
+    }
+
+    /**
+     * Check if team meets race requirements.
+     * 
+     * @param Race $race
+     * @return array ['valid' => bool, 'errors' => array]
+     */
+    public function validateForRace(Race $race): array
+    {
+        $errors = [];
+        $memberCount = $this->users()->count();
+
+        if ($race->teamParams) {
+            $minMembers = $race->teamParams->pae_nb_min ?? 1;
+            $maxMembers = $race->teamParams->pae_nb_max ?? 999;
+
+            if ($memberCount < $minMembers) {
+                $errors[] = "L'équipe doit avoir au moins {$minMembers} membres";
+            }
+            if ($memberCount > $maxMembers) {
+                $errors[] = "L'équipe ne peut pas avoir plus de {$maxMembers} membres";
+            }
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors,
+        ];
+    }
 }

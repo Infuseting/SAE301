@@ -7,9 +7,12 @@ import {
     AlertCircle, Clock, CheckCircle2, XCircle, Settings,
     CreditCard, Utensils
 } from 'lucide-react';
+import { RegistrationModal, RegistrationViewModal } from '@/Components/Registration';
 
-export default function VisuRace({ auth, race, isManager, participants = [], error, errorMessage }) {
+export default function VisuRace({ auth, race, isManager, participants = [], userRegistration, error, errorMessage }) {
     const translations = usePage().props.translations?.messages || {};
+    const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
 
     // If race not found, display error message
     if (error || !race) {
@@ -221,10 +224,23 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     </div>
 
                                     {!race.is_finished && race.isOpen ? (
-                                        <button className="w-full bg-emerald-500 hover:bg-emerald-400 py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3">
-                                            S'INSCRIRE MAINTENANT
-                                            <ChevronRight className="h-4 w-4" />
-                                        </button>
+                                        userRegistration && userRegistration.status !== 'cancelled' ? (
+                                            <button
+                                                onClick={() => setShowViewModal(true)}
+                                                className="w-full bg-white py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all shadow-xl uppercase flex items-center justify-center gap-3 text-emerald-700"
+                                            >
+                                                <CheckCircle2 className="h-4 w-4" />
+                                                VOIR MON INSCRIPTION
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => setShowRegistrationModal(true)}
+                                                className="w-full bg-emerald-500 hover:bg-emerald-400 py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3"
+                                            >
+                                                S'INSCRIRE MAINTENANT
+                                                <ChevronRight className="h-4 w-4" />
+                                            </button>
+                                        )
                                     ) : race.status === 'completed' ? (
                                         <button className="w-full bg-white/10 hover:bg-white/20 py-5 rounded-[1.25rem] font-black text-xs tracking-[0.2em] transition-all border border-white/20 uppercase flex items-center justify-center gap-3">
                                             VOIR LES RÉSULTATS
@@ -324,6 +340,21 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                     </div>
                 </div>
             </div>
+
+            {/* Registration Modal */}
+            <RegistrationModal
+                isOpen={showRegistrationModal}
+                onClose={() => setShowRegistrationModal(false)}
+                race={race}
+            />
+
+            {/* View Registration Modal */}
+            <RegistrationViewModal
+                isOpen={showViewModal}
+                onClose={() => setShowViewModal(false)}
+                race={race}
+                registration={userRegistration}
+            />
         </AuthenticatedLayout>
     );
 }

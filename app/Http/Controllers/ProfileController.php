@@ -260,4 +260,24 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+
+    /**
+     * Get user's pending invitations (team + club).
+     * 
+     * @return \Illuminate\Http\JsonResponse|\Inertia\Response
+     */
+    public function invitations(Request $request): \Illuminate\Http\JsonResponse|\Inertia\Response
+    {
+        $user = $request->user();
+
+        $invitations = $user->getAllPendingInvitations();
+
+        if ($request->wantsJson() && !$request->header('X-Inertia')) {
+            return response()->json($invitations);
+        }
+
+        return \Inertia\Inertia::render('Profile/Invitations', [
+            'invitations' => $invitations,
+        ]);
+    }
 }
