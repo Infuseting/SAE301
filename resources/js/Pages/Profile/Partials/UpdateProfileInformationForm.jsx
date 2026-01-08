@@ -5,6 +5,8 @@ import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import UserAvatar from '@/Components/UserAvatar';
+import LicenseValidationModal from '@/Components/LicenseValidationModal';
+import { useState } from 'react';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -13,8 +15,10 @@ export default function UpdateProfileInformation({
 }) {
     const user = usePage().props.auth.user;
     const messages = usePage().props.translations?.messages || {};
+    const [showLicenseModal, setShowLicenseModal] = useState(false);
+    const [skipLicense, setSkipLicense] = useState(false);
 
-    const { data, setData, post, errors, processing, recentlySuccessful } =
+    const { data, setData, post, errors, processing, recentlySuccessful, clearErrors, transform } =
         useForm({
             first_name: user.first_name,
             last_name: user.last_name,
@@ -29,16 +33,65 @@ export default function UpdateProfileInformation({
             _method: 'PATCH',
         });
 
+    // Transform data before sending - remove license_number if user chose to skip
+    transform((data) => {
+        if (skipLicense) {
+            const { license_number, ...rest } = data;
+            return rest;
+        }
+        return data;
+    });
+
     const submit = (e) => {
         e.preventDefault();
 
         post(route('profile.update'), {
             forceFormData: true,
+            onError: (errors) => {
+                // If there's a license number error, show the modal
+                if (errors.license_number && data.license_number && !skipLicense) {
+                    setShowLicenseModal(true);
+                }
+            },
+            onSuccess: () => {
+                setSkipLicense(false);
+            }
         });
+    };
+
+    const handleConfirmWithoutLicense = () => {
+        setShowLicenseModal(false);
+        clearErrors('license_number');
+        
+        // Restore the original license value in the input
+        setData('license_number', user.license_number || '');
+        
+        // Mark to skip license in the next submission
+        setSkipLicense(true);
+        
+        // Trigger form submission without license_number
+        setTimeout(() => {
+            post(route('profile.update'), {
+                forceFormData: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    setSkipLicense(false);
+                },
+                onError: () => {
+                    setSkipLicense(false);
+                }
+            });
+        }, 0);
     };
 
     return (
         <section className={className}>
+            <LicenseValidationModal
+                show={showLicenseModal}
+                onClose={() => setShowLicenseModal(false)}
+                onConfirmWithoutLicense={handleConfirmWithoutLicense}
+            />
+            
             <header>
                 <h2 className="text-lg font-medium text-gray-900 ">
                     {messages.profile_information || 'Profile Information'}
@@ -229,14 +282,15 @@ export default function UpdateProfileInformation({
                     </div>
 
                     <div className="md:col-span-2">
-                        <InputLabel htmlFor="license_number" value="Numéro de Licence (Optionnel)" className="text-gray-700 font-medium mb-1" />
+                        <InputLabel htmlFor="license_number" value="Numéro de Licence FFCO (Optionnel)" className="text-gray-700 font-medium mb-1" />
                         <TextInput
                             id="license_number"
                             className="mt-1 block w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-[#9333ea] focus:ring-[#9333ea] transition-all duration-200"
                             value={data.license_number}
                             onChange={(e) => setData('license_number', e.target.value)}
-                            placeholder="Ex: 123456"
+                            placeholder="Ex: 123456 ou AB12345"
                         />
+                        <p className="mt-1 text-xs text-gray-500">Format : 5-6 chiffres ou 1-2 lettres suivies de 5-6 chiffres (Fédération Française de Course d'Orientation)</p>
                         <InputError className="mt-2" message={errors.license_number} />
                     </div>
                 </div>

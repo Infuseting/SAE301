@@ -186,6 +186,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Custom Validation Rules
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify custom validation messages for custom rules.
+    |
+    */
+
+    'ffco_license_number' => 'The :attribute must be a valid FFCO license number (e.g., 123456 or AB12345).',
+
+    /*
+    |--------------------------------------------------------------------------
     | Custom Validation Attributes
     |--------------------------------------------------------------------------
     |

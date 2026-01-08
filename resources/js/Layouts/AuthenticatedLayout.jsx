@@ -1,6 +1,7 @@
 import ProfileCompletionModal from '@/Components/ProfileCompletionModal';
 import LicenceRequiredModal from '@/Components/LicenceRequiredModal';
 import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
 import { usePage } from '@inertiajs/react';
 
 export default function AuthenticatedLayout({ header, children }) {
@@ -25,7 +26,9 @@ export default function AuthenticatedLayout({ header, children }) {
                 </header>
             )}
 
-            <main>{children}</main>
+            <main className="flex-1">{children}</main>
+
+            <Footer />
         </div>
     );
 }

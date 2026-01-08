@@ -192,17 +192,16 @@ class RaceRegistrationController extends Controller
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        // Check limits
-        $minRunners = $race->teamParams?->pae_nb_min ?? 1;
-        $maxRunners = $race->teamParams?->pae_nb_max ?? 100;
+        // Check team size - must be between minPerTeam and maxPerTeam
+        $minTeamSize = $race->teamParams?->pae_team_count_min ?? 1;
+        $maxTeamSize = $race->teamParams?->pae_team_count_max ?? 1;
         
         $currentRunners = $team->users()->count();
-        $totalRunners = $currentRunners;
 
-        if ($totalRunners < $minRunners || $totalRunners > $maxRunners) {
+        if ($currentRunners < $minTeamSize || $currentRunners > $maxTeamSize) {
              return response()->json([
                 'success' => false,
-                'message' => "Le nombre de coureurs ($totalRunners) ne respecte pas les limites ($minRunners - $maxRunners).",
+                'message' => "Le nombre de coureurs doit être entre $minTeamSize et $maxTeamSize (actuellement $currentRunners).",
             ], 400);
         }
 
@@ -375,10 +374,19 @@ class RaceRegistrationController extends Controller
         try {
             $team = \App\Models\Team::findOrFail($teamId);
             
-            // Update payment status in inscriptions_payment table
-            \DB::table('inscriptions_payment')
+            // Get payment IDs for this team and race
+            $paymentIds = \DB::table('registration')
                 ->where('equ_id', $team->equ_id)
                 ->where('race_id', $race->race_id)
+                ->pluck('pay_id');
+
+            if ($paymentIds->isEmpty()) {
+                return back()->withErrors(['error' => 'Aucune inscription trouvée pour cette équipe.']);
+            }
+
+            // Update payment status in inscriptions_payment table
+            \DB::table('inscriptions_payment')
+                ->whereIn('pai_id', $paymentIds)
                 ->update([
                     'pai_is_paid' => true,
                     'pai_date' => now(),

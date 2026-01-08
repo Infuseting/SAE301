@@ -77,7 +77,7 @@ class PolicyTest extends TestCase
             'club_street' => '123 Test Street',
             'club_city' => 'Test City',
             'club_postal_code' => '12345',
-            'ffso_id' => 'FFSO999',
+            'ffso_id' => 'FFCO999',
             'description' => 'Test Club Description',
             'is_approved' => true,
             'created_by' => $this->responsableClubUser->id,

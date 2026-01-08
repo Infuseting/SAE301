@@ -23,9 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
 
         $middleware->alias([
-            'role' => \Spatie\Permission\Middleware\Role::class,
-            'permission' => \Spatie\Permission\Middleware\Permission::class,
-            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermission::class,
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'club_leader' => \App\Http\Middleware\EnsureUserIsClubLeader::class,
             'manager_licence' => \App\Http\Middleware\EnsureManagerHasValidLicence::class,
             'admin_page' => \App\Http\Middleware\CheckAdminPageAccess::class,

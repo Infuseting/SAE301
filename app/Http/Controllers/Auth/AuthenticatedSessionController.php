@@ -16,8 +16,16 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        // Store redirect_uri in session if provided
+        if ($request->has('redirect_uri')) {
+            $redirectUri = $request->get('redirect_uri');
+            if (mb_check_encoding($redirectUri, 'UTF-8')) {
+                $request->session()->put('redirect_uri', $redirectUri);
+            }
+        }
+
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
@@ -32,6 +40,12 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        // Check for redirect_uri in session
+        $redirectUri = $request->session()->pull('redirect_uri');
+        if ($redirectUri && filter_var($redirectUri, FILTER_VALIDATE_URL) && str_starts_with($redirectUri, url('/'))) {
+            return redirect()->to($redirectUri);
+        }
 
         return redirect('/');
     }

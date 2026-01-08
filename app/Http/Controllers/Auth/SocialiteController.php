@@ -118,6 +118,11 @@ class SocialiteController extends Controller
         }
 
         if ($account) {
+            // Check if user account is active
+            if (!$account->user->active) {
+                return redirect()->route('login')->withErrors(['email' => trans('auth.inactive')]);
+            }
+
             Auth::login($account->user, true);
             $request->session()->regenerate();
             
@@ -158,6 +163,11 @@ class SocialiteController extends Controller
 
             // Assign default 'user' role
             $user->assignRole('user');
+        } else {
+            // User exists, check if active
+            if (!$user->active) {
+                return redirect()->route('login')->withErrors(['email' => trans('auth.inactive')]);
+            }
         }
 
         // Link account

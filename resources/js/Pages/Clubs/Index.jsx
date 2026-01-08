@@ -10,6 +10,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 export default function Index({ clubs, filters }) {
     const messages = usePage().props.translations?.messages || {};
     const { auth } = usePage().props;
+    const [hoveredClub, setHoveredClub] = useState(null);
     
     // Check if user can create clubs (must be adherent or admin)
     const userRoles = auth?.user?.roles || [];
@@ -158,9 +159,9 @@ export default function Index({ clubs, filters }) {
                                         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col">
                                             {/* Club Image/Placeholder */}
                                             <div className="relative h-48 overflow-hidden bg-gradient-to-br from-emerald-100 to-emerald-50">
-                                                {club.club_logo ? (
+                                                {club.club_image ? (
                                                     <img
-                                                        src={`/storage/${club.club_logo}`}
+                                                        src={`/storage/${club.club_image}`}
                                                         alt={club.club_name}
                                                         className="w-full h-full object-cover"
                                                     />
@@ -224,12 +225,22 @@ export default function Index({ clubs, filters }) {
 
                                                 {/* CTA Button */}
                                                 <div className="mt-auto">
-                                                    <button className="w-full inline-flex justify-center items-center px-4 py-2 bg-important border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-opacity-90 focus:bg-opacity-90 active:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                                        Voir les détails
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 ml-2">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                                        </svg>
-                                                    </button>
+                                                    {club.user_membership_status === 'pending' ? (
+                                                        <button 
+                                                            onMouseEnter={() => setHoveredClub(club.club_id)}
+                                                            onMouseLeave={() => setHoveredClub(null)}
+                                                            className="w-full inline-flex justify-center items-center px-4 py-2 bg-amber-500 hover:bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-150"
+                                                        >
+                                                            {hoveredClub === club.club_id ? 'ANNULER' : 'En attente d\'une réponse'}
+                                                        </button>
+                                                    ) : (
+                                                        <button className="w-full inline-flex justify-center items-center px-4 py-2 bg-important border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-opacity-90 focus:bg-opacity-90 active:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                                            Voir les détails
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 ml-2">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                                            </svg>
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

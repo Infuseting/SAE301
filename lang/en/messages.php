@@ -292,7 +292,7 @@ return [
     'club_city' => 'City',
     'club_postal_code' => 'Postal Code',
     'club_number' => 'Club Number',
-    'ffso_id' => 'FFSO ID',
+    'ffso_id' => 'FFCO ID',
     'club_description' => 'Club Description',
     'club_image' => 'Club Logo/Image',
     'club_members' => 'Members',

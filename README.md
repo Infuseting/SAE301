@@ -65,6 +65,7 @@ You can find Swagger UI on [Swagger](https://sae301.infuseting.fr/api/documentat
 - [React et Page](https://github.com/Infuseting/SAE301/wiki/React-And-Page) : Comment ajouter une nouvelle page et définir sa route.
 - [Système de Traduction (i18n)](https://github.com/Infuseting/SAE301/wiki/Translations-Systems) : Gérer les langues et les traductions.
 - [Logs d'Activité](https://github.com/Infuseting/SAE301/wiki/Activity-Logging) : Suivre et enregistrer les actions utilisateurs.
+- [Système de Permissions et Rôles](https://github.com/Infuseting/SAE301/wiki/Permission-system) : Gestion des rôles et permissions avec Spatie.
 
 
 ## Teams

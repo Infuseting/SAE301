@@ -259,6 +259,10 @@ class LeaderboardService
                 'average_temps_final' => $item->average_temps_final,
                 'average_temps_final_formatted' => $item->formatted_average_temps_final,
                 'member_count' => $item->member_count,
+                'points' => $item->points,
+                'status' => $item->status,
+                'category' => $item->category,
+                'puce' => $item->puce,
             ];
         });
 
@@ -274,8 +278,13 @@ class LeaderboardService
     public function getRaces(): Collection
     {
         return Race::select('race_id', 'race_name', 'race_date_start')
+            ->with('ageCategories:id,nom')
             ->orderBy('race_date_start', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($race) {
+                $race->age_category_names = $race->age_category_names;
+                return $race;
+            });
     }
 
     public function addResult(int $userId, int $raceId, float $temps, float $malus = 0): LeaderboardUser
@@ -434,6 +443,9 @@ class LeaderboardService
                 'average_temps_final' => $item->average_temps_final,
                 'average_temps_final_formatted' => $item->formatted_average_temps_final,
                 'member_count' => $item->member_count,
+                'points' => $item->points,
+                'status' => $item->status,
+                'category' => $item->category,
             ];
         });
 
@@ -470,10 +482,17 @@ class LeaderboardService
 
     /**
      * Get public individual leaderboard (only public profiles).
+     * Only shows users with is_public = true.
+     * Includes: rank, name, race, raw time, malus, final time, points.
      */
     private function getPublicIndividualLeaderboard(?int $raceId = null, ?string $search = null, int $perPage = 20): array
     {
-        $query = LeaderboardUser::with(['user:id,first_name,last_name,email,is_public,profile_photo_path', 'race:race_id,race_name,race_date_start'])
+        $query = LeaderboardUser::with([
+                'user:id,first_name,last_name,email,is_public,profile_photo_path',
+                'race' => function ($q) {
+                    $q->select('race_id', 'race_name', 'race_date_start')->with('ageCategories:id,nom');
+                }
+            ])
             ->whereHas('user', function ($q) {
                 $q->where('is_public', true);
             })
@@ -507,12 +526,14 @@ class LeaderboardService
                 'race_id' => $item->race_id,
                 'race_name' => $item->race ? $item->race->race_name : 'Unknown',
                 'race_date' => $item->race ? $item->race->race_date_start : null,
+                'race_age_categories' => $item->race ? $item->race->age_category_names : [],
                 'temps' => $item->temps,
                 'temps_formatted' => $item->formatted_temps,
                 'malus' => $item->malus,
                 'malus_formatted' => $item->formatted_malus,
                 'temps_final' => $item->temps_final,
                 'temps_final_formatted' => $item->formatted_temps_final,
+                'points' => $item->points ?? 0,
             ];
         });
 
@@ -527,10 +548,20 @@ class LeaderboardService
 
     /**
      * Get public team leaderboard.
+     * All teams are displayed without visibility restrictions.
+     * Includes team members list and age category from race.
      */
     private function getPublicTeamLeaderboard(?int $raceId = null, ?string $search = null, int $perPage = 20): array
     {
-        $query = LeaderboardTeam::with(['team:equ_id,equ_name,equ_image', 'race:race_id,race_name,race_date_start'])
+        $query = LeaderboardTeam::with([
+                'team' => function ($q) {
+                    $q->select('equ_id', 'equ_name', 'equ_image')
+                      ->with(['users:id,first_name,last_name', 'participants:id,first_name,last_name']);
+                },
+                'race' => function ($q) {
+                    $q->select('race_id', 'race_name', 'race_date_start')->with('ageCategories:id,nom');
+                }
+            ])
             ->orderBy('average_temps_final', 'asc');
 
         if ($raceId) {
@@ -551,6 +582,35 @@ class LeaderboardService
 
         $rank = ($results->currentPage() - 1) * $perPage + 1;
         $data = $results->getCollection()->map(function ($item) use (&$rank) {
+            // Get team members list - try both relations (users via id_users, participants via id)
+            $members = [];
+            if ($item->team) {
+                // Try 'users' relation first (id_users column)
+                if ($item->team->users && $item->team->users->isNotEmpty()) {
+                    $members = $item->team->users->map(function ($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->first_name . ' ' . $user->last_name,
+                        ];
+                    })->toArray();
+                }
+                // Fallback to 'participants' relation (id column)
+                elseif ($item->team->participants && $item->team->participants->isNotEmpty()) {
+                    $members = $item->team->participants->map(function ($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->first_name . ' ' . $user->last_name,
+                        ];
+                    })->toArray();
+                }
+            }
+
+            // Get age category from race relation
+            $ageCategory = null;
+            if ($item->race && $item->race->ageCategories->isNotEmpty()) {
+                $ageCategory = $item->race->ageCategories->pluck('nom')->implode(', ');
+            }
+
             return [
                 'rank' => $rank++,
                 'id' => $item->id,
@@ -560,6 +620,8 @@ class LeaderboardService
                 'race_id' => $item->race_id,
                 'race_name' => $item->race ? $item->race->race_name : 'Unknown',
                 'race_date' => $item->race ? $item->race->race_date_start : null,
+                'race_age_categories' => $item->race ? $item->race->age_category_names : [],
+                'age_category' => $ageCategory,
                 'average_temps' => $item->average_temps,
                 'average_temps_formatted' => $item->formatted_average_temps,
                 'average_malus' => $item->average_malus,
@@ -567,6 +629,10 @@ class LeaderboardService
                 'average_temps_final' => $item->average_temps_final,
                 'average_temps_final_formatted' => $item->formatted_average_temps_final,
                 'member_count' => $item->member_count,
+                'members' => $members,
+                'points' => $item->points,
+                'status' => $item->status,
+                'category' => $item->category,
             ];
         });
 
@@ -581,6 +647,8 @@ class LeaderboardService
 
     /**
      * Export leaderboard to CSV format.
+     * For individual: includes rank, name, time, race, malus, final time, points (excludes private profiles)
+     * For team: includes rank, team, category, time, points
      *
      * @param int $raceId The race ID
      * @param string $type 'individual' or 'team'
@@ -591,31 +659,47 @@ class LeaderboardService
         $output = fopen('php://temp', 'r+');
 
         if ($type === 'team') {
-            // Team export
-            fputcsv($output, ['Rang', 'Equipe', 'Temps Moyen', 'Malus Moyen', 'Temps Final', 'Membres'], ';');
+            // Team export: rang, équipe, catégorie, temps, points
+            fputcsv($output, ['Rang', 'Equipe', 'Catégorie', 'Temps', 'Points'], ';');
 
-            $results = LeaderboardTeam::with(['team:equ_id,equ_name'])
+            $results = LeaderboardTeam::with([
+                    'team:equ_id,equ_name',
+                    'race' => function ($q) {
+                        $q->select('race_id', 'race_name')->with('ageCategories:id,nom');
+                    }
+                ])
                 ->where('race_id', $raceId)
                 ->orderBy('average_temps_final', 'asc')
                 ->get();
 
             $rank = 1;
             foreach ($results as $result) {
+                // Get age category from race relation
+                $ageCategory = $result->category ?? '-';
+                if ($result->race && $result->race->ageCategories->isNotEmpty()) {
+                    $ageCategory = $result->race->ageCategories->pluck('nom')->implode(', ');
+                }
+
                 fputcsv($output, [
                     $rank++,
                     $result->team ? $result->team->equ_name : 'Unknown',
-                    $result->formatted_average_temps,
-                    $result->formatted_average_malus,
+                    $ageCategory,
                     $result->formatted_average_temps_final,
-                    $result->member_count,
+                    $result->points ?? 0,
                 ], ';');
             }
         } else {
-            // Individual export
-            fputcsv($output, ['Rang', 'Nom', 'Temps', 'Malus', 'Temps Final'], ';');
+            // Individual export: rang, nom, temps, course, malus, temps final, points (ONLY PUBLIC PROFILES)
+            fputcsv($output, ['Rang', 'Nom', 'Temps', 'Course', 'Malus', 'Temps Final', 'Points'], ';');
 
-            $results = LeaderboardUser::with(['user:id,first_name,last_name'])
+            $race = Race::find($raceId);
+            $raceName = $race ? $race->race_name : 'Unknown';
+
+            $results = LeaderboardUser::with(['user:id,first_name,last_name,is_public'])
                 ->where('race_id', $raceId)
+                ->whereHas('user', function ($query) {
+                    $query->where('is_public', true);
+                })
                 ->orderBy('temps_final', 'asc')
                 ->get();
 
@@ -625,8 +709,92 @@ class LeaderboardService
                     $rank++,
                     $result->user ? $result->user->first_name . ' ' . $result->user->last_name : 'Unknown',
                     $result->formatted_temps,
+                    $raceName,
                     $result->formatted_malus,
                     $result->formatted_temps_final,
+                    $result->points ?? 0,
+                ], ';');
+            }
+        }
+
+        rewind($output);
+        $csv = stream_get_contents($output);
+        fclose($output);
+
+        return $csv;
+    }
+
+    /**
+     * Export ALL leaderboards (all races) to CSV format.
+     * This is used for the general leaderboard export.
+     * For individual: only exports PUBLIC profiles (is_public = true).
+     * For team: all teams are exported (no visibility restriction).
+     *
+     * Individual CSV: rang, nom, temps, course, malus, temps final, points
+     * Team CSV: rang, équipe, catégorie, temps, points
+     *
+     * @param string $type 'individual' or 'team'
+     * @return string CSV content
+     */
+    public function exportAllToCsv(string $type = 'individual'): string
+    {
+        $output = fopen('php://temp', 'r+');
+
+        if ($type === 'team') {
+            // Team export - all races (all teams are public by default)
+            // Columns: rang, équipe, catégorie, temps, points
+            fputcsv($output, ['Rang', 'Equipe', 'Catégorie', 'Temps', 'Points'], ';');
+
+            $results = LeaderboardTeam::with([
+                    'team:equ_id,equ_name',
+                    'race' => function ($q) {
+                        $q->select('race_id', 'race_name')->with('ageCategories:id,nom');
+                    }
+                ])
+                ->orderBy('average_temps_final', 'asc')
+                ->get();
+
+            $rank = 1;
+            foreach ($results as $result) {
+                // Get age category from race relation
+                $ageCategory = $result->category ?? '-';
+                if ($result->race && $result->race->ageCategories->isNotEmpty()) {
+                    $ageCategory = $result->race->ageCategories->pluck('nom')->implode(', ');
+                }
+
+                fputcsv($output, [
+                    $rank++,
+                    $result->team ? $result->team->equ_name : 'Unknown',
+                    $ageCategory,
+                    $result->formatted_average_temps_final,
+                    $result->points ?? 0,
+                ], ';');
+            }
+        } else {
+            // Individual export - all races, ONLY PUBLIC PROFILES
+            // Columns: rang, nom, temps, course, malus, temps final, points
+            fputcsv($output, ['Rang', 'Nom', 'Temps', 'Course', 'Malus', 'Temps Final', 'Points'], ';');
+
+            $results = LeaderboardUser::with([
+                'user:id,first_name,last_name,is_public',
+                'race:race_id,race_name,race_date_start'
+            ])
+                ->whereHas('user', function ($query) {
+                    $query->where('is_public', true);
+                })
+                ->orderBy('temps_final', 'asc')
+                ->get();
+
+            $rank = 1;
+            foreach ($results as $result) {
+                fputcsv($output, [
+                    $rank++,
+                    $result->user ? $result->user->first_name . ' ' . $result->user->last_name : 'Unknown',
+                    $result->formatted_temps,
+                    $result->race ? $result->race->race_name : 'Unknown',
+                    $result->formatted_malus,
+                    $result->formatted_temps_final,
+                    $result->points ?? 0,
                 ], ';');
             }
         }
@@ -1245,5 +1413,429 @@ class LeaderboardService
         }
 
         Log::info("Cleaned up participation data for {$importedUsers->count()} imported users in race {$raceId}");
+    }
+
+    /**
+     * Import team results from CSV with new format.
+     * Format: CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS
+     * 
+     * Supports:
+     * - Negative times (handled as valid times with absolute value)
+     * - Different categories (Masculin, Féminin, Mixte)
+     * - Points from CSV (optional, can be recalculated)
+     *
+     * @param UploadedFile $file The CSV file
+     * @param int $raceId The race ID
+     * @param bool $recalculatePoints If true, recalculates points ignoring CSV values
+     * @return array Import results
+     */
+    public function importTeamCsvV2(UploadedFile $file, int $raceId, bool $recalculatePoints = true): array
+    {
+        $results = [
+            'success' => 0,
+            'errors' => [],
+            'total' => 0,
+            'created_teams' => 0,
+        ];
+
+        $race = Race::find($raceId);
+        if (!$race) {
+            throw new Exception("Race with ID {$raceId} not found");
+        }
+
+        $handle = fopen($file->getRealPath(), 'r');
+        if ($handle === false) {
+            throw new Exception('Unable to open CSV file');
+        }
+
+        // Auto-detect CSV separator
+        $firstLine = fgets($handle);
+        rewind($handle);
+        $separator = $this->detectCsvSeparator($firstLine);
+
+        $header = fgetcsv($handle, 0, $separator);
+        if ($header === false) {
+            fclose($handle);
+            throw new Exception('Unable to read CSV header');
+        }
+
+        // Normalize header: lowercase and trim, handle UTF-8 BOM
+        $header = array_map(function ($col) {
+            $col = trim($col);
+            // Remove UTF-8 BOM if present
+            $col = preg_replace('/^\xEF\xBB\xBF/', '', $col);
+            $col = strtolower($col);
+            // Map column names
+            $mapping = [
+                'clt' => 'clt',
+                'puce' => 'puce',
+                'equipe' => 'equipe',
+                'équipe' => 'equipe',
+                'catégorie' => 'category',
+                'categorie' => 'category',
+                'temps' => 'temps',
+                'pts' => 'points',
+                'points' => 'points',
+            ];
+            return $mapping[$col] ?? $col;
+        }, $header);
+
+        // Validate required columns
+        if (!in_array('equipe', $header)) {
+            fclose($handle);
+            throw new Exception("Missing required column: EQUIPE");
+        }
+        if (!in_array('temps', $header)) {
+            fclose($handle);
+            throw new Exception("Missing required column: TEMPS");
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $lineNumber = 1;
+            $teamsData = [];
+
+            while (($row = fgetcsv($handle, 0, $separator)) !== false) {
+                $lineNumber++;
+                $results['total']++;
+
+                // Skip empty rows
+                if (empty(array_filter($row))) {
+                    $results['total']--;
+                    continue;
+                }
+
+                // Ensure row has same number of columns as header
+                if (count($row) < count($header)) {
+                    $row = array_pad($row, count($header), '');
+                }
+
+                $data = array_combine($header, array_map('trim', $row));
+
+                $teamName = $data['equipe'] ?? '';
+                if (empty($teamName)) {
+                    $results['errors'][] = "Line {$lineNumber}: Empty team name";
+                    continue;
+                }
+
+                // Parse time (can be negative in the CSV)
+                $tempsString = $data['temps'] ?? '0';
+                $isNegativeTime = str_starts_with($tempsString, '-');
+                $temps = $this->parseTime(ltrim($tempsString, '-'));
+                if ($isNegativeTime) {
+                    // Keep the time as positive for ranking, but we could mark it specially
+                    $temps = abs($temps);
+                }
+
+                $category = $data['category'] ?? null;
+                $puce = $data['puce'] ?? null;
+                $csvPoints = isset($data['points']) ? (int) $data['points'] : null;
+
+                // Find or create team by name
+                $team = Team::where('equ_name', $teamName)->first();
+                $teamCreated = false;
+
+                if (!$team) {
+                    // Create a new team
+                    $team = $this->createTeamForImport($teamName, $raceId);
+                    $teamCreated = true;
+                    $results['created_teams']++;
+                }
+
+                // Store data for points calculation
+                $teamsData[] = [
+                    'team' => $team,
+                    'temps' => $temps,
+                    'category' => $category,
+                    'puce' => $puce,
+                    'csv_points' => $csvPoints,
+                    'line_number' => $lineNumber,
+                    'created' => $teamCreated,
+                ];
+
+                $results['success']++;
+            }
+
+            // Calculate points and save results
+            $this->saveTeamLeaderboardResults($teamsData, $race, $recalculatePoints);
+
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollBack();
+            fclose($handle);
+            throw $e;
+        }
+
+        fclose($handle);
+
+        return $results;
+    }
+
+    /**
+     * Create a team for import when team doesn't exist.
+     *
+     * @param string $teamName The team name
+     * @param int $raceId The race ID
+     * @return Team The created team
+     */
+    private function createTeamForImport(string $teamName, int $raceId): Team
+    {
+        // Create a dummy member for the team
+        $member = Member::create([
+            'adh_license' => 'IMPORT-TEAM-' . Str::random(8),
+            'adh_end_validity' => now()->addYear(),
+            'adh_date_added' => now(),
+        ]);
+
+        // Create the team
+        $team = Team::create([
+            'equ_name' => $teamName,
+            'equ_description' => 'Team imported from CSV',
+            'adh_id' => $member->adh_id,
+        ]);
+
+        Log::info("Created new team from CSV import: {$teamName} (ID: {$team->equ_id})");
+
+        return $team;
+    }
+
+    /**
+     * Save team leaderboard results with calculated points.
+     *
+     * @param array $teamsData Array of team data from import
+     * @param Race $race The race
+     * @param bool $recalculatePoints Whether to recalculate points
+     */
+    private function saveTeamLeaderboardResults(array $teamsData, Race $race, bool $recalculatePoints): void
+    {
+        // Sort by time for ranking
+        usort($teamsData, function ($a, $b) {
+            return $a['temps'] <=> $b['temps'];
+        });
+
+        // Get difficulty coefficient
+        $coefficient = $this->getDifficultyCoefficient($race);
+        $isLeisureRace = $this->isLeisureRace($race);
+
+        // Calculate points for each team based on ranking
+        $previousTime = null;
+        $previousPoints = null;
+        $rank = 0;
+
+        foreach ($teamsData as $index => $data) {
+            $rank++;
+            $team = $data['team'];
+            $temps = $data['temps'];
+
+            // Calculate points (or use CSV points if not recalculating)
+            if ($recalculatePoints) {
+                $points = $this->calculatePointsForRank($rank, $temps, $previousTime, $previousPoints, $coefficient, $isLeisureRace);
+            } else {
+                $points = $data['csv_points'] ?? $this->calculatePointsForRank($rank, $temps, $previousTime, $previousPoints, $coefficient, $isLeisureRace);
+            }
+
+            // Store for equality check
+            if ($temps !== $previousTime) {
+                $previousTime = $temps;
+                $previousPoints = $points;
+            }
+
+            // Determine status
+            $status = LeaderboardTeam::STATUS_CLASSIFIED;
+
+            // Save to leaderboard_teams
+            LeaderboardTeam::updateOrCreate(
+                ['equ_id' => $team->equ_id, 'race_id' => $race->race_id],
+                [
+                    'average_temps' => $temps,
+                    'average_malus' => 0,
+                    'average_temps_final' => $temps,
+                    'member_count' => 1, // Will be updated later if team members are imported
+                    'points' => $points,
+                    'status' => $status,
+                    'category' => $data['category'],
+                    'puce' => $data['puce'],
+                ]
+            );
+        }
+    }
+
+    /**
+     * Calculate points for a given rank.
+     * 
+     * Rules:
+     * - 100 points for 1st place
+     * - -10 points per position
+     * - Minimum 20 points for any classified team
+     * - Equal times = equal points
+     * - Points multiplied by difficulty coefficient
+     * - Leisure races capped at 50 points
+     *
+     * @param int $rank The rank position
+     * @param float $temps The team's time
+     * @param float|null $previousTime Previous team's time (for equality check)
+     * @param int|null $previousPoints Previous team's points (for equality)
+     * @param float $coefficient Difficulty coefficient
+     * @param bool $isLeisure Whether it's a leisure race
+     * @return int The calculated points
+     */
+    private function calculatePointsForRank(int $rank, float $temps, ?float $previousTime, ?int $previousPoints, float $coefficient, bool $isLeisure): int
+    {
+        // If same time as previous, give same points
+        if ($previousTime !== null && $temps === $previousTime && $previousPoints !== null) {
+            return $previousPoints;
+        }
+
+        // Base points calculation: 100 - (rank - 1) * 10
+        $basePoints = 100 - (($rank - 1) * 10);
+
+        // Minimum 20 points for any classified team
+        $basePoints = max($basePoints, 20);
+
+        // Apply difficulty coefficient
+        $points = (int) round($basePoints * $coefficient);
+
+        // Cap at 50 for leisure races
+        if ($isLeisure) {
+            $points = min($points, 50);
+        }
+
+        return $points;
+    }
+
+    /**
+     * Get difficulty coefficient for a race.
+     * 
+     * Coefficients:
+     * - facile (easy): 1.0
+     * - moyenne (medium): 1.2
+     * - difficile (hard): 1.5
+     *
+     * @param Race $race The race
+     * @return float The difficulty coefficient
+     */
+    private function getDifficultyCoefficient(Race $race): float
+    {
+        $difficulty = strtolower($race->race_difficulty ?? 'moyenne');
+
+        return match ($difficulty) {
+            'facile', 'easy' => 1.0,
+            'moyenne', 'medium' => 1.2,
+            'difficile', 'hard', 'difficult' => 1.5,
+            default => 1.0,
+        };
+    }
+
+    /**
+     * Check if a race is a leisure race (points capped at 50).
+     *
+     * @param Race $race The race
+     * @return bool True if leisure race
+     */
+    private function isLeisureRace(Race $race): bool
+    {
+        // Check if race type is "loisir" (leisure)
+        if ($race->type && strtolower($race->type->typ_name) === 'loisir') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Recalculate points for all teams in a race.
+     * Useful after modifying results or race parameters.
+     *
+     * @param int $raceId The race ID
+     * @return int Number of teams updated
+     */
+    public function recalculateTeamPoints(int $raceId): int
+    {
+        $race = Race::find($raceId);
+        if (!$race) {
+            throw new Exception("Race with ID {$raceId} not found");
+        }
+
+        // Get all classified teams sorted by time
+        $teams = LeaderboardTeam::where('race_id', $raceId)
+            ->where('status', LeaderboardTeam::STATUS_CLASSIFIED)
+            ->orderBy('average_temps_final', 'asc')
+            ->get();
+
+        $coefficient = $this->getDifficultyCoefficient($race);
+        $isLeisure = $this->isLeisureRace($race);
+
+        $previousTime = null;
+        $previousPoints = null;
+        $rank = 0;
+        $updated = 0;
+
+        foreach ($teams as $team) {
+            $rank++;
+            $temps = (float) $team->average_temps_final;
+
+            $points = $this->calculatePointsForRank($rank, $temps, $previousTime, $previousPoints, $coefficient, $isLeisure);
+
+            if ($temps !== $previousTime) {
+                $previousTime = $temps;
+                $previousPoints = $points;
+            }
+
+            $team->points = $points;
+            $team->save();
+            $updated++;
+        }
+
+        // Set 0 points for non-classified teams
+        LeaderboardTeam::where('race_id', $raceId)
+            ->whereIn('status', [
+                LeaderboardTeam::STATUS_ABANDONED,
+                LeaderboardTeam::STATUS_DISQUALIFIED,
+                LeaderboardTeam::STATUS_OUT_OF_RANKING,
+            ])
+            ->update(['points' => 0]);
+
+        return $updated;
+    }
+
+    /**
+     * Update team status (abandon, disqualified, etc.).
+     *
+     * @param int $teamId The team ID in leaderboard_teams
+     * @param string $status The new status
+     * @return bool Success
+     */
+    public function updateTeamStatus(int $teamId, string $status): bool
+    {
+        $validStatuses = [
+            LeaderboardTeam::STATUS_CLASSIFIED,
+            LeaderboardTeam::STATUS_ABANDONED,
+            LeaderboardTeam::STATUS_DISQUALIFIED,
+            LeaderboardTeam::STATUS_OUT_OF_RANKING,
+        ];
+
+        if (!in_array($status, $validStatuses)) {
+            throw new Exception("Invalid status: {$status}");
+        }
+
+        $leaderboardTeam = LeaderboardTeam::find($teamId);
+        if (!$leaderboardTeam) {
+            return false;
+        }
+
+        $leaderboardTeam->status = $status;
+
+        // If not classified, set points to 0
+        if ($status !== LeaderboardTeam::STATUS_CLASSIFIED) {
+            $leaderboardTeam->points = 0;
+        }
+
+        $leaderboardTeam->save();
+
+        // Recalculate points for all teams in the race
+        $this->recalculateTeamPoints($leaderboardTeam->race_id);
+
+        return true;
     }
 }

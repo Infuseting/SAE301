@@ -1,5 +1,4 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import GuestLayout from '@/Layouts/GuestLayout';
+import PublicLayout from '@/Layouts/PublicLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 
@@ -9,7 +8,6 @@ import { useState, useMemo } from 'react';
  * Design consistent with Clubs and Raids listing pages
  */
 export default function Index({ auth, races }) {
-    const Layout = auth?.user ? AuthenticatedLayout : GuestLayout;
     
     // Extract all races data for client-side filtering
     const allRaces = Array.isArray(races) ? races : [];

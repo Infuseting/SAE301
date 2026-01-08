@@ -38,6 +38,9 @@ class LeaderboardController extends Controller
     /**
      * Import leaderboard results from CSV file.
      * Supports both individual and team imports.
+     * 
+     * Team CSV format: CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS
+     * Individual CSV format: Rang,Nom,Temps,Malus,Temps Final or user_id;temps;malus
      *
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
@@ -54,9 +57,11 @@ class LeaderboardController extends Controller
             $type = $request->input('type', 'individual');
             
             if ($type === 'team') {
-                $results = $this->leaderboardService->importTeamCsv(
+                // Use importTeamCsvV2 which supports the new format: CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS
+                $results = $this->leaderboardService->importTeamCsvV2(
                     $request->file('file'),
-                    $request->integer('race_id')
+                    $request->integer('race_id'),
+                    false // Use points from CSV instead of recalculating
                 );
             } else {
                 $results = $this->leaderboardService->importCsv(
@@ -76,7 +81,19 @@ class LeaderboardController extends Controller
                 ->log('LEADERBOARD_CSV_IMPORT');
 
             $typeLabel = $type === 'team' ? 'équipes' : 'individuels';
-            return redirect()->back()->with('success', "Import terminé: {$results['success']} résultats {$typeLabel} importés avec succès.");
+            $message = "Import terminé: {$results['success']} résultats {$typeLabel} importés avec succès.";
+            
+            // Add info about created teams if applicable
+            if ($type === 'team' && isset($results['created_teams']) && $results['created_teams'] > 0) {
+                $message .= " ({$results['created_teams']} nouvelles équipes créées)";
+            }
+            
+            // Add info about created users if applicable (for individual import)
+            if ($type === 'individual' && isset($results['created']) && $results['created'] > 0) {
+                $message .= " ({$results['created']} nouveaux utilisateurs créés)";
+            }
+            
+            return redirect()->back()->with('success', $message);
 
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['file' => $e->getMessage()]);

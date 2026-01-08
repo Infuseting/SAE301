@@ -10,6 +10,21 @@ export default function MyRaceButton() {
     const messages = usePage().props.translations?.messages || {};
     const user = usePage().props.auth.user;
 
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     return (
         <div className="relative text-center" ref={dropdownRef}>
             {/* Dropdown Button */}
@@ -46,13 +61,15 @@ export default function MyRaceButton() {
                             <LuLayoutGrid className="inline mr-2 mb-1" />
                             {messages.view_all_races || "Voir toutes les courses"}
                         </Link>
-                        <Link
-                            href={route("myrace.index")}
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                        >
-                            <BiSolidTimer className="inline mr-2 mb-1" />
-                            {messages.my_courses || "Mes courses"}
-                        </Link>
+                        {user && (
+                            <Link
+                                href={route("myrace.index")}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                            >
+                                <BiSolidTimer className="inline mr-2 mb-1" />
+                                {messages.my_courses || "Mes courses"}
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}

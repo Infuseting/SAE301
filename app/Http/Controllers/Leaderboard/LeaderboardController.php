@@ -90,4 +90,29 @@ class LeaderboardController extends Controller
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
     }
+
+    /**
+     * Export ALL leaderboard results (all races) to CSV.
+     * Used for the general leaderboard export.
+     *
+     * @param Request $request
+     * @return HttpResponse
+     */
+    public function exportAll(Request $request): HttpResponse
+    {
+        $type = $request->input('type', 'individual');
+        
+        $csv = $this->leaderboardService->exportAllToCsv($type);
+        
+        $filename = sprintf(
+            'classement_general_%s_%s.csv',
+            $type,
+            date('Y-m-d')
+        );
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
+    }
 }

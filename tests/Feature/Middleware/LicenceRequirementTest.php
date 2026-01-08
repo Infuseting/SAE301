@@ -195,6 +195,10 @@ class LicenceRequirementTest extends TestCase
             ->withHeader('X-Inertia', 'true')
             ->post(route('clubs.store'), [
                 'club_name' => 'Test Club',
+                'club_street' => '123 Test Street',
+                'club_city' => 'Test City',
+                'club_postal_code' => '12345',
+                'ffso_id' => 'ABC123',
             ]);
 
         $response->assertStatus(403);
@@ -226,7 +230,7 @@ class LicenceRequirementTest extends TestCase
             'birth_date' => '1990-01-01',
             'address' => '123 Test Street',
             'phone' => '+33612345678',
-            'license_number' => 'NEW-LICENCE-2026',
+            'license_number' => 'AB123456',
         ]);
 
         // Verify requirement is now false

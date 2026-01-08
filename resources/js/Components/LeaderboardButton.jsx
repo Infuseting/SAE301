@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { FaTrophy, FaMedal } from "react-icons/fa";
 import { LuLayoutGrid } from "react-icons/lu";
@@ -11,6 +11,22 @@ export default function LeaderboardButton() {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const messages = usePage().props.translations?.messages || {};
+    const user = usePage().props.auth?.user;
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
         <div className="relative text-center" ref={dropdownRef}>
@@ -48,13 +64,15 @@ export default function LeaderboardButton() {
                             <LuLayoutGrid className="inline mr-2 mb-1" />
                             {messages.public_leaderboard || "Classement public"}
                         </Link>
-                        <Link
-                            href={route("my-leaderboard.index")}
-                            className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                            <FaMedal className="inline mr-2 mb-1" />
-                            {messages.my_leaderboard || "Mon classement"}
-                        </Link>
+                        {user && (
+                            <Link
+                                href={route("my-leaderboard.index")}
+                                className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                                <FaMedal className="inline mr-2 mb-1" />
+                                {messages.my_leaderboard || "Mon classement"}
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}

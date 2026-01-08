@@ -21,6 +21,10 @@ return new class extends Migration
             $table->decimal('average_malus', 10, 2)->default(0);
             $table->decimal('average_temps_final', 10, 2);
             $table->integer('member_count')->default(0);
+            $table->integer('points')->default(0);
+            $table->string('status', 50)->default('classé');
+            $table->string('category', 50)->nullable();
+            $table->string('puce', 50)->nullable();
             $table->unique(['equ_id', 'race_id'], 'unique_team_race');
             $table->timestamps();
         });

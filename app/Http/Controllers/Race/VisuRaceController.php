@@ -73,7 +73,7 @@ class VisuRaceController extends Controller
             'type',
             'teamParams',
             'runnerParams',
-            'categorieAges.ageCategorie'
+            'categorieAges.ageCategory'
         ])->find($id);
 
         // If race not found, return error page
@@ -158,6 +158,7 @@ class VisuRaceController extends Controller
             'difficulty' => $race->race_difficulty ?? 'Moyen',
             'status' => $this->getRaceStatus($race),
             'isOpen' => $race->isOpen(),
+            'is_finished' => $race->isCompleted(),
             'registrationUpcoming' => $race->isRegistrationUpcoming(),
             'imageUrl' => $race->image_url ? '/storage/' . $race->image_url : null,
             'description' => $race->race_description ?? 'Aucune description disponible.',
@@ -186,17 +187,30 @@ class VisuRaceController extends Controller
 
                 \Log::info("Found " . $teams->count() . " teams.");
                 
-                return $teams->map(fn($team) => [
-                    'id' => $team->equ_id,
-                    'name' => $team->equ_name,
-                    'members_count' => \DB::table('has_participate')->where('equ_id', $team->equ_id)->count(),
-                ])->values()->toArray();
+                return $teams->map(function($team) {
+                    // Get members with their license status
+                    $members = \DB::table('has_participate')
+                        ->leftJoin('users', 'has_participate.id_users', '=', 'users.id')
+                        ->leftJoin('members', 'users.adh_id', '=', 'members.adh_id')
+                        ->where('has_participate.equ_id', $team->equ_id)
+                        ->select('users.id', 'members.adh_license')
+                        ->get();
+                    
+                    $licensedCount = $members->filter(fn($m) => !empty($m->adh_license))->count();
+                    
+                    return [
+                        'id' => $team->equ_id,
+                        'name' => $team->equ_name,
+                        'members_count' => $members->count(),
+                        'licensed_members_count' => $licensedCount,
+                    ];
+                })->values()->toArray();
             })() : [],
             'ageCategories' => $race->categorieAges->map(fn($pc) => [
-                'id' => $pc->ageCategorie->id,
-                'nom' => $pc->ageCategorie->nom,
-                'age_min' => $pc->ageCategorie->age_min,
-                'age_max' => $pc->ageCategorie->age_max,
+                'id' => $pc->ageCategory->id,
+                'nom' => $pc->ageCategory->nom,
+                'age_min' => $pc->ageCategory->age_min,
+                'age_max' => $pc->ageCategory->age_max,
             ])->toArray(),
             'raid' => $race->raid ? [
                 'id' => $race->raid->raid_id,
@@ -224,6 +238,7 @@ class VisuRaceController extends Controller
             'maxParticipants' => $race->runnerParams?->pac_nb_max ?? 100,
             'minTeams' => $race->teamParams?->pae_nb_min ?? 1,
             'maxTeams' => $race->teamParams?->pae_nb_max ?? 1,
+            'minPerTeam' => $race->teamParams?->pae_team_count_min ?? 1,
             'maxPerTeam' => $race->teamParams?->pae_team_count_max ?? 1,
             'createdAt' => $race->created_at?->toIso8601String(),
             'updatedAt' => $race->updated_at?->toIso8601String(),

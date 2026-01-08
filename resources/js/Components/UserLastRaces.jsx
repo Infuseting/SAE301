@@ -1,3 +1,5 @@
+import { Link } from "@inertiajs/react";
+
 /**
  * UserLastRaces component - Displays user's teams in a card grid layout
  * @param {Array} teams - Array of team objects with name, image, and members
