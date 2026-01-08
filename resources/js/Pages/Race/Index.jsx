@@ -100,7 +100,7 @@ export default function Index({ auth, races }) {
     };
 
     return (
-        <Layout user={auth?.user}>
+        <PublicLayout user={auth?.user}>
             <Head title="Calendrier des Courses" />
 
             <div className="min-h-screen bg-gray-50 py-12">
@@ -283,6 +283,6 @@ export default function Index({ auth, races }) {
                     )}
                 </div>
             </div>
-        </Layout>
+        </PublicLayout>
     );
 }
