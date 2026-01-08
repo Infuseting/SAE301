@@ -1836,10 +1836,11 @@ class LeaderboardService
             $col = trim($col);
             // Remove UTF-8 BOM if present
             $col = preg_replace('/^\xEF\xBB\xBF/', '', $col);
-            $col = strtolower($col);
+            // Use mb_strtolower for proper UTF-8 lowercase conversion
+            $col = mb_strtolower($col, 'UTF-8');
             
             // Normalize accented characters for more reliable matching
-            $col = str_replace('é', 'e', $col);
+            $col = preg_replace('/[éèêë]/u', 'e', $col);
             
             // Map column names
             $mapping = [
@@ -1853,6 +1854,9 @@ class LeaderboardService
             ];
             return $mapping[$col] ?? $col;
         }, $header);
+        
+        // Log normalized headers for debugging
+        Log::debug('CSV Import - Normalized headers', ['headers' => $header]);
 
         // Validate required columns
         if (!in_array('equipe', $header)) {
