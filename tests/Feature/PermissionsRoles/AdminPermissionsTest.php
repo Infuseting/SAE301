@@ -444,6 +444,7 @@ class AdminPermissionsTest extends TestCase
      */
     public function test_admin_can_create_race(): void
     {
+        // Type 1 is "compétitif" which doesn't allow minor prices
         $response = $this->actingAs($this->adminUser)
             ->post(route('races.store'), [
                 'title' => 'Admin Created Race',
@@ -462,9 +463,8 @@ class AdminPermissionsTest extends TestCase
                 'licenseDiscount' => 0,
                 'price' => 10,
                 'priceMajor' => 20,
-                'priceMinor' => 15,
-                'priceMajorAdherent' => 18,
-                'priceMinorAdherent' => 12,
+                'priceMinor' => 0, // Competitive races don't allow minor prices
+                'priceAdherent' => 18,
                 'responsableId' => $this->adminUser->id,
                 'raid_id' => $this->raid->raid_id,
             ]);

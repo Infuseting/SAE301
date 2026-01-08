@@ -375,4 +375,12 @@ return [
     'role_guest' => 'Guest',
     'no_roles_assigned' => 'No roles assigned',
 
+    // Leaderboard Navigation
+    'leaderboard' => 'Leaderboard',
+    'public_leaderboard' => 'Public leaderboard',
+    'my_leaderboard' => 'My leaderboard',
+
+    // Courses Navigation
+    'view_all_races' => 'View all races',
+
 ];

@@ -5,6 +5,7 @@ import ClubsDropdown from "@/Components/ClubsDropdown";
 import UserMenu from "@/Components/UserMenu";
 import MyRaceButton from "./MyRaceButton";
 import RaidButton from "./RaidButton";
+import LeaderboardButton from "./LeaderboardButton";
 import BurgerMenu from "./BurgerMenu";
 
 import ManagerButton from "./ManagerButton";
@@ -60,6 +61,7 @@ export default function Header({ transparent = false, className = "" }) {
                                         <RaidButton />
                                         <MyRaceButton />
                                         <ClubsDropdown />
+                                        <LeaderboardButton />
                                     </>
                                 )}
                             </div>
@@ -133,6 +135,7 @@ export default function Header({ transparent = false, className = "" }) {
                                     <RaidButton />
                                     <MyRaceButton />
                                     <ClubsDropdown />
+                                    <LeaderboardButton />
                                 </div>
                             )}
                         </nav>

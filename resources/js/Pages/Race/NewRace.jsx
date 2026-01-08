@@ -189,9 +189,17 @@ export default function NewRace({ auth, users = [], types = [], raid_id = null, 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isEditMode) {
-            put(route('races.update', race.race_id));
+            // Use router.post with _method: PUT for file uploads to work correctly
+            router.post(route('races.update', race.race_id), {
+                _method: 'PUT',
+                ...data,
+            }, {
+                forceFormData: true,
+            });
         } else {
-            post(route('races.store'));
+            post(route('races.store'), {
+                forceFormData: true,
+            });
         }
     };
 

@@ -271,4 +271,12 @@ return [
     'promote_to_manager' => 'Zum Verantwortlichen befördern',
     'demote_to_member' => 'Zum Mitglied zurückstufen',
 
+    // Leaderboard Navigation
+    'leaderboard' => 'Rangliste',
+    'public_leaderboard' => 'Öffentliche Rangliste',
+    'my_leaderboard' => 'Meine Rangliste',
+
+    // Courses Navigation
+    'view_all_races' => 'Alle Rennen anzeigen',
+
 ];

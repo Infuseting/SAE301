@@ -82,11 +82,12 @@ class RaidController extends Controller
         // Get members (adherents) of this club from club_user table
         $clubMembers = collect();
         if ($userClub) {
-            // Get all approved members of the club
+            // Get all approved members of the club who have an adh_id (are adherents)
             $clubMembers = \DB::table('club_user')
                 ->join('users', 'club_user.user_id', '=', 'users.id')
                 ->where('club_user.club_id', $userClub->club_id)
                 ->where('club_user.status', 'approved')
+                ->whereNotNull('users.adh_id')
                 ->select('users.id', 'users.adh_id', 'users.first_name', 'users.last_name', 'users.email')
                 ->orderBy('users.last_name')
                 ->orderBy('users.first_name')
@@ -100,12 +101,12 @@ class RaidController extends Controller
                     ];
                 });
 
-            // If current user is not in the list but is the club creator, add them
+            // If current user is not in the list but is the club creator and has adh_id, add them
             $currentUserId = auth()->id();
+            $currentUser = auth()->user();
             $currentUserInList = $clubMembers->contains('id', $currentUserId);
             
-            if (!$currentUserInList) {
-                $currentUser = auth()->user();
+            if (!$currentUserInList && $currentUser->adh_id) {
                 $clubMembers->prepend([
                     'id' => $currentUser->id,
                     'adh_id' => $currentUser->adh_id,

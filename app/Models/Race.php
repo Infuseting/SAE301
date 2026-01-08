@@ -189,6 +189,16 @@ class Race extends Model
     }
 
     /**
+     * Get the age categories parameters for this race.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function categorieAges(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ParamCategorieAge::class, 'race_id', 'race_id');
+    }
+
+    /**
      * Get the teams participating in this race.
      *
      * @return BelongsToMany

@@ -1,8 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import LanguageSwitcher from '@/Components/LanguageSwitcher';
-import UserMenu from '@/Components/UserMenu';
+import Header from '@/Components/Header';
 
 /**
  * Public Leaderboard Index page - Shows all public race rankings
@@ -95,41 +93,7 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
 
             <div className="min-h-screen bg-gray-50">
                 {/* Navigation */}
-                <nav className="border-b border-gray-100 bg-white">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div className="flex h-16 justify-between">
-                            <div className="flex items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800 hover:text-emerald-600 transition-colors" />
-                                </Link>
-                                <span className="ml-4 text-xl font-bold text-gray-900">
-                                    {messages.general_leaderboard || 'Classement Général'}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <LanguageSwitcher />
-                                {auth.user ? (
-                                    <UserMenu user={auth.user} />
-                                ) : (
-                                    <div className="flex gap-4">
-                                        <Link
-                                            href={route('login')}
-                                            className="px-4 py-2 text-gray-700 hover:text-emerald-600 transition font-medium"
-                                        >
-                                            {messages.login || 'Connexion'}
-                                        </Link>
-                                        <Link
-                                            href={route('register')}
-                                            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition font-bold"
-                                        >
-                                            {messages.register || 'Inscription'}
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </nav>
+                <Header />
 
                 <div className="py-12">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

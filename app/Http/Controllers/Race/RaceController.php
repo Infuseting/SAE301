@@ -11,6 +11,8 @@ use App\Models\ParamRunner;
 use App\Models\ParamTeam;
 use App\Models\Raid;
 use App\Models\PriceAgeCategory;
+use App\Models\AgeCategorie;
+use App\Models\ParamCategorieAge;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -103,9 +105,16 @@ class RaceController extends Controller
             ])
             ->toArray();
 
+        // Get all age categories
+        $ageCategories = AgeCategorie::select('id', 'nom', 'age_min', 'age_max')
+            ->orderBy('age_min')
+            ->get()
+            ->toArray();
+
         return Inertia::render('Race/NewRace', [    
             'users' => $users,
             'types' => $types,
+            'ageCategories' => $ageCategories,
             'raid_id' => $raidId,
             'raid' => $raid,
             'race' => $race, // null for create, race data for edit
@@ -173,6 +182,17 @@ class RaceController extends Controller
 
         // Create the race
         $race = Race::create($raceData);
+
+        // Insert selected age categories
+        $selectedCategories = $request->input('selectedAgeCategories', []);
+        if (!empty($selectedCategories)) {
+            foreach ($selectedCategories as $ageCategorieId) {
+                ParamCategorieAge::create([
+                    'race_id' => $race->race_id,
+                    'age_categorie_id' => $ageCategorieId,
+                ]);
+            }
+        }
 
         // Assign responsable-course role to the designated responsible
         $responsibleUser = User::find($request->input('responsableId'));

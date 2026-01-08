@@ -1,6 +1,7 @@
 import RaidButton from "./RaidButton";
 import MyRaceButton from "./MyRaceButton";
 import ClubsDropdown from "./ClubsDropdown";
+import LeaderboardButton from "./LeaderboardButton";
 import { useState, useRef } from "react";
 import { usePage } from "@inertiajs/react";
 
@@ -55,6 +56,7 @@ export default function BurgerMenu() {
                         <RaidButton />
                         <MyRaceButton />
                         <ClubsDropdown />
+                        <LeaderboardButton />
                     </div>
                 </div>
             )}

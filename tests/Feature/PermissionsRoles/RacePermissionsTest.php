@@ -226,6 +226,7 @@ class RacePermissionsTest extends TestCase
 
     /**
      * Get valid race data for creating a race
+     * Note: type 1 is "compétitif" which doesn't allow minor prices > 0
      */
     private function getValidRaceData(): array
     {
@@ -246,9 +247,8 @@ class RacePermissionsTest extends TestCase
             'licenseDiscount' => 0,
             'price' => 10,
             'priceMajor' => 20,
-            'priceMinor' => 15,
-            'priceMajorAdherent' => 18,
-            'priceMinorAdherent' => 12,
+            'priceMinor' => 0, // Competitive races don't allow minor prices
+            'priceAdherent' => 18,
             'responsableId' => $this->responsableCourseUser->id,
             'raid_id' => $this->raid->raid_id,
         ];

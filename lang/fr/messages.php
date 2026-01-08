@@ -405,5 +405,14 @@ return [
     'remove_teammate' => 'Supprimer',
     'no_teammates_added' => 'Aucun coéquipier ajouté pour le moment',
     'teammate_added' => 'Coéquipier ajouté',
-    'teammate_removed' => 'Coéquipier supprimé'
+    'teammate_removed' => 'Coéquipier supprimé',
+
+    // Leaderboard Navigation
+    'leaderboard' => 'Classement',
+    'public_leaderboard' => 'Classement public',
+    'my_leaderboard' => 'Mon classement',
+
+    // Courses Navigation
+    'view_all_races' => 'Voir toutes les courses',
+
 ];

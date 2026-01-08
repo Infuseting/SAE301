@@ -31,6 +31,7 @@ use App\Models\Raid;
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
 // Race routes
+Route::get('/races', [VisuRaceController::class, 'index'])->name('races.index');
 Route::get('/race/{id}', [VisuRaceController::class, 'show'])->name('races.show');
 Route::get('/map', [MapController::class, 'index'])->name('map.index');
 

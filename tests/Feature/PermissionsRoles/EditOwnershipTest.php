@@ -471,6 +471,7 @@ class EditOwnershipTest extends TestCase
 
     /**
      * Test that responsable-course can update their own race
+     * Note: type 1 is "compétitif" which doesn't allow minor prices > 0
      */
     public function test_responsable_course_can_update_own_race(): void
     {
@@ -488,7 +489,7 @@ class EditOwnershipTest extends TestCase
                 'minTeams' => 1,
                 'maxTeams' => 20,
                 'priceMajor' => 25.00,
-                'priceMinor' => 15.00,
+                'priceMinor' => 0, // Competitive races don't allow minor prices
                 'difficulty' => 'medium',
                 'type' => 1,
                 'responsableId' => $this->responsableCourseUser1->id,
@@ -500,6 +501,7 @@ class EditOwnershipTest extends TestCase
 
     /**
      * Test that responsable-course cannot update another user's race
+     * Note: type 1 is "compétitif" which doesn't allow minor prices > 0
      */
     public function test_responsable_course_cannot_update_other_users_race(): void
     {
@@ -517,7 +519,7 @@ class EditOwnershipTest extends TestCase
                 'minTeams' => 1,
                 'maxTeams' => 20,
                 'priceMajor' => 25.00,
-                'priceMinor' => 15.00,
+                'priceMinor' => 0, // Competitive races don't allow minor prices
                 'difficulty' => 'medium',
                 'type' => 1,
                 'responsableId' => $this->responsableCourseUser1->id,

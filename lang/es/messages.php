@@ -311,4 +311,12 @@ return [
     'promote_to_manager' => 'Promover a responsable',
     'demote_to_member' => 'Degradar a miembro',
 
+    // Leaderboard Navigation
+    'leaderboard' => 'Clasificación',
+    'public_leaderboard' => 'Clasificación pública',
+    'my_leaderboard' => 'Mi clasificación',
+
+    // Courses Navigation
+    'view_all_races' => 'Ver todas las carreras',
+
 ];

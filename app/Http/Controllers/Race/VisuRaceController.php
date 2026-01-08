@@ -7,10 +7,56 @@ use App\Models\Race;
 use Inertia\Inertia;
 
 /**
- * Controller for displaying race details
+ * Controller for displaying race details and list
  */
 class VisuRaceController extends Controller
 {
+    /**
+     * Display a listing of all races.
+     *
+     * @return \Inertia\Response
+     */
+    public function index()
+    {
+        $races = Race::with(['raid.club', 'type', 'organizer.user'])
+            ->orderBy('race_date_start', 'desc')
+            ->get()
+            ->map(function ($race) {
+                return [
+                    'race_id' => $race->race_id,
+                    'race_name' => $race->race_name,
+                    'race_description' => $race->race_description,
+                    'race_date_start' => $race->race_date_start?->toIso8601String(),
+                    'race_date_end' => $race->race_date_end?->toIso8601String(),
+                    'race_difficulty' => $race->race_difficulty,
+                    'race_duration_minutes' => $race->race_duration_minutes,
+                    'type' => $race->type?->typ_name ?? 'Classique',
+                    'image_url' => $race->image_url ? '/storage/' . $race->image_url : null,
+                    'price_major' => $race->price_major,
+                    'price_minor' => $race->price_minor,
+                    'location' => $race->raid ? trim(($race->raid->raid_city ?? '') . ' ' . ($race->raid->raid_postal_code ?? '')) : 'Lieu à définir',
+                    'status' => $this->getRaceStatus($race),
+                    'isOpen' => $race->isOpen(),
+                    'raid' => $race->raid ? [
+                        'id' => $race->raid->raid_id,
+                        'name' => $race->raid->raid_name,
+                        'city' => $race->raid->raid_city,
+                        'club' => $race->raid->club ? [
+                            'id' => $race->raid->club->club_id,
+                            'name' => $race->raid->club->club_name,
+                        ] : null,
+                    ] : null,
+                    'organizer' => $race->organizer?->user ? [
+                        'name' => trim($race->organizer->user->first_name . ' ' . $race->organizer->user->last_name),
+                    ] : null,
+                ];
+            });
+
+        return Inertia::render('Race/Index', [
+            'races' => $races,
+        ]);
+    }
+
     /**
      * Display the specified race.
      *
@@ -19,8 +65,15 @@ class VisuRaceController extends Controller
      */
     public function show(int $id)
     {
-        // Find the race by ID
-        $race = Race::with(['organizer.user', 'raid.registrationPeriod', 'type', 'teamParams'])->find($id);
+        // Find the race by ID with related data including age categories
+        $race = Race::with([
+            'organizer.user',
+            'raid.registrationPeriod',
+            'raid.club',
+            'type',
+            'teamParams',
+            'categorieAges.ageCategorie'
+        ])->find($id);
 
         // If race not found, return error page
         if (!$race) {
@@ -91,6 +144,26 @@ class VisuRaceController extends Controller
                 'name' => trim(($race->organizer?->adh_firstname ?? '') . ' ' . ($race->organizer?->adh_lastname ?? '')) ?: ($race->organizer?->user?->name ?? 'Organisateur'),
                 'email' => $race->organizer?->user?->email ?? ''
             ],
+            'ageCategories' => $race->categorieAges->map(fn($pc) => [
+                'id' => $pc->ageCategorie->id,
+                'nom' => $pc->ageCategorie->nom,
+                'age_min' => $pc->ageCategorie->age_min,
+                'age_max' => $pc->ageCategorie->age_max,
+            ])->toArray(),
+            'raid' => $race->raid ? [
+                'id' => $race->raid->raid_id,
+                'nom' => $race->raid->raid_name,
+                'description' => $race->raid->raid_description,
+                'location' => trim(($race->raid->raid_street ?? '') . ' ' . ($race->raid->raid_city ?? '') . ' ' . ($race->raid->raid_postal_code ?? '')) ?: 'Lieu à définir',
+                'latitude' => $race->raid->raid_latitude,
+                'longitude' => $race->raid->raid_longitude,
+                'dateStart' => $race->raid->raid_date_start?->toIso8601String(),
+                'dateEnd' => $race->raid->raid_date_end?->toIso8601String(),
+                'club' => $race->raid->club ? [
+                    'id' => $race->raid->club->club_id,
+                    'nom' => $race->raid->club->club_name,
+                ] : null,
+            ] : null,
             'categories' => [],
             'priceMajor' => $race->price_major,
             'priceMinor' => $race->price_minor,
