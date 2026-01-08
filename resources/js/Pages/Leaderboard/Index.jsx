@@ -4,8 +4,15 @@ import Header from '@/Components/Header';
 
 /**
  * Public Leaderboard Index page - Shows all public race rankings
- * Features: search by name/race, filter by individual/team, export CSV
- * Only shows users with public profiles
+ * 
+ * Features:
+ * - Individual rankings: Only shows users with public profiles
+ *   Displays: rank, name, race, raw time, malus, final time, points
+ * - Team rankings: All teams are shown (no visibility restrictions)
+ *   Displays: rank, team name, age category, race name, raw time, malus, final time, points, team members list
+ * - CSV Export with appropriate columns for each type
+ * - Search by name/race
+ * - Filter by individual/team
  */
 export default function LeaderboardIndex({ races, selectedRace, results, type, search }) {
     const { auth } = usePage().props;
@@ -78,6 +85,14 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
         });
     };
 
+    /**
+     * Format team members list as a comma-separated string
+     */
+    const formatTeamMembers = (members) => {
+        if (!members || members.length === 0) return '-';
+        return members.map(m => m.name).join(', ');
+    };
+
     const isTeamView = selectedType === 'team';
 
     return (
@@ -90,17 +105,33 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
 
                 <div className="py-12">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        {/* Info banner about public profiles */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                            <div className="flex items-center gap-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-blue-600">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                                </svg>
-                                <p className="text-sm text-blue-700">
-                                    {messages.public_profiles_only || 'Seuls les participants avec un profil public sont affichés dans ce classement.'}
-                                </p>
+                        {/* Info banner about public profiles - Only show for individual view */}
+                        {!isTeamView && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                                <div className="flex items-center gap-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-blue-600">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                    </svg>
+                                    <p className="text-sm text-blue-700">
+                                        {messages.public_profiles_only || 'Seuls les participants avec un profil public sont affichés dans ce classement.'}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Info banner for team view - all teams visible */}
+                        {isTeamView && (
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                                <div className="flex items-center gap-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-green-600">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                                    </svg>
+                                    <p className="text-sm text-green-700">
+                                        {messages.all_teams_visible || 'Toutes les équipes sont affichées dans ce classement.'}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Filters */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
@@ -210,6 +241,11 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     {isTeamView ? (messages.team || 'Équipe') : (messages.name || 'Nom')}
                                                 </th>
+                                                {isTeamView && (
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                        {messages.category || 'Catégorie'}
+                                                    </th>
+                                                )}
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     {messages.race || 'Course'}
                                                 </th>
@@ -221,6 +257,9 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                                 </th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     {messages.final_time || 'Temps final'}
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {messages.points || 'Points'}
                                                 </th>
                                                 {isTeamView && (
                                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -257,6 +296,15 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                                                 <span className="font-medium text-gray-900">
                                                                     {isTeamView ? result.team_name : result.user_name}
                                                                 </span>
+                                                                {isTeamView && result.status && result.status !== 'classé' && (
+                                                                    <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                                                        result.status === 'abandon' ? 'bg-orange-100 text-orange-800' :
+                                                                        result.status === 'disqualifié' ? 'bg-red-100 text-red-800' :
+                                                                        'bg-gray-100 text-gray-800'
+                                                                    }`}>
+                                                                        {result.status}
+                                                                    </span>
+                                                                )}
                                                                 {!isTeamView && result.user_id && (
                                                                     <Link 
                                                                         href={route('profile.show', result.user_id)}
@@ -268,10 +316,36 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                                             </div>
                                                         </div>
                                                     </td>
+                                                    {isTeamView && (
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            {/* Display age category from race relation (via param -> age categories) */}
+                                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                                result.age_category ? 'bg-indigo-100 text-indigo-800' :
+                                                                result.category === 'Masculin' ? 'bg-blue-100 text-blue-800' :
+                                                                result.category === 'Féminin' ? 'bg-pink-100 text-pink-800' :
+                                                                result.category === 'Mixte' ? 'bg-purple-100 text-purple-800' :
+                                                                'bg-gray-100 text-gray-800'
+                                                            }`}>
+                                                                {result.age_category || result.category || '-'}
+                                                            </span>
+                                                        </td>
+                                                    )}
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div>
                                                             <span className="text-gray-900">{result.race_name}</span>
                                                             <span className="block text-xs text-gray-500">{formatDate(result.race_date)}</span>
+                                                            {result.race_age_categories && result.race_age_categories.length > 0 && (
+                                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                                    {result.race_age_categories.map((cat, idx) => (
+                                                                        <span 
+                                                                            key={idx}
+                                                                            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700"
+                                                                        >
+                                                                            {cat}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-gray-700 font-mono">
@@ -283,9 +357,36 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                                     <td className="px-6 py-4 whitespace-nowrap font-bold text-emerald-600 font-mono">
                                                         {isTeamView ? result.average_temps_final_formatted : result.temps_final_formatted}
                                                     </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-bold ${
+                                                            result.points >= 100 ? 'bg-yellow-100 text-yellow-800' :
+                                                            result.points >= 50 ? 'bg-emerald-100 text-emerald-800' :
+                                                            result.points > 0 ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-gray-100 text-gray-500'
+                                                        }`}>
+                                                            {result.points || 0} pts
+                                                        </span>
+                                                    </td>
                                                     {isTeamView && (
-                                                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                                            {result.member_count}
+                                                        <td className="px-6 py-4">
+                                                            <div className="max-w-xs">
+                                                                {result.members && result.members.length > 0 ? (
+                                                                    <div className="flex flex-wrap gap-1">
+                                                                        {result.members.map((member, idx) => (
+                                                                            <span 
+                                                                                key={member.id || idx}
+                                                                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
+                                                                            >
+                                                                                {member.name}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-gray-400 text-sm">
+                                                                        {result.member_count} {result.member_count > 1 ? (messages.members || 'membres') : (messages.member || 'membre')}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </td>
                                                     )}
                                                 </tr>

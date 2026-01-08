@@ -2250,6 +2250,84 @@ class LeaderboardServiceTest extends TestCase
         $this->assertArrayHasKey('race_date', $leaderboard['data'][0]);
     }
 
+    /**
+     * Test public individual leaderboard includes age categories from param_categorie_age.
+     */
+    public function test_public_individual_leaderboard_includes_age_categories(): void
+    {
+        $race = Race::factory()->create(['race_name' => 'Test Race']);
+        $user = User::factory()->create(['is_public' => true]);
+
+        // Create age categories
+        $ageCategory1 = \App\Models\AgeCategorie::create(['nom' => 'Seniors', 'age_min' => 21, 'age_max' => 39]);
+        $ageCategory2 = \App\Models\AgeCategorie::create(['nom' => 'Juniors', 'age_min' => 17, 'age_max' => 18]);
+
+        // Link age categories to race via param_categorie_age
+        \App\Models\ParamCategorieAge::create(['race_id' => $race->race_id, 'age_categorie_id' => $ageCategory1->id]);
+        \App\Models\ParamCategorieAge::create(['race_id' => $race->race_id, 'age_categorie_id' => $ageCategory2->id]);
+
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+
+        $leaderboard = $this->service->getPublicLeaderboard(null, null, 'individual');
+        
+        $this->assertArrayHasKey('race_age_categories', $leaderboard['data'][0]);
+        $this->assertCount(2, $leaderboard['data'][0]['race_age_categories']);
+        $this->assertContains('Seniors', $leaderboard['data'][0]['race_age_categories']);
+        $this->assertContains('Juniors', $leaderboard['data'][0]['race_age_categories']);
+    }
+
+    /**
+     * Test public team leaderboard includes age categories from param_categorie_age.
+     */
+    public function test_public_team_leaderboard_includes_age_categories(): void
+    {
+        $race = Race::factory()->create(['race_name' => 'Test Race']);
+        $team = Team::factory()->create();
+
+        // Create age categories
+        $ageCategory1 = \App\Models\AgeCategorie::create(['nom' => 'Cadets', 'age_min' => 15, 'age_max' => 16]);
+        $ageCategory2 = \App\Models\AgeCategorie::create(['nom' => 'Minimes', 'age_min' => 13, 'age_max' => 14]);
+
+        // Link age categories to race via param_categorie_age
+        \App\Models\ParamCategorieAge::create(['race_id' => $race->race_id, 'age_categorie_id' => $ageCategory1->id]);
+        \App\Models\ParamCategorieAge::create(['race_id' => $race->race_id, 'age_categorie_id' => $ageCategory2->id]);
+
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 2,
+        ]);
+
+        $leaderboard = $this->service->getPublicLeaderboard(null, null, 'team');
+        
+        $this->assertArrayHasKey('race_age_categories', $leaderboard['data'][0]);
+        $this->assertCount(2, $leaderboard['data'][0]['race_age_categories']);
+        $this->assertContains('Cadets', $leaderboard['data'][0]['race_age_categories']);
+        $this->assertContains('Minimes', $leaderboard['data'][0]['race_age_categories']);
+    }
+
+    /**
+     * Test getRaces includes age categories from param_categorie_age.
+     */
+    public function test_get_races_includes_age_categories(): void
+    {
+        $race = Race::factory()->create(['race_name' => 'Test Race']);
+
+        // Create age categories
+        $ageCategory1 = \App\Models\AgeCategorie::create(['nom' => 'Espoirs', 'age_min' => 19, 'age_max' => 20]);
+
+        // Link age category to race
+        \App\Models\ParamCategorieAge::create(['race_id' => $race->race_id, 'age_categorie_id' => $ageCategory1->id]);
+
+        $races = $this->service->getRaces();
+        
+        $this->assertNotEmpty($races);
+        $this->assertContains('Espoirs', $races[0]->age_category_names);
+    }
+
     // ============================================
     // USER RESULTS TESTS
     // ============================================
@@ -3094,5 +3172,459 @@ class LeaderboardServiceTest extends TestCase
         
         $this->assertEquals(3600, $leaderboard1['data'][0]['temps']);
         $this->assertEquals(4000, $leaderboard2['data'][0]['temps']);
+    }
+
+    // ============================================
+    // TEAM CSV V2 IMPORT TESTS
+    // ============================================
+
+    /**
+     * Test import team CSV V2 with valid data.
+     */
+    public function test_import_team_csv_v2_with_valid_data(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'moyenne']);
+        $team1 = Team::factory()->create(['equ_name' => 'Team Alpha']);
+        $team2 = Team::factory()->create(['equ_name' => 'Team Beta']);
+
+        // Use ASCII header to avoid encoding issues in tests
+        $csvContent = "CLT;PUCE;EQUIPE;CATEGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000001;Team Alpha;Masculin;03:12:25;222\n";
+        $csvContent .= "2;7000002;Team Beta;Mixte;03:15:30;210";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $result = $this->service->importTeamCsvV2($file, $race->race_id);
+
+        $this->assertEquals(2, $result['success']);
+        $this->assertEquals(0, count($result['errors']));
+
+        // Check leaderboard entries
+        $entry1 = LeaderboardTeam::where('equ_id', $team1->equ_id)->where('race_id', $race->race_id)->first();
+        $entry2 = LeaderboardTeam::where('equ_id', $team2->equ_id)->where('race_id', $race->race_id)->first();
+
+        $this->assertNotNull($entry1);
+        $this->assertNotNull($entry2);
+        $this->assertEquals('Masculin', $entry1->category);
+        $this->assertEquals('Mixte', $entry2->category);
+        $this->assertEquals('7000001', $entry1->puce);
+    }
+
+    /**
+     * Test import team CSV V2 creates new teams.
+     */
+    public function test_import_team_csv_v2_creates_new_teams(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'facile']);
+
+        $csvContent = "CLT;PUCE;EQUIPE;CATEGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000099;New Team;Feminin;02:30:00;100";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $result = $this->service->importTeamCsvV2($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        $this->assertEquals(1, $result['created_teams']);
+
+        // Verify team was created
+        $team = Team::where('equ_name', 'New Team')->first();
+        $this->assertNotNull($team);
+        
+        // Verify leaderboard entry was created
+        $entry = LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first();
+        $this->assertNotNull($entry);
+        $this->assertEquals('Feminin', $entry->category);
+    }
+
+    /**
+     * Test import team CSV V2 handles negative times.
+     */
+    public function test_import_team_csv_v2_handles_negative_times(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'moyenne']);
+        $team = Team::factory()->create(['equ_name' => 'Negative Time Team']);
+
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000001;Negative Time Team;Masculin;-6:06:12;180";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $result = $this->service->importTeamCsvV2($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+
+        $entry = LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first();
+        $this->assertNotNull($entry);
+        // Time should be stored as absolute value (6:06:12 = 21972 seconds)
+        $this->assertEquals(21972, $entry->average_temps);
+    }
+
+    // ============================================
+    // POINTS CALCULATION TESTS
+    // ============================================
+
+    /**
+     * Test points calculation for first place (100 points).
+     */
+    public function test_points_calculation_first_place(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'facile']); // coefficient 1.0
+        $team = Team::factory()->create(['equ_name' => 'First Place']);
+
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000001;First Place;Masculin;01:00:00;0";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $this->service->importTeamCsvV2($file, $race->race_id, true);
+
+        $entry = LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first();
+        $this->assertEquals(100, $entry->points); // 100 * 1.0 = 100
+    }
+
+    /**
+     * Test points decrease by 10 per place.
+     */
+    public function test_points_decrease_per_place(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'facile']); // coefficient 1.0
+        $team1 = Team::factory()->create(['equ_name' => 'Team 1']);
+        $team2 = Team::factory()->create(['equ_name' => 'Team 2']);
+        $team3 = Team::factory()->create(['equ_name' => 'Team 3']);
+
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000001;Team 1;Masculin;01:00:00;0\n";
+        $csvContent .= "2;7000002;Team 2;Masculin;01:10:00;0\n";
+        $csvContent .= "3;7000003;Team 3;Masculin;01:20:00;0";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $this->service->importTeamCsvV2($file, $race->race_id, true);
+
+        $entry1 = LeaderboardTeam::where('equ_id', $team1->equ_id)->first();
+        $entry2 = LeaderboardTeam::where('equ_id', $team2->equ_id)->first();
+        $entry3 = LeaderboardTeam::where('equ_id', $team3->equ_id)->first();
+
+        $this->assertEquals(100, $entry1->points); // 1st: 100
+        $this->assertEquals(90, $entry2->points);  // 2nd: 100 - 10 = 90
+        $this->assertEquals(80, $entry3->points);  // 3rd: 100 - 20 = 80
+    }
+
+    /**
+     * Test minimum 20 points for classified teams.
+     */
+    public function test_minimum_points_is_20(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'facile']);
+        
+        // Create 10 teams to go beyond rank 9 (100 - 90 = 10 < 20)
+        $teams = [];
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        for ($i = 1; $i <= 10; $i++) {
+            $teams[$i] = Team::factory()->create(['equ_name' => "Team {$i}"]);
+            $csvContent .= "{$i};700000{$i};Team {$i};Masculin;0{$i}:00:00;0\n";
+        }
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $this->service->importTeamCsvV2($file, $race->race_id, true);
+
+        // Check 9th and 10th place have minimum 20 points
+        $entry9 = LeaderboardTeam::where('equ_id', $teams[9]->equ_id)->first();
+        $entry10 = LeaderboardTeam::where('equ_id', $teams[10]->equ_id)->first();
+
+        $this->assertEquals(20, $entry9->points);  // 9th: max(100 - 80, 20) = 20
+        $this->assertEquals(20, $entry10->points); // 10th: max(100 - 90, 20) = 20
+    }
+
+    /**
+     * Test equal times give equal points.
+     */
+    public function test_equal_times_equal_points(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'facile']);
+        $team1 = Team::factory()->create(['equ_name' => 'Team A']);
+        $team2 = Team::factory()->create(['equ_name' => 'Team B']);
+        $team3 = Team::factory()->create(['equ_name' => 'Team C']);
+
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000001;Team A;Masculin;01:00:00;0\n";
+        $csvContent .= "2;7000002;Team B;Masculin;01:00:00;0\n"; // Same time as Team A
+        $csvContent .= "3;7000003;Team C;Masculin;01:10:00;0";   // Different time
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $this->service->importTeamCsvV2($file, $race->race_id, true);
+
+        $entryA = LeaderboardTeam::where('equ_id', $team1->equ_id)->first();
+        $entryB = LeaderboardTeam::where('equ_id', $team2->equ_id)->first();
+        $entryC = LeaderboardTeam::where('equ_id', $team3->equ_id)->first();
+
+        // Team A and B have same time, should have same points
+        $this->assertEquals($entryA->points, $entryB->points);
+        $this->assertEquals(100, $entryA->points);
+        // Team C should have less points
+        $this->assertLessThan($entryA->points, $entryC->points);
+    }
+
+    /**
+     * Test difficulty coefficient for medium difficulty.
+     */
+    public function test_difficulty_coefficient_medium(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'moyenne']); // coefficient 1.2
+        $team = Team::factory()->create(['equ_name' => 'Medium Race Team']);
+
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000001;Medium Race Team;Masculin;01:00:00;0";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $this->service->importTeamCsvV2($file, $race->race_id, true);
+
+        $entry = LeaderboardTeam::where('equ_id', $team->equ_id)->first();
+        $this->assertEquals(120, $entry->points); // 100 * 1.2 = 120
+    }
+
+    /**
+     * Test difficulty coefficient for hard difficulty.
+     */
+    public function test_difficulty_coefficient_hard(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'difficile']); // coefficient 1.5
+        $team = Team::factory()->create(['equ_name' => 'Hard Race Team']);
+
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000001;Hard Race Team;Masculin;01:00:00;0";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $this->service->importTeamCsvV2($file, $race->race_id, true);
+
+        $entry = LeaderboardTeam::where('equ_id', $team->equ_id)->first();
+        $this->assertEquals(150, $entry->points); // 100 * 1.5 = 150
+    }
+
+    /**
+     * Test recalculate team points.
+     */
+    public function test_recalculate_team_points(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'facile']);
+        $team1 = Team::factory()->create();
+        $team2 = Team::factory()->create();
+
+        // Create entries with wrong points
+        LeaderboardTeam::create([
+            'equ_id' => $team1->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 1,
+            'points' => 0, // Wrong
+            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
+        ]);
+        LeaderboardTeam::create([
+            'equ_id' => $team2->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 4000,
+            'average_malus' => 0,
+            'average_temps_final' => 4000,
+            'member_count' => 1,
+            'points' => 0, // Wrong
+            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
+        ]);
+
+        $updated = $this->service->recalculateTeamPoints($race->race_id);
+
+        $this->assertEquals(2, $updated);
+
+        $entry1 = LeaderboardTeam::where('equ_id', $team1->equ_id)->first();
+        $entry2 = LeaderboardTeam::where('equ_id', $team2->equ_id)->first();
+
+        $this->assertEquals(100, $entry1->points);
+        $this->assertEquals(90, $entry2->points);
+    }
+
+    /**
+     * Test team leaderboard includes points.
+     */
+    public function test_team_leaderboard_includes_points(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create();
+
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 1,
+            'points' => 100,
+            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
+            'category' => 'Masculin',
+        ]);
+
+        $leaderboard = $this->service->getTeamLeaderboard($race->race_id);
+
+        $this->assertArrayHasKey('points', $leaderboard['data'][0]);
+        $this->assertArrayHasKey('status', $leaderboard['data'][0]);
+        $this->assertArrayHasKey('category', $leaderboard['data'][0]);
+        $this->assertEquals(100, $leaderboard['data'][0]['points']);
+        $this->assertEquals('classé', $leaderboard['data'][0]['status']);
+        $this->assertEquals('Masculin', $leaderboard['data'][0]['category']);
+    }
+
+    /**
+     * Test export CSV team includes points.
+     */
+    public function test_export_csv_team_includes_points(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create(['equ_name' => 'Export Team']);
+
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 1,
+            'points' => 150,
+            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
+            'category' => 'Mixte',
+        ]);
+
+        $csv = $this->service->exportToCsv($race->race_id, 'team');
+
+        $this->assertStringContainsString('Points', $csv);
+        $this->assertStringContainsString('150', $csv);
+        $this->assertStringContainsString('Mixte', $csv);
+        $this->assertStringContainsString('classé', $csv);
+    }
+
+    /**
+     * Test update team status to abandoned sets 0 points.
+     */
+    public function test_update_team_status_abandoned(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'facile']);
+        $team1 = Team::factory()->create();
+        $team2 = Team::factory()->create();
+
+        $entry1 = LeaderboardTeam::create([
+            'equ_id' => $team1->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 1,
+            'points' => 100,
+            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
+        ]);
+        LeaderboardTeam::create([
+            'equ_id' => $team2->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 4000,
+            'average_malus' => 0,
+            'average_temps_final' => 4000,
+            'member_count' => 1,
+            'points' => 90,
+            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
+        ]);
+
+        $result = $this->service->updateTeamStatus($entry1->id, LeaderboardTeam::STATUS_ABANDONED);
+
+        $this->assertTrue($result);
+
+        $entry1->refresh();
+        $this->assertEquals(LeaderboardTeam::STATUS_ABANDONED, $entry1->status);
+        $this->assertEquals(0, $entry1->points);
+    }
+
+    /**
+     * Test team status constants exist.
+     */
+    public function test_team_status_constants(): void
+    {
+        $this->assertEquals('classé', LeaderboardTeam::STATUS_CLASSIFIED);
+        $this->assertEquals('abandon', LeaderboardTeam::STATUS_ABANDONED);
+        $this->assertEquals('disqualifié', LeaderboardTeam::STATUS_DISQUALIFIED);
+        $this->assertEquals('hors_classement', LeaderboardTeam::STATUS_OUT_OF_RANKING);
+    }
+
+    /**
+     * Test team category constants exist.
+     */
+    public function test_team_category_constants(): void
+    {
+        $this->assertEquals('Masculin', LeaderboardTeam::CATEGORY_MALE);
+        $this->assertEquals('Féminin', LeaderboardTeam::CATEGORY_FEMALE);
+        $this->assertEquals('Mixte', LeaderboardTeam::CATEGORY_MIXED);
+    }
+
+    /**
+     * Test leisure race caps points at 50.
+     */
+    public function test_leisure_race_caps_points_at_50(): void
+    {
+        // Create a leisure race type
+        $leisureType = \App\Models\ParamType::create(['typ_name' => 'loisir']);
+        $race = Race::factory()->create([
+            'race_difficulty' => 'facile',
+            'typ_id' => $leisureType->typ_id,
+        ]);
+        $team = Team::factory()->create(['equ_name' => 'Leisure Team']);
+
+        $csvContent = "CLT;PUCE;EQUIPE;CATEGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000001;Leisure Team;Masculin;01:00:00;0";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $this->service->importTeamCsvV2($file, $race->race_id, true);
+
+        $entry = LeaderboardTeam::where('equ_id', $team->equ_id)->first();
+        // Should be capped at 50 despite 100 * 1.0 = 100
+        $this->assertEquals(50, $entry->points);
+    }
+
+    /**
+     * Test import team CSV V2 with real format from attachment.
+     */
+    public function test_import_team_csv_v2_real_format(): void
+    {
+        $race = Race::factory()->create(['race_difficulty' => 'moyenne']); // coefficient 1.2
+        
+        // Create some teams that exist in the CSV
+        Team::factory()->create(['equ_name' => 'Team dingo']);
+        Team::factory()->create(['equ_name' => 'Les freres Gaut']);
+        
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        $csvContent .= "22;7141178;Team dingo;Masculin;03:12:25;222\n";
+        $csvContent .= "24;7000594;Les freres Gaut;Masculin;03:17:39;222";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $result = $this->service->importTeamCsvV2($file, $race->race_id);
+
+        $this->assertEquals(2, $result['success']);
+        $this->assertEquals(0, count($result['errors']));
+        
+        // Verify leaderboard entries exist
+        $this->assertDatabaseHas('leaderboard_teams', ['race_id' => $race->race_id]);
     }
 }

@@ -17,6 +17,7 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(property="race_id", type="integer", example=1),
  *     @OA\Property(property="temps", type="number", format="float", example=3600.50),
  *     @OA\Property(property="malus", type="number", format="float", example=60.00),
+ *     @OA\Property(property="points", type="integer", example=100, description="Points earned based on ranking"),
  *     @OA\Property(property="temps_final", type="number", format="float", example=3660.50),
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time")
@@ -33,12 +34,14 @@ class LeaderboardUser extends Model
         'race_id',
         'temps',
         'malus',
+        'points',
     ];
 
     protected $casts = [
         'temps' => 'decimal:2',
         'malus' => 'decimal:2',
         'temps_final' => 'decimal:2',
+        'points' => 'integer',
     ];
 
     public function user(): BelongsTo
