@@ -2642,6 +2642,159 @@ class LeaderboardServiceTest extends TestCase
         $this->assertStringContainsString('Rang', $lines[0]);
     }
 
+    /**
+     * Test export ALL individual results to CSV (all races).
+     */
+    public function test_export_all_csv_individual_format(): void
+    {
+        $race1 = Race::factory()->create(['race_name' => 'Marathon Paris']);
+        $race2 = Race::factory()->create(['race_name' => 'Trail Lyon']);
+        
+        // Only public users should be exported
+        $user1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont', 'is_public' => true]);
+        $user2 = User::factory()->create(['first_name' => 'Marie', 'last_name' => 'Martin', 'is_public' => true]);
+
+        LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race1->race_id, 'temps' => 3600, 'malus' => 60]);
+        LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race2->race_id, 'temps' => 4000, 'malus' => 0]);
+
+        $csv = $this->service->exportAllToCsv('individual');
+        $lines = explode("\n", trim($csv));
+        
+        // Header + 2 data rows
+        $this->assertCount(3, $lines);
+        
+        // Check header includes race columns
+        $this->assertStringContainsString('Rang', $lines[0]);
+        $this->assertStringContainsString('Nom', $lines[0]);
+        $this->assertStringContainsString('Course', $lines[0]);
+        $this->assertStringContainsString('Date Course', $lines[0]);
+        
+        // Check data includes race names
+        $csvContent = implode("\n", $lines);
+        $this->assertStringContainsString('Jean Dupont', $csvContent);
+        $this->assertStringContainsString('Marie Martin', $csvContent);
+        $this->assertStringContainsString('Marathon Paris', $csvContent);
+        $this->assertStringContainsString('Trail Lyon', $csvContent);
+    }
+
+    /**
+     * Test export ALL individual CSV only includes public profiles.
+     */
+    public function test_export_all_csv_only_includes_public_profiles(): void
+    {
+        $race = Race::factory()->create(['race_name' => 'Test Race']);
+        
+        // Public user - should be included
+        $publicUser = User::factory()->create(['first_name' => 'Public', 'last_name' => 'User', 'is_public' => true]);
+        // Private user - should NOT be included
+        $privateUser = User::factory()->create(['first_name' => 'Private', 'last_name' => 'User', 'is_public' => false]);
+
+        LeaderboardUser::create(['user_id' => $publicUser->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $privateUser->id, 'race_id' => $race->race_id, 'temps' => 3500, 'malus' => 0]);
+
+        $csv = $this->service->exportAllToCsv('individual');
+        $lines = explode("\n", trim($csv));
+        
+        // Header + 1 data row (only public user)
+        $this->assertCount(2, $lines);
+        
+        $csvContent = implode("\n", $lines);
+        $this->assertStringContainsString('Public User', $csvContent);
+        $this->assertStringNotContainsString('Private User', $csvContent);
+    }
+
+    /**
+     * Test export ALL team results to CSV (all races).
+     */
+    public function test_export_all_csv_team_format(): void
+    {
+        $race1 = Race::factory()->create(['race_name' => 'Race Alpha']);
+        $race2 = Race::factory()->create(['race_name' => 'Race Beta']);
+        
+        $team1 = Team::factory()->create(['equ_name' => 'Alpha Team']);
+        $team2 = Team::factory()->create(['equ_name' => 'Beta Team']);
+
+        LeaderboardTeam::create([
+            'equ_id' => $team1->equ_id,
+            'race_id' => $race1->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 30,
+            'average_temps_final' => 3630,
+            'member_count' => 3,
+        ]);
+        
+        LeaderboardTeam::create([
+            'equ_id' => $team2->equ_id,
+            'race_id' => $race2->race_id,
+            'average_temps' => 4000,
+            'average_malus' => 60,
+            'average_temps_final' => 4060,
+            'member_count' => 2,
+        ]);
+
+        $csv = $this->service->exportAllToCsv('team');
+        $lines = explode("\n", trim($csv));
+        
+        // Header + 2 data rows
+        $this->assertCount(3, $lines);
+        
+        // Check header includes race and member columns
+        $this->assertStringContainsString('Rang', $lines[0]);
+        $this->assertStringContainsString('Equipe', $lines[0]);
+        $this->assertStringContainsString('Course', $lines[0]);
+        $this->assertStringContainsString('Membres', $lines[0]);
+        
+        // Check data
+        $csvContent = implode("\n", $lines);
+        $this->assertStringContainsString('Alpha Team', $csvContent);
+        $this->assertStringContainsString('Beta Team', $csvContent);
+        $this->assertStringContainsString('Race Alpha', $csvContent);
+        $this->assertStringContainsString('Race Beta', $csvContent);
+    }
+
+    /**
+     * Test export ALL CSV empty leaderboard returns header only.
+     */
+    public function test_export_all_csv_empty_returns_header(): void
+    {
+        // No races or results
+        $csv = $this->service->exportAllToCsv('individual');
+        $lines = explode("\n", trim($csv));
+        
+        $this->assertCount(1, $lines); // Only header
+        $this->assertStringContainsString('Rang', $lines[0]);
+    }
+
+    /**
+     * Test export ALL CSV includes results from multiple races.
+     */
+    public function test_export_all_csv_includes_all_races(): void
+    {
+        // Create 3 races with different results
+        $race1 = Race::factory()->create(['race_name' => 'Course 1']);
+        $race2 = Race::factory()->create(['race_name' => 'Course 2']);
+        $race3 = Race::factory()->create(['race_name' => 'Course 3']);
+        
+        // User must be public to be exported
+        $user = User::factory()->create(['first_name' => 'Test', 'last_name' => 'Runner', 'is_public' => true]);
+
+        // Same user in all 3 races
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race1->race_id, 'temps' => 3600, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race2->race_id, 'temps' => 3700, 'malus' => 0]);
+        LeaderboardUser::create(['user_id' => $user->id, 'race_id' => $race3->race_id, 'temps' => 3800, 'malus' => 0]);
+
+        $csv = $this->service->exportAllToCsv('individual');
+        $lines = explode("\n", trim($csv));
+        
+        // Header + 3 data rows (one per race)
+        $this->assertCount(4, $lines);
+        
+        $csvContent = implode("\n", $lines);
+        $this->assertStringContainsString('Course 1', $csvContent);
+        $this->assertStringContainsString('Course 2', $csvContent);
+        $this->assertStringContainsString('Course 3', $csvContent);
+    }
+
     // ============================================
     // RECALCULATE TEAM AVERAGES TESTS
     // ============================================

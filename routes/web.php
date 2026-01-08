@@ -49,6 +49,7 @@ Route::get('/my-race', [MyRaceController::class, 'index'])->name('myrace.index')
 
 // Public leaderboard page
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
+Route::get('/leaderboard/export/all', [LeaderboardController::class, 'exportAll'])->name('leaderboard.export.all');
 Route::get('/leaderboard/export/{raceId}', [LeaderboardController::class, 'export'])->name('leaderboard.export');
 
 

@@ -37,12 +37,20 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
     };
 
     /**
-     * Handle CSV export - exports first race from current results
+     * Handle CSV export
+     * - If a specific race is selected, exports that race only
+     * - If viewing general leaderboard (all races), exports all races
      */
     const handleExport = () => {
-        if (results?.data?.length > 0 && results.data[0].race_id) {
+        if (selectedRace && selectedRace.race_id) {
+            // Export specific race
             window.location.href = route('leaderboard.export', { 
-                raceId: results.data[0].race_id, 
+                raceId: selectedRace.race_id, 
+                type: selectedType 
+            });
+        } else if (results?.data?.length > 0) {
+            // Export all races (general leaderboard)
+            window.location.href = route('leaderboard.export.all', { 
                 type: selectedType 
             });
         }
@@ -159,9 +167,9 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                     </label>
                                     <button
                                         onClick={handleExport}
-                                        disabled={!results?.data?.length || !results.data[0]?.race_id}
+                                        disabled={!results?.data?.length}
                                         className={`w-full px-4 py-2 rounded-lg font-medium transition flex items-center justify-center gap-2 ${
-                                            results?.data?.length && results.data[0]?.race_id
+                                            results?.data?.length
                                                 ? 'bg-gray-800 text-white hover:bg-gray-700'
                                                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                         }`}
@@ -169,7 +177,7 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                                         </svg>
-                                        CSV
+                                        {selectedRace ? 'CSV' : (messages.export_all || 'CSV (Toutes courses)')}
                                     </button>
                                 </div>
                             </div>

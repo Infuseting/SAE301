@@ -639,6 +639,74 @@ class LeaderboardService
     }
 
     /**
+     * Export ALL leaderboards (all races) to CSV format.
+     * This is used for the general leaderboard export.
+     * Only exports PUBLIC profiles (is_public = true).
+     *
+     * @param string $type 'individual' or 'team'
+     * @return string CSV content
+     */
+    public function exportAllToCsv(string $type = 'individual'): string
+    {
+        $output = fopen('php://temp', 'r+');
+
+        if ($type === 'team') {
+            // Team export - all races (all teams are public by default)
+            fputcsv($output, ['Rang', 'Equipe', 'Course', 'Date Course', 'Temps Moyen', 'Malus Moyen', 'Temps Final', 'Membres'], ';');
+
+            $results = LeaderboardTeam::with(['team:equ_id,equ_name', 'race:race_id,race_name,race_date_start'])
+                ->orderBy('average_temps_final', 'asc')
+                ->get();
+
+            $rank = 1;
+            foreach ($results as $result) {
+                fputcsv($output, [
+                    $rank++,
+                    $result->team ? $result->team->equ_name : 'Unknown',
+                    $result->race ? $result->race->race_name : 'Unknown',
+                    $result->race ? date('d/m/Y', strtotime($result->race->race_date_start)) : '-',
+                    $result->formatted_average_temps,
+                    $result->formatted_average_malus,
+                    $result->formatted_average_temps_final,
+                    $result->member_count,
+                ], ';');
+            }
+        } else {
+            // Individual export - all races, ONLY PUBLIC PROFILES
+            fputcsv($output, ['Rang', 'Nom', 'Course', 'Date Course', 'Temps', 'Malus', 'Temps Final'], ';');
+
+            $results = LeaderboardUser::with([
+                'user:id,first_name,last_name,is_public',
+                'race:race_id,race_name,race_date_start'
+            ])
+                ->whereHas('user', function ($query) {
+                    $query->where('is_public', true);
+                })
+                ->orderBy('temps_final', 'asc')
+                ->get();
+
+            $rank = 1;
+            foreach ($results as $result) {
+                fputcsv($output, [
+                    $rank++,
+                    $result->user ? $result->user->first_name . ' ' . $result->user->last_name : 'Unknown',
+                    $result->race ? $result->race->race_name : 'Unknown',
+                    $result->race ? date('d/m/Y', strtotime($result->race->race_date_start)) : '-',
+                    $result->formatted_temps,
+                    $result->formatted_malus,
+                    $result->formatted_temps_final,
+                ], ';');
+            }
+        }
+
+        rewind($output);
+        $csv = stream_get_contents($output);
+        fclose($output);
+
+        return $csv;
+    }
+
+    /**
      * Import team results from CSV.
      *
      * @param UploadedFile $file The CSV file
