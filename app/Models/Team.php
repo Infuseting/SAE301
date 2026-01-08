@@ -31,8 +31,28 @@ class Team extends Model
         return $this->hasMany(LeaderboardTeam::class, 'equ_id', 'equ_id');
     }
 
+    /**
+     * Get participants via has_participate (using 'id' column).
+     */
     public function participants(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'has_participate', 'equ_id', 'id');
+    }
+
+    /**
+     * Get users that belong to this team (using 'id_users' column).
+     * Uses the has_participate pivot table.
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'has_participate', 'equ_id', 'id_users');
+    }
+
+    /**
+     * Get the team leader (user who created the team).
+     */
+    public function leader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'adh_id', 'id');
     }
 }

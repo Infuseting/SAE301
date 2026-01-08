@@ -24,7 +24,6 @@ export default function UpdateProfileInformation({
             address: user.address || '',
             phone: user.phone || '',
             license_number: user.license_number || '',
-            medical_certificate_code: user.medical_certificate_code || '',
             is_public: user.is_public || false,
             photo: null,
             _method: 'PATCH',
@@ -190,24 +189,26 @@ export default function UpdateProfileInformation({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <InputLabel htmlFor="birth_date" value="Date de naissance" />
+                        <InputLabel htmlFor="birth_date" value="Date de naissance *" />
                         <TextInput
                             id="birth_date"
                             type="date"
                             className="mt-1 block w-full"
-                            defaultValue={data.birth_date}
+                            value={data.birth_date} // Changed defaultValue to value for controlled input consistency
                             onChange={(e) => setData('birth_date', e.target.value)}
+                            required
                         />
                         <InputError className="mt-2" message={errors.birth_date} />
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="phone" value="Téléphone" />
+                        <InputLabel htmlFor="phone" value="Téléphone *" />
                         <TextInput
                             id="phone"
                             className="mt-1 block w-full"
                             value={data.phone}
                             onChange={(e) => setData('phone', e.target.value)}
+                            required
                         />
                         <InputError className="mt-2" message={errors.phone} />
                     </div>
@@ -215,47 +216,28 @@ export default function UpdateProfileInformation({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div className="md:col-span-2">
-                        <InputLabel htmlFor="address" value="Adresse" className="text-gray-700 font-medium mb-1" />
+                        <InputLabel htmlFor="address" value="Adresse *" className="text-gray-700 font-medium mb-1" />
                         <TextInput
                             id="address"
                             className="mt-1 block w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-[#9333ea] focus:ring-[#9333ea] transition-all duration-200"
                             value={data.address}
                             onChange={(e) => setData('address', e.target.value)}
                             placeholder="Votre adresse complète"
+                            required
                         />
                         <InputError className="mt-2" message={errors.address} />
                     </div>
 
-
-
-                    <div>
-                        <InputLabel htmlFor="license_number" value="Numéro de Licence" className="text-gray-700 font-medium mb-1" />
+                    <div className="md:col-span-2">
+                        <InputLabel htmlFor="license_number" value="Numéro de Licence (Optionnel)" className="text-gray-700 font-medium mb-1" />
                         <TextInput
                             id="license_number"
-                            className={`mt-1 block w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-[#9333ea] focus:ring-[#9333ea] transition-all duration-200 ${data.medical_certificate_code ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
+                            className="mt-1 block w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-[#9333ea] focus:ring-[#9333ea] transition-all duration-200"
                             value={data.license_number}
-                            onChange={(e) => {
-                                setData(prev => ({ ...prev, license_number: e.target.value, medical_certificate_code: '' }));
-                            }}
-                            disabled={!!data.medical_certificate_code && data.medical_certificate_code.length > 0}
+                            onChange={(e) => setData('license_number', e.target.value)}
                             placeholder="Ex: 123456"
                         />
                         <InputError className="mt-2" message={errors.license_number} />
-                        {!data.medical_certificate_code && <p className="text-xs text-gray-500 mt-1">Saisissez votre licence OU votre code PPS ci-contre.</p>}
-                    </div>
-                    <div>
-                        <InputLabel htmlFor="medical_certificate_code" value="Code PPS / Certificat" className="text-gray-700 font-medium mb-1" />
-                        <TextInput
-                            id="medical_certificate_code"
-                            className={`mt-1 block w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-[#9333ea] focus:ring-[#9333ea] transition-all duration-200 ${data.license_number ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
-                            value={data.medical_certificate_code}
-                            onChange={(e) => {
-                                setData(prev => ({ ...prev, medical_certificate_code: e.target.value, license_number: '' }));
-                            }}
-                            disabled={!!data.license_number && data.license_number.length > 0}
-                            placeholder="Ex: PPS-123"
-                        />
-                        <InputError className="mt-2" message={errors.medical_certificate_code} />
                     </div>
                 </div>
 

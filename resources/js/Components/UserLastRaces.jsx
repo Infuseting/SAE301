@@ -1,28 +1,92 @@
-export default function UserLastRaces() {
-    
+/**
+ * UserLastRaces component - Displays user's teams in a card grid layout
+ * @param {Array} teams - Array of team objects with name, image, and members
+ */
+export default function UserLastRaces({ races = [] }) {
+    // Demo data for display purposes
+    const demoRaces = [
+        {
+            id: 1,
+            name: "Marathon de Paris",
+            date: "2023-04-02",
+            position: "5ème",
+        },
+        {
+            id: 2,
+            name: "Semi-Marathon de Lyon",
+            date: "2023-05-15",
+            position: "10ème",
+        },
+        {
+            id: 3,
+            name: "10km de Nice",
+            date: "2023-06-20",
+            position: "3ème",
+        },
+    ];
+
     return (
-        <div>
-            <h2 className="mx-auto max-w-7xl sm:px-6 lg:px-8 mt-6 text-2xl font-bold text-gray-900">
-                Vos équipes 
-            </h2>
-            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 mt-6">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    <div className="aspect-square p-4 border border-gray-200 rounded-lg bg-white shadow-sm flex flex-row overflow-hidden">
-                        <div className="w-1/2 min-w-0 overflow-hidden rounded shrink-0">
-                            <h3 className="text-lg font-bold text-gray-900 truncate">Nom Equipe</h3>
-                            <img 
-                                src="" 
-                                alt="Course" 
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                        <div className="w-px bg-gray-200 mx-3">Membres</div>
-                        <ul className="w-1/2 pl-3 flex flex-col justify-center">
-                            <li className="text-sm">membre 1</li>
-                            <li className="text-sm">membre 2</li>
-                        </ul>
-                    </div> 
-                </div>
+        <div className="py-6">
+            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                    Vos dernières courses
+                </h2>
+                
+                {demoRaces.length === 0 ? (
+                    <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm text-center text-gray-500">
+                        Vous n'avez participé à aucune course pour le moment.
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {demoRaces.map((race) => (
+                            <div 
+                                key={race.id} 
+                                className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col"
+                            >
+                                {/* Race Image - Fixed height at top */}
+                                <div className="w-full h-40 overflow-hidden bg-gray-100">
+                                    {race.image ? (
+                                        <img 
+                                            src={race.image} 
+                                            alt={race.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gradient-to-br from-blue-50 to-blue-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                                            </svg>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Race Name */}
+                                <div className="p-4 pb-2">
+                                    <h3 className="text-lg font-bold text-gray-900 truncate">
+                                        {race.name}
+                                    </h3>
+                                </div>
+
+                                {/* Divider */}
+                                <div className="border-t border-gray-100 mx-4" />
+
+                                {/* Race Info */}
+                                <div className="p-4 pt-3">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <p className="text-xs text-gray-500 uppercase tracking-wide">Date</p>
+                                            <p className="text-sm font-medium text-gray-900">{race.date}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs text-gray-500 uppercase tracking-wide">Position</p>
+                                            <p className="text-lg font-bold text-blue-600">{race.position}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     ); 

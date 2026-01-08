@@ -3,16 +3,19 @@
 namespace Database\Factories;
 
 use App\Models\Club;
-use App\Models\Member;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * Factory for creating Club model instances.
- *
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Club>
  */
 class ClubFactory extends Factory
 {
+    /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
     protected $model = Club::class;
 
     /**
@@ -23,33 +26,15 @@ class ClubFactory extends Factory
     public function definition(): array
     {
         return [
-            'club_name' => $this->faker->company() . ' Club',
+            'club_name' => $this->faker->company(),
             'club_street' => $this->faker->streetAddress(),
             'club_city' => $this->faker->city(),
             'club_postal_code' => $this->faker->postcode(),
-            'club_number' => $this->faker->buildingNumber(),
-            'adh_id' => Member::factory(),
-            'adh_id_dirigeant' => Member::factory(),
+            'ffso_id' => $this->faker->bothify('FFSO-####'),
+            'description' => $this->faker->paragraph(),
+            'club_image' => null,
+            'is_approved' => false,
+            'created_by' => User::factory(),
         ];
-    }
-
-    /**
-     * Set specific responsable member.
-     */
-    public function withResponsable(Member $member): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'adh_id' => $member->adh_id,
-        ]);
-    }
-
-    /**
-     * Set specific dirigeant member.
-     */
-    public function withDirigeant(Member $member): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'adh_id_dirigeant' => $member->adh_id,
-        ]);
     }
 }

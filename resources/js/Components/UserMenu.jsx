@@ -40,6 +40,10 @@ export default function UserMenu({ user }) {
                         {messages.general_leaderboard || 'Classement Général'}
                     </Dropdown.Link>
 
+                    <Dropdown.Link href={route('raids.index')}>
+                        {messages.raids || 'Raids'}
+                    </Dropdown.Link>
+
                     {hasAdminAccess && (
                         <Dropdown.Link href={route('admin.dashboard')}>
                             Admin

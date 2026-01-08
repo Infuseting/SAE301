@@ -31,6 +31,23 @@ export default function ConnectedAccountsForm({ className = '', connectedAccount
                     </div>
                 </div>
 
+                {/* Strava */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                        <InputLabel value="Strava" className="text-lg" />
+                    </div>
+                    <div>
+                        {hasAccount('strava') ? (
+                            <span className="px-4 py-2 text-sm text-green-600 font-semibold bg-green-100   rounded-lg">Connected</span>
+                        ) : (
+                            <a href={route('socialite.redirect', 'strava')}>
+                                <SecondaryButton>{messages.connect_strava || 'Connect Strava'}</SecondaryButton>
+                            </a>
+                        )}
+                    </div>
+                </div>
+
+
             </div>
         </section>
     );

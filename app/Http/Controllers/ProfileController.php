@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Response;
 use OpenApi\Annotations as OA;
+use App\Models\Member;
 
 class ProfileController extends Controller
 {
@@ -67,10 +68,17 @@ class ProfileController extends Controller
      *      description="Updates user profile data",
      *      @OA\RequestBody(
      *          required=true,
-     *          @OA\JsonContent(
-     *              required={"name","email"},
-     *              @OA\Property(property="name", type="string", example="John Doe"),
-     *              @OA\Property(property="email", type="string", format="email", example="john@example.com")
+     *          @OA\MediaType(
+     *              mediaType="multipart/form-data",
+     *              @OA\Schema(
+     *                  required={"name","email"},
+     *                  @OA\Property(property="name", type="string", example="John Doe"),
+     *                  @OA\Property(property="email", type="string", format="email", example="john@example.com"),
+     *                  @OA\Property(property="description", type="string", example="Runner bio"),
+     *                  @OA\Property(property="is_public", type="boolean", example=true),
+     *                  @OA\Property(property="license_number", type="string", example="LIC12345"),
+     *                  @OA\Property(property="photo", type="string", format="binary", description="Profile photo upload")
+     *              )
      *          )
      *      ),
      *      @OA\Response(
@@ -82,7 +90,14 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
-        $request->user()->fill($request->validated());
+        $validated = $request->validated();
+
+        // Ensure is_public is always set (false if not present, true if checked)
+        if (!isset($validated['is_public'])) {
+            $validated['is_public'] = false;
+        }
+
+        $request->user()->fill($validated);
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
@@ -103,8 +118,28 @@ class ProfileController extends Controller
         if ($request->has('description')) {
             $request->user()->description = $request->input('description');
         }
-        if ($request->has('is_public')) {
-            $request->user()->is_public = $request->boolean('is_public');
+
+        // Handle License Number (Stored in Members table)
+        if (array_key_exists('license_number', $validated)) {
+            $licenseNumber = $validated['license_number'];
+            unset($validated['license_number']); // Remove from user attributes
+
+            if ($licenseNumber) {
+                if ($request->user()->member) {
+                    $request->user()->member->update(['adh_license' => $licenseNumber]);
+                } else {
+                    // Create new member record if not exists
+                    $member = Member::create([
+                        'adh_license' => $licenseNumber,
+                        'adh_end_validity' => now()->addYear(), // Default 1 year validity
+                        'adh_date_added' => now(),
+                    ]);
+                    $request->user()->member()->associate($member);
+                }
+            } elseif ($request->user()->member) {
+                // If license number is cleared/empty, should we clear it in member?
+                $request->user()->member->update(['adh_license' => '']);
+            }
         }
 
         $request->user()->save();
@@ -152,10 +187,23 @@ class ProfileController extends Controller
         $user = $request->user();
         $data = $request->validated();
 
-        // Handle the mapping from input 'medical_certificate' to DB column 'medical_certificate_code'
-        if (isset($data['medical_certificate'])) {
-            $data['medical_certificate_code'] = $data['medical_certificate'];
-            unset($data['medical_certificate']);
+        // Handle License Number for Completion
+        if (isset($data['license_number'])) {
+            $licenseNumber = $data['license_number'];
+            unset($data['license_number']);
+
+            if ($licenseNumber) {
+                if ($user->member) {
+                    $user->member->update(['adh_license' => $licenseNumber]);
+                } else {
+                    $member = Member::create([
+                        'adh_license' => $licenseNumber,
+                        'adh_end_validity' => now()->addYear(),
+                        'adh_date_added' => now(),
+                    ]);
+                    $user->member()->associate($member);
+                }
+            }
         }
 
         $user->update($data);
@@ -175,8 +223,8 @@ class ProfileController extends Controller
      *      @OA\RequestBody(
      *          required=true,
      *          @OA\JsonContent(
-     *              required={"password"},
-     *              @OA\Property(property="password", type="string", format="password", example="secret")
+     *              required={"confirmation"},
+     *              @OA\Property(property="confirmation", type="string", example="CONFIRMER", description="Must match 'CONFIRMER' exactly")
      *          )
      *      ),
      *      @OA\Response(
@@ -189,21 +237,20 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // If user has a password, validate the password
-        // If user doesn't have a password (social login), validate "CONFIRMER" confirmation text
-        if ($user->password_is_set) {
-            $request->validate([
-                'password' => ['required', 'current_password'],
-            ]);
-        } else {
-            $request->validate([
-                'password' => ['required', 'string', function ($attribute, $value, $fail) {
+        // All users must type "CONFIRMER" to delete their account
+        $request->validate([
+            'confirmation' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
                     if ($value !== 'CONFIRMER') {
                         $fail(__('messages.invalid_confirmation_text'));
                     }
-                }],
-            ]);
-        }
+                }
+            ],
+        ], [
+            'confirmation.required' => __('messages.confirmation_text_required'),
+        ]);
 
         $this->profileService->deleteAccount($user);
 

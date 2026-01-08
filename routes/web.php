@@ -12,20 +12,60 @@ use App\Http\Controllers\TeamAgeController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\MyLeaderboardController;
 
+use App\Http\Controllers\Race\NewRaceController;
+use App\Http\Controllers\Race\VisuRaceController;
+use App\Http\Controllers\RaidController;
+use App\Models\Raid;
+
 Route::get('/', function () {
+    $upcomingRaids = Raid::with('club')
+        ->where('raid_date_start', '>=', now())
+        ->orderBy('raid_date_start', 'asc')
+        ->take(3)
+        ->get()
+        ->map(function ($raid) {
+            return [
+                'id' => $raid->raid_id,
+                'title' => $raid->raid_name,
+                'date' => $raid->raid_date_start ? \Carbon\Carbon::parse($raid->raid_date_start)->format('d M Y') : '',
+                'location' => trim(($raid->raid_city ?? '') . ', ' . ($raid->raid_country ?? ''), ', '),
+                'type' => 'Raid',
+                'image' => $raid->raid_image ?? 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+            ];
+        });
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'upcomingRaids' => $upcomingRaids,
     ]);
 })->name('home');
+
+// Race routes
+Route::get('/race/{id}', [VisuRaceController::class, 'show'])->name('races.show');
+Route::get('/map', [App\Http\Controllers\MapController::class, 'index'])->name('map.index');
+
+// Raids public routes (no auth required)
+Route::get('/raids', [RaidController::class, 'index'])->name('raids.index');
+Route::get('/raids/{raid}', [RaidController::class, 'show'])->name('raids.show')->whereNumber('raid');
+
+
+//myRace
+Route::get('/my-race', [App\Http\Controllers\Race\MyRaceController::class, 'index'])->name('myrace.index');
 
 // Public leaderboard page
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
 Route::get('/leaderboard/export/{raceId}', [LeaderboardController::class, 'export'])->name('leaderboard.export');
 
+
 Route::middleware('auth')->group(function () {
+    // Race management (requires auth, authorization handled by controller/policy)
+    Route::get('/new-race', [NewRaceController::class, 'show'])->name('races.create');
+    Route::post('/new-race', [NewRaceController::class, 'store'])->name('races.store');
+    Route::get('/race/{id}/edit', [NewRaceController::class, 'edit'])->name('races.edit');
+
     Route::get('/dashboard', function () {
         return Inertia::render('Welcome');
     })->name('dashboard');
@@ -43,6 +83,39 @@ Route::middleware('auth')->group(function () {
 
     // Team age validation page
     Route::get('/team/age-validation', [TeamAgeController::class, 'index'])->name('team.age-validation');
+
+    // Clubs routes
+    Route::resource('clubs', App\Http\Controllers\ClubController::class);
+
+    // Club routes and club leader role
+    Route::middleware('club_leader')->group(function () {
+        // Raids routes (only club leaders can manage raids)
+        Route::get('/raids/create', [RaidController::class, 'create'])->name('raids.create');
+        Route::post('/raids', [RaidController::class, 'store'])->name('raids.store');
+        Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
+        Route::put('/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
+        Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
+    });
+
+    // Club member management (authorization handled in controller)
+    Route::post('/clubs/{club}/join', [App\Http\Controllers\ClubMemberController::class, 'requestJoin'])->name('clubs.join');
+    Route::post('/clubs/{club}/leave', [App\Http\Controllers\ClubMemberController::class, 'leave'])->name('clubs.leave');
+    Route::post('/clubs/{club}/members/{user}/approve', [App\Http\Controllers\ClubMemberController::class, 'approveJoin'])->name('clubs.members.approve');
+    Route::post('/clubs/{club}/members/{user}/reject', [App\Http\Controllers\ClubMemberController::class, 'rejectJoin'])->name('clubs.members.reject');
+    Route::delete('/clubs/{club}/members/{user}', [App\Http\Controllers\ClubMemberController::class, 'removeMember'])->name('clubs.members.remove');
+
+    // Licence and PPS management
+    Route::post('/licence', [App\Http\Controllers\LicenceController::class, 'storeLicence'])->name('licence.store');
+    Route::post('/pps', [App\Http\Controllers\LicenceController::class, 'storePpsCode'])->name('pps.store');
+    Route::get('/credentials/check', [App\Http\Controllers\LicenceController::class, 'checkCredentials'])->name('credentials.check');
+
+    // Race registration
+    Route::get('/races/{race}/registration/check', [App\Http\Controllers\RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
+    Route::post('/races/{race}/register', [App\Http\Controllers\RaceRegistrationController::class, 'register'])->name('race.register');
+    
+    // Team creation routes
+    Route::get('/createTeam', [App\Http\Controllers\TeamController::class, 'create'])->name('team.create');
+    Route::post('/createTeam', [App\Http\Controllers\TeamController::class, 'store'])->name('team.store');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -50,7 +123,7 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
     Route::get('/', [AdminController::class, 'index'])->name('dashboard')->middleware('can:access-admin');
 
     // users
-    Route::get('/users', [UserController::class, 'index'])->name('users.index')->middleware('can:view users');
+    Route::match(['get', 'post'], '/users', [UserController::class, 'index'])->name('users.index')->middleware('can:view users');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('can:edit users');
     Route::post('/users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle')->middleware('can:edit users');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('can:delete users');
@@ -60,8 +133,10 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
     Route::post('/users/{user}/role', [UserController::class, 'assignRole'])->name('users.assignRole')->middleware('can:grant role');
     Route::delete('/users/{user}/role', [UserController::class, 'removeRole'])->name('users.removeRole')->middleware('can:grant role');
 
+
+
     // logs
-    Route::get('/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
+    Route::match(['get', 'post'], '/logs', [LogController::class, 'index'])->name('logs.index')->middleware('can:view logs');
 
     // leaderboard management
     Route::get('/leaderboard', [AdminLeaderboardController::class, 'index'])->name('leaderboard.index')->middleware('can:view users');
@@ -69,6 +144,11 @@ Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->na
     Route::get('/leaderboard/export/{raceId}', [AdminLeaderboardController::class, 'export'])->name('leaderboard.export')->middleware('can:view users');
     Route::get('/leaderboard/{raceId}/results', [AdminLeaderboardController::class, 'results'])->name('leaderboard.results')->middleware('can:view users');
     Route::delete('/leaderboard/results/{resultId}', [AdminLeaderboardController::class, 'destroy'])->name('leaderboard.destroy')->middleware('can:delete users');
+
+    // Club approval
+    Route::get('/clubs/pending', [App\Http\Controllers\Admin\ClubApprovalController::class, 'index'])->name('clubs.pending')->middleware('can:accept-club');
+    Route::post('/clubs/{club}/approve', [App\Http\Controllers\Admin\ClubApprovalController::class, 'approve'])->name('clubs.approve')->middleware('can:accept-club');
+    Route::post('/clubs/{club}/reject', [App\Http\Controllers\Admin\ClubApprovalController::class, 'reject'])->name('clubs.reject')->middleware('can:accept-club');
 });
 
 require __DIR__ . '/auth.php';
@@ -78,7 +158,7 @@ Route::get('/auth/{provider}/callback', [\App\Http\Controllers\SocialiteControll
 
 // Language switcher
 Route::get('/lang/{locale}', function ($locale) {
-    $available = ['en', 'es', 'fr'];
+    $available = ['en', 'es', 'fr', 'de'];
     if (!in_array($locale, $available)) {
         $locale = config('app.locale');
     }

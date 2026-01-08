@@ -27,12 +27,11 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
             'description' => ['nullable', 'string', 'max:1000'],
-            'is_public' => ['boolean'],
-            'birth_date' => ['nullable', 'date', 'before:today'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'is_public' => ['sometimes', 'boolean'],
+            'birth_date' => ['required', 'date', 'before:today'],
+            'address' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:20'],
             'license_number' => ['sometimes', 'nullable', 'string', 'max:50'],
-            'medical_certificate_code' => ['sometimes', 'nullable', 'string', 'max:50'],
             'photo' => ['nullable', 'file', 'max:2048', 'mimes:jpeg,jpg,png,webp'], // 2MB Max (Client compresses 8MB -> 2MB)
         ];
     }
