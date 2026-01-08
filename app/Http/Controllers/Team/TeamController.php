@@ -138,4 +138,71 @@ class TeamController extends Controller
         Mail::to($email)->send(new TeamInvitation($team->equ_name, $request->user()->name));
         return redirect()->back()->with('success', 'Invitation envoyée');
     }
+
+    /**
+     * Display registration ticket with QR code
+     * Shows the QR code for a validated team registration
+     */
+    public function showRegistrationTicket(Team $team, int $registrationId)
+    {
+        $user = auth()->user();
+        
+        // Check if user is team leader or member
+        $isTeamLeader = $team->user_id === $user->id;
+        $isTeamMember = $team->users()->where('users.id', $user->id)->exists();
+        
+        if (!$isTeamLeader && !$isTeamMember) {
+            abort(403, 'Unauthorized. You must be a team member to view this ticket.');
+        }
+
+        // Get registration with race and raid information
+        $registration = \App\Models\Registration::with(['race.raid', 'team.leader', 'team.users'])
+            ->where('reg_id', $registrationId)
+            ->where('equ_id', $team->equ_id)
+            ->firstOrFail();
+
+        // Check if registration is validated
+        if (!$registration->reg_validated) {
+            return redirect()->back()->with('error', 'Cette inscription n\'est pas encore validée.');
+        }
+
+        $teamMembers = $registration->team->users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->first_name . ' ' . $user->last_name,
+                'email' => $user->email,
+            ];
+        });
+
+        return Inertia::render('Team/RegistrationTicket', [
+            'registration' => [
+                'reg_id' => $registration->reg_id,
+                'reg_dossard' => $registration->reg_dossard,
+                'qr_code_url' => $registration->qr_code_url,
+                'is_present' => $registration->is_present,
+            ],
+            'team' => [
+                'equ_id' => $registration->team->equ_id,
+                'equ_name' => $registration->team->equ_name,
+                'equ_image' => $registration->team->equ_image ? asset('storage/' . $registration->team->equ_image) : null,
+                'leader' => $registration->team->leader ? [
+                    'name' => $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name,
+                    'email' => $registration->team->leader->email,
+                ] : null,
+                'members' => $teamMembers,
+            ],
+            'race' => [
+                'race_id' => $registration->race->race_id,
+                'race_name' => $registration->race->race_name,
+                'race_distance' => $registration->race->race_distance,
+            ],
+            'raid' => [
+                'raid_id' => $registration->race->raid->raid_id,
+                'raid_name' => $registration->race->raid->raid_name,
+                'raid_date_start' => $registration->race->raid->raid_date_start,
+                'raid_city' => $registration->race->raid->raid_city,
+                'raid_postal_code' => $registration->race->raid->raid_postal_code,
+            ],
+        ]);
+    }
 }
