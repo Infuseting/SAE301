@@ -7,20 +7,36 @@ use App\Models\LeaderboardTeam;
 use App\Models\User;
 use App\Models\Team;
 use App\Models\Race;
+use App\Models\MedicalDoc;
+use App\Models\Member;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Exception;
 
 class LeaderboardService
 {
+    /**
+     * Import individual results from CSV file.
+     * Supports two formats:
+     * - Legacy format: user_id;temps;malus (separator: ;)
+     * - New format: Rang,Nom,Temps,Malus,Temps Final (separator: ,)
+     *
+     * @param UploadedFile $file The CSV file to import
+     * @param int $raceId The race ID to import results for
+     * @return array Import results with success count, errors, total and created users count
+     * @throws Exception If file cannot be read or race not found
+     */
     public function importCsv(UploadedFile $file, int $raceId): array
     {
         $results = [
             'success' => 0,
             'errors' => [],
             'total' => 0,
+            'created' => 0, // Count of newly created users
         ];
 
         $race = Race::find($raceId);
@@ -33,53 +49,86 @@ class LeaderboardService
             throw new Exception('Unable to open CSV file');
         }
 
-        $header = fgetcsv($handle, 0, ';');
+        // Auto-detect CSV separator by reading first line
+        $firstLine = fgets($handle);
+        rewind($handle);
+        $separator = $this->detectCsvSeparator($firstLine);
+
+        $header = fgetcsv($handle, 0, $separator);
         if ($header === false) {
             fclose($handle);
             throw new Exception('Unable to read CSV header');
         }
 
-        $header = array_map('strtolower', array_map('trim', $header));
+        // Normalize header: lowercase and trim, also handle French column names
+        $header = array_map(function ($col) {
+            $col = strtolower(trim($col));
+            // Map French column names to internal names
+            $mapping = [
+                'rang' => 'rang',
+                'nom' => 'nom',
+                'temps final' => 'temps_final',
+            ];
+            return $mapping[$col] ?? $col;
+        }, $header);
 
-        $requiredColumns = ['user_id', 'temps'];
-        foreach ($requiredColumns as $col) {
-            if (!in_array($col, $header)) {
-                fclose($handle);
-                throw new Exception("Missing required column: {$col}");
-            }
+        // Detect format: new format has 'nom' column, legacy has 'user_id'
+        $isNewFormat = in_array('nom', $header);
+        $isLegacyFormat = in_array('user_id', $header);
+
+        if (!$isNewFormat && !$isLegacyFormat) {
+            fclose($handle);
+            throw new Exception("Invalid CSV format: must contain either 'Nom' or 'user_id' column");
+        }
+
+        // Validate required columns based on format
+        if ($isNewFormat && !in_array('temps', $header)) {
+            fclose($handle);
+            throw new Exception("Missing required column: Temps");
+        }
+        if ($isLegacyFormat && !in_array('temps', $header)) {
+            fclose($handle);
+            throw new Exception("Missing required column: temps");
         }
 
         DB::beginTransaction();
 
         try {
             $lineNumber = 1;
-            while (($row = fgetcsv($handle, 0, ';')) !== false) {
+            while (($row = fgetcsv($handle, 0, $separator)) !== false) {
                 $lineNumber++;
                 $results['total']++;
 
+                // Skip empty rows
+                if (empty(array_filter($row))) {
+                    $results['total']--;
+                    continue;
+                }
+
+                // Ensure row has same number of columns as header
+                if (count($row) < count($header)) {
+                    $row = array_pad($row, count($header), '');
+                }
+
                 $data = array_combine($header, array_map('trim', $row));
 
-                $userId = (int) ($data['user_id'] ?? 0);
-                $temps = $this->parseTime($data['temps'] ?? '0');
-                $malus = $this->parseTime($data['malus'] ?? '0');
-
-                if ($userId <= 0) {
-                    $results['errors'][] = "Line {$lineNumber}: Invalid user_id";
-                    continue;
+                if ($isNewFormat) {
+                    // New format: find user by name
+                    $result = $this->processNewFormatRow($data, $raceId, $lineNumber);
+                } else {
+                    // Legacy format: find user by ID
+                    $result = $this->processLegacyFormatRow($data, $raceId, $lineNumber);
                 }
 
-                $user = User::find($userId);
-                if (!$user) {
-                    $results['errors'][] = "Line {$lineNumber}: User ID {$userId} not found";
-                    continue;
+                if ($result['success']) {
+                    $results['success']++;
+                    // Track if a new user was created
+                    if (!empty($result['created'])) {
+                        $results['created']++;
+                    }
+                } else {
+                    $results['errors'][] = $result['error'];
                 }
-
-                LeaderboardUser::updateOrCreate(
-                    ['user_id' => $userId, 'race_id' => $raceId],
-                    ['temps' => $temps, 'malus' => $malus]
-                );
-
-                $results['success']++;
             }
 
             $this->recalculateTeamAverages($raceId);
@@ -682,5 +731,236 @@ class LeaderboardService
         }
 
         return 0;
+    }
+
+    /**
+     * Detect CSV separator by analyzing first line content.
+     *
+     * @param string $firstLine The first line of the CSV file
+     * @return string The detected separator (';' or ',')
+     */
+    private function detectCsvSeparator(string $firstLine): string
+    {
+        $commaCount = substr_count($firstLine, ',');
+        $semicolonCount = substr_count($firstLine, ';');
+
+        return $semicolonCount > $commaCount ? ';' : ',';
+    }
+
+    /**
+     * Process a row from the new CSV format (with Nom column).
+     * Finds user by concatenated first_name + last_name.
+     * If user not found, creates a new user, team and participation.
+     *
+     * @param array $data The row data as associative array
+     * @param int $raceId The race ID
+     * @param int $lineNumber The line number for error reporting
+     * @return array Result with 'success' boolean, optional 'error' message, and 'created' flag
+     */
+    private function processNewFormatRow(array $data, int $raceId, int $lineNumber): array
+    {
+        $nom = $data['nom'] ?? '';
+        $temps = $this->parseTime($data['temps'] ?? '0');
+        $malus = $this->parseTime($data['malus'] ?? '0');
+
+        if (empty($nom)) {
+            return ['success' => false, 'error' => "Line {$lineNumber}: Empty name"];
+        }
+
+        // Find user by full name (first_name + last_name)
+        $user = $this->findUserByName($nom);
+        $wasCreated = false;
+
+        // If user not found, create new user with team and participation
+        if (!$user) {
+            $user = $this->createUserFromName($nom, $raceId);
+            $wasCreated = true;
+            Log::info("Created new user from CSV import: {$nom} (ID: {$user->id})");
+        }
+
+        LeaderboardUser::updateOrCreate(
+            ['user_id' => $user->id, 'race_id' => $raceId],
+            ['temps' => $temps, 'malus' => $malus]
+        );
+
+        return ['success' => true, 'created' => $wasCreated];
+    }
+
+    /**
+     * Process a row from the legacy CSV format (with user_id column).
+     *
+     * @param array $data The row data as associative array
+     * @param int $raceId The race ID
+     * @param int $lineNumber The line number for error reporting
+     * @return array Result with 'success' boolean and optional 'error' message
+     */
+    private function processLegacyFormatRow(array $data, int $raceId, int $lineNumber): array
+    {
+        $userId = (int) ($data['user_id'] ?? 0);
+        $temps = $this->parseTime($data['temps'] ?? '0');
+        $malus = $this->parseTime($data['malus'] ?? '0');
+
+        if ($userId <= 0) {
+            return ['success' => false, 'error' => "Line {$lineNumber}: Invalid user_id"];
+        }
+
+        $user = User::find($userId);
+        if (!$user) {
+            return ['success' => false, 'error' => "Line {$lineNumber}: User ID {$userId} not found"];
+        }
+
+        LeaderboardUser::updateOrCreate(
+            ['user_id' => $userId, 'race_id' => $raceId],
+            ['temps' => $temps, 'malus' => $malus]
+        );
+
+        return ['success' => true];
+    }
+
+    /**
+     * Find a user by their full name (first_name + last_name).
+     * Tries multiple matching strategies:
+     * 1. Exact match on concatenated first_name + ' ' + last_name
+     * 2. Reversed order: last_name + ' ' + first_name
+     * 3. Case-insensitive search
+     *
+     * @param string $fullName The full name to search for
+     * @return User|null The found user or null
+     */
+    private function findUserByName(string $fullName): ?User
+    {
+        $fullName = trim($fullName);
+
+        if (empty($fullName)) {
+            return null;
+        }
+
+        // Try exact match first_name + last_name
+        $user = User::whereRaw("CONCAT(first_name, ' ', last_name) = ?", [$fullName])->first();
+        if ($user) {
+            return $user;
+        }
+
+        // Try reversed order last_name + first_name
+        $user = User::whereRaw("CONCAT(last_name, ' ', first_name) = ?", [$fullName])->first();
+        if ($user) {
+            return $user;
+        }
+
+        // Try case-insensitive match
+        $user = User::whereRaw("LOWER(CONCAT(first_name, ' ', last_name)) = LOWER(?)", [$fullName])->first();
+        if ($user) {
+            return $user;
+        }
+
+        // Try case-insensitive reversed order
+        $user = User::whereRaw("LOWER(CONCAT(last_name, ' ', first_name)) = LOWER(?)", [$fullName])->first();
+        if ($user) {
+            return $user;
+        }
+
+        // Split name and try partial matching
+        $nameParts = preg_split('/\s+/', $fullName);
+        if (count($nameParts) >= 2) {
+            $firstName = $nameParts[0];
+            $lastName = implode(' ', array_slice($nameParts, 1));
+
+            $user = User::whereRaw("LOWER(first_name) = LOWER(?) AND LOWER(last_name) = LOWER(?)", [$firstName, $lastName])->first();
+            if ($user) {
+                return $user;
+            }
+
+            // Try reversed
+            $user = User::whereRaw("LOWER(first_name) = LOWER(?) AND LOWER(last_name) = LOWER(?)", [$lastName, $firstName])->first();
+            if ($user) {
+                return $user;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Create a new user from a full name string.
+     * Also creates a solo team for the user and links them as participant.
+     * The user profile is set to private by default.
+     *
+     * @param string $fullName The full name (e.g., "Jean Dupont")
+     * @param int $raceId The race ID to link participation to
+     * @return User The newly created user
+     */
+    private function createUserFromName(string $fullName, int $raceId): User
+    {
+        // Parse name into first_name and last_name
+        $nameParts = preg_split('/\s+/', trim($fullName));
+        $firstName = $nameParts[0] ?? 'Unknown';
+        $lastName = count($nameParts) > 1 ? implode(' ', array_slice($nameParts, 1)) : 'Unknown';
+
+        // Generate unique email based on name
+        $baseEmail = Str::slug($firstName . '.' . $lastName, '.') . '@imported.local';
+        $email = $baseEmail;
+        $counter = 1;
+        while (User::where('email', $email)->exists()) {
+            $email = Str::slug($firstName . '.' . $lastName, '.') . '.' . $counter . '@imported.local';
+            $counter++;
+        }
+
+        // Create or get a MedicalDoc for the user
+        $medicalDoc = MedicalDoc::create([
+            'doc_num_pps' => 'IMPORT-' . Str::random(8),
+            'doc_end_validity' => now()->addYear(),
+            'doc_date_added' => now(),
+        ]);
+
+        // Create or get a Member for the user
+        $member = Member::create([
+            'adh_license' => 'IMPORT-' . Str::random(8),
+            'adh_end_validity' => now()->addYear(),
+            'adh_date_added' => now(),
+        ]);
+
+        // Create the user with private profile and random password
+        $user = User::create([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $email,
+            'password' => Hash::make(Str::random(32)),
+            'is_public' => false, // Private profile
+            'password_is_set' => false, // User needs to set their own password
+            'active' => true,
+            'doc_id' => $medicalDoc->doc_id,
+            'adh_id' => $member->adh_id,
+        ]);
+
+        // Create a solo team for this user
+        $teamName = Str::limit($firstName . ' ' . $lastName, 32, '');
+        $team = Team::create([
+            'equ_name' => $teamName,
+            'adh_id' => $member->adh_id,
+        ]);
+
+        // Link user to team via has_participate
+        // Check which column exists for user reference (id_users in production, id in test)
+        $hasIdUsersColumn = DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
+        $participateData = [
+            $userIdColumn => $user->id,
+            'equ_id' => $team->equ_id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        // Add adh_id and is_leader if columns exist
+        if (DB::getSchemaBuilder()->hasColumn('has_participate', 'adh_id')) {
+            $participateData['adh_id'] = $member->adh_id;
+        }
+        if (DB::getSchemaBuilder()->hasColumn('has_participate', 'is_leader')) {
+            $participateData['is_leader'] = true;
+        }
+
+        DB::table('has_participate')->insert($participateData);
+
+        return $user;
     }
 }

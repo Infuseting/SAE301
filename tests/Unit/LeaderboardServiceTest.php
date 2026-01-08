@@ -456,4 +456,245 @@ class LeaderboardServiceTest extends TestCase
         // Average malus: (60 + 120) / 2 = 90
         $this->assertEquals(90.00, (float) $teamResult->average_malus);
     }
+
+    /**
+     * Test import CSV with new format using Nom column (comma separator).
+     */
+    public function test_import_csv_with_name_format(): void
+    {
+        $race = Race::factory()->create();
+        $user1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+        $user2 = User::factory()->create(['first_name' => 'Marie', 'last_name' => 'Martin']);
+
+        // New format: Rang,Nom,Temps,Malus,Temps Final
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Jean Dupont,03:01:43.00,00:00.00,03:01:43.00\n";
+        $csvContent .= "2,Marie Martin,04:56:26.00,02:30.00,04:58:56.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(2, $result['success']);
+        $this->assertEquals(2, $result['total']);
+        $this->assertEmpty($result['errors']);
+
+        // Check user 1 results
+        $result1 = LeaderboardUser::where('user_id', $user1->id)->first();
+        $this->assertNotNull($result1);
+        // 03:01:43.00 = 3*3600 + 1*60 + 43 = 10903 seconds
+        $this->assertEquals(10903.00, (float) $result1->temps);
+        $this->assertEquals(0.00, (float) $result1->malus);
+
+        // Check user 2 results
+        $result2 = LeaderboardUser::where('user_id', $user2->id)->first();
+        $this->assertNotNull($result2);
+        // 04:56:26.00 = 4*3600 + 56*60 + 26 = 17786 seconds
+        $this->assertEquals(17786.00, (float) $result2->temps);
+        // 02:30.00 = 2*60 + 30 = 150 seconds
+        $this->assertEquals(150.00, (float) $result2->malus);
+    }
+
+    /**
+     * Test import CSV with name format creates user when not found.
+     */
+    public function test_import_csv_with_name_format_creates_user_when_not_found(): void
+    {
+        $race = Race::factory()->create();
+        User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Jean Dupont,03:01:43.00,00:00.00,03:01:43.00\n";
+        $csvContent .= "2,Unknown Person,04:56:26.00,00:00.00,04:56:26.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        // Both should succeed - one existing, one created
+        $this->assertEquals(2, $result['success']);
+        $this->assertEquals(2, $result['total']);
+        $this->assertEmpty($result['errors']);
+        $this->assertEquals(1, $result['created']); // One user was created
+
+        // Verify the new user was created with private profile
+        $newUser = User::where('first_name', 'Unknown')->where('last_name', 'Person')->first();
+        $this->assertNotNull($newUser);
+        $this->assertFalse((bool) $newUser->is_public);
+        $this->assertStringContainsString('@imported.local', $newUser->email);
+
+        // Verify team was created
+        $team = Team::where('equ_name', 'Unknown Person')->first();
+        $this->assertNotNull($team);
+
+        // Verify participation link exists (check both possible column names)
+        $hasIdUsersColumn = \Schema::hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        
+        $participation = \DB::table('has_participate')
+            ->where($userIdColumn, $newUser->id)
+            ->where('equ_id', $team->equ_id)
+            ->first();
+        $this->assertNotNull($participation);
+        
+        // Check is_leader only if column exists
+        if (\Schema::hasColumn('has_participate', 'is_leader')) {
+            $this->assertTrue((bool) $participation->is_leader);
+        }
+
+        // Verify leaderboard entry was created
+        $leaderboardEntry = LeaderboardUser::where('user_id', $newUser->id)->first();
+        $this->assertNotNull($leaderboardEntry);
+        $this->assertEquals(17786.00, (float) $leaderboardEntry->temps);
+    }
+
+    /**
+     * Test import CSV auto-detects comma separator.
+     */
+    public function test_import_csv_auto_detects_comma_separator(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Test', 'last_name' => 'User']);
+
+        // Comma-separated CSV
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n1,Test User,01:00:00.00,00:00.00,01:00:00.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        
+        $leaderboardResult = LeaderboardUser::where('user_id', $user->id)->first();
+        $this->assertEquals(3600.00, (float) $leaderboardResult->temps);
+    }
+
+    /**
+     * Test import CSV with reversed name order (last_name first_name).
+     */
+    public function test_import_csv_finds_user_with_reversed_name(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+
+        // Name in reversed order: Dupont Jean instead of Jean Dupont
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n1,Dupont Jean,02:00:00.00,00:00.00,02:00:00.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        
+        $leaderboardResult = LeaderboardUser::where('user_id', $user->id)->first();
+        $this->assertNotNull($leaderboardResult);
+        $this->assertEquals(7200.00, (float) $leaderboardResult->temps);
+    }
+
+    /**
+     * Test import CSV does NOT create duplicate user when user already exists.
+     * Verifies that existing users are linked, not recreated.
+     */
+    public function test_import_csv_does_not_duplicate_existing_users(): void
+    {
+        $race = Race::factory()->create();
+        
+        // Create existing users BEFORE import
+        $existingUser1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+        $existingUser2 = User::factory()->create(['first_name' => 'Marie', 'last_name' => 'Martin']);
+        
+        // Count users before import
+        $userCountBefore = User::count();
+        $teamCountBefore = Team::count();
+
+        // CSV with names that match existing users
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Jean Dupont,03:01:43.00,00:00.00,03:01:43.00\n";
+        $csvContent .= "2,Marie Martin,04:56:26.00,02:30.00,04:58:56.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        // Verify import success
+        $this->assertEquals(2, $result['success']);
+        $this->assertEquals(0, $result['created']); // NO new users should be created
+        $this->assertEmpty($result['errors']);
+
+        // Verify NO new users were created
+        $userCountAfter = User::count();
+        $this->assertEquals($userCountBefore, $userCountAfter, 'No new users should be created when they already exist');
+
+        // Verify NO new teams were created (users already exist)
+        $teamCountAfter = Team::count();
+        $this->assertEquals($teamCountBefore, $teamCountAfter, 'No new teams should be created for existing users');
+
+        // Verify leaderboard entries are linked to EXISTING users (same IDs)
+        $leaderboard1 = LeaderboardUser::where('race_id', $race->race_id)
+            ->where('user_id', $existingUser1->id)
+            ->first();
+        $this->assertNotNull($leaderboard1, 'Leaderboard should be linked to existing user Jean Dupont');
+        $this->assertEquals(10903.00, (float) $leaderboard1->temps);
+
+        $leaderboard2 = LeaderboardUser::where('race_id', $race->race_id)
+            ->where('user_id', $existingUser2->id)
+            ->first();
+        $this->assertNotNull($leaderboard2, 'Leaderboard should be linked to existing user Marie Martin');
+        $this->assertEquals(17786.00, (float) $leaderboard2->temps);
+
+        // Verify there are no duplicate users with same name
+        $jeanCount = User::where('first_name', 'Jean')->where('last_name', 'Dupont')->count();
+        $this->assertEquals(1, $jeanCount, 'There should be only one Jean Dupont');
+        
+        $marieCount = User::where('first_name', 'Marie')->where('last_name', 'Martin')->count();
+        $this->assertEquals(1, $marieCount, 'There should be only one Marie Martin');
+    }
+
+    /**
+     * Test import CSV updates existing leaderboard entry instead of creating duplicate.
+     */
+    public function test_import_csv_updates_existing_leaderboard_entry(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
+
+        // Create initial leaderboard entry
+        LeaderboardUser::create([
+            'user_id' => $user->id,
+            'race_id' => $race->race_id,
+            'temps' => 5000.00,
+            'malus' => 100.00,
+        ]);
+
+        $leaderboardCountBefore = LeaderboardUser::count();
+
+        // Import CSV with new time for same user/race
+        $csvContent = "Rang,Nom,Temps,Malus,Temps Final\n";
+        $csvContent .= "1,Jean Dupont,03:01:43.00,00:05:00.00,03:06:43.00";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
+
+        $result = $this->service->importCsv($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        $this->assertEquals(0, $result['created']);
+
+        // Verify no duplicate leaderboard entries
+        $leaderboardCountAfter = LeaderboardUser::count();
+        $this->assertEquals($leaderboardCountBefore, $leaderboardCountAfter, 'Should update existing entry, not create new one');
+
+        // Verify the entry was UPDATED with new values
+        $entry = LeaderboardUser::where('user_id', $user->id)
+            ->where('race_id', $race->race_id)
+            ->first();
+        
+        $this->assertEquals(10903.00, (float) $entry->temps, 'Temps should be updated');
+        $this->assertEquals(300.00, (float) $entry->malus, 'Malus should be updated (5 minutes = 300 seconds)');
+    }
 }
