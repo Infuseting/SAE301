@@ -271,6 +271,27 @@ return [
     'member_since' => 'Mitglied seit :date',
     'description_bio' => 'Beschreibung / Bio',
     'edit_profile' => 'Bearbeiten',
+    
+    // Registration and credentials
+    'pps_added_successfully' => 'PPS-Code erfolgreich hinzugefügt',
+    'add_licence' => 'Lizenz hinzufügen',
+    'add_pps' => 'PPS-Code hinzufügen',
+    'licence_required_title' => 'Lizenz oder PPS-Code erforderlich',
+    'licence_required_text' => 'Um sich für ein Rennen anzumelden, müssen Sie eine gültige Lizenznummer oder einen PPS-Code haben.',
+    'licence_valid_for' => 'Gültig für 1 Jahr',
+    'pps_valid_for' => 'Gültig für 3 Monate',
+    'enter_licence_or_pps' => 'Geben Sie Ihre Lizenznummer oder Ihren PPS-Code ein',
+    'need_valid_credentials' => 'Sie benötigen eine gültige Lizenznummer oder einen PPS-Code, um sich für dieses Rennen anzumelden',
+    'no_permission_to_register' => 'Sie haben keine Berechtigung, sich für dieses Rennen anzumelden',
+    'registration_successful' => 'Registrierung erfolgreich',
+    'valid_until' => 'Gültig bis',
+    
+    // Registration conflicts
+    'team_not_found' => 'Team nicht gefunden',
+    'team_has_no_members' => 'Das Team hat keine Mitglieder',
+    'you_already_registered_in_period' => 'Sie sind bereits für :race während dieses Anmeldezeitraums registriert',
+    'team_member_already_registered' => ':user ist bereits für :race während dieses Anmeldezeitraums registriert',
+    'member_missing_credentials' => ':name hat keine gültige Lizenz oder PPS',
 
     // Clubs
     'join_club' => 'Dem Club beitreten',

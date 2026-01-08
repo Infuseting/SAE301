@@ -364,6 +364,13 @@ return [
     'no_permission_to_register' => 'You do not have permission to register for this race',
     'registration_successful' => 'Registration successful',
     'valid_until' => 'Valid until',
+    
+    // Registration conflicts
+    'team_not_found' => 'Team not found',
+    'team_has_no_members' => 'Team has no members',
+    'you_already_registered_in_period' => 'You are already registered for :race during this registration period',
+    'team_member_already_registered' => ':user is already registered for :race during this registration period',
+    'member_missing_credentials' => ':name does not have a valid licence or PPS',
 
     // Roles
     'my_roles' => 'My Roles',

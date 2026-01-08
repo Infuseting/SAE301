@@ -299,6 +299,13 @@ return [
     'no_permission_to_register' => 'No tienes permiso para inscribirte en esta carrera',
     'registration_successful' => 'Inscripción exitosa',
     'valid_until' => 'Válido hasta',
+    
+    // Registration conflicts
+    'team_not_found' => 'Equipo no encontrado',
+    'team_has_no_members' => 'El equipo no tiene miembros',
+    'you_already_registered_in_period' => 'Ya estás registrado en :race durante este período de inscripción',
+    'team_member_already_registered' => ':user ya está inscrito en :race durante este período de inscripción',
+    'member_missing_credentials' => ':name no tiene una licencia o PPS válida'
 
     // Roles
     'my_roles' => 'Mis Roles',
