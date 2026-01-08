@@ -1,16 +1,25 @@
-import { useState } from 'react';
+import { useForm, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 /**
  * Modal for inviting users by email to a team.
  */
-export default function InviteByEmailModal({ isOpen, onClose }) {
-    const [inviteEmail, setInviteEmail] = useState('');
+export default function InviteByEmailModal({ isOpen, onClose, teamId }) {
+    const { data, setData, post, processing, errors, reset } = useForm({ email: '' });
+    const { flash } = usePage().props;
 
-    const handleSend = () => {
-        // TODO: Envoyer l'invitation par email
-        console.log('Inviter:', inviteEmail);
-        setInviteEmail('');
-        onClose();
+    useEffect(() => {
+        if (flash?.success) {
+            reset();
+            onClose();
+        }
+    }, [flash?.success, reset, onClose]);
+
+    const handleSend = (e) => {
+        e.preventDefault();
+        post(`/teams/${teamId}/invite-email`, {
+            preserveScroll: true
+        });
     };
 
     if (!isOpen) return null;
@@ -30,31 +39,38 @@ export default function InviteByEmailModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-6">
+                <form onSubmit={handleSend} className="p-6">
                     <input
                         type="email"
                         placeholder="Entrez l'email..."
-                        value={inviteEmail}
-                        onChange={(e) => setInviteEmail(e.target.value)}
+                        value={data.email}
+                        onChange={(e) => setData('email', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                        disabled={processing}
+                        required
                     />
-                </div>
+                    {errors.email && (
+                        <p className="text-red-500 text-sm mb-4">{errors.email}</p>
+                    )}
 
-                {/* Modal Footer */}
-                <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                        Annuler
-                    </button>
-                    <button
-                        onClick={handleSend}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                        Envoyer
-                    </button>
-                </div>
+                    {/* Modal Footer */}
+                    <div className="flex justify-end gap-3 border-t border-gray-200 pt-4 mt-4">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {processing ? 'Envoi...' : 'Envoyer'}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );

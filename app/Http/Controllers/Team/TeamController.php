@@ -7,10 +7,8 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\Invitation;
 use App\Mail\TeamInvitation;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class TeamController extends Controller
 {
@@ -131,20 +129,9 @@ class TeamController extends Controller
             'email' => 'required|email',
         ]);
 
-        // Create invitation record
-        $token = Str::random(64);
-        $invitation = Invitation::create([
-            'equ_id' => $team->equ_id,
-            'email' => $validated['email'],
-            'inviter_id' => $request->user()->id,
-            'token' => $token,
-            'status' => 'pending',
-            'expires_at' => now()->addDays(7),
-        ]);
-
         // Send invitation email
         Mail::to($validated['email'])->send(new TeamInvitation($team->equ_name, $request->user()->name));
 
-        return response()->json(['success' => 'Email d\'invitation envoyé avec succès']);
+        return redirect()->back()->with('success', 'Email d\'invitation envoyé avec succès');
     }
 }

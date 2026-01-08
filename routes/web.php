@@ -112,6 +112,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/createTeam', [TeamController::class, 'store'])->name('team.store');
     // Show team details
     Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show')->whereNumber('team');
+    Route::post('/teams/{team}/invite-email', [TeamController::class, 'inviteByEmail'])->name('teams.invite-email');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
