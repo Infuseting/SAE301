@@ -98,6 +98,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/participants/{participant}', [App\Http\Controllers\Team\TeamRunnerController::class, 'update'])->name('participants.update');
     Route::delete('/participants/{participant}', [App\Http\Controllers\Team\TeamRunnerController::class, 'destroy'])->name('participants.destroy');
     Route::post('/participants/{participant}/verify-pps', [App\Http\Controllers\Team\TeamRunnerController::class, 'verifyPps'])->name('participants.verifyPps');
+    // Show registration ticket with QR code
+    Route::get('/teams/{team}/registration/{registration}', [TeamController::class, 'showRegistrationTicket'])->name('teams.registration.ticket');
 });
 
 // Clubs CRUD routes - require adherent role (or admin) + valid licence
@@ -116,6 +118,9 @@ Route::middleware(['auth', 'role:gestionnaire-raid|admin', 'manager_licence'])->
     Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
     Route::match(['put', 'patch'], '/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
     Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
+    Route::get('/raids/{raid}/start-list', [RaidController::class, 'generateStartList'])->name('raids.start-list');
+    Route::get('/raids/{raid}/scanner', [RaidController::class, 'scannerPage'])->name('raids.scanner');
+    Route::post('/raids/{raid}/check-in', [RaidController::class, 'checkIn'])->name('raids.check-in');
 });
 
 // Race management routes - require responsable-course role (or admin) + valid licence
