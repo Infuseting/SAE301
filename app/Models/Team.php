@@ -19,6 +19,7 @@ class Team extends Model
         'equ_name',
         'equ_image',
         'user_id',
+        'adh_id',
     ];
 
     public function member(): BelongsTo
