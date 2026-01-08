@@ -109,6 +109,8 @@ Route::middleware('auth')->group(function () {
     // Team creation routes
     Route::get('/createTeam', [TeamController::class, 'create'])->name('team.create');
     Route::post('/createTeam', [TeamController::class, 'store'])->name('team.store');
+    // Show team details
+    Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show')->whereNumber('team');
 });
 
 Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {

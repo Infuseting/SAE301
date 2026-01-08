@@ -195,6 +195,12 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function races()
+    {
+        return $this->belongsToMany(Race::class, 'race_registrations', 'user_id', 'race_id');
+    }
+
+
     /**
      * Determine if the user is allowed to reset their password.
      * A user can reset their password if they have a local password set

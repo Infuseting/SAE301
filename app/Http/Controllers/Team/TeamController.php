@@ -59,4 +59,26 @@ class TeamController extends Controller
 
         return redirect()->route('dashboard')->with('success', 'Équipe créée avec succès!');
     }
+
+    /**
+     * Display team details.
+     */
+    public function show(Team $team)
+    {
+        // Get team members
+        $members = $team->users()->get()->map(fn($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'avatar' => $user->avatar,
+        ])->toArray();
+
+        return Inertia::render('Team/Show', [
+            'team' => [
+                'id' => $team->equ_id,
+                'name' => $team->equ_name,
+                'image' => $team->equ_image,
+                'members' => $members,
+            ],
+        ]);
+    }
 }
