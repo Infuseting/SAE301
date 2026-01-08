@@ -178,7 +178,7 @@ class Club extends Model
      * Get the raids belonging to this club.
      */
     public function raids()
-    {
+ {
         return $this->hasMany(Raid::class, 'clu_id', 'club_id');
     }
 }

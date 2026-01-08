@@ -762,8 +762,9 @@ class LeaderboardService
     /**
      * Process a row from the new CSV format (with Nom column).
      * Finds user by concatenated first_name + last_name.
-     * If user not found, creates a new user, team and participation.
-     * Also creates leaderboard_teams entry for newly created solo teams.
+     * If user not found, creates a new user with adh_id=null, doc_id=null, team and participation.
+     * If user exists but has no team, creates a solo team for them.
+     * Also creates leaderboard_teams entry for solo teams.
      *
      * @param array $data The row data as associative array
      * @param int $raceId The race ID
@@ -783,15 +784,19 @@ class LeaderboardService
         // Find user by full name (first_name + last_name)
         $user = $this->findUserByName($nom);
         $wasCreated = false;
-        $createdTeam = null;
+        $team = null;
 
-        // If user not found, create new user with team and participation
+        // If user not found, create new user with team and participation (adh_id=null, doc_id=null)
         if (!$user) {
             $result = $this->createUserFromName($nom, $raceId);
             $user = $result['user'];
-            $createdTeam = $result['team'];
+            $team = $result['team'];
             $wasCreated = true;
-            Log::info("Created new user from CSV import: {$nom} (ID: {$user->id})");
+            Log::info("Created new user from CSV import: {$nom} (ID: {$user->id}, adh_id=null, doc_id=null)");
+        } else {
+            // User exists - ensure they have a team and participation
+            // If they don't have a team, create a solo team for them
+            $team = $this->ensureExistingUserHasTeamForRace($user, $raceId);
         }
 
         LeaderboardUser::updateOrCreate(
@@ -799,10 +804,10 @@ class LeaderboardService
             ['temps' => $temps, 'malus' => $malus]
         );
 
-        // If a new team was created, add it to leaderboard_teams for this race
-        if ($createdTeam) {
+        // Add/update team in leaderboard_teams for this race
+        if ($team) {
             LeaderboardTeam::updateOrCreate(
-                ['equ_id' => $createdTeam->equ_id, 'race_id' => $raceId],
+                ['equ_id' => $team->equ_id, 'race_id' => $raceId],
                 [
                     'average_temps' => $temps,
                     'average_malus' => $malus,
@@ -838,12 +843,121 @@ class LeaderboardService
             return ['success' => false, 'error' => "Line {$lineNumber}: User ID {$userId} not found"];
         }
 
+        // Get user's existing team if they have one
+        $team = $this->getUserExistingTeam($user);
+
         LeaderboardUser::updateOrCreate(
             ['user_id' => $userId, 'race_id' => $raceId],
             ['temps' => $temps, 'malus' => $malus]
         );
 
+        // If user has a team, add/update it in leaderboard_teams for this race
+        if ($team) {
+            LeaderboardTeam::updateOrCreate(
+                ['equ_id' => $team->equ_id, 'race_id' => $raceId],
+                [
+                    'average_temps' => $temps,
+                    'average_malus' => $malus,
+                    'average_temps_final' => $temps + $malus,
+                    'member_count' => 1,
+                ]
+            );
+        }
+
         return ['success' => true, 'user_id' => $userId];
+    }
+
+    /**
+     * Get the existing team for a user via has_participate.
+     * Does NOT create a new team if the user doesn't have one.
+     *
+     * @param User $user The user to check
+     * @return Team|null The user's existing team, or null if they don't have one
+     */
+    private function getUserExistingTeam(User $user): ?Team
+    {
+        // Check which column exists for user reference
+        $hasIdUsersColumn = DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
+        // Check if user already has a participation
+        $existingParticipation = DB::table('has_participate')
+            ->where($userIdColumn, $user->id)
+            ->first();
+
+        if ($existingParticipation) {
+            return Team::find($existingParticipation->equ_id);
+        }
+
+        return null;
+    }
+
+    /**
+     * Ensure an existing user has a team and participation for the given race.
+     * Creates a solo team if the user doesn't have one.
+     * This handles existing users who are not yet in has_participate.
+     *
+     * @param User $user The existing user
+     * @param int $raceId The race ID for the participation
+     * @return Team The user's team (existing or newly created)
+     */
+    private function ensureExistingUserHasTeamForRace(User $user, int $raceId): Team
+    {
+        $hasIdUsersColumn = DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
+        // Check if user already has a participation
+        $existingParticipation = DB::table('has_participate')
+            ->where($userIdColumn, $user->id)
+            ->first();
+
+        if ($existingParticipation) {
+            // User already has a team
+            return Team::find($existingParticipation->equ_id);
+        }
+
+        // User has no participation - create a solo team
+        Log::info("User {$user->id} has no team, creating solo team for race {$raceId}");
+
+        // Ensure user has a member record or create one
+        $memberId = $user->adh_id;
+        if (!$memberId) {
+            // Create a dummy member for the team
+            $member = Member::create([
+                'adh_license' => 'AUTO-' . Str::random(8),
+                'adh_end_validity' => now()->addYear(),
+                'adh_date_added' => now(),
+            ]);
+            $memberId = $member->adh_id;
+        }
+
+        // Create solo team
+        $teamName = Str::limit($user->first_name . ' ' . $user->last_name, 32, '');
+        $team = Team::create([
+            'equ_name' => $teamName,
+            'adh_id' => $memberId,
+        ]);
+
+        // Link user to team via has_participate
+        $participateData = [
+            $userIdColumn => $user->id,
+            'equ_id' => $team->equ_id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        if (DB::getSchemaBuilder()->hasColumn('has_participate', 'adh_id')) {
+            $participateData['adh_id'] = $memberId;
+        }
+        if (DB::getSchemaBuilder()->hasColumn('has_participate', 'is_leader')) {
+            $participateData['is_leader'] = true;
+        }
+
+        DB::table('has_participate')->insert($participateData);
+
+        Log::info("Created solo team '{$teamName}' (ID: {$team->equ_id}) and participation for existing user {$user->id}");
+
+        return $team;
     }
 
     /**
@@ -912,7 +1026,8 @@ class LeaderboardService
     /**
      * Create a new user from a full name string.
      * Also creates a solo team for the user and links them as participant.
-     * The user profile is set to private by default.
+     * The user profile is set to private by default with adh_id = null and doc_id = null.
+     * A dummy Member is created ONLY for the team reference (teams.adh_id is NOT NULL).
      *
      * @param string $fullName The full name (e.g., "Jean Dupont")
      * @param int $raceId The race ID to link participation to
@@ -934,21 +1049,15 @@ class LeaderboardService
             $counter++;
         }
 
-        // Create or get a MedicalDoc for the user
-        $medicalDoc = MedicalDoc::create([
-            'doc_num_pps' => 'IMPORT-' . Str::random(8),
-            'doc_end_validity' => now()->addYear(),
-            'doc_date_added' => now(),
-        ]);
-
-        // Create or get a Member for the user
-        $member = Member::create([
+        // Create a dummy Member for the team (teams.adh_id is NOT NULL)
+        // This member is ONLY used for the team reference, NOT linked to the user
+        $dummyMember = Member::create([
             'adh_license' => 'IMPORT-' . Str::random(8),
             'adh_end_validity' => now()->addYear(),
             'adh_date_added' => now(),
         ]);
 
-        // Create the user with private profile and random password
+        // Create the user with private profile, NO Member reference (adh_id = null), NO medical doc (doc_id = null)
         $user = User::create([
             'first_name' => $firstName,
             'last_name' => $lastName,
@@ -957,15 +1066,15 @@ class LeaderboardService
             'is_public' => false, // Private profile
             'password_is_set' => false, // User needs to set their own password
             'active' => true,
-            'doc_id' => $medicalDoc->doc_id,
-            'adh_id' => $member->adh_id,
+            'doc_id' => null, // No medical doc
+            'adh_id' => null, // No member reference - user is imported only
         ]);
 
-        // Create a solo team for this user
+        // Create a solo team for this user (using dummy member for the required adh_id)
         $teamName = Str::limit($firstName . ' ' . $lastName, 32, '');
         $team = Team::create([
             'equ_name' => $teamName,
-            'adh_id' => $member->adh_id,
+            'adh_id' => $dummyMember->adh_id, // Team needs a member reference
         ]);
 
         // Link user to team via has_participate
@@ -980,15 +1089,17 @@ class LeaderboardService
             'updated_at' => now(),
         ];
 
-        // Add adh_id and is_leader if columns exist
+        // Add adh_id if column exists (use user's id as fallback since user has no adh_id)
         if (DB::getSchemaBuilder()->hasColumn('has_participate', 'adh_id')) {
-            $participateData['adh_id'] = $member->adh_id;
+            $participateData['adh_id'] = $dummyMember->adh_id;
         }
         if (DB::getSchemaBuilder()->hasColumn('has_participate', 'is_leader')) {
             $participateData['is_leader'] = true;
         }
 
         DB::table('has_participate')->insert($participateData);
+
+        Log::info("Created imported user {$user->id} with solo team {$team->equ_id} for race {$raceId} (adh_id=null, doc_id=null)");
 
         return ['user' => $user, 'team' => $team];
     }
@@ -998,10 +1109,8 @@ class LeaderboardService
      * This ensures the CSV is the source of truth for race results.
      * Users who were in the leaderboard but are not in the new CSV will be removed.
      * For imported users (email ending with @imported.local), also cleans up:
-     * - has_participate entries
-     * - Solo teams created for the import
-     * - Member records created for the import
-     * - MedicalDoc records created for the import
+     * - has_participate entries (for this race only)
+     * - Solo teams if not used in other races
      *
      * @param int $raceId The race ID
      * @param array $processedUserIds Array of user IDs that were in the CSV
@@ -1016,7 +1125,7 @@ class LeaderboardService
 
             if ($removedCount > 0) {
                 $removedUserIds = $entriesToRemove->pluck('user_id')->toArray();
-                $this->cleanupImportedUsersData($removedUserIds);
+                $this->cleanupUsersParticipationForRace($removedUserIds, $raceId);
                 LeaderboardUser::where('race_id', $raceId)->delete();
                 Log::info("Removed all {$removedCount} leaderboard entries for race {$raceId} (empty CSV import)");
             }
@@ -1036,8 +1145,8 @@ class LeaderboardService
             $removedUserIds = $entriesToRemove->pluck('user_id')->toArray();
             Log::info("Removing {$removedCount} leaderboard entries for race {$raceId}. User IDs: " . implode(', ', $removedUserIds));
 
-            // Clean up imported users' participation and team data
-            $this->cleanupImportedUsersData($removedUserIds);
+            // Clean up users' participation for THIS race only
+            $this->cleanupUsersParticipationForRace($removedUserIds, $raceId);
 
             // Delete the leaderboard entries
             LeaderboardUser::where('race_id', $raceId)
@@ -1049,15 +1158,16 @@ class LeaderboardService
     }
 
     /**
-     * Clean up data for imported users being removed from leaderboard.
-     * Only affects users created via CSV import (email ending with @imported.local).
-     * Removes: has_participate entries and solo teams.
-     * Keeps: User, Member and MedicalDoc records (user can be re-added later).
+     * Clean up participation data for users being removed from a specific race leaderboard.
+     * Removes has_participate entries for this race.
+     * If the user's team is no longer used in any other race, deletes the team.
+     * Only affects imported users (email ending with @imported.local).
      *
      * @param array $userIds Array of user IDs to check and clean up
+     * @param int $raceId The race ID being cleaned up
      * @return void
      */
-    private function cleanupImportedUsersData(array $userIds): void
+    private function cleanupUsersParticipationForRace(array $userIds, int $raceId): void
     {
         if (empty($userIds)) {
             return;
@@ -1072,26 +1182,64 @@ class LeaderboardService
             return;
         }
 
+        $hasIdUsersColumn = DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+
         foreach ($importedUsers as $user) {
-            Log::info("Cleaning up imported user participation data: {$user->first_name} {$user->last_name} (ID: {$user->id})");
+            Log::info("Cleaning up imported user participation for race {$raceId}: {$user->first_name} {$user->last_name} (ID: {$user->id})");
 
-            $adhId = $user->adh_id;
+            // Get user's team before deleting participation
+            $participation = DB::table('has_participate')
+                ->where($userIdColumn, $user->id)
+                ->first();
 
-            // Find and delete has_participate entries for this user
-            $hasIdUsersColumn = DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
-            $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+            if (!$participation) {
+                continue;
+            }
 
+            $teamId = $participation->equ_id;
+
+            // Delete has_participate entry for this user
             DB::table('has_participate')
                 ->where($userIdColumn, $user->id)
                 ->delete();
 
-            // Delete solo teams created for this member (teams with the member's adh_id)
-            // This will cascade delete leaderboard_teams entries via foreign key
-            if ($adhId) {
-                Team::where('adh_id', $adhId)->delete();
+            // Check if the team is still used in other races (via leaderboard_teams)
+            $teamUsedInOtherRaces = LeaderboardTeam::where('equ_id', $teamId)
+                ->where('race_id', '!=', $raceId)
+                ->exists();
+
+            // Check if team has other members (other users in has_participate with this team)
+            $teamHasOtherMembers = DB::table('has_participate')
+                ->where('equ_id', $teamId)
+                ->exists();
+
+            // Delete the team if it's not used anywhere else
+            if (!$teamUsedInOtherRaces && !$teamHasOtherMembers) {
+                $team = Team::find($teamId);
+                if ($team) {
+                    $memberId = $team->adh_id;
+                    
+                    // Delete the leaderboard_teams entry for this race first
+                    LeaderboardTeam::where('equ_id', $teamId)->where('race_id', $raceId)->delete();
+                    
+                    // Delete the team
+                    $team->delete();
+                    Log::info("Deleted solo team {$teamId} as it's no longer used");
+
+                    // Delete the dummy member if it was created for import (starts with IMPORT- or AUTO-)
+                    $member = Member::find($memberId);
+                    if ($member && (Str::startsWith($member->adh_license, 'IMPORT-') || Str::startsWith($member->adh_license, 'AUTO-'))) {
+                        $member->delete();
+                        Log::info("Deleted dummy member {$memberId} as it's no longer used");
+                    }
+                }
+            } else {
+                // Just delete the leaderboard_teams entry for this race
+                LeaderboardTeam::where('equ_id', $teamId)->where('race_id', $raceId)->delete();
             }
         }
 
-        Log::info("Cleaned up participation data for {$importedUsers->count()} imported users");
+        Log::info("Cleaned up participation data for {$importedUsers->count()} imported users in race {$raceId}");
     }
 }

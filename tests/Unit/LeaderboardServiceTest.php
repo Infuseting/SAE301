@@ -598,16 +598,33 @@ class LeaderboardServiceTest extends TestCase
     /**
      * Test import CSV does NOT create duplicate user when user already exists.
      * Verifies that existing users are linked, not recreated.
+     * Note: For existing users WITHOUT teams, solo teams will be created.
      */
     public function test_import_csv_does_not_duplicate_existing_users(): void
     {
         $race = Race::factory()->create();
         
-        // Create existing users BEFORE import
-        $existingUser1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont']);
-        $existingUser2 = User::factory()->create(['first_name' => 'Marie', 'last_name' => 'Martin']);
+        // Create existing users BEFORE import WITH teams (to test no duplicate teams)
+        $member1 = \App\Models\Member::factory()->create();
+        $member2 = \App\Models\Member::factory()->create();
         
-        // Count users before import
+        $existingUser1 = User::factory()->create(['first_name' => 'Jean', 'last_name' => 'Dupont', 'adh_id' => $member1->adh_id]);
+        $existingUser2 = User::factory()->create(['first_name' => 'Marie', 'last_name' => 'Martin', 'adh_id' => $member2->adh_id]);
+        
+        // Create teams for existing users
+        $team1 = Team::factory()->create(['adh_id' => $member1->adh_id]);
+        $team2 = Team::factory()->create(['adh_id' => $member2->adh_id]);
+        
+        // Create has_participate entries so users have teams
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        
+        \Illuminate\Support\Facades\DB::table('has_participate')->insert([
+            [$userIdColumn => $existingUser1->id, 'equ_id' => $team1->equ_id, 'adh_id' => $member1->adh_id, 'created_at' => now(), 'updated_at' => now()],
+            [$userIdColumn => $existingUser2->id, 'equ_id' => $team2->equ_id, 'adh_id' => $member2->adh_id, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+        
+        // Count users and teams before import
         $userCountBefore = User::count();
         $teamCountBefore = Team::count();
 
@@ -630,9 +647,9 @@ class LeaderboardServiceTest extends TestCase
         $userCountAfter = User::count();
         $this->assertEquals($userCountBefore, $userCountAfter, 'No new users should be created when they already exist');
 
-        // Verify NO new teams were created (users already exist)
+        // Verify NO new teams were created (users already have teams)
         $teamCountAfter = Team::count();
-        $this->assertEquals($teamCountBefore, $teamCountAfter, 'No new teams should be created for existing users');
+        $this->assertEquals($teamCountBefore, $teamCountAfter, 'No new teams should be created for existing users with teams');
 
         // Verify leaderboard entries are linked to EXISTING users (same IDs)
         $leaderboard1 = LeaderboardUser::where('race_id', $race->race_id)
@@ -860,20 +877,19 @@ class LeaderboardServiceTest extends TestCase
         $importedUser = User::where('email', 'like', '%@imported.local')->first();
         $this->assertNotNull($importedUser);
         $userId = $importedUser->id;
-        $adhId = $importedUser->adh_id;
 
-        // Verify has_participate entry exists
+        // For imported users, adh_id is NULL, so find team via has_participate
         $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
         $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
         
-        $participationCount = \Illuminate\Support\Facades\DB::table('has_participate')
+        $participation = \Illuminate\Support\Facades\DB::table('has_participate')
             ->where($userIdColumn, $userId)
-            ->count();
-        $this->assertGreaterThan(0, $participationCount, 'Participation should exist after import');
-
-        // Verify team exists
-        $teamCount = Team::where('adh_id', $adhId)->count();
-        $this->assertGreaterThan(0, $teamCount, 'Team should exist after import');
+            ->first();
+        $this->assertNotNull($participation, 'Participation should exist after import');
+        
+        $teamId = $participation->equ_id;
+        $team = Team::find($teamId);
+        $this->assertNotNull($team, 'Team should exist after import');
 
         // Now import empty CSV to remove from leaderboard
         $emptyCsv = "Rang,Nom,Temps,Malus,Temps Final\n";
@@ -892,8 +908,7 @@ class LeaderboardServiceTest extends TestCase
         $this->assertEquals(0, $participationCountAfter, 'Participation should be deleted after removal');
 
         // Verify team was deleted
-        $teamCountAfter = Team::where('adh_id', $adhId)->count();
-        $this->assertEquals(0, $teamCountAfter, 'Team should be deleted after removal');
+        $this->assertNull(Team::find($teamId), 'Team should be deleted after removal');
     }
 
     /**
@@ -968,18 +983,31 @@ class LeaderboardServiceTest extends TestCase
         $user = User::where('first_name', 'Import')->where('last_name', 'Member Test')->first();
         $this->assertNotNull($user);
 
-        // Verify user has adh_id set
-        $this->assertNotNull($user->adh_id, 'Imported user should have adh_id set');
+        // Verify user has adh_id = NULL (imported users don't have member reference)
+        $this->assertNull($user->adh_id, 'Imported user should have adh_id = NULL');
+        $this->assertNull($user->doc_id, 'Imported user should have doc_id = NULL');
 
-        // Verify member record has IMPORT- prefix
-        $member = \App\Models\Member::where('adh_id', $user->adh_id)->first();
-        $this->assertNotNull($member);
+        // Find the team via has_participate
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        $participation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $user->id)
+            ->first();
+        $this->assertNotNull($participation, 'User should have a participation entry');
+
+        // Get the team
+        $team = Team::find($participation->equ_id);
+        $this->assertNotNull($team, 'Team should exist');
+
+        // Verify the team's dummy member has IMPORT- prefix
+        $member = \App\Models\Member::where('adh_id', $team->adh_id)->first();
+        $this->assertNotNull($member, 'Dummy member should exist for team');
         $this->assertStringStartsWith('IMPORT-', $member->adh_license, 'Member license should start with IMPORT-');
     }
 
     /**
-     * Test imported user cleanup keeps member and medical doc.
-     * Only team and participation should be deleted.
+     * Test imported user cleanup keeps the user but deletes the team and dummy member.
+     * User should have adh_id = NULL and doc_id = NULL.
      */
     public function test_imported_user_cleanup_keeps_member_and_medical_doc(): void
     {
@@ -997,12 +1025,25 @@ class LeaderboardServiceTest extends TestCase
         $user = User::where('first_name', 'Cleanup')->where('last_name', 'Test User')->first();
         $this->assertNotNull($user);
         
-        $adhId = $user->adh_id;
-        $docId = $user->doc_id;
+        // Verify adh_id and doc_id are null for imported users
+        $this->assertNull($user->adh_id, 'Imported user adh_id should be null');
+        $this->assertNull($user->doc_id, 'doc_id should be null for imported users');
 
-        // Verify member and medical doc exist
-        $this->assertNotNull(\App\Models\Member::where('adh_id', $adhId)->first(), 'Member should exist');
-        $this->assertNotNull(\App\Models\MedicalDoc::where('doc_id', $docId)->first(), 'MedicalDoc should exist');
+        // Find the team via has_participate
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        $participation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $user->id)
+            ->first();
+        $this->assertNotNull($participation);
+        
+        $team = Team::find($participation->equ_id);
+        $this->assertNotNull($team);
+        $teamMemberId = $team->adh_id;
+        
+        // Verify dummy member exists
+        $dummyMember = \App\Models\Member::find($teamMemberId);
+        $this->assertNotNull($dummyMember, 'Dummy member should exist');
 
         // Import empty CSV to trigger cleanup
         $emptyCsv = "Rang,Nom,Temps,Malus,Temps Final\n";
@@ -1010,10 +1051,12 @@ class LeaderboardServiceTest extends TestCase
 
         $this->service->importCsv($file2, $race->race_id);
 
-        // Verify user, member and medical doc are NOT deleted
+        // Verify user is NOT deleted
         $this->assertNotNull(User::find($user->id), 'User should NOT be deleted');
-        $this->assertNotNull(\App\Models\Member::where('adh_id', $adhId)->first(), 'Member should NOT be deleted');
-        $this->assertNotNull(\App\Models\MedicalDoc::where('doc_id', $docId)->first(), 'MedicalDoc should NOT be deleted');
+        
+        // Verify team and dummy member ARE deleted (cleanup should remove them)
+        $this->assertNull(Team::find($team->equ_id), 'Team should be deleted');
+        $this->assertNull(\App\Models\Member::find($teamMemberId), 'Dummy member should be deleted');
     }
 
     /**
@@ -1035,8 +1078,15 @@ class LeaderboardServiceTest extends TestCase
         $user = User::where('first_name', 'Team')->where('last_name', 'Leader Test')->first();
         $this->assertNotNull($user);
 
-        // Get the team created for this user
-        $team = Team::where('adh_id', $user->adh_id)->first();
+        // Find team via has_participate (since user.adh_id is NULL)
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        $participation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $user->id)
+            ->first();
+        $this->assertNotNull($participation);
+        
+        $team = Team::find($participation->equ_id);
         $this->assertNotNull($team);
 
         // Verify leaderboard_teams entry exists for this race
@@ -1068,11 +1118,20 @@ class LeaderboardServiceTest extends TestCase
         $this->service->importCsv($file, $race->race_id);
 
         $user = User::where('first_name', 'Leaderboard')->where('last_name', 'Team Test')->first();
-        $team = Team::where('adh_id', $user->adh_id)->first();
+        
+        // Find team via has_participate
+        $hasIdUsersColumn = \Illuminate\Support\Facades\DB::getSchemaBuilder()->hasColumn('has_participate', 'id_users');
+        $userIdColumn = $hasIdUsersColumn ? 'id_users' : 'id';
+        $participation = \Illuminate\Support\Facades\DB::table('has_participate')
+            ->where($userIdColumn, $user->id)
+            ->first();
+        $this->assertNotNull($participation);
+        
+        $teamId = $participation->equ_id;
         
         // Verify leaderboard_teams entry exists
         $this->assertNotNull(
-            LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first(),
+            LeaderboardTeam::where('equ_id', $teamId)->where('race_id', $race->race_id)->first(),
             'LeaderboardTeam entry should exist'
         );
 
@@ -1084,7 +1143,7 @@ class LeaderboardServiceTest extends TestCase
 
         // Verify leaderboard_teams entry was removed (cascade from team deletion)
         $this->assertNull(
-            LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first(),
+            LeaderboardTeam::where('equ_id', $teamId)->where('race_id', $race->race_id)->first(),
             'LeaderboardTeam entry should be deleted when team is deleted'
         );
     }

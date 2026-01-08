@@ -7,7 +7,6 @@ use App\Models\Raid;
 use App\Models\Member;
 use App\Models\ParamRunner;
 use App\Models\ParamTeam;
-use App\Models\ParamDifficulty;
 use App\Models\ParamType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -37,11 +36,11 @@ class RaceFactory extends Factory
             'race_reduction' => $this->faker->randomFloat(2, 0, 20),
             'race_meal_price' => $this->faker->randomFloat(2, 5, 25),
             'race_duration_minutes' => $this->faker->numberBetween(60, 480),
+            'race_difficulty' => $this->faker->randomElement(['Easy', 'Medium', 'Hard', 'Expert']),
             'raid_id' => Raid::factory(),
             'adh_id' => Member::factory(),
             'pac_id' => ParamRunner::factory(),
             'pae_id' => ParamTeam::factory(),
-            'dif_id' => ParamDifficulty::factory(),
             'typ_id' => ParamType::factory(),
         ];
     }

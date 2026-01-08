@@ -24,7 +24,6 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(property="race_meal_price", type="number", format="float", nullable=true, example=8.0),
  *     @OA\Property(property="race_duration_minutes", type="number", format="float", nullable=true, example=150),
  *     @OA\Property(property="raid_id", type="integer", example=1),
- *     @OA\Property(property="cla_id", type="integer", example=1),
  *     @OA\Property(property="adh_id", type="integer", example=1),
  *     @OA\Property(property="pac_id", type="integer", example=1),
  *     @OA\Property(property="pae_id", type="integer", example=1),
@@ -78,7 +77,6 @@ class Race extends Model
         'race_duration_minutes',
         'image_url',
         'raid_id',
-        'cla_id',
         'adh_id',
         'pac_id',
         'pae_id',
@@ -128,16 +126,6 @@ class Race extends Model
     public function raid(): BelongsTo
     {
         return $this->belongsTo(Raid::class, 'raid_id', 'raid_id');
-    }
-
-    /**
-     * Get the leaderboard associated with this race.
-     *
-     * @return BelongsTo
-     */
-    public function leaderboard(): BelongsTo
-    {
-        return $this->belongsTo(Leaderboard::class, 'cla_id', 'cla_id');
     }
 
     /**
