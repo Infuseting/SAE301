@@ -93,8 +93,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/teams/{team}/invite/{user}', [TeamController::class, 'inviteByEmail'])->name('teams.invite-user');
 });
 
-// Clubs CRUD routes - require responsable-club role (or admin) + valid licence
-Route::middleware(['auth', 'role:responsable-club|admin', 'manager_licence'])->group(function () {
+// Clubs CRUD routes - require adherent role (or admin) + valid licence
+Route::middleware(['auth', 'role:adherent|admin', 'manager_licence'])->group(function () {
     Route::get('/clubs/create', [ClubController::class, 'create'])->name('clubs.create');
     Route::post('/clubs', [ClubController::class, 'store'])->name('clubs.store');
     Route::get('/clubs/{club}/edit', [ClubController::class, 'edit'])->name('clubs.edit');
@@ -143,9 +143,9 @@ Route::middleware(['auth', 'manager_licence'])->group(function () {
     Route::post('/races/{race}/confirm-team-payment/{team}', [RaceRegistrationController::class, 'confirmTeamPayment'])->name('race.confirmTeamPayment');
 });
 
-Route::middleware(['auth', 'verified', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
-    // dashboard - ADMIN ONLY (requires admin role)
-    Route::get('/', [AdminController::class, 'index'])->name('dashboard')->middleware('role:admin');
+Route::middleware(['auth',  'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
+    // dashboard - accessible to all users with access-admin permission
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
 
     // Race management - requires access-admin-races permission
     Route::get('/races', [AdminController::class, 'racemanagement'])->name('races.index')->middleware('admin_page:access-admin-races');

@@ -9,7 +9,7 @@ export default function AuthenticatedLayout({ header, children }) {
     const user = auth.user;
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-100 flex flex-col">
             {/* Licence Required Modal - Shows first and blocks access */}
             {user && <LicenceRequiredModal show={requiresLicenceUpdate} />}
             
