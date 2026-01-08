@@ -246,6 +246,7 @@ return [
     'footer_navigation' => 'Navigation',
     'footer_links_calendar' => 'Calendar',
     'footer_links_clubs' => 'Clubs',
+    'footer_links_raids' => 'Raids',
     'footer_links_results' => 'Results',
     'footer_legal' => 'Legal',
     'footer_links_legal_notice' => 'Legal Notice',

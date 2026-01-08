@@ -243,6 +243,20 @@ return [
     'step_3_title' => 'Rennen!',
     'step_3_desc' => 'Nehmen Sie an der Veranstaltung teil, verfolgen Sie Ihre Ergebnisse und vergleichen Sie Ihre Leistung.',
 
+    // Footer
+    'footer_tagline' => 'Die Referenz für Orientierungslauf in Frankreich.',
+    'footer_navigation' => 'Navigation',
+    'footer_links_calendar' => 'Kalender',
+    'footer_links_clubs' => 'Clubs',
+    'footer_links_raids' => 'Überfälle',
+    'footer_links_results' => 'Ergebnisse',
+    'footer_legal' => 'Rechtlich',
+    'footer_links_legal_notice' => 'Impressum',
+    'footer_links_privacy' => 'Datenschutz',
+    'footer_links_terms' => 'Nutzungsbedingungen',
+    'footer_contact' => 'Kontakt',
+    'footer_copyright' => 'Alle Rechte vorbehalten.',
+
     // Auth Pages - Additional
     'reg_title' => 'Erkunden Sie Frankreich eine Marke nach der anderen.',
     'reg_subtext' => 'Die bevorzugte Plattform für alle Orientierungslauf-Enthusiasten.',

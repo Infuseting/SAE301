@@ -246,6 +246,19 @@ return [
     'step_3_title' => '¡Corre!',
     'step_3_desc' => 'Participa en el evento, sigue tus resultados y compara tu rendimiento.',
 
+    // Footer
+    'footer_tagline' => 'La referencia para orienteering en Francia.',
+    'footer_navigation' => 'Navegación',
+    'footer_links_calendar' => 'Calendario',
+    'footer_links_clubs' => 'Clubes',
+    'footer_links_raids' => 'Incursiones',
+    'footer_links_results' => 'Resultados',
+    'footer_legal' => 'Legal',
+    'footer_links_legal_notice' => 'Aviso legal',
+    'footer_links_privacy' => 'Privacidad',
+    'footer_links_terms' => 'Términos de servicio',
+    'footer_contact' => 'Contacto',
+    'footer_copyright' => 'Todos los derechos reservados.',
 
     // Welcome Page
     'documentation_text' => 'Laravel tiene una maravillosa documentación cubriendo cada aspecto del framework. Ya sea un principiante o alguien con experiencia previa con Laravel, recomendamos leer nuestra documentación desde el principio hasta el final.',
