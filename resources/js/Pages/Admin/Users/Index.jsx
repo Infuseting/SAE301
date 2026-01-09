@@ -221,17 +221,11 @@ export default function Users({ users, filters }) {
                     <div className="flex items-center flex-1 min-w-0">
                       {/* Avatar */}
                       <div className="flex-shrink-0 mr-3">
-                        {u.profile_photo_url ? (
-                          <img 
-                            src={u.profile_photo_url} 
-                            alt={u.name}
-                            className="h-12 w-12 rounded-full object-cover border-2 border-white shadow-sm"
-                          />
-                        ) : (
-                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm border-2 border-white shadow-sm">
-                            {u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                          </div>
-                        )}
+                        <UserAvatar
+                          user={u}
+                          size="lg"
+                          className="border-2 border-white shadow-sm"
+                        />
                       </div>
                       {/* Name and email */}
                       <div className="flex-1 min-w-0">
@@ -343,18 +337,11 @@ export default function Users({ users, filters }) {
                 <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-4">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        {u.profile_photo_url ? (
-                          <img 
-                            src={u.profile_photo_url} 
-                            alt={u.name}
-                            className="h-10 w-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold">
-                            {u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                          </div>
-                        )}
+                      <div className="flex-shrink-0">
+                        <UserAvatar
+                          user={u}
+                          size="md"
+                        />
                       </div>
                       <div className="ml-3">
                         <div className="text-sm font-semibold text-gray-900">{u.name}</div>

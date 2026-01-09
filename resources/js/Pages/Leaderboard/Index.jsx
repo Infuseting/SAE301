@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import Header from '@/Components/Header';
+import UserAvatar from '@/Components/UserAvatar';
 
 /**
  * Public Leaderboard Index page - Shows all public race rankings
@@ -278,18 +279,20 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
-                                                            {isTeamView && result.team_image && (
-                                                                <img
-                                                                    src={result.team_image}
-                                                                    alt={result.team_name}
-                                                                    className="w-8 h-8 rounded-full mr-3 object-cover"
+                                                            {isTeamView && (
+                                                                <UserAvatar
+                                                                    user={{ name: result.team_name, profile_photo_url: result.team_image }}
+                                                                    size="sm"
+                                                                    type="team"
+                                                                    className="mr-3"
                                                                 />
                                                             )}
-                                                            {!isTeamView && result.user_photo && (
-                                                                <img
-                                                                    src={result.user_photo}
-                                                                    alt={result.user_name}
-                                                                    className="w-8 h-8 rounded-full mr-3 object-cover"
+                                                            {!isTeamView && (
+                                                                <UserAvatar
+                                                                    user={{ name: result.user_name, profile_photo_url: result.user_photo }}
+                                                                    size="sm"
+                                                                    type="user"
+                                                                    className="mr-3"
                                                                 />
                                                             )}
                                                             <div>

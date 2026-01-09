@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
+import React, { useEffect, useState } from 'react';
+import { useForm, router } from '@inertiajs/react';
 import { X, Users, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
 import Modal from '@/Components/Modal';
 
 export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, raceId }) {
     const { delete: destroy, processing } = useForm();
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     // Block body scroll when modal is open
     useEffect(() => {
@@ -20,13 +21,11 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
     }, [isOpen]);
 
     const handleCancelRegistration = () => {
-        if (!confirm('Êtes-vous sûr de vouloir annuler votre inscription ? Cette action est irréversible.')) {
-            return;
-        }
-
         destroy(route('race.cancelRegistration', { race: raceId, team: registeredTeam.id }), {
             onSuccess: () => {
+                setShowConfirmModal(false);
                 onClose();
+                router.reload();
             },
         });
     };
@@ -188,7 +187,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                         Fermer
                     </button>
                     <button
-                        onClick={handleCancelRegistration}
+                        onClick={() => setShowConfirmModal(true)}
                         disabled={processing}
                         className="flex-1 px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
@@ -197,6 +196,54 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                     </button>
                 </div>
             </div>
+
+            {/* Confirmation Modal */}
+            <Modal show={showConfirmModal} onClose={() => setShowConfirmModal(false)} maxWidth="md">
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-red-600 p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                <AlertTriangle className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-xl font-black text-white italic uppercase tracking-wider">
+                                Confirmer l'annulation
+                            </h3>
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-8 space-y-4">
+                        <p className="text-base text-gray-700 font-semibold">
+                            Êtes-vous sûr de vouloir annuler votre inscription ?
+                        </p>
+                        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                            <p className="text-sm text-red-700 font-medium">
+                                ⚠️ Cette action est <span className="font-black">irréversible</span>. Vous devrez vous réinscrire si vous changez d'avis.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="p-6 bg-gray-50 border-t border-gray-200 flex gap-4">
+                        <button
+                            onClick={() => setShowConfirmModal(false)}
+                            disabled={processing}
+                            className="flex-1 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50"
+                        >
+                            Non, garder mon inscription
+                        </button>
+                        <button
+                            onClick={handleCancelRegistration}
+                            disabled={processing}
+                            className="flex-1 px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {processing ? 'Annulation...' : 'Oui, annuler'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </Modal>
     );
 }

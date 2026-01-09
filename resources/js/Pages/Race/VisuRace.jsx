@@ -259,27 +259,66 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 </p>
                             </div>
 
-                            {/* Age Categories Display */}
-                            {race.ageCategories && race.ageCategories.length > 0 && (
-                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-50">
-                                    <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                        <Users className="h-5 w-5 text-emerald-500" />
-                                        Catégories d'âges acceptées
-                                    </h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                        {race.ageCategories.map((category) => (
-                                            <div 
-                                                key={category.id}
-                                                className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-3 text-center hover:shadow-md transition-all"
-                                            >
-                                                <p className="text-xs font-black text-emerald-700 uppercase tracking-widest">{category.nom}</p>
-                                                <p className="text-sm font-bold text-emerald-900 mt-1">
-                                                    {category.age_min}{category.age_max ? `–${category.age_max}` : '+'} ans
+                            {/* Age Categories (Competitive) or Age Rules (Leisure) */}
+                            {race.isCompetitive ? (
+                                // Competitive: Show age categories
+                                race.ageCategories && race.ageCategories.length > 0 && (
+                                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-50">
+                                        <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <Users className="h-5 w-5 text-emerald-500" />
+                                            Catégories d'âges acceptées
+                                        </h3>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                            {race.ageCategories.map((category) => (
+                                                <div 
+                                                    key={category.id}
+                                                    className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-3 text-center hover:shadow-md transition-all"
+                                                >
+                                                    <p className="text-xs font-black text-emerald-700 uppercase tracking-widest">{category.nom}</p>
+                                                    <p className="text-sm font-bold text-emerald-900 mt-1">
+                                                        {category.age_min}{category.age_max ? `–${category.age_max}` : '+'} ans
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )
+                            ) : (
+                                // Leisure: Show age rules (A, B, C)
+                                (race.leisureAgeMin !== null || race.leisureAgeIntermediate !== null || race.leisureAgeSupervisor !== null) && (
+                                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-50">
+                                        <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <Users className="h-5 w-5 text-emerald-500" />
+                                            Règles d'âge
+                                        </h3>
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-3 gap-3">
+                                                <div className="bg-blue-50/50 border border-blue-200 rounded-xl p-4 text-center">
+                                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Âge minimum</p>
+                                                    <p className="text-2xl font-black text-blue-900 italic">{race.leisureAgeMin ?? '—'}</p>
+                                                    <p className="text-[10px] font-bold text-blue-600 mt-1">ans</p>
+                                                </div>
+                                                <div className="bg-amber-50/50 border border-amber-200 rounded-xl p-4 text-center">
+                                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Seuil intermédiaire</p>
+                                                    <p className="text-2xl font-black text-amber-900 italic">{race.leisureAgeIntermediate ?? '—'}</p>
+                                                    <p className="text-[10px] font-bold text-amber-600 mt-1">ans</p>
+                                                </div>
+                                                <div className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-4 text-center">
+                                                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Âge accompagnateur</p>
+                                                    <p className="text-2xl font-black text-emerald-900 italic">{race.leisureAgeSupervisor ?? '—'}</p>
+                                                    <p className="text-[10px] font-bold text-emerald-600 mt-1">ans</p>
+                                                </div>
+                                            </div>
+                                            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                                                <p className="text-xs font-bold text-blue-800 leading-relaxed">
+                                                    <span className="font-black">Règles :</span> Tous les participants doivent avoir au moins <span className="font-black text-blue-600">{race.leisureAgeMin} ans</span>. 
+                                                    Si un membre a moins de <span className="font-black text-amber-600">{race.leisureAgeIntermediate} ans</span>, 
+                                                    l'équipe doit inclure un accompagnateur d'au moins <span className="font-black text-emerald-600">{race.leisureAgeSupervisor} ans</span>.
                                                 </p>
                                             </div>
-                                        ))}
+                                        </div>
                                     </div>
-                                </div>
+                                )
                             )}
 
                             {/* Tabs for Tarifs, Équipes, Organisateur */}
@@ -730,6 +769,10 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                     adherent: race.priceAdherent
                 }}
                 isCompetitive={race.isCompetitive}
+                ageCategories={race.ageCategories || []}
+                leisureAgeMin={race.leisureAgeMin}
+                leisureAgeIntermediate={race.leisureAgeIntermediate}
+                leisureAgeSupervisor={race.leisureAgeSupervisor}
                 maxTeams={race.maxTeams}
                 maxParticipants={race.maxParticipants}
                 currentTeamsCount={race.teamsCount}

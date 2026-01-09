@@ -99,8 +99,17 @@ export default function ProfileCompletionModal() {
                             <InputLabel htmlFor="birth_date" value="Date de naissance *" />
                             <DatePicker
                                 id="birth_date"
-                                selected={data.birth_date ? new Date(data.birth_date) : null}
-                                onChange={(date) => setData('birth_date', date ? date.toISOString().split('T')[0] : '')}
+                                selected={data.birth_date ? new Date(data.birth_date + 'T00:00:00') : null}
+                                onChange={(date) => {
+                                    if (date) {
+                                        const year = date.getFullYear();
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        const day = String(date.getDate()).padStart(2, '0');
+                                        setData('birth_date', `${year}-${month}-${day}`);
+                                    } else {
+                                        setData('birth_date', '');
+                                    }
+                                }}
                                 className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                                 dateFormat="dd/MM/yyyy"
                                 placeholderText="JJ/MM/AAAA"

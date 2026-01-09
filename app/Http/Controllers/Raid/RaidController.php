@@ -410,6 +410,16 @@ class RaidController extends Controller
         $courses = $raid->races->map(function ($race) use ($user, $isRaidManager) {
             $isRaceManager = $user && ($user->adh_id === $race->adh_id || $isRaidManager);
 
+            // Check if user is already registered to this race
+            $isRegistered = false;
+            if ($user) {
+                $isRegistered = \DB::table('registration')
+                    ->join('has_participate', 'registration.equ_id', '=', 'has_participate.equ_id')
+                    ->where('registration.race_id', $race->race_id)
+                    ->where('has_participate.id_users', $user->id)
+                    ->exists();
+            }
+
             // Map age categories for display
             $ageCategories = $race->categorieAges->map(function ($categorieAge) {
                 return [
@@ -433,6 +443,7 @@ class RaidController extends Controller
                 'registration_upcoming' => $race->isRegistrationUpcoming(),
                 'is_finished' => $race->isCompleted(),
                 'can_edit' => $isRaceManager,
+                'is_registered' => $isRegistered,
             ];
         });
 

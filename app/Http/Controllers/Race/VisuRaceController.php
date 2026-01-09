@@ -130,7 +130,7 @@ class VisuRaceController extends Controller
                     
                     // Calculate participant price
                     $age = $p->birth_date ? $now->diffInYears($p->birth_date) : null;
-                    $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'competitif';
+                    $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'compétitif';
                     
                     if ($p->is_license_valid && $race->price_adherent !== null) {
                         // Licensed member price
@@ -163,7 +163,7 @@ class VisuRaceController extends Controller
             'endDate' => $race->race_date_end?->toIso8601String(),
             'duration' => $race->race_duration_minutes ? floor($race->race_duration_minutes / 60) . ':' . str_pad((int)($race->race_duration_minutes % 60), 2, '0', STR_PAD_LEFT) : '0:00',
             'raceType' => $race->type?->typ_name ?? 'Classique',
-            'isCompetitive' => $race->type && strtolower($race->type->typ_name) === 'competitif',
+            'isCompetitive' => $race->type && strtolower($race->type->typ_name) === 'compétitif',
             'difficulty' => $race->race_difficulty ?? 'Moyen',
             'status' => $this->getRaceStatus($race),
             'isOpen' => $race->isOpen(),
@@ -186,7 +186,7 @@ class VisuRaceController extends Controller
                 'name' => trim(($race->organizer?->adh_firstname ?? '') . ' ' . ($race->organizer?->adh_lastname ?? '')) ?: ($race->organizer?->user?->name ?? 'Organisateur'),
                 'email' => $race->organizer?->user?->email ?? ''
             ],
-            'userTeams' => $user ? (function() use ($user) {
+            'userTeams' => $user ? (function() use ($user, $race) {
                 \Log::info("Fetching teams for user: {$user->id}");
                 
                 // Only get teams where user is the leader
@@ -196,22 +196,50 @@ class VisuRaceController extends Controller
 
                 \Log::info("Found " . $teams->count() . " teams.");
                 
-                return $teams->map(function($team) {
-                    // Get members with their license status
+                // Get age categories for competitive race validation
+                $ageCategories = $race->categorieAges->map(fn($pc) => [
+                    'id' => $pc->ageCategory->id,
+                    'nom' => $pc->ageCategory->nom,
+                    'age_min' => $pc->ageCategory->age_min,
+                    'age_max' => $pc->ageCategory->age_max,
+                ])->toArray();
+                
+                $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'compétitif';
+                
+                return $teams->map(function($team) use ($ageCategories, $isCompetitive, $race) {
+                    // Get members with their license status and birth dates
                     $members = \DB::table('has_participate')
                         ->leftJoin('users', 'has_participate.id_users', '=', 'users.id')
                         ->leftJoin('members', 'users.adh_id', '=', 'members.adh_id')
                         ->where('has_participate.equ_id', $team->equ_id)
-                        ->select('users.id', 'members.adh_license')
+                        ->select('users.id', 'users.first_name', 'users.last_name', 'users.birth_date', 'members.adh_license')
                         ->get();
                     
                     $licensedCount = $members->filter(fn($m) => !empty($m->adh_license))->count();
+                    
+                    // Calculate ages of all members (from birth date to now, rounded to full years)
+                    $now = now();
+                    $memberAges = $members->map(function($m) use ($now) {
+                        $age = null;
+                        if ($m->birth_date) {
+                            $birthDate = \Carbon\Carbon::parse($m->birth_date);
+                            $age = (int) $birthDate->diffInYears($now);
+                        }
+                        return [
+                            'id' => $m->id,
+                            'first_name' => $m->first_name,
+                            'last_name' => $m->last_name,
+                            'age' => $age,
+                            'has_license' => !empty($m->adh_license),
+                        ];
+                    })->toArray();
                     
                     return [
                         'id' => $team->equ_id,
                         'name' => $team->equ_name,
                         'members_count' => $members->count(),
                         'licensed_members_count' => $licensedCount,
+                        'members' => $memberAges,
                     ];
                 })->values()->toArray();
             })() : [],
@@ -243,6 +271,10 @@ class VisuRaceController extends Controller
             'priceMajor' => $race->price_major,
             'priceMinor' => $race->price_minor,
             'priceAdherent' => $race->price_adherent,
+            // Leisure age rules (A <= B <= C)
+            'leisureAgeMin' => $race->leisure_age_min,
+            'leisureAgeIntermediate' => $race->leisure_age_intermediate,
+            'leisureAgeSupervisor' => $race->leisure_age_supervisor,
             'minParticipants' => $race->runnerParams?->pac_nb_min ?? 0,
             'maxParticipants' => $race->runnerParams?->pac_nb_max ?? 100,
             'minTeams' => $race->teamParams?->pae_nb_min ?? 1,
@@ -292,7 +324,7 @@ class VisuRaceController extends Controller
                         $now = now();
                         $isLicenseValid = $member->license_expiry && $now->lessThan($member->license_expiry);
                         $age = $member->birth_date ? $now->diffInYears($member->birth_date) : null;
-                        $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'competitif';
+                        $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'compétitif';
                         
                         // Calculate price
                         if ($isLicenseValid && $race->price_adherent !== null) {

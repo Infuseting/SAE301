@@ -8,12 +8,13 @@ import { QrCode, Camera, CheckCircle, XCircle, Users, TrendingUp, AlertCircle, T
  * QR Code Scanner Component for Race Check-in
  * Allows race managers to scan team QR codes and mark them as present
  */
-export default function Scanner({ race, stats }) {
+export default function Scanner({ race, stats: initialStats }) {
     const page = usePage();
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [stats, setStats] = useState(initialStats);
     const scannerRef = useRef(null);
     const html5QrCodeRef = useRef(null);
 
@@ -154,10 +155,19 @@ export default function Scanner({ race, stats }) {
                     alreadyPresent: data.already_present || false,
                 });
 
-                // Reload page after 3 seconds to update stats
-                setTimeout(() => {
-                    router.reload({ only: ['stats'] });
-                }, 3000);
+                // Update stats immediately if this is a new check-in
+                if (!data.already_present) {
+                    console.log('Updating stats - Before:', stats);
+                    setStats(prevStats => {
+                        const newStats = {
+                            ...prevStats,
+                            present: prevStats.present + 1,
+                            absent: prevStats.absent - 1
+                        };
+                        console.log('Updating stats - After:', newStats);
+                        return newStats;
+                    });
+                }
             } else {
                 setError(data.message || 'Erreur lors de l\'enregistrement de la présence.');
             }
@@ -199,14 +209,6 @@ export default function Scanner({ race, stats }) {
                                 </div>
                                 <p className="text-gray-600">
                                     Scanner QR Code - Pointage des équipes
-                                </p>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    {new Date(race.race_date).toLocaleDateString('fr-FR', {
-                                        weekday: 'long',
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                    })}
                                 </p>
                             </div>
                             <div className="text-right">
