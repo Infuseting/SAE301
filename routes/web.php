@@ -123,8 +123,8 @@ Route::middleware(['auth', 'role:gestionnaire-raid|responsable-club|admin', 'man
     Route::post('/raids/{raid}/check-in', [RaidController::class, 'checkIn'])->name('raids.check-in');
 });
 
-// Race management routes - require responsable-course role (or admin) + valid licence
-Route::middleware(['auth', 'role:responsable-course|admin', 'manager_licence'])->group(function () {
+// Race management routes - require responsable-course, gestionnaire-raid, responsable-club role (or admin) + valid licence
+Route::middleware(['auth', 'role:responsable-course|gestionnaire-raid|responsable-club|admin', 'manager_licence'])->group(function () {
     Route::get('/races/create', [RaceController::class, 'show'])->name('races.create');
     Route::post('/races/create', [RaceController::class, 'store'])->name('races.store');
     Route::get('/races/{race}/edit', [RaceController::class, 'edit'])->name('races.edit');
