@@ -3450,7 +3450,6 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 3600,
             'member_count' => 1,
             'points' => 0, // Wrong
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
         ]);
         LeaderboardTeam::create([
             'equ_id' => $team2->equ_id,
@@ -3460,7 +3459,6 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 4000,
             'member_count' => 1,
             'points' => 0, // Wrong
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
         ]);
 
         $updated = $this->service->recalculateTeamPoints($race->race_id);
@@ -3490,17 +3488,14 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 3600,
             'member_count' => 1,
             'points' => 100,
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
             'category' => 'Masculin',
         ]);
 
         $leaderboard = $this->service->getTeamLeaderboard($race->race_id);
 
         $this->assertArrayHasKey('points', $leaderboard['data'][0]);
-        $this->assertArrayHasKey('status', $leaderboard['data'][0]);
         $this->assertArrayHasKey('category', $leaderboard['data'][0]);
         $this->assertEquals(100, $leaderboard['data'][0]['points']);
-        $this->assertEquals('classé', $leaderboard['data'][0]['status']);
         $this->assertEquals('Masculin', $leaderboard['data'][0]['category']);
     }
 
@@ -3520,7 +3515,6 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 3600,
             'member_count' => 1,
             'points' => 150,
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
             'category' => 'Mixte',
         ]);
 
@@ -3533,55 +3527,6 @@ class LeaderboardServiceTest extends TestCase
     }
 
     /**
-     * Test update team status to abandoned sets 0 points.
-     */
-    public function test_update_team_status_abandoned(): void
-    {
-        $race = Race::factory()->create(['race_difficulty' => 'facile']);
-        $team1 = Team::factory()->create();
-        $team2 = Team::factory()->create();
-
-        $entry1 = LeaderboardTeam::create([
-            'equ_id' => $team1->equ_id,
-            'race_id' => $race->race_id,
-            'average_temps' => 3600,
-            'average_malus' => 0,
-            'average_temps_final' => 3600,
-            'member_count' => 1,
-            'points' => 100,
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
-        ]);
-        LeaderboardTeam::create([
-            'equ_id' => $team2->equ_id,
-            'race_id' => $race->race_id,
-            'average_temps' => 4000,
-            'average_malus' => 0,
-            'average_temps_final' => 4000,
-            'member_count' => 1,
-            'points' => 90,
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
-        ]);
-
-        $result = $this->service->updateTeamStatus($entry1->id, LeaderboardTeam::STATUS_ABANDONED);
-
-        $this->assertTrue($result);
-
-        $entry1->refresh();
-        $this->assertEquals(LeaderboardTeam::STATUS_ABANDONED, $entry1->status);
-        $this->assertEquals(0, $entry1->points);
-    }
-
-    /**
-     * Test team status constants exist.
-     */
-    public function test_team_status_constants(): void
-    {
-        $this->assertEquals('classé', LeaderboardTeam::STATUS_CLASSIFIED);
-        $this->assertEquals('abandon', LeaderboardTeam::STATUS_ABANDONED);
-        $this->assertEquals('disqualifié', LeaderboardTeam::STATUS_DISQUALIFIED);
-        $this->assertEquals('hors_classement', LeaderboardTeam::STATUS_OUT_OF_RANKING);
-    }
-
     /**
      * Test team category constants exist.
      */
@@ -3988,7 +3933,6 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 3600,
             'member_count' => 1,
             'points' => 100,
-            'status' => 'classé',
             'category' => 'Masculin',
             'puce' => '123456',
         ]);
@@ -3997,7 +3941,6 @@ class LeaderboardServiceTest extends TestCase
             'average_temps' => '02:30:00',
             'average_malus' => '00:05:00',
             'points' => 200,
-            'status' => 'abandon',
             'category' => 'Mixte',
             'puce' => '654321',
         ]);
@@ -4006,7 +3949,6 @@ class LeaderboardServiceTest extends TestCase
         $this->assertEquals(9000, $result->average_temps); // 2h30m in seconds
         $this->assertEquals(300, $result->average_malus);  // 5min in seconds
         $this->assertEquals(200, $result->points);
-        $this->assertEquals('abandon', $result->status);
         $this->assertEquals('Mixte', $result->category);
         $this->assertEquals('654321', $result->puce);
     }

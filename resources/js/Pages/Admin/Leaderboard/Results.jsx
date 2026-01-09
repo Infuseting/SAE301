@@ -53,7 +53,6 @@ export default function LeaderboardResults({ results, raceId, race, type, search
                 average_temps: result.average_temps_formatted || '',
                 average_malus: result.average_malus_formatted || '',
                 points: result.points || 0,
-                status: result.status || 'classé',
                 category: result.category || '',
                 puce: result.puce || '',
             });
@@ -311,15 +310,6 @@ export default function LeaderboardResults({ results, raceId, race, type, search
                                                             <span className="font-medium text-gray-900">
                                                                 {isTeamView ? result.team_name : result.user_name}
                                                             </span>
-                                                            {isTeamView && result.status && result.status !== 'classé' && (
-                                                                <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                                                    result.status === 'abandon' ? 'bg-orange-100 text-orange-800' :
-                                                                    result.status === 'disqualifié' ? 'bg-red-100 text-red-800' :
-                                                                    'bg-gray-100 text-gray-800'
-                                                                }`}>
-                                                                    {result.status}
-                                                                </span>
-                                                            )}
                                                             {/* Show visibility badge for individual results */}
                                                             {!isTeamView && (
                                                                 <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
@@ -552,23 +542,6 @@ export default function LeaderboardResults({ results, raceId, race, type, search
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                {messages.status || 'Statut'}
-                                            </label>
-                                            <select
-                                                value={editForm.status}
-                                                onChange={(e) => setEditForm({...editForm, status: e.target.value})}
-                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                            >
-                                                <option value="classé">{messages.classified || 'Classé'}</option>
-                                                <option value="abandon">{messages.abandoned || 'Abandon'}</option>
-                                                <option value="disqualifié">{messages.disqualified || 'Disqualifié'}</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 {messages.category || 'Catégorie'}
                                             </label>
                                             <select
@@ -582,17 +555,18 @@ export default function LeaderboardResults({ results, raceId, race, type, search
                                                 <option value="Mixte">{messages.mixed || 'Mixte'}</option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                {messages.puce || 'Puce'}
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={editForm.puce}
-                                                onChange={(e) => setEditForm({...editForm, puce: e.target.value})}
-                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                            />
-                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            {messages.puce || 'Puce'}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editForm.puce}
+                                            onChange={(e) => setEditForm({...editForm, puce: e.target.value})}
+                                            className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                        />
                                     </div>
                                 </>
                             ) : (

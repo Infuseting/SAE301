@@ -221,7 +221,6 @@ class LeaderboardController extends Controller
                     'average_temps' => 'nullable|string',
                     'average_malus' => 'nullable|string',
                     'points' => 'nullable|integer|min:0',
-                    'status' => 'nullable|string|in:classé,abandon,disqualifié',
                     'category' => 'nullable|string|max:50',
                     'puce' => 'nullable|string|max:50',
                 ]);
@@ -230,7 +229,6 @@ class LeaderboardController extends Controller
                     'average_temps' => $request->input('average_temps'),
                     'average_malus' => $request->input('average_malus'),
                     'points' => $request->input('points'),
-                    'status' => $request->input('status'),
                     'category' => $request->input('category'),
                     'puce' => $request->input('puce'),
                 ]);

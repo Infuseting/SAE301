@@ -418,7 +418,6 @@ class LeaderboardService
                 'average_temps_final_formatted' => $item->formatted_average_temps_final,
                 'member_count' => $item->member_count,
                 'points' => $item->points,
-                'status' => $item->status,
                 'category' => $item->category,
                 'puce' => $item->puce,
             ];
@@ -510,7 +509,7 @@ class LeaderboardService
      * The rank will be recalculated automatically based on average_temps_final.
      *
      * @param int $resultId The leaderboard_teams ID
-     * @param array $data Data to update (average_temps, average_malus, points, status, category)
+     * @param array $data Data to update (average_temps, average_malus, points, category)
      * @return LeaderboardTeam|null
      */
     public function updateTeamResult(int $resultId, array $data): ?LeaderboardTeam
@@ -528,9 +527,6 @@ class LeaderboardService
         }
         if (array_key_exists('points', $data)) {
             $result->points = $data['points'];
-        }
-        if (isset($data['status'])) {
-            $result->status = $data['status'];
         }
         if (isset($data['category'])) {
             $result->category = $data['category'];
@@ -692,7 +688,6 @@ class LeaderboardService
                 'average_temps_final_formatted' => $item->formatted_average_temps_final,
                 'member_count' => $item->member_count,
                 'points' => $item->points,
-                'status' => $item->status,
                 'category' => $item->category,
             ];
         });
@@ -912,7 +907,6 @@ class LeaderboardService
                 'member_count' => $item->member_count,
                 'members' => $members,
                 'points' => $calculatedPoints,
-                'status' => $item->status,
                 'category' => $item->category,
             ];
         });
@@ -1093,7 +1087,6 @@ class LeaderboardService
                 'member_count' => $item->member_count,
                 'members' => $members,
                 'points' => $calculatedPoints,
-                'status' => $item->status,
                 'category' => $item->category,
             ];
         });
@@ -2109,9 +2102,6 @@ class LeaderboardService
                 $previousPoints = $points;
             }
 
-            // Determine status
-            $status = LeaderboardTeam::STATUS_CLASSIFIED;
-
             // Save to leaderboard_teams
             LeaderboardTeam::updateOrCreate(
                 ['equ_id' => $team->equ_id, 'race_id' => $race->race_id],
@@ -2121,7 +2111,6 @@ class LeaderboardService
                     'average_temps_final' => $temps,
                     'member_count' => 1, // Will be updated later if team members are imported
                     'points' => $points,
-                    'status' => $status,
                     'category' => $data['category'],
                     'puce' => $data['puce'],
                 ]
@@ -2225,9 +2214,8 @@ class LeaderboardService
             throw new Exception("Race with ID {$raceId} not found");
         }
 
-        // Get all classified teams sorted by time
+        // Get all teams sorted by time
         $teams = LeaderboardTeam::where('race_id', $raceId)
-            ->where('status', LeaderboardTeam::STATUS_CLASSIFIED)
             ->orderBy('average_temps_final', 'asc')
             ->get();
 
@@ -2255,55 +2243,6 @@ class LeaderboardService
             $updated++;
         }
 
-        // Set 0 points for non-classified teams
-        LeaderboardTeam::where('race_id', $raceId)
-            ->whereIn('status', [
-                LeaderboardTeam::STATUS_ABANDONED,
-                LeaderboardTeam::STATUS_DISQUALIFIED,
-                LeaderboardTeam::STATUS_OUT_OF_RANKING,
-            ])
-            ->update(['points' => 0]);
-
         return $updated;
-    }
-
-    /**
-     * Update team status (abandon, disqualified, etc.).
-     *
-     * @param int $teamId The team ID in leaderboard_teams
-     * @param string $status The new status
-     * @return bool Success
-     */
-    public function updateTeamStatus(int $teamId, string $status): bool
-    {
-        $validStatuses = [
-            LeaderboardTeam::STATUS_CLASSIFIED,
-            LeaderboardTeam::STATUS_ABANDONED,
-            LeaderboardTeam::STATUS_DISQUALIFIED,
-            LeaderboardTeam::STATUS_OUT_OF_RANKING,
-        ];
-
-        if (!in_array($status, $validStatuses)) {
-            throw new Exception("Invalid status: {$status}");
-        }
-
-        $leaderboardTeam = LeaderboardTeam::find($teamId);
-        if (!$leaderboardTeam) {
-            return false;
-        }
-
-        $leaderboardTeam->status = $status;
-
-        // If not classified, set points to 0
-        if ($status !== LeaderboardTeam::STATUS_CLASSIFIED) {
-            $leaderboardTeam->points = 0;
-        }
-
-        $leaderboardTeam->save();
-
-        // Recalculate points for all teams in the race
-        $this->recalculateTeamPoints($leaderboardTeam->race_id);
-
-        return true;
     }
 }
