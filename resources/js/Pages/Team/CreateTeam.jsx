@@ -4,6 +4,8 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import Checkbox from '@/Components/Checkbox';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import InviteUserModal from '@/Components/Team/InviteUserModal';
+import InviteByEmailModal from '@/Components/Team/InviteByEmailModal';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import ImageUpload from '@/Components/ImageUpload';
@@ -13,7 +15,8 @@ export default function CreateTeam() {
         name: '',
         image: null,
         teammates: [],
-        join_team: true, // Le créateur participe-t-il à l'équipe ?
+        emailInvites: [],
+        join_team: true,
     });
     const [selectedLeader, setSelectedLeader] = useState(null);
     const [showLeaderDropdown, setShowLeaderDropdown] = useState(false);
@@ -24,6 +27,9 @@ export default function CreateTeam() {
     const currentUser = auth?.user;
     const messages = translations?.messages || {};
     const [redirectUri, setRedirectUri] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [showEmailModal, setShowEmailModal] = useState(false);
 
     // evite trop d'appels (300ms)
     useEffect(() => {
@@ -63,10 +69,8 @@ export default function CreateTeam() {
 
     const submit = (e) => {
         e.preventDefault();
-        
-        // Vérifier qu'il y a au moins un participant
-        if (!data.join_team && data.teammates.length === 0) {
-            alert('L\'équipe doit avoir au moins un participant. Cochez "Je participe" ou ajoutez des coéquipiers.');
+        if (!data.join_team && data.teammates.length === 0 && data.emailInvites.length === 0) {
+            alert('L\'équipe doit avoir au moins un participant.');
             return;
         }
         
@@ -80,56 +84,44 @@ export default function CreateTeam() {
         });
     };
 
-    const addTeammate = (userId, name, email) => {
-        if (currentUser && userId === currentUser.id) {
-            alert('Vous ne pouvez pas vous ajouter en tant que coéquipier. Vous êtes déjà le chef de l\'équipe.');
-            setShowTeammateDropdown(false);
-            setTeammateSearch('');
+    const handleImageChange = (e) => {
+        const Label = document.getElementById('download_label');
+        const file = e.target.files[0];
+        if (file) {
+            Label.textContent = "Cliquez pour changer l'image";
+            setData('image', file);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setImagePreview(event.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const addTeammate = (user) => {
+        if (currentUser && user.id === currentUser.id) {
+            alert('Vous ne pouvez pas vous ajouter en tant que coéquipier.');
             return;
         }
-
-        const teammate = { id: userId, name, email };
-        if (!data.teammates.some(t => t.id === userId)) {
-            setData('teammates', [...data.teammates, teammate]);
+        if (!data.teammates.some(t => t.id === user.id)) {
+            setData('teammates', [...data.teammates, { id: user.id, name: user.name, email: user.email }]);
         }
-        setShowTeammateDropdown(false);
-        setTeammateSearch('');
     };
 
     const removeTeammate = (userId) => {
         setData('teammates', data.teammates.filter(t => t.id !== userId));
     };
 
-    /**
-     * Searches for users to add as team members.
-     * Makes a debounced API call to fetch matching users.
-     * @param {string} searchTerm - The search query (name or email)
-     */
-    const performTeammateSearch = async (searchTerm) => {
-        if (!searchTerm.trim()) {
-            setTeammateSearchResults([]);
-            return;
-        }
-        try {
-            const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin'
-            });
-            if (!response.ok) {
-                console.error(`Search failed with status ${response.status}`);
-                setTeammateSearchResults([]);
-                return;
-            }
-            const users = await response.json();
-            setTeammateSearchResults(users);
-        } catch (error) {
-            console.error('Error searching users:', error);
-            setTeammateSearchResults([]);
+    const addEmailInvite = (email) => {
+        if (!data.emailInvites.includes(email)) {
+            setData('emailInvites', [...data.emailInvites, email]);
         }
     };
+
+    const removeEmailInvite = (email) => {
+        setData('emailInvites', data.emailInvites.filter(e => e !== email));
+    };
+
     return (
         <AuthenticatedLayout>
             <Head title={messages.create_team || 'Créer une équipe'} />
@@ -202,44 +194,16 @@ export default function CreateTeam() {
                                         Ajoutez des coéquipiers pour former votre équipe complète
                                     </p>
                                 </div>
-                            </div>
-                            {/* Teammate Search and Selection */}
-                            <div className="relative dropdown-container">
-                                <div className="flex flex-col sm:flex-row gap-2">
-                                    <div className="flex-1 relative">
-                                        <TextInput
-                                            value={teammateSearch}
-                                            onChange={(e) => setTeammateSearch(e.target.value)}
-                                            onFocus={() => setShowTeammateDropdown(true)}
-                                            placeholder="Rechercher un coéquipier..."
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-transparent transition"
-                                        />
-                                        {showTeammateDropdown && (
-                                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                                {teammateSearchResults.length > 0 ? (
-                                                    teammateSearchResults.map((person) => (
-                                                        <div
-                                                            key={person.id}
-                                                            className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                                            onClick={() => addTeammate(person.id, person.name, person.email)}
-                                                        >
-                                                            <div className="font-medium text-gray-900">{person.name}</div>
-                                                            <div className="text-sm text-gray-600">{person.email}</div>
-                                                        </div>
-                                                    ))
-                                                ) : teammateSearch ? (
-                                                    <div className="px-4 py-3 text-gray-500 text-center">
-                                                        Aucun résultat trouvé pour "{teammateSearch}"
-                                                    </div>
-                                                ) : (
-                                                    <div className="px-4 py-3 text-gray-500 text-center">
-                                                        Tapez pour rechercher...
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowInviteModal(true)}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center gap-2"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Ajouter des membres
+                                </button>
                             </div>
                             {/* Teammates List */}
                             <div className="space-y-2">
@@ -277,6 +241,36 @@ export default function CreateTeam() {
                                 )}
                             </div>
                             <InputError message={errors.teammates} className="mt-2" />
+
+                            {/* Email Invites List */}
+                            {data.emailInvites.length > 0 && (
+                                <div className="space-y-2 mt-4">
+                                    <h4 className="text-sm font-medium text-gray-700">Invitations par email</h4>
+                                    {data.emailInvites.map((email, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-between p-4 border rounded-lg"
+                                            style={{backgroundColor: 'rgba(34, 197, 94, 0.08)', borderColor: 'rgba(34, 197, 94, 0.3)'}}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                </svg>
+                                                <span className="text-gray-900">{email}</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeEmailInvite(email)}
+                                                className="px-3 py-1 text-sm rounded transition"
+                                                style={{color: 'rgb(220, 38, 38)', backgroundColor: 'rgba(220, 38, 38, 0.1)'}}
+                                            >
+                                                Retirer
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <InputError message={errors.emailInvites} className="mt-2" />
                         </div>
                         {/* Submit Button */}
                         <div className="pt-6 border-t border-gray-200 flex gap-3 justify-end">
@@ -300,6 +294,26 @@ export default function CreateTeam() {
                     </form>
                 </div>
             </div>
+
+            {/* Invite User Modal */}
+            <InviteUserModal
+                isOpen={showInviteModal}
+                onClose={() => setShowInviteModal(false)}
+                teamMembers={data.teammates}
+                auth={{ user: currentUser }}
+                onEmailInviteOpen={() => {
+                    setShowInviteModal(false);
+                    setShowEmailModal(true);
+                }}
+                onSelect={addTeammate}
+            />
+
+            {/* Invite by Email Modal */}
+            <InviteByEmailModal
+                isOpen={showEmailModal}
+                onClose={() => setShowEmailModal(false)}
+                onEmailAdd={addEmailInvite}
+            />
         </AuthenticatedLayout>
     );
 }

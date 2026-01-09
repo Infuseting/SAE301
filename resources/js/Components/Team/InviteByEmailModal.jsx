@@ -1,25 +1,46 @@
 import { useForm, usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * Modal for inviting users by email to a team.
+ * Supports two modes:
+ * - Team mode (teamId provided): sends invite via API
+ * - Create mode (onEmailAdd provided): calls callback with email
  */
-export default function InviteByEmailModal({ isOpen, onClose, teamId }) {
+export default function InviteByEmailModal({ isOpen, onClose, teamId, onEmailAdd }) {
     const { data, setData, post, processing, errors, reset } = useForm({ email: '' });
     const { flash } = usePage().props;
+    const [localEmail, setLocalEmail] = useState('');
+    const [localError, setLocalError] = useState('');
+
+    const isCreateMode = !!onEmailAdd;
 
     useEffect(() => {
-        if (flash?.success) {
+        if (flash?.success && !isCreateMode) {
             reset();
             onClose();
         }
-    }, [flash?.success, reset, onClose]);
+    }, [flash?.success, reset, onClose, isCreateMode]);
 
     const handleSend = (e) => {
         e.preventDefault();
-        post(`/teams/${teamId}/invite-email`, {
-            preserveScroll: true
-        });
+        
+        if (isCreateMode) {
+            const email = localEmail.trim().toLowerCase();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                setLocalError('Veuillez entrer une adresse email valide.');
+                return;
+            }
+            onEmailAdd(email);
+            setLocalEmail('');
+            setLocalError('');
+            onClose();
+        } else {
+            post(`/teams/${teamId}/invite-email`, {
+                preserveScroll: true
+            });
+        }
     };
 
     if (!isOpen) return null;
@@ -40,17 +61,22 @@ export default function InviteByEmailModal({ isOpen, onClose, teamId }) {
 
                 {/* Modal Body */}
                 <form onSubmit={handleSend} className="p-6">
+                    {isCreateMode && (
+                        <p className="text-sm text-gray-600 mb-4">
+                            Cette personne recevra une invitation par email après la création de l'équipe.
+                        </p>
+                    )}
                     <input
                         type="email"
                         placeholder="Entrez l'email..."
-                        value={data.email}
-                        onChange={(e) => setData('email', e.target.value)}
+                        value={isCreateMode ? localEmail : data.email}
+                        onChange={(e) => isCreateMode ? setLocalEmail(e.target.value) : setData('email', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                         disabled={processing}
                         required
                     />
-                    {errors.email && (
-                        <p className="text-red-500 text-sm mb-4">{errors.email}</p>
+                    {(isCreateMode ? localError : errors.email) && (
+                        <p className="text-red-500 text-sm mb-4">{isCreateMode ? localError : errors.email}</p>
                     )}
 
                     {/* Modal Footer */}
@@ -67,7 +93,7 @@ export default function InviteByEmailModal({ isOpen, onClose, teamId }) {
                             disabled={processing}
                             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {processing ? 'Envoi...' : 'Envoyer'}
+                            {processing ? 'Envoi...' : (isCreateMode ? 'Ajouter' : 'Envoyer')}
                         </button>
                     </div>
                 </form>
