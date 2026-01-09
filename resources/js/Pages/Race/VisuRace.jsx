@@ -9,7 +9,7 @@ import {
     Calendar, Timer, MapPin, Users, Info, ChevronRight,
     Trophy, Heart, ShieldCheck, FileText, UserCheck,
     AlertCircle, Clock, CheckCircle2, XCircle, Settings,
-    CreditCard, Utensils
+    CreditCard, Utensils, QrCode
 } from 'lucide-react';
 
 export default function VisuRace({ auth, race, isManager, participants = [], error, errorMessage, userTeams = [], registeredByLeader = null, registeredTeam = null }) {
@@ -167,14 +167,22 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                             </div>
                         </div>
 
-                        {/* Right side - Config button */}
+                        {/* Right side - Action buttons */}
                         {isManager && (
-                            <Link href={route('races.edit', race.id)}>
-                                <button className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-black text-xs transition-all backdrop-blur-md border border-white/20 flex items-center gap-2 tracking-widest uppercase">
-                                    <Settings className="h-4 w-4" />
-                                    CONFIGURER
-                                </button>
-                            </Link>
+                            <div className="flex gap-3">
+                                <a href={`/races/${race.id}/scanner`} target="_blank" rel="noopener noreferrer">
+                                    <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-black text-xs transition-all shadow-lg flex items-center gap-2 tracking-widest uppercase">
+                                        <QrCode className="h-4 w-4" />
+                                        SCANNER
+                                    </button>
+                                </a>
+                                <Link href={route('races.edit', race.id)}>
+                                    <button className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-black text-xs transition-all backdrop-blur-md border border-white/20 flex items-center gap-2 tracking-widest uppercase">
+                                        <Settings className="h-4 w-4" />
+                                        CONFIGURER
+                                    </button>
+                                </Link>
+                            </div>
                         )}
                     </div>
                 </div>

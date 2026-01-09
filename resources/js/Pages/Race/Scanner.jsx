@@ -30,6 +30,28 @@ export default function Scanner({ race, stats }) {
             setError(null);
             setScanResult(null);
             
+            // Check if running on HTTPS or localhost
+            const isSecure = window.location.protocol === 'https:' || 
+                           window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1';
+            
+            if (!isSecure) {
+                setError('⚠️ La caméra nécessite une connexion HTTPS sécurisée. Votre connexion actuelle n\'est pas sécurisée.');
+                return;
+            }
+
+            // Set scanning to true first to render the div
+            setIsScanning(true);
+            
+            // Wait for the div to be rendered in the DOM
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Check if element exists
+            const element = document.getElementById('qr-reader');
+            if (!element) {
+                throw new Error('Scanner element not found in DOM');
+            }
+
             const html5QrCode = new Html5Qrcode("qr-reader");
             html5QrCodeRef.current = html5QrCode;
 
@@ -44,10 +66,28 @@ export default function Scanner({ race, stats }) {
                 onScanError
             );
 
-            setIsScanning(true);
         } catch (err) {
             console.error('Error starting scanner:', err);
-            setError('Impossible de démarrer la caméra. Vérifiez les permissions.');
+            
+            // Reset scanning state on error
+            setIsScanning(false);
+            
+            // Provide more specific error messages
+            let errorMsg = 'Impossible de démarrer la caméra. ';
+            
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                errorMsg += '🚫 Vous avez refusé l\'accès à la caméra. Veuillez autoriser l\'accès dans les paramètres de votre navigateur.';
+            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                errorMsg += '📷 Aucune caméra trouvée sur cet appareil.';
+            } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                errorMsg += '⚠️ La caméra est déjà utilisée par une autre application.';
+            } else if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
+                errorMsg += '⚙️ Les paramètres de la caméra ne sont pas supportés.';
+            } else {
+                errorMsg += `Erreur: ${err.message || err.toString()}`;
+            }
+            
+            setError(errorMsg);
         }
     };
 
