@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import Pagination from '@/Components/Pagination';
+import UserAvatar from '@/Components/UserAvatar';
 
 export default function Users({ users, filters }) {
   const items = Array.isArray(users) ? users : users?.data || [];
