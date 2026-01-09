@@ -71,13 +71,24 @@ class RegistrationObserver
         try {
             // Get the highest dossard number for this race
             $maxDossard = Registration::where('race_id', $registration->race_id)
+                ->where('reg_id', '!=', $registration->reg_id)
                 ->whereNotNull('reg_dossard')
                 ->max('reg_dossard');
 
             $nextDossard = ($maxDossard ?? 0) + 1;
 
-            // Update without triggering observer again
-            $registration->updateQuietly(['reg_dossard' => $nextDossard]);
+            // Update directly in database to ensure it persists
+            \DB::table('registration')
+                ->where('reg_id', $registration->reg_id)
+                ->update(['reg_dossard' => $nextDossard]);
+            
+            // Also update the model instance
+            $registration->reg_dossard = $nextDossard;
+            
+            \Log::info('Dossard assigned', [
+                'reg_id' => $registration->reg_id,
+                'dossard' => $nextDossard
+            ]);
         } catch (\Exception $e) {
             \Log::error('Failed to assign dossard for registration', [
                 'reg_id' => $registration->reg_id,

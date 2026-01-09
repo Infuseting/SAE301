@@ -243,17 +243,17 @@ class RaceRegistrationController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // Create registration
-            $regId = \DB::table('registration')->insertGetId([
+            // Create registration using Eloquent to trigger observer (auto dossard assignment)
+            $registration = \App\Models\Registration::create([
                 'equ_id' => $team->equ_id,
                 'race_id' => $race->race_id,
                 'pay_id' => $paiId,
                 'doc_id' => $docId,
                 'reg_validated' => false,
                 'reg_points' => 0,
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
+
+            $regId = $registration->reg_id;
 
             // Add all team members as race participants
             // Eager load the leader relationship
