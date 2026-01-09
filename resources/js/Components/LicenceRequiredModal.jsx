@@ -26,7 +26,7 @@ export default function LicenceRequiredModal({ show }) {
         license_number: '',
     });
 
-    // Update form data when user changes
+    // Update form data when modal opens (only when show changes to true)
     useEffect(() => {
         if (show && currentUser) {
             setData({
@@ -39,7 +39,7 @@ export default function LicenceRequiredModal({ show }) {
                 license_number: '',
             });
         }
-    }, [show, currentUser]);
+    }, [show]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
