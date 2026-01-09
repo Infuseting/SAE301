@@ -137,7 +137,7 @@ class TeamRunnerController extends Controller
      * @param RaceParticipant $participant
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, RaceParticipant $participant): \Illuminate\Http\JsonResponse
+    public function update(Request $request, RaceParticipant $participant)
     {
         $authUser = auth()->user();
         
@@ -147,28 +147,42 @@ class TeamRunnerController extends Controller
                         $authUser->hasRole('admin');
         
         if (!$isAuthorized) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Non autorisé à modifier les informations PPS.',
-            ], 403);
+            return back()->with('error', 'Non autorisé à modifier les informations PPS.');
         }
 
         $validated = $request->validate([
-            'pps_number' => 'required|string|max:32',
-            'pps_expiry' => 'required|date|after:today',
+            'pps_number' => 'nullable|string|max:32',
+            'pps_expiry' => 'nullable|date|after:today',
+            'pps_status' => 'nullable|in:pending,verified,rejected',
         ]);
 
         // Update PPS information
-        $participant->update([
-            'pps_number' => $validated['pps_number'],
-            'pps_expiry' => $validated['pps_expiry'],
-            'pps_status' => 'pending', // Reset to pending when updated
-        ]);
+        $updateData = [];
+        
+        if (isset($validated['pps_number'])) {
+            $updateData['pps_number'] = $validated['pps_number'];
+        }
+        
+        if (isset($validated['pps_expiry'])) {
+            $updateData['pps_expiry'] = $validated['pps_expiry'];
+        }
+        
+        // If updating PPS number or expiry, reset to pending (unless admin is setting status)
+        if ((isset($validated['pps_number']) || isset($validated['pps_expiry'])) && !isset($validated['pps_status'])) {
+            $updateData['pps_status'] = 'pending';
+        }
+        
+        // If admin is setting status directly
+        if (isset($validated['pps_status'])) {
+            $updateData['pps_status'] = $validated['pps_status'];
+            if ($validated['pps_status'] !== 'pending') {
+                $updateData['pps_verified_at'] = now();
+            }
+        }
+        
+        $participant->update($updateData);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'PPS mis à jour avec succès.',
-        ]);
+        return back()->with('success', 'PPS mis à jour avec succès.');
     }
 
     /**
@@ -202,35 +216,29 @@ class TeamRunnerController extends Controller
      *
      * @param Request $request
      * @param RaceParticipant $participant
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function verifyPps(Request $request, RaceParticipant $participant): \Illuminate\Http\JsonResponse
+    public function verifyPps(Request $request, RaceParticipant $participant)
     {
         $authUser = auth()->user();
         
         // Only admins or race managers can verify PPS
         if (!$authUser->hasRole('admin') && !$authUser->hasRole('gestionnaire-raid') && !$authUser->hasRole('responsable-course')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Non autorisé à vérifier les PPS.',
-            ], 403);
+            return back()->with('error', 'Non autorisé à vérifier les PPS.');
         }
 
         $validated = $request->validate([
-            'status' => 'required|in:verified,rejected',
+            'status' => 'sometimes|in:verified,rejected',
         ]);
 
-        // Update PPS status
+        // Update PPS status - default to verified if no status provided
         $participant->update([
-            'pps_status' => $validated['status'],
+            'pps_status' => $validated['status'] ?? 'verified',
             'pps_verified_at' => now(),
         ]);
 
-        $statusText = $validated['status'] === 'verified' ? 'vérifié' : 'rejeté';
+        $statusText = ($validated['status'] ?? 'verified') === 'verified' ? 'vérifié' : 'rejeté';
 
-        return response()->json([
-            'success' => true,
-            'message' => "PPS $statusText avec succès.",
-        ]);
+        return back()->with('success', "PPS $statusText avec succès.");
     }
 }

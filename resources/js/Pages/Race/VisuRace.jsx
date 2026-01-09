@@ -408,6 +408,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                         <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Licence</th>
                                                         <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">PPS</th>
                                                         <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Paiement</th>
+                                                        <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Dossard</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-blue-50">
@@ -478,6 +479,17 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                                         <CreditCard className="h-3 w-3" />
                                                                         EN ATTENTE
                                                                     </button>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-8 py-6 text-center">
+                                                                {p.reg_dossard ? (
+                                                                    <div className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-lg font-black bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg">
+                                                                        {p.reg_dossard}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="text-[10px] text-gray-400 font-bold uppercase">
+                                                                        Non attribué
+                                                                    </div>
                                                                 )}
                                                             </td>
                                                         </tr>

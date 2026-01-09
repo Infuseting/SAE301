@@ -243,6 +243,12 @@ class RaceRegistrationController extends Controller
                 'updated_at' => now(),
             ]);
 
+            // Generate next dossard number for this race (auto-increment per race)
+            $nextDossard = \DB::table('registration')
+                ->where('race_id', $race->race_id)
+                ->max('reg_dossard');
+            $nextDossard = $nextDossard ? $nextDossard + 1 : 1;
+
             // Create registration
             $regId = \DB::table('registration')->insertGetId([
                 'equ_id' => $team->equ_id,
@@ -251,6 +257,7 @@ class RaceRegistrationController extends Controller
                 'doc_id' => $docId,
                 'reg_validated' => false,
                 'reg_points' => 0,
+                'reg_dossard' => $nextDossard,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

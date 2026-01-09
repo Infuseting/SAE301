@@ -12,10 +12,11 @@ import Modal from '@/Components/Modal';
  * @param {object} participant - Participant data including PPS information
  * @param {number} raceId - ID of the race for API routing
  */
-export default function UpdatePPSModal({ isOpen, onClose, participant, raceId }) {
-    const { data, setData, put, processing, errors } = useForm({
+export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, canVerify = false }) {
+    const { data, setData, put, post, processing, errors } = useForm({
         pps_number: participant?.pps_number || '',
         pps_expiry: participant?.pps_expiry || '',
+        approve_directly: false,
     });
 
     /**
@@ -24,18 +25,36 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId })
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        put(route('participants.update', { participant: participant.participant_id }), {
-            onSuccess: () => {
-                onClose();
-            },
-        });
+        // If user wants to approve directly and has permission
+        if (data.approve_directly && canVerify) {
+            put(route('participants.update', { participant: participant.participant_id }), {
+                data: {
+                    pps_number: data.pps_number,
+                    pps_expiry: data.pps_expiry,
+                    pps_status: 'verified',
+                },
+                onSuccess: () => {
+                    onClose();
+                },
+            });
+        } else {
+            put(route('participants.update', { participant: participant.participant_id }), {
+                data: {
+                    pps_number: data.pps_number,
+                    pps_expiry: data.pps_expiry,
+                },
+                onSuccess: () => {
+                    onClose();
+                },
+            });
+        }
     };
 
     /**
      * Verifies the participant's PPS (approves it)
      */
     const handleVerify = () => {
-        put(route('participants.verifyPps', { participant: participant.participant_id }), {
+        post(route('participants.verifyPps', { participant: participant.participant_id }), {
             onSuccess: () => {
                 onClose();
             },
@@ -46,7 +65,6 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId })
      * Rejects the participant's PPS
      */
     const handleReject = () => {
-        setData('pps_status', 'rejected');
         put(route('participants.update', { participant: participant.participant_id }), {
             data: { pps_status: 'rejected' },
             onSuccess: () => {
@@ -147,6 +165,29 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId })
                             <p className="mt-2 text-sm text-red-600 font-medium">{errors.pps_expiry}</p>
                         )}
                     </div>
+
+                    {/* Direct Approval Checkbox (for managers/admins) */}
+                    {canVerify && !hasPPSData && (
+                        <div className="bg-emerald-50 rounded-xl p-4">
+                            <label className="flex items-center gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={data.approve_directly}
+                                    onChange={(e) => setData('approve_directly', e.target.checked)}
+                                    className="w-5 h-5 rounded border-2 border-emerald-600 text-emerald-600 focus:ring-emerald-500"
+                                />
+                                <span className="flex-1">
+                                    <span className="block text-xs font-black text-emerald-900 uppercase tracking-wider">
+                                        Approuver directement
+                                    </span>
+                                    <span className="block text-xs text-emerald-700 mt-1">
+                                        Enregistrer et vérifier le PPS en une seule action
+                                    </span>
+                                </span>
+                                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                            </label>
+                        </div>
+                    )}
 
                     {/* Actions */}
                     <div className="space-y-3 pt-4">

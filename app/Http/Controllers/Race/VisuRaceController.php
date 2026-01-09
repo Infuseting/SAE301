@@ -114,6 +114,7 @@ class VisuRaceController extends Controller
                     'race_participants.pps_verified_at',
                     'race_participants.bib_number',
                     'registration.reg_validated',
+                    'registration.reg_dossard',
                     'teams.equ_name',
                     'teams.equ_id'
                 ])
@@ -177,8 +178,8 @@ class VisuRaceController extends Controller
             'registeredCount' => \DB::table('registration')
                 ->join('has_participate', 'registration.equ_id', '=', 'has_participate.equ_id')
                 ->where('registration.race_id', $race->race_id)
-                ->distinct('has_participate.id_users')
-                ->count('has_participate.id_users'),
+                ->where('registration.reg_validated', true)
+                ->count(),
             'organizer' => [
                 'id' => $race->organizer?->user?->id,
                 'name' => trim(($race->organizer?->adh_firstname ?? '') . ' ' . ($race->organizer?->adh_lastname ?? '')) ?: ($race->organizer?->user?->name ?? 'Organisateur'),
