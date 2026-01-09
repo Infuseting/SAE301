@@ -28,6 +28,9 @@ class DemoDataSeeder extends Seeder
     {
         $this->command->info('Starting demo data seeding (ID range: 600-700)...');
 
+        // Clean existing demo data first to avoid duplicates
+        $this->cleanExistingDemoData();
+
         // Create param tables data if they don't exist
         DB::table('param_runners')->insertOrIgnore([
             'pac_id' => 1,
@@ -90,6 +93,41 @@ class DemoDataSeeder extends Seeder
     }
 
     /**
+     * Clean existing demo data in ID range 600-700
+     */
+    private function cleanExistingDemoData(): void
+    {
+        $this->command->info('Cleaning existing demo data...');
+
+        // Delete in reverse order to respect foreign key constraints
+        DB::table('time')->whereBetween('user_id', [self::ID_START, self::ID_END])->delete();
+        $this->command->info('- Deleted times/results');
+
+        DB::table('has_participate')->whereBetween('equ_id', [self::ID_START, self::ID_END])->delete();
+        $this->command->info('- Deleted team participations');
+
+        DB::table('teams')->whereBetween('equ_id', [self::ID_START, self::ID_END])->delete();
+        $this->command->info('- Deleted teams');
+
+        DB::table('races')->whereBetween('race_id', [self::ID_START, self::ID_END])->delete();
+        $this->command->info('- Deleted races');
+
+        DB::table('raids')->whereBetween('raid_id', [self::ID_START, self::ID_END])->delete();
+        $this->command->info('- Deleted raids');
+
+        DB::table('clubs')->whereBetween('club_id', [self::ID_START, self::ID_END])->delete();
+        $this->command->info('- Deleted clubs');
+
+        DB::table('users')->whereBetween('id', [self::ID_START, self::ID_END])->delete();
+        $this->command->info('- Deleted users');
+
+        DB::table('members')->whereBetween('adh_id', [self::ID_START, self::ID_END])->delete();
+        $this->command->info('- Deleted members');
+
+        $this->command->info('Cleanup completed!');
+    }
+
+    /**
      * Create demo clubs
      */
     private function createDemoClubs(int $createdByUserId): array
@@ -103,8 +141,8 @@ class DemoDataSeeder extends Seeder
                 'club_postal_code' => '77000',
                 'club_number' => '24',
                 'ffso_id' => 'FFSO77001',
-                'description' => 'Club d\'orientation CO Azimut 77 - Contact: DUPONT Claire - Tél: 0613245698',
                 'is_approved' => true,
+                'created_by' => self::ID_START + 35, // Claire DUPONT
             ],
             [
                 'club_id' => self::ID_START + 2,
@@ -114,8 +152,8 @@ class DemoDataSeeder extends Seeder
                 'club_postal_code' => '25000',
                 'club_number' => '2',
                 'ffso_id' => 'FFSO25001',
-                'description' => 'Club Balise 25 - Contact: PETIT Antoine - Tél: 0783295427',
                 'is_approved' => true,
+                'created_by' => self::ID_START + 32, // Antoine PETIT
             ],
             [
                 'club_id' => self::ID_START + 3,
@@ -125,8 +163,8 @@ class DemoDataSeeder extends Seeder
                 'club_postal_code' => '91000',
                 'club_number' => '14',
                 'ffso_id' => 'FFSO91001',
-                'description' => 'Club Raidlinks - Contact: BERNARD Lucas - Tél: 0642376582',
                 'is_approved' => true,
+                'created_by' => self::ID_START + 34, // Lucas BERNARD
             ],
             [
                 'club_id' => self::ID_START + 4,
@@ -136,8 +174,8 @@ class DemoDataSeeder extends Seeder
                 'club_postal_code' => '14000',
                 'club_number' => '28',
                 'ffso_id' => 'FFSO14001',
-                'description' => 'Club VIKAZIM - Contact: ANNE Jean-François - Tél: 0764923785',
                 'is_approved' => true,
+                'created_by' => self::ID_START + 48, // Jean-François ANNE
             ],
         ];
 
@@ -151,12 +189,12 @@ class DemoDataSeeder extends Seeder
                 'club_postal_code' => $clubData['club_postal_code'],
                 // 'club_number' removed by migration 2026_01_07_064153
                 'ffso_id' => $clubData['ffso_id'],
-                'description' => $clubData['description'],
+                'description' => null,
                 'club_image' => null,
                 'is_approved' => $clubData['is_approved'],
-                'approved_by' => $createdByUserId,
+                'approved_by' => $clubData['created_by'],
                 'approved_at' => now(),
-                'created_by' => $createdByUserId,
+                'created_by' => $clubData['created_by'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -310,22 +348,7 @@ class DemoDataSeeder extends Seeder
      */
     private function createDemoUsers(): array
     {
-        // First create medical docs for users (required by FK)
-        $docIds = [];
-        for ($i = 0; $i < 21; $i++) {
-            $docId = self::ID_START + 60 + $i;
-            DB::table('medical_docs')->insertOrIgnore([
-                'doc_id' => $docId,
-                'doc_num_pps' => 'PPS' . str_pad($docId, 10, '0', STR_PAD_LEFT),
-                'doc_end_validity' => now()->addYear()->format('Y-m-d'),
-                'doc_date_added' => now()->format('Y-m-d'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-            $docIds[] = $docId;
-        }
-
-        // Create members for users
+        // Create members for users (only for those with a license)
         $membersData = [
             ['adh_id' => self::ID_START + 30, 'name' => 'MARTIN', 'firstname' => 'Julien', 'club' => 'CO Azimut 77', 'licence' => '77001234', 'birthday' => '1990-04-15', 'phone' => '0612345678'],
             ['adh_id' => self::ID_START + 31, 'name' => 'DUMONT', 'firstname' => 'Clara', 'club' => 'Raidlinks', 'licence' => '25004567', 'birthday' => '1985-09-22', 'phone' => '0698765432'],
@@ -336,89 +359,103 @@ class DemoDataSeeder extends Seeder
             ['adh_id' => self::ID_START + 36, 'name' => 'LEFEBVRE', 'firstname' => 'Thomas', 'club' => 'Balise 25', 'licence' => '2298741', 'birthday' => '1985-11-23', 'phone' => '0654892133'],
             ['adh_id' => self::ID_START + 37, 'name' => 'MOREAU', 'firstname' => 'Sophie', 'club' => 'Raidlinks', 'licence' => '6003214', 'birthday' => '2001-02-02', 'phone' => '0781024456'],
             ['adh_id' => self::ID_START + 38, 'name' => 'LEROY', 'firstname' => 'Thomas', 'club' => 'CO Azimut 77', 'licence' => '6901122', 'birthday' => '1995-08-30', 'phone' => '0633571288'],
-            ['adh_id' => self::ID_START + 39, 'name' => 'GARNIER', 'firstname' => 'Julie', 'club' => 'CO Azimut 77', 'licence' => '', 'birthday' => '1988-07-12', 'phone' => '0765901122'],
+            ['adh_id' => self::ID_START + 39, 'name' => 'GARNIER', 'firstname' => 'Julie', 'club' => 'CO Azimut 77', 'licence' => '', 'birthday' => '1988-07-12', 'phone' => '0765901122'], // No license = not a member
             ['adh_id' => self::ID_START + 40, 'name' => 'LEROY', 'firstname' => 'Thomas', 'club' => 'CO Azimut 77', 'licence' => '6700548', 'birthday' => '1974-01-19', 'phone' => '0609883451'],
             ['adh_id' => self::ID_START + 41, 'name' => 'FONTAINE', 'firstname' => 'Hugo', 'club' => 'Balise 25', 'licence' => '91006754', 'birthday' => '2003-10-05', 'phone' => '0673849516'],
-            ['adh_id' => self::ID_START + 42, 'name' => 'CARON', 'firstname' => 'Léa', 'club' => 'Balise 25', 'licence' => '', 'birthday' => '1990-04-27', 'phone' => '0614253647'],
+            ['adh_id' => self::ID_START + 42, 'name' => 'CARON', 'firstname' => 'Léa', 'club' => 'Balise 25', 'licence' => '', 'birthday' => '1990-04-27', 'phone' => '0614253647'], // No license = not a member
             ['adh_id' => self::ID_START + 43, 'name' => 'PETIT', 'firstname' => 'Emma', 'club' => 'Balise 25', 'licence' => '77009876', 'birthday' => '2005-12-08', 'phone' => '0621436587'],
             ['adh_id' => self::ID_START + 44, 'name' => 'ROUX', 'firstname' => 'Nathan', 'club' => 'Balise 25', 'licence' => '25006789', 'birthday' => '2000-01-26', 'phone' => '0734567812'],
             ['adh_id' => self::ID_START + 45, 'name' => 'DORBEC', 'firstname' => 'Paul', 'club' => 'CO AZIMUT 77', 'licence' => '23456789', 'birthday' => '1980-04-02', 'phone' => '0743672311'],
-            ['adh_id' => self::ID_START + 46, 'name' => 'JACQUIER', 'firstname' => 'Yohann', 'club' => 'VIKAZIM', 'licence' => '', 'birthday' => '2013-06-03', 'phone' => '0642864628'],
+            ['adh_id' => self::ID_START + 46, 'name' => 'JACQUIER', 'firstname' => 'Yohann', 'club' => 'VIKAZIM', 'licence' => '', 'birthday' => '2013-06-03', 'phone' => '0642864628'], // No license = not a member
             ['adh_id' => self::ID_START + 47, 'name' => 'DELHOUMI', 'firstname' => 'Sylvian', 'club' => 'VIKAZIM', 'licence' => '2025-D2S1I3', 'birthday' => '1985-06-02', 'phone' => '0705324567'],
             ['adh_id' => self::ID_START + 48, 'name' => 'ANNE', 'firstname' => 'Jean-François', 'club' => 'VIKAZIM', 'licence' => '56723478', 'birthday' => '1964-11-05', 'phone' => '0645389485'],
         ];
 
         foreach ($membersData as $index => $member) {
-            DB::table('members')->insertOrIgnore([
-                'adh_id' => $member['adh_id'],
-                'adh_license' => $member['licence'] ?: 'DEMO-' . $member['adh_id'],
+            // Only create member entry if they have a license
+            if (!empty($member['licence'])) {
+                DB::table('members')->insertOrIgnore([
+                    'adh_id' => $member['adh_id'],
+                    'adh_license' => $member['licence'],
                 'adh_end_validity' => now()->addYear()->format('Y-m-d'),
-                'adh_date_added' => now()->format('Y-m-d'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                    'adh_date_added' => now()->format('Y-m-d'),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
 
-        // Create users
-        $usersData = [
-            ['id' => self::ID_START + 30, 'adh_id' => self::ID_START + 30, 'doc_id' => $docIds[0], 'first_name' => 'Julien', 'last_name' => 'MARTIN', 'email' => 'julien.martin@test.fr'],
-            ['id' => self::ID_START + 31, 'adh_id' => self::ID_START + 31, 'doc_id' => $docIds[1], 'first_name' => 'Clara', 'last_name' => 'DUMONT', 'email' => 'claire.dupont@test.fr'],
-            ['id' => self::ID_START + 32, 'adh_id' => self::ID_START + 32, 'doc_id' => $docIds[2], 'first_name' => 'Antoine', 'last_name' => 'PETIT', 'email' => 'thomas.leroy@test.fr'],
-            ['id' => self::ID_START + 33, 'adh_id' => self::ID_START + 33, 'doc_id' => $docIds[3], 'first_name' => 'Sandra', 'last_name' => 'MARVELI', 'email' => 'sophie.moreau@test.fr'],
-            ['id' => self::ID_START + 34, 'adh_id' => self::ID_START + 34, 'doc_id' => $docIds[4], 'first_name' => 'Lucas', 'last_name' => 'BERNARD', 'email' => 'lucas.bernard@test.fr'],
-            ['id' => self::ID_START + 35, 'adh_id' => self::ID_START + 35, 'doc_id' => $docIds[5], 'first_name' => 'Claire', 'last_name' => 'DUPONT', 'email' => 'c.dumont@email.fr'],
-            ['id' => self::ID_START + 36, 'adh_id' => self::ID_START + 36, 'doc_id' => $docIds[6], 'first_name' => 'Thomas', 'last_name' => 'LEFEBVRE', 'email' => 't.lefebvre@orange.fr'],
-            ['id' => self::ID_START + 37, 'adh_id' => self::ID_START + 37, 'doc_id' => $docIds[7], 'first_name' => 'Sophie', 'last_name' => 'MOREAU', 'email' => 'sophie.m60@wanadoo.fr'],
-            ['id' => self::ID_START + 38, 'adh_id' => self::ID_START + 38, 'doc_id' => $docIds[8], 'first_name' => 'Thomas', 'last_name' => 'LEROY', 'email' => 'antoine.petit@gmail.com'],
-            ['id' => self::ID_START + 39, 'adh_id' => self::ID_START + 39, 'doc_id' => $docIds[9], 'first_name' => 'Julie', 'last_name' => 'GARNIER', 'email' => 'julie.garnier@outlook.com'],
-            ['id' => self::ID_START + 40, 'adh_id' => self::ID_START + 40, 'doc_id' => $docIds[10], 'first_name' => 'Thomas', 'last_name' => 'LEROY', 'email' => 'm.rousseau@sfr.fr'],
-            ['id' => self::ID_START + 41, 'adh_id' => self::ID_START + 41, 'doc_id' => $docIds[11], 'first_name' => 'Hugo', 'last_name' => 'FONTAINE', 'email' => 'hugo.fontaine@test.fr'],
-            ['id' => self::ID_START + 42, 'adh_id' => self::ID_START + 42, 'doc_id' => $docIds[12], 'first_name' => 'Léa', 'last_name' => 'CARON', 'email' => 'lea.caron@test.fr'],
-            ['id' => self::ID_START + 43, 'adh_id' => self::ID_START + 43, 'doc_id' => $docIds[13], 'first_name' => 'Emma', 'last_name' => 'PETIT', 'email' => 'emma.petit@test.fr'],
-            ['id' => self::ID_START + 44, 'adh_id' => self::ID_START + 44, 'doc_id' => $docIds[14], 'first_name' => 'Nathan', 'last_name' => 'ROUX', 'email' => 'nathan.roux@test.fr'],
-            ['id' => self::ID_START + 45, 'adh_id' => self::ID_START + 45, 'doc_id' => $docIds[15], 'first_name' => 'Paul', 'last_name' => 'DORBEC', 'email' => 'paul.dorbec@unicaen.fr'],
-            ['id' => self::ID_START + 46, 'adh_id' => self::ID_START + 46, 'doc_id' => $docIds[16], 'first_name' => 'Yohann', 'last_name' => 'JACQUIER', 'email' => 'yohann.jacquier@unicaen.fr'],
-            ['id' => self::ID_START + 47, 'adh_id' => self::ID_START + 47, 'doc_id' => $docIds[17], 'first_name' => 'Sylvian', 'last_name' => 'DELHOUMI', 'email' => 'sylvian.delhoumi@unicaen.fr'],
-            ['id' => self::ID_START + 48, 'adh_id' => self::ID_START + 48, 'doc_id' => $docIds[18], 'first_name' => 'Jean-François', 'last_name' => 'ANNE', 'email' => 'jeanfrancois.anne@unicaen.fr'],
+        // Real addresses array
+        $addresses = [
+            '47 Allée des roses 77000 Melun',
+            '36 Rue Claude Bernard 91000 Évry-Courcouronnes',
+            '4 Rue du pré 25000 Besançon',
+            '14 Rue des Mimosas 14000 Caen',
+            '47 Allée des roses 77000 Melun',
+            '52 Allée Saint-Joseph 77000 Melun',
+            '7 Rue Henri Poincaré 25000 Besançon',
+            '16 Rue des Azalées 91000 Évry-Courcouronnes',
+            '12 Allée de la Fontaine 77000 Melun',
+            '36 Rue du Jardin 77000 Melun',
+            '24 Rue des Lilas 77000 Melun',
+            '29 Rue René Descartes 25000 Besançon',
+            '10 Rue des Acacias 25000 Besançon',
+            '28 Rue Jean-Jacques Rousseau 25000 Besançon',
+            '17 Rue des Orchidées 25000 Besançon',
+            '36 Rue Claude Bernard 91000 Évry-Courcouronnes',
+            '50 Rue des Fleurs 14000 Caen',
+            '3 Rue Louis Pasteur 14000 Caen',
+            '38 Rue des Marguerites 14000 Caen',
         ];
 
+        // Create users
         $userIds = [];
-        foreach ($usersData as $index => $userData) {
-            // Get corresponding member data for birth_date and phone
-            $memberData = $membersData[$index];
-            
+        foreach ($membersData as $index => $member) {
+            $userId = $member['adh_id'];
+            // Check if user has a license (is a member)
+            $isAdhérent = !empty($member['licence']);
+
             DB::table('users')->insertOrIgnore([
-                'id' => $userData['id'],
-                'doc_id' => $userData['doc_id'],
-                'adh_id' => $userData['adh_id'],
-                'first_name' => $userData['first_name'],
-                'last_name' => $userData['last_name'],
-                'email' => $userData['email'],
-                'birth_date' => $memberData['birthday'], // Added from migration 2026_01_01_000017__add_profile_fields_to_users_table
-                'address' => 'Demo Address ' . $userData['id'], // Added from migration 2026_01_01_000017__add_profile_fields_to_users_table
-                'phone' => $memberData['phone'], // Added from migration 2026_01_01_000017__add_profile_fields_to_users_table
-                'password' => Hash::make('Demo2026!'),
+                'id' => $userId,
+                'first_name' => $member['firstname'],
+                'last_name' => $member['name'],
+                'email' => strtolower($member['firstname'] . '.' . $member['name']) . '@example.com',
                 'email_verified_at' => now(),
-                'active' => true,
+                'password' => '$2y$12$dnWSGCpdICbHsdeXidDJYepmhlOBg.bqNrMI3etC73Fyual6Dh8Wu',
+                'doc_id' => null,
+                'adh_id' => $isAdhérent ? $member['adh_id'] : null,
+                'address' => $addresses[$index] ?? 'Demo Address ' . $userId,
+                'birth_date' => $member['birthday'],
+                'phone' => $member['phone'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            $userIds[] = $userData['id'];
-            $this->command->info("Created user: {$userData['first_name']} {$userData['last_name']} (ID: {$userData['id']})");
+
+            $userIds[] = $userId;
         }
 
         return $userIds;
     }
 
     /**
-     * Create demo teams (Equipes from Parcours B)
+     * Create demo teams (Equipes from Parcours B + LUTIN + ELFE)
      */
     private function createDemoTeams(): array
     {
         $teamsData = [
+            // Parcours B teams (3 teams)
             ['equ_id' => self::ID_START + 50, 'equ_name' => 'Equipe DORMEUR', 'adh_id' => self::ID_START + 35], // Claire DUPONT (Responsable)
             ['equ_id' => self::ID_START + 51, 'equ_name' => 'Equipe ATCHOUM', 'adh_id' => self::ID_START + 41], // Hugo FONTAINE (Responsable)
             ['equ_id' => self::ID_START + 52, 'equ_name' => 'Equipe SIMPLET', 'adh_id' => self::ID_START + 41], // Hugo FONTAINE (Responsable)
+            // Course LUTIN teams (3 teams)
+            ['equ_id' => self::ID_START + 53, 'equ_name' => 'Equipe MARVELI', 'adh_id' => self::ID_START + 33], // Sandra MARVELI (Responsable)
+            ['equ_id' => self::ID_START + 54, 'equ_name' => 'Equipe DUPONT', 'adh_id' => self::ID_START + 35], // Claire DUPONT (Responsable)
+            ['equ_id' => self::ID_START + 55, 'equ_name' => 'Equipe MARTIN', 'adh_id' => self::ID_START + 30], // Julien MARTIN (Responsable)
+            // Course ELFE teams (4 teams)
+            ['equ_id' => self::ID_START + 56, 'equ_name' => 'Equipe LEFEBVRE', 'adh_id' => self::ID_START + 36], // Thomas LEFEBVRE (Responsable)
+            ['equ_id' => self::ID_START + 57, 'equ_name' => 'Equipe MOREAU', 'adh_id' => self::ID_START + 37], // Sophie MOREAU (Responsable)
+            ['equ_id' => self::ID_START + 58, 'equ_name' => 'Equipe FONTAINE', 'adh_id' => self::ID_START + 41], // Hugo FONTAINE (Responsable)
+            ['equ_id' => self::ID_START + 59, 'equ_name' => 'Equipe PETIT', 'adh_id' => self::ID_START + 43], // Emma PETIT (Responsable)
         ];
 
         $teamIds = [];
@@ -440,10 +477,11 @@ class DemoDataSeeder extends Seeder
     }
 
     /**
-     * Link users to teams via has_participate (Based on Parcours B teams)
+     * Link users to teams via has_participate (10 teams: 3 Parcours B + 3 LUTIN + 4 ELFE)
      */
     private function linkUsersToTeams(array $userIds, array $teamIds): void
     {
+        // Parcours B Teams
         // Equipe DORMEUR: Responsable Claire DUPONT (635) + Participants: Claire DUPONT (635), Thomas LEFEBVRE (636)
         $team1Members = [self::ID_START + 35, self::ID_START + 36]; // Claire DUPONT, Thomas LEFEBVRE
         
@@ -453,10 +491,40 @@ class DemoDataSeeder extends Seeder
         // Equipe SIMPLET: Responsable Hugo FONTAINE (641) + Participants: Julie GARNIER (639), Marc ROUSSEAU (640 - using Thomas LEROY ID)
         $team3Members = [self::ID_START + 39, self::ID_START + 40]; // Julie GARNIER, Thomas LEROY
 
+        // Course LUTIN Teams
+        // Equipe MARVELI: Responsable Sandra MARVELI (633) + Participant: Sandra MARVELI (633)
+        $team4Members = [self::ID_START + 33]; // Sandra MARVELI
+        
+        // Equipe DUPONT: Responsable Claire DUPONT (635) + Participant: Claire DUPONT (635)
+        $team5Members = [self::ID_START + 35]; // Claire DUPONT
+        
+        // Equipe MARTIN: Responsable Julien MARTIN (630) + Participant: Julien MARTIN (630)
+        $team6Members = [self::ID_START + 30]; // Julien MARTIN
+
+        // Course ELFE Teams
+        // Equipe LEFEBVRE: Responsable Thomas LEFEBVRE (636) + Participant: Thomas LEFEBVRE (636)
+        $team7Members = [self::ID_START + 36]; // Thomas LEFEBVRE
+        
+        // Equipe MOREAU: Responsable Sophie MOREAU (637) + Participant: Sophie MOREAU (637)
+        $team8Members = [self::ID_START + 37]; // Sophie MOREAU
+        
+        // Equipe FONTAINE: Responsable Hugo FONTAINE (641) + Participant: Hugo FONTAINE (641)
+        $team9Members = [self::ID_START + 41]; // Hugo FONTAINE
+        
+        // Equipe PETIT: Responsable Emma PETIT (643) + Participant: Emma PETIT (643)
+        $team10Members = [self::ID_START + 43]; // Emma PETIT
+
         $assignments = [
-            [$teamIds[0], $team1Members],
-            [$teamIds[1], $team2Members],
-            [$teamIds[2], $team3Members],
+            [$teamIds[0], $team1Members],  // Equipe DORMEUR
+            [$teamIds[1], $team2Members],  // Equipe ATCHOUM
+            [$teamIds[2], $team3Members],  // Equipe SIMPLET
+            [$teamIds[3], $team4Members],  // Equipe MARVELI
+            [$teamIds[4], $team5Members],  // Equipe DUPONT
+            [$teamIds[5], $team6Members],  // Equipe MARTIN
+            [$teamIds[6], $team7Members],  // Equipe LEFEBVRE
+            [$teamIds[7], $team8Members],  // Equipe MOREAU
+            [$teamIds[8], $team9Members],  // Equipe FONTAINE
+            [$teamIds[9], $team10Members], // Equipe PETIT
         ];
 
         foreach ($assignments as [$teamId, $members]) {
