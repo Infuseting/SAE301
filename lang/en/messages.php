@@ -280,6 +280,12 @@ return [
     'description_bio' => 'Description / Bio',
     'edit_profile' => 'Edit',
 
+    // Filters
+    'filter_all' => 'All',
+    'filter_1month' => 'Last month',
+    'filter_6months' => '6 months',
+    'filter_1year' => '1 year',
+
     // Club Management
     'clubs' => 'Clubs',
     'my_clubs' => 'My Clubs',

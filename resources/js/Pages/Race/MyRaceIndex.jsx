@@ -1,8 +1,9 @@
 import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
-import { Link } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { RiRunLine } from "react-icons/ri";
 import { MdDateRange } from "react-icons/md";
+import { useState } from "react";
 
 function formatTime(seconds) {
     if (!seconds) return "N/A";
@@ -146,8 +147,23 @@ function MyRaceCard({ race, isRegistered = false }) {
     );
 }
 
-export default function MyRaceIndex({ races = [], registers = [] }) {
+export default function MyRaceIndex({ races = [], registers = [], currentPeriod = 'all' }) {
     const isEmpty = races.length === 0 && registers.length === 0;
+    const messages = usePage().props.translations?.messages || {};
+    
+    const periods = [
+        { value: 'all', label: messages.filter_all || 'Tous' },
+        { value: '1month', label: messages.filter_1month || 'Dernier mois' },
+        { value: '6months', label: messages.filter_6months || '6 mois' },
+        { value: '1year', label: messages.filter_1year || '1 an' },
+    ];
+
+    const handlePeriodChange = (period) => {
+        router.post(route('myrace.index'), { period }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
@@ -156,7 +172,7 @@ export default function MyRaceIndex({ races = [], registers = [] }) {
             <main className="flex-grow pt-5 pb-20">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
                     {/* Page Title */}
-                    <div className="mb-12">
+                    <div className="mb-8">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-1 h-8 bg-blue-600 rounded"></div>
                             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
@@ -166,6 +182,27 @@ export default function MyRaceIndex({ races = [], registers = [] }) {
                         <p className="text-gray-600 ml-4">
                             Consultez votre historique et vos inscriptions
                         </p>
+                    </div>
+
+                    {/* Period Filter */}
+                    <div className="mb-8">
+                        <div className="bg-white rounded-lg shadow-sm p-4">
+                            <div className="flex flex-wrap gap-2">
+                                {periods.map((period) => (
+                                    <button
+                                        key={period.value}
+                                        onClick={() => handlePeriodChange(period.value)}
+                                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                                            currentPeriod === period.value
+                                                ? 'bg-blue-600 text-white shadow-md'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        {period.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Empty State */}

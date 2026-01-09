@@ -4,17 +4,38 @@ namespace App\Http\Controllers\Race;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Race;
+use Carbon\Carbon;
 
 class MyRaceController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $user = Auth::user();
         $userId = $user->id;
+        $period = $request->input('period', 'all'); // Default: all
+
+        // Calculate date filter based on period
+        $dateFilter = null;
+        switch ($period) {
+            case '1month':
+                $dateFilter = Carbon::now()->subMonth();
+                break;
+            case '6months':
+                $dateFilter = Carbon::now()->subMonths(6);
+                break;
+            case '1year':
+                $dateFilter = Carbon::now()->subYear();
+                break;
+            case 'all':
+            default:
+                $dateFilter = null;
+                break;
+        }
 
         // 1. Récupération des courses "Inscrites" (sans forcément de résultat au leaderboard)
         $registers = Race::whereIn('race_id', function ($query) use ($userId) {
@@ -25,6 +46,9 @@ class MyRaceController extends Controller
                         ->from('has_participate')
                         ->where('id_users', $userId);
                 });
+        })
+        ->when($dateFilter, function ($query) use ($dateFilter) {
+            $query->where('race_date_start', '>=', $dateFilter);
         })
         ->get()
         ->map(function ($race) use ($userId) {
@@ -57,6 +81,9 @@ class MyRaceController extends Controller
         // 2. Récupération des courses avec "Leaderboard" (résultats finaux)
         $races = Race::whereHas('leaderboardUsers', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
+            })
+            ->when($dateFilter, function ($query) use ($dateFilter) {
+                $query->where('race_date_start', '>=', $dateFilter);
             })
             ->with(['leaderboardUsers' => function ($query) use ($userId) {
                 $query->where('user_id', $userId);
@@ -100,6 +127,7 @@ class MyRaceController extends Controller
         return Inertia::render('Race/MyRaceIndex', [
             'races' => $races,
             'registers' => $registers,
+            'currentPeriod' => $period,
         ]);
     }
 }

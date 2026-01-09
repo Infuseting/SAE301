@@ -45,7 +45,7 @@ Route::middleware('auth')->get('/my-raid', [App\Http\Controllers\Raid\MyRaidCont
 
 
 //myRace - Requires authentication
-Route::middleware('auth')->get('/my-race', [MyRaceController::class, 'index'])->name('myrace.index');
+Route::middleware('auth')->match(['get', 'post'], '/my-race', [MyRaceController::class, 'index'])->name('myrace.index');
 
 // Public leaderboard page
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard.index');
