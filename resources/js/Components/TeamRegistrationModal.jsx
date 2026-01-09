@@ -87,13 +87,13 @@ export default function TeamRegistrationModal({ isOpen, onClose, teams = [], min
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        <Link
-                            href={route('team.create')}
+                        <a
+                            href={`${route('team.create')}?redirect_uri=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
                             className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-colors shadow-lg shadow-emerald-200"
                         >
                             <UserPlus className="w-4 h-4" />
                             Créer
-                        </Link>
+                        </a>
                     </div>
 
                     {/* Team List */}
