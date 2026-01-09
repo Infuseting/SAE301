@@ -8,6 +8,7 @@ import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 import ImageUpload from '@/Components/ImageUpload';
+import SelectResponsableModal from '@/Components/SelectResponsableModal';
 import { FaEdit, FaTrash, FaUsers, FaUserMinus, FaChevronDown, FaChevronUp, FaUserPlus } from 'react-icons/fa';
 
 /**
@@ -25,9 +26,8 @@ export default function TeamManagement({ teams, isAdmin }) {
     const [editingTeam, setEditingTeam] = useState(null);
     const [deletingTeam, setDeletingTeam] = useState(null);
     const [removingMember, setRemovingMember] = useState(null);
-    const [memberSearch, setMemberSearch] = useState('');
-    const [memberSearchResults, setMemberSearchResults] = useState([]);
-    const [showMemberDropdown, setShowMemberDropdown] = useState(false);
+    const [availableAdherents, setAvailableAdherents] = useState([]);
+    const [showMemberModal, setShowMemberModal] = useState(false);
 
     const { data: editData, setData: setEditData, post: postEdit, processing: editProcessing, errors: editErrors, reset: resetEdit } = useForm({
         name: '',
@@ -41,6 +41,30 @@ export default function TeamManagement({ teams, isAdmin }) {
     const { data: removeMemberData, setData: setRemoveMemberData, post: postRemoveMember, processing: removeMemberProcessing } = useForm({
         user_id: null,
     });
+
+    /**
+     * Load available adherents on component mount
+     */
+    useEffect(() => {
+        const loadAdherents = async () => {
+            try {
+                const response = await fetch('/api/users/adherents', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setAvailableAdherents(data);
+                }
+            } catch (error) {
+                console.error('Error loading adherents:', error);
+            }
+        };
+        loadAdherents();
+    }, []);
 
     /**
      * Toggle team details expansion
@@ -64,8 +88,6 @@ export default function TeamManagement({ teams, isAdmin }) {
             add_members: [],
             remove_members: [],
         });
-        setMemberSearch('');
-        setMemberSearchResults([]);
     };
 
     /**
@@ -73,62 +95,33 @@ export default function TeamManagement({ teams, isAdmin }) {
      */
     const closeEditModal = () => {
         setEditingTeam(null);
-        setMemberSearch('');
-        setMemberSearchResults([]);
-        setShowMemberDropdown(false);
+        setShowMemberModal(false);
         resetEdit();
-    };
-
-    /**
-     * Search for users to add as members
-     */
-    const performMemberSearch = async (searchTerm) => {
-        if (!searchTerm.trim()) {
-            setMemberSearchResults([]);
-            return;
-        }
-        try {
-            const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin'
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setMemberSearchResults(data);
-                setShowMemberDropdown(true);
-            }
-        } catch (error) {
-            console.error('Error searching members:', error);
-        }
     };
 
     /**
      * Add a member to the team
      */
-    const addMemberToTeam = (userId, name, email) => {
+    const addMemberToTeam = (user) => {
         // Check if already in current members or added members
-        const alreadyExists = editData.members.some(m => m.id === userId) || 
-                              editData.add_members.some(m => m.id === userId);
+        const alreadyExists = editData.members.some(m => m.id === user.id) || 
+                              editData.add_members.some(m => m.id === user.id);
         
         if (alreadyExists) {
             alert('Ce membre fait déjà partie de l\'équipe.');
+            setShowMemberModal(false);
             return;
         }
 
         // Check if user is the team leader
-        if (editingTeam && editingTeam.leader.id === userId) {
+        if (editingTeam && editingTeam.leader.id === user.id) {
             alert('Le chef d\'équipe ne peut pas être ajouté comme membre.');
+            setShowMemberModal(false);
             return;
         }
 
-        const member = { id: userId, name, email };
-        setEditData('add_members', [...editData.add_members, member]);
-        setMemberSearch('');
-        setMemberSearchResults([]);
-        setShowMemberDropdown(false);
+        setEditData('add_members', [...editData.add_members, user]);
+        setShowMemberModal(false);
     };
 
     /**
@@ -149,43 +142,27 @@ export default function TeamManagement({ teams, isAdmin }) {
     };
 
     /**
-     * Debounced member search
-     */
-    useEffect(() => {
-        if (!memberSearch.trim()) {
-            setMemberSearchResults([]);
-            return;
-        }
-        const timeoutId = setTimeout(() => {
-            performMemberSearch(memberSearch);
-        }, 300);
-        return () => clearTimeout(timeoutId);
-    }, [memberSearch]);
-
-    /**
-     * Close dropdown when clicking outside
-     */
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (!event.target.closest('.dropdown-container')) {
-                setShowMemberDropdown(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
-    /**
      * Submit team update
      */
     const handleEditSubmit = (e) => {
         e.preventDefault();
-        postEdit(route('teams.update', editingTeam.id), {
+        
+        // Prepare data with transformed add_members
+        const submitData = {
+            name: editData.name,
+            image: editData.image,
+            add_members: editData.add_members.map(m => typeof m === 'object' ? m.id : m),
+            remove_members: editData.remove_members,
+        };
+        
+        router.post(route('teams.update', editingTeam.id), submitData, {
             onSuccess: () => {
                 closeEditModal();
             },
+            onError: (errors) => {
+                console.error('Erreur lors de la mise à jour:', errors);
+            },
+            preserveScroll: true,
         });
     };
 
@@ -409,7 +386,12 @@ export default function TeamManagement({ teams, isAdmin }) {
             </div>
 
             {/* Edit Team Modal */}
-            <Modal show={editingTeam !== null} onClose={closeEditModal} maxWidth="2xl">
+            <Modal 
+                show={editingTeam !== null} 
+                onClose={closeEditModal} 
+                maxWidth="2xl"
+                closeable={!showMemberModal}
+            >
                 <form onSubmit={handleEditSubmit} className="p-6">
                     <h2 className="text-lg font-medium text-gray-900 mb-4">
                         {messages.edit_team || 'Modifier l\'équipe'}
@@ -483,38 +465,16 @@ export default function TeamManagement({ teams, isAdmin }) {
                             ))}
                         </div>
 
-                        {/* Add Member Search */}
-                        <div className="mt-4 relative dropdown-container">
-                            <InputLabel htmlFor="memberSearch" value={messages.add_member || 'Ajouter un membre'} />
-                            <div className="relative">
-                                <TextInput
-                                    id="memberSearch"
-                                    type="text"
-                                    value={memberSearch}
-                                    onChange={(e) => setMemberSearch(e.target.value)}
-                                    onFocus={() => memberSearchResults.length > 0 && setShowMemberDropdown(true)}
-                                    placeholder={messages.search_member || 'Rechercher par nom ou email...'}
-                                    className="mt-1 block w-full"
-                                />
-                                <FaUserPlus className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            </div>
-
-                            {/* Search Results Dropdown */}
-                            {showMemberDropdown && memberSearchResults.length > 0 && (
-                                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                                    {memberSearchResults.map((user) => (
-                                        <button
-                                            key={user.id}
-                                            type="button"
-                                            onClick={() => addMemberToTeam(user.id, user.name, user.email)}
-                                            className="w-full text-left px-4 py-2 hover:bg-gray-100 transition"
-                                        >
-                                            <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                                            <p className="text-xs text-gray-500">{user.email}</p>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                        {/* Add Member Button */}
+                        <div className="mt-4">
+                            <PrimaryButton
+                                type="button"
+                                onClick={() => setShowMemberModal(true)}
+                                className="w-full flex items-center justify-center space-x-2"
+                            >
+                                <FaUserPlus />
+                                <span>{messages.add_member || 'Ajouter un membre'}</span>
+                            </PrimaryButton>
                         </div>
                     </div>
 
@@ -532,6 +492,15 @@ export default function TeamManagement({ teams, isAdmin }) {
                     </div>
                 </form>
             </Modal>
+
+            {/* Member Selection Modal */}
+            <SelectResponsableModal
+                isOpen={showMemberModal}
+                onClose={() => setShowMemberModal(false)}
+                users={availableAdherents}
+                onSelect={addMemberToTeam}
+                title={messages.add_member || 'Ajouter un membre'}
+            />
 
             {/* Delete Team Modal */}
             <Modal show={deletingTeam !== null} onClose={closeDeleteModal}>

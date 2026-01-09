@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\LeaderboardApiController;
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
 Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
 Route::get('/users/search', [\App\Http\Controllers\Api\UserController::class, 'search']);
+Route::get('/users/adherents', [\App\Http\Controllers\Api\UserController::class, 'adherents']);
 
 /*
 |--------------------------------------------------------------------------
