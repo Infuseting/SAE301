@@ -40,6 +40,8 @@ deploy_production:
     - php artisan optimize:clear
     - php artisan migrate --force
     - php artisan storage:link
+    - chmod 666 storage/logs/laravel.log || true
+    - chmod 777 storage/logs
     
     - php artisan config:cache
     # 3. On corrige les droits gitlab-runner:gitlab-runner -> g4:www-data
