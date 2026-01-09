@@ -190,7 +190,12 @@ export default function Welcome({ auth, upcomingRaids, ageCategories }) {
                                         params.append("location", location);
                                         params.append("location_type", locationType);
                                     }
-                                    if (startDate) params.append("date", startDate.toISOString().split('T')[0]);
+                                    if (startDate) {
+                                        const year = startDate.getFullYear();
+                                        const month = String(startDate.getMonth() + 1).padStart(2, '0');
+                                        const day = String(startDate.getDate()).padStart(2, '0');
+                                        params.append("date", `${year}-${month}-${day}`);
+                                    }
                                     if (category !== "all") params.append("category", category);
                                     if (ageCategory) params.append("age_category", ageCategory);
                                     

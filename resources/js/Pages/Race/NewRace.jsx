@@ -462,10 +462,14 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.startDate}
                                         onChange={handleDateChange}
                                         min={(() => {
-                                            const today = new Date().toISOString().split('T')[0];
-                                            if (!raid?.raid_date_start) return today;
+                                            const today = new Date();
+                                            const year = today.getFullYear();
+                                            const month = String(today.getMonth() + 1).padStart(2, '0');
+                                            const day = String(today.getDate()).padStart(2, '0');
+                                            const todayStr = `${year}-${month}-${day}`;
+                                            if (!raid?.raid_date_start) return todayStr;
                                             const raidStart = raid.raid_date_start.split('T')[0];
-                                            return today > raidStart ? today : raidStart;
+                                            return todayStr > raidStart ? todayStr : raidStart;
                                         })()}
                                         {...(raid?.raid_date_end && { max: raid.raid_date_end.split('T')[0] })}
                                         className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.startDate ? 'border-red-500' : 'border-gray-300'}`}
@@ -534,7 +538,13 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         name="endDate"
                                         value={data.endDate}
                                         onChange={handleDateChange}
-                                        min={data.startDate || new Date().toISOString().split('T')[0]}
+                                        min={data.startDate || (() => {
+                                            const today = new Date();
+                                            const year = today.getFullYear();
+                                            const month = String(today.getMonth() + 1).padStart(2, '0');
+                                            const day = String(today.getDate()).padStart(2, '0');
+                                            return `${year}-${month}-${day}`;
+                                        })()}
                                         {...(raid?.raid_date_end && { max: raid.raid_date_end.split('T')[0] })}
                                         className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.endDate ? 'border-red-500' : 'border-gray-300'}`}
                                     />

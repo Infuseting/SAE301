@@ -1,6 +1,7 @@
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import UserAvatar from '@/Components/UserAvatar';
 import PrimaryButton from '@/Components/PrimaryButton';
 import DangerButton from '@/Components/DangerButton';
 import Modal from '@/Components/Modal';
@@ -274,13 +275,11 @@ export default function TeamManagement({ teams, isAdmin }) {
                                             {/* Team Header */}
                                             <div className="bg-gray-50 p-4 flex items-center justify-between">
                                                 <div className="flex items-center space-x-4">
-                                                    {team.image && (
-                                                        <img
-                                                            src={`/storage/${team.image}`}
-                                                            alt={team.name}
-                                                            className="h-12 w-12 rounded-full object-cover"
-                                                        />
-                                                    )}
+                                                    <UserAvatar
+                                                        user={{ name: team.name, profile_photo_url: team.image ? `/storage/${team.image}` : null }}
+                                                        type="team"
+                                                        size="lg"
+                                                    />
                                                     <div>
                                                         <h3 className="text-lg font-semibold text-gray-900">
                                                             {team.name}

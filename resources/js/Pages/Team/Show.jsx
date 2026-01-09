@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import InviteUserModal from '@/Components/Team/InviteUserModal';
 import InviteByEmailModal from '@/Components/Team/InviteByEmailModal';
+import UserAvatar from '@/Components/UserAvatar';
 
 /**
  * Display team details including members and information.
@@ -24,10 +25,11 @@ export default function Show({ team, auth, users }) {
                             <div className="flex flex-col md:flex-row gap-6">
                                 {/* Team Image */}
                                 <div className="flex-shrink-0">
-                                    <img
-                                        src={team.image ? `/storage/${team.image}` : 'https://via.placeholder.com/200'}
-                                        alt={team.name}
-                                        className="h-48 w-48 rounded-lg object-cover"
+                                    <UserAvatar
+                                        user={{ name: team.name, profile_photo_url: team.image ? `/storage/${team.image}` : null }}
+                                        type="team"
+                                        size="xl"
+                                        className="h-48 w-48"
                                     />
                                 </div>
 
@@ -73,10 +75,9 @@ export default function Show({ team, auth, users }) {
                                             key={member.id}
                                             className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
                                         >
-                                            <img
-                                                src={member.avatar || 'https://via.placeholder.com/48'}
-                                                alt={member.name}
-                                                className="h-12 w-12 rounded-full object-cover"
+                                            <UserAvatar
+                                                user={member}
+                                                size="lg"
                                             />
                                             <div>
                                                 <p className="font-semibold text-gray-900">
