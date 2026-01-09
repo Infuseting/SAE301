@@ -148,23 +148,21 @@ class LeaderboardSeeder extends Seeder
             }
         }
 
-        // Create teams with different categories
+        // Create teams
         $teamsData = [
-            ['equ_name' => 'Les Faucons Rapides', 'category' => 'Masculin'],
-            ['equ_name' => 'Les Aigles des Montagnes', 'category' => 'Mixte'],
-            ['equ_name' => 'Les Loups Solitaires', 'category' => 'Masculin'],
-            ['equ_name' => 'Les Gazelles', 'category' => 'Féminin'],
-            ['equ_name' => 'Team Endurance', 'category' => 'Mixte'],
-            ['equ_name' => 'Les Intrépides', 'category' => 'Masculin'],
+            ['equ_name' => 'Les Faucons Rapides'],
+            ['equ_name' => 'Les Aigles des Montagnes'],
+            ['equ_name' => 'Les Loups Solitaires'],
+            ['equ_name' => 'Les Gazelles'],
+            ['equ_name' => 'Team Endurance'],
+            ['equ_name' => 'Les Intrépides'],
         ];
 
         $teamIds = [];
-        $teamCategories = [];
         foreach ($teamsData as $teamData) {
             $existingTeam = DB::table('teams')->where('equ_name', $teamData['equ_name'])->first();
             if ($existingTeam) {
                 $teamIds[] = $existingTeam->equ_id;
-                $teamCategories[$existingTeam->equ_id] = $teamData['category'];
             } else {
                 $teamId = DB::table('teams')->insertGetId([
                     'equ_name' => $teamData['equ_name'],
@@ -173,7 +171,6 @@ class LeaderboardSeeder extends Seeder
                     'updated_at' => now(),
                 ]);
                 $teamIds[] = $teamId;
-                $teamCategories[$teamId] = $teamData['category'];
                 $this->command->info("Created team: {$teamData['equ_name']}");
             }
         }
@@ -294,7 +291,6 @@ class LeaderboardSeeder extends Seeder
         // Check which columns exist in leaderboard_teams
         $teamHasPoints = Schema::hasColumn('leaderboard_teams', 'points');
         $teamHasStatus = Schema::hasColumn('leaderboard_teams', 'status');
-        $teamHasCategory = Schema::hasColumn('leaderboard_teams', 'category');
         $teamHasPuce = Schema::hasColumn('leaderboard_teams', 'puce');
         
         $teamCount = 0;
@@ -320,7 +316,6 @@ class LeaderboardSeeder extends Seeder
                         'avg_malus' => round($avgMalus, 2),
                         'avg_temps_final' => round($avgTempsFinal, 2),
                         'member_count' => $memberResults->count(),
-                        'category' => $teamCategories[$teamId] ?? 'Mixte',
                     ];
                 }
             }
@@ -356,9 +351,6 @@ class LeaderboardSeeder extends Seeder
                     }
                     if ($teamHasStatus) {
                         $insertData['status'] = 'classé';
-                    }
-                    if ($teamHasCategory) {
-                        $insertData['category'] = $result['category'];
                     }
                     if ($teamHasPuce) {
                         $insertData['puce'] = $puce;

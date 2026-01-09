@@ -18,6 +18,7 @@ use App\Http\Controllers\Leaderboard\MyLeaderboardController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Profile\PublicProfileController;
 use App\Http\Controllers\Profile\LicenceController;
+use App\Http\Controllers\Race\RaceResultController;
 use App\Http\Controllers\Race\RaceRegistrationController;
 use App\Http\Controllers\Race\MyRaceController;
 use App\Http\Controllers\Race\RaceController;
@@ -34,6 +35,7 @@ Route::get('/', [WelcomeController::class, 'index'])->name('home');
 // Race routes
 Route::get('/races', [VisuRaceController::class, 'index'])->name('races.index');
 Route::get('/race/{id}', [VisuRaceController::class, 'show'])->name('races.show');
+Route::get('/race/{race}/results/download', [RaceResultController::class, 'downloadResults'])->name('races.results.download');
 Route::get('/map', [MapController::class, 'index'])->name('map.index');
 
 // Raids public routes (no auth required)
@@ -143,6 +145,11 @@ Route::middleware(['auth', 'role:responsable-course|gestionnaire-raid|responsabl
     Route::get('/races/{race}/scanner', [RaceController::class, 'scannerPage'])->name('races.scanner');
     Route::post('/races/{race}/check-in', [RaceController::class, 'checkIn'])->name('races.check-in');
     Route::post('/races/{race}/toggle-presence', [RaceController::class, 'togglePresence'])->name('races.toggle-presence');
+    Route::get('/races/{race}/team-members/{registration}', [RaceController::class, 'getTeamMembers'])->name('races.team-members');
+    
+    // Race results management (CSV export/import)
+    Route::get('/races/{race}/results/export-template', [RaceResultController::class, 'exportTeamsTemplate'])->name('races.results.export-template');
+    Route::post('/races/{race}/results/import', [RaceResultController::class, 'importResults'])->name('races.results.import');
 });
 
 // Club member management - requires authentication (authorization in controller)

@@ -1,7 +1,127 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Header from '@/Components/Header';
 import UserAvatar from '@/Components/UserAvatar';
+
+/**
+ * Result Row component - renders a single result row
+ * 
+ * @param {Object} props
+ * @param {Object} props.result - The result data
+ * @param {boolean} props.isTeamView - Whether we're in team view mode
+ * @param {Function} props.getRankBadge - Function to get rank badge class
+ * @param {Function} props.formatDate - Function to format dates
+ * @param {Object} props.messages - Translation messages
+ * @param {boolean} props.showCategoryRank - Whether to show category rank alongside overall rank
+ */
+function ResultRow({ result, isTeamView, getRankBadge, formatDate, messages, showCategoryRank }) {
+    return (
+        <tr className="hover:bg-gray-50 transition">
+            <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex items-center gap-1">
+                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${getRankBadge(showCategoryRank ? result.category_rank : result.rank)}`}>
+                        {showCategoryRank ? result.category_rank : result.rank}
+                    </span>
+                    {showCategoryRank && result.rank !== result.category_rank && (
+                        <span className="text-xs text-gray-400" title={messages.overall_rank || 'Rang général'}>
+                            (#{result.rank})
+                        </span>
+                    )}
+                </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex items-center">
+                    {isTeamView && (
+                        <UserAvatar
+                            user={{ name: result.team_name, profile_photo_url: result.team_image }}
+                            size="sm"
+                            type="team"
+                            className="mr-3"
+                        />
+                    )}
+                    {!isTeamView && (
+                        <UserAvatar
+                            user={{ name: result.user_name, profile_photo_url: result.user_photo }}
+                            size="sm"
+                            type="user"
+                            className="mr-3"
+                        />
+                    )}
+                    <div>
+                        <span className="font-medium text-gray-900">
+                            {isTeamView ? result.team_name : result.user_name}
+                        </span>
+                        {isTeamView && result.status && result.status !== 'classé' && (
+                            <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                result.status === 'abandon' ? 'bg-orange-100 text-orange-800' :
+                                result.status === 'disqualifié' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                            }`}>
+                                {result.status}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </td>
+            {isTeamView && (
+                <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        result.age_category ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                        {result.age_category || '-'}
+                    </span>
+                </td>
+            )}
+            <td className="px-6 py-4 whitespace-nowrap">
+                <div>
+                    <span className="text-gray-900">{result.race_name}</span>
+                    <span className="block text-xs text-gray-500">{formatDate(result.race_date)}</span>
+                </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-gray-700 font-mono">
+                {isTeamView ? result.average_temps_formatted : result.temps_formatted}
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-red-600 font-mono">
+                +{isTeamView ? result.average_malus_formatted : result.malus_formatted}
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap font-bold text-emerald-600 font-mono">
+                {isTeamView ? result.average_temps_final_formatted : result.temps_final_formatted}
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-bold ${
+                    result.points >= 100 ? 'bg-yellow-100 text-yellow-800' :
+                    result.points >= 50 ? 'bg-emerald-100 text-emerald-800' :
+                    result.points > 0 ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-500'
+                }`}>
+                    {result.points || 0} pts
+                </span>
+            </td>
+            {isTeamView && (
+                <td className="px-6 py-4">
+                    <div className="max-w-xs">
+                        {result.members && result.members.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                                {result.members.map((member, idx) => (
+                                    <span 
+                                        key={member.id || idx}
+                                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
+                                    >
+                                        {member.name}
+                                    </span>
+                                ))}
+                            </div>
+                        ) : (
+                            <span className="text-gray-400 text-sm">
+                                {result.member_count} {result.member_count > 1 ? (messages.members || 'membres') : (messages.member || 'membre')}
+                            </span>
+                        )}
+                    </div>
+                </td>
+            )}
+        </tr>
+    );
+}
 
 /**
  * Public Leaderboard Index page - Shows all public race rankings
@@ -95,6 +215,41 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
     };
 
     const isTeamView = selectedType === 'team';
+
+    /**
+     * Group results by age category for competitive races
+     * Returns an array of { categoryId, categoryName, categoryMin, categoryMax, results }
+     */
+    const getGroupedResults = () => {
+        if (!results?.data || !isTeamView) {
+            return null;
+        }
+
+        // Check if we have age categories in the data
+        const hasAgeCategories = results.data.some(r => r.age_category_id !== null && r.age_category_id !== undefined);
+        if (!hasAgeCategories) {
+            return null;
+        }
+
+        // Group by age_category_id
+        const groups = {};
+        results.data.forEach(result => {
+            const catId = result.age_category_id || 'default';
+            if (!groups[catId]) {
+                groups[catId] = {
+                    categoryId: catId,
+                    categoryName: result.age_category_name || result.age_category || 'Sans catégorie',
+                    results: []
+                };
+            }
+            groups[catId].results.push(result);
+        });
+
+        return Object.values(groups);
+    };
+
+    const groupedResults = getGroupedResults();
+    const hasGroupedCategories = groupedResults && groupedResults.length > 1;
 
     return (
         <>
@@ -270,122 +425,54 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
-                                            {results.data.map((result, index) => (
-                                                <tr key={`${result.id}-${index}`} className="hover:bg-gray-50 transition">
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${getRankBadge(result.rank)}`}>
-                                                            {result.rank}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="flex items-center">
-                                                            {isTeamView && (
-                                                                <UserAvatar
-                                                                    user={{ name: result.team_name, profile_photo_url: result.team_image }}
-                                                                    size="sm"
-                                                                    type="team"
-                                                                    className="mr-3"
-                                                                />
-                                                            )}
-                                                            {!isTeamView && (
-                                                                <UserAvatar
-                                                                    user={{ name: result.user_name, profile_photo_url: result.user_photo }}
-                                                                    size="sm"
-                                                                    type="user"
-                                                                    className="mr-3"
-                                                                />
-                                                            )}
-                                                            <div>
-                                                                <span className="font-medium text-gray-900">
-                                                                    {isTeamView ? result.team_name : result.user_name}
-                                                                </span>
-                                                                {isTeamView && result.status && result.status !== 'classé' && (
-                                                                    <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                                                        result.status === 'abandon' ? 'bg-orange-100 text-orange-800' :
-                                                                        result.status === 'disqualifié' ? 'bg-red-100 text-red-800' :
-                                                                        'bg-gray-100 text-gray-800'
-                                                                    }`}>
-                                                                        {result.status}
+                                            {hasGroupedCategories ? (
+                                                /* Render grouped by category */
+                                                groupedResults.map((group, groupIndex) => (
+                                                    <React.Fragment key={group.categoryId}>
+                                                        {/* Category header row */}
+                                                        <tr className="bg-indigo-50 border-t-2 border-indigo-200">
+                                                            <td colSpan={isTeamView ? 9 : 7} className="px-6 py-3">
+                                                                <div className="flex items-center gap-2">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-indigo-600">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-2.748 0" />
+                                                                    </svg>
+                                                                    <span className="font-bold text-indigo-700">
+                                                                        {messages.category || 'Catégorie'}: {group.categoryName}
                                                                     </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    {isTeamView && (
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            {/* Display age category from race relation (via param -> age categories) */}
-                                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                                result.age_category ? 'bg-indigo-100 text-indigo-800' :
-                                                                result.category === 'Masculin' ? 'bg-blue-100 text-blue-800' :
-                                                                result.category === 'Féminin' ? 'bg-pink-100 text-pink-800' :
-                                                                result.category === 'Mixte' ? 'bg-purple-100 text-purple-800' :
-                                                                'bg-gray-100 text-gray-800'
-                                                            }`}>
-                                                                {result.age_category || result.category || '-'}
-                                                            </span>
-                                                        </td>
-                                                    )}
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div>
-                                                            <span className="text-gray-900">{result.race_name}</span>
-                                                            <span className="block text-xs text-gray-500">{formatDate(result.race_date)}</span>
-                                                            {result.race_age_categories && result.race_age_categories.length > 0 && (
-                                                                <div className="flex flex-wrap gap-1 mt-1">
-                                                                    {result.race_age_categories.map((cat, idx) => (
-                                                                        <span 
-                                                                            key={idx}
-                                                                            className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700"
-                                                                        >
-                                                                            {cat}
-                                                                        </span>
-                                                                    ))}
+                                                                    <span className="text-indigo-500 text-sm">
+                                                                        ({group.results.length} {group.results.length > 1 ? (messages.teams || 'équipes') : (messages.team || 'équipe')})
+                                                                    </span>
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-gray-700 font-mono">
-                                                        {isTeamView ? result.average_temps_formatted : result.temps_formatted}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-red-600 font-mono">
-                                                        +{isTeamView ? result.average_malus_formatted : result.malus_formatted}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap font-bold text-emerald-600 font-mono">
-                                                        {isTeamView ? result.average_temps_final_formatted : result.temps_final_formatted}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-bold ${
-                                                            result.points >= 100 ? 'bg-yellow-100 text-yellow-800' :
-                                                            result.points >= 50 ? 'bg-emerald-100 text-emerald-800' :
-                                                            result.points > 0 ? 'bg-blue-100 text-blue-800' :
-                                                            'bg-gray-100 text-gray-500'
-                                                        }`}>
-                                                            {result.points || 0} pts
-                                                        </span>
-                                                    </td>
-                                                    {isTeamView && (
-                                                        <td className="px-6 py-4">
-                                                            <div className="max-w-xs">
-                                                                {result.members && result.members.length > 0 ? (
-                                                                    <div className="flex flex-wrap gap-1">
-                                                                        {result.members.map((member, idx) => (
-                                                                            <span 
-                                                                                key={member.id || idx}
-                                                                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
-                                                                            >
-                                                                                {member.name}
-                                                                            </span>
-                                                                        ))}
-                                                                    </div>
-                                                                ) : (
-                                                                    <span className="text-gray-400 text-sm">
-                                                                        {result.member_count} {result.member_count > 1 ? (messages.members || 'membres') : (messages.member || 'membre')}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                    )}
-                                                </tr>
-                                            ))}
+                                                            </td>
+                                                        </tr>
+                                                        {/* Results within this category */}
+                                                        {group.results.map((result, index) => (
+                                                            <ResultRow 
+                                                                key={`${result.id}-${index}`}
+                                                                result={result}
+                                                                isTeamView={isTeamView}
+                                                                getRankBadge={getRankBadge}
+                                                                formatDate={formatDate}
+                                                                messages={messages}
+                                                                showCategoryRank={true}
+                                                            />
+                                                        ))}
+                                                    </React.Fragment>
+                                                ))
+                                            ) : (
+                                                /* Render flat results */
+                                                results.data.map((result, index) => (
+                                                    <ResultRow 
+                                                        key={`${result.id}-${index}`}
+                                                        result={result}
+                                                        isTeamView={isTeamView}
+                                                        getRankBadge={getRankBadge}
+                                                        formatDate={formatDate}
+                                                        messages={messages}
+                                                        showCategoryRank={false}
+                                                    />
+                                                ))
+                                            )}
                                         </tbody>
                                     </table>
                                 </div>

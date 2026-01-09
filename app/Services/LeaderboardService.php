@@ -418,7 +418,6 @@ class LeaderboardService
                 'average_temps_final_formatted' => $item->formatted_average_temps_final,
                 'member_count' => $item->member_count,
                 'points' => $item->points,
-                'category' => $item->category,
                 'puce' => $item->puce,
             ];
         });
@@ -509,7 +508,7 @@ class LeaderboardService
      * The rank will be recalculated automatically based on average_temps_final.
      *
      * @param int $resultId The leaderboard_teams ID
-     * @param array $data Data to update (average_temps, average_malus, points, category)
+     * @param array $data Data to update (average_temps, average_malus, points)
      * @return LeaderboardTeam|null
      */
     public function updateTeamResult(int $resultId, array $data): ?LeaderboardTeam
@@ -527,9 +526,6 @@ class LeaderboardService
         }
         if (array_key_exists('points', $data)) {
             $result->points = $data['points'];
-        }
-        if (isset($data['category'])) {
-            $result->category = $data['category'];
         }
         if (isset($data['puce'])) {
             $result->puce = $data['puce'];
@@ -688,7 +684,6 @@ class LeaderboardService
                 'average_temps_final_formatted' => $item->formatted_average_temps_final,
                 'member_count' => $item->member_count,
                 'points' => $item->points,
-                'category' => $item->category,
             ];
         });
 
@@ -907,7 +902,6 @@ class LeaderboardService
                 'member_count' => $item->member_count,
                 'members' => $members,
                 'points' => $calculatedPoints,
-                'category' => $item->category,
             ];
         });
 
@@ -1008,8 +1002,10 @@ class LeaderboardService
                 },
                 'race' => function ($q) {
                     $q->select('race_id', 'race_name', 'race_date_start')->with('ageCategories:id,nom');
-                }
+                },
+                'ageCategory:id,nom,age_min,age_max'
             ])
+            ->orderBy('age_category_id')
             ->orderBy('average_temps_final', 'asc');
 
         if ($raceId) {
@@ -1028,15 +1024,25 @@ class LeaderboardService
 
         $results = $query->paginate($perPage);
 
+        // Group results by age category for ranking within category
         $rank = ($results->currentPage() - 1) * $perPage + 1;
         $totalInRace = $raceId ? LeaderboardTeam::where('race_id', $raceId)->count() : $results->total();
+        $categoryRanks = [];
         
-        $data = $results->getCollection()->map(function ($item) use (&$rank, $totalInRace) {
+        $data = $results->getCollection()->map(function ($item) use (&$rank, &$categoryRanks, $totalInRace) {
             // Calculate points dynamically if null in database
             $calculatedPoints = $item->points;
             if ($calculatedPoints === null) {
                 $calculatedPoints = $this->calculateSimplePointsForRank($rank, $totalInRace);
             }
+            
+            // Track rank within age category
+            $ageCategoryId = $item->age_category_id ?? 'default';
+            if (!isset($categoryRanks[$ageCategoryId])) {
+                $categoryRanks[$ageCategoryId] = 0;
+            }
+            $categoryRanks[$ageCategoryId]++;
+            $categoryRank = $categoryRanks[$ageCategoryId];
             
             // Get team members list from users relation
             $members = [];
@@ -1049,14 +1055,19 @@ class LeaderboardService
                 })->toArray();
             }
 
-            // Get age category from race relation
+            // Get age category - prefer direct relation, fallback to race categories
             $ageCategory = null;
-            if ($item->race && $item->race->ageCategories->isNotEmpty()) {
+            $ageCategoryName = null;
+            if ($item->ageCategory) {
+                $ageCategoryName = $item->ageCategory->nom;
+                $ageCategory = $item->ageCategory->nom;
+            } elseif ($item->race && $item->race->ageCategories->isNotEmpty()) {
                 $ageCategory = $item->race->ageCategories->pluck('nom')->implode(', ');
             }
 
             return [
                 'rank' => $rank++,
+                'category_rank' => $categoryRank,
                 'id' => $item->id,
                 'equ_id' => $item->equ_id,
                 'team_name' => $item->team ? $item->team->equ_name : 'Unknown',
@@ -1066,6 +1077,8 @@ class LeaderboardService
                 'race_date' => $item->race ? $item->race->race_date_start : null,
                 'race_age_categories' => $item->race ? $item->race->age_category_names : [],
                 'age_category' => $ageCategory,
+                'age_category_id' => $item->age_category_id,
+                'age_category_name' => $ageCategoryName,
                 'average_temps' => $item->average_temps,
                 'average_temps_formatted' => $item->formatted_average_temps,
                 'average_malus' => $item->average_malus,
@@ -1075,7 +1088,6 @@ class LeaderboardService
                 'member_count' => $item->member_count,
                 'members' => $members,
                 'points' => $calculatedPoints,
-                'category' => $item->category,
             ];
         });
 
@@ -1091,7 +1103,7 @@ class LeaderboardService
     /**
      * Export leaderboard to CSV format.
      * For individual: includes rank, name, time, race, malus, final time, points (excludes private profiles)
-     * For team: includes rank, team, category, time, points
+     * For team: includes rank, team, age category, time, points
      *
      * @param int $raceId The race ID
      * @param string $type 'individual' or 'team'
@@ -1102,11 +1114,12 @@ class LeaderboardService
         $output = fopen('php://temp', 'r+');
 
         if ($type === 'team') {
-            // Team export: rang, équipe, catégorie, temps, points
+            // Team export: rang, équipe, catégorie âge, temps, points
             fputcsv($output, ['Rang', 'Equipe', 'Catégorie', 'Temps', 'Points'], ';');
 
             $results = LeaderboardTeam::with([
                     'team:equ_id,equ_name',
+                    'ageCategory:id,nom',
                     'race' => function ($q) {
                         $q->select('race_id', 'race_name')->with('ageCategories:id,nom');
                     }
@@ -1117,9 +1130,11 @@ class LeaderboardService
 
             $rank = 1;
             foreach ($results as $result) {
-                // Get age category from race relation
-                $ageCategory = $result->category ?? '-';
-                if ($result->race && $result->race->ageCategories->isNotEmpty()) {
+                // Get age category from direct relation or race relation
+                $ageCategory = '-';
+                if ($result->ageCategory) {
+                    $ageCategory = $result->ageCategory->nom;
+                } elseif ($result->race && $result->race->ageCategories->isNotEmpty()) {
                     $ageCategory = $result->race->ageCategories->pluck('nom')->implode(', ');
                 }
 
