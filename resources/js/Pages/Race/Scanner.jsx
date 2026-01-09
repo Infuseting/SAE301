@@ -145,11 +145,16 @@ export default function Scanner({ race, stats: initialStats }) {
 
                 // Update stats immediately if this is a new check-in
                 if (!data.already_present) {
-                    setStats(prevStats => ({
-                        ...prevStats,
-                        present: prevStats.present + 1,
-                        absent: prevStats.absent - 1
-                    }));
+                    console.log('Updating stats - Before:', stats);
+                    setStats(prevStats => {
+                        const newStats = {
+                            ...prevStats,
+                            present: prevStats.present + 1,
+                            absent: prevStats.absent - 1
+                        };
+                        console.log('Updating stats - After:', newStats);
+                        return newStats;
+                    });
                 }
             } else {
                 setError(data.message || 'Erreur lors de l\'enregistrement de la présence.');
