@@ -84,6 +84,7 @@ class HandleInertiaRequests extends Middleware
                         [
                             'permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray(),
                             'is_club_leader' => $request->user()->isClubLeader(),
+                            'team_leader' => \App\Models\Team::where('user_id', $request->user()->id)->exists(),
                         ]
                     ) : null,
                 ],

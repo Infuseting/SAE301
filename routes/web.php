@@ -25,6 +25,7 @@ use App\Http\Controllers\Race\VisuRaceController;
 use App\Http\Controllers\Raid\RaidController;
 use App\Http\Controllers\Team\TeamController;
 use App\Http\Controllers\Team\TeamAgeController;
+use App\Http\Controllers\Team\TeamManagementController;
 use App\Models\Raid;
 
 
@@ -100,6 +101,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/participants/{participant}/verify-pps', [App\Http\Controllers\Team\TeamRunnerController::class, 'verifyPps'])->name('participants.verifyPps');
     // Show registration ticket with QR code
     Route::get('/teams/{team}/registration/{registration}', [TeamController::class, 'showRegistrationTicket'])->name('teams.registration.ticket');
+});
+
+// Team management - accessible to team leaders and admins
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/teams', [TeamManagementController::class, 'index'])->name('teams.management');
+    Route::post('/admin/teams/{team}/update', [TeamManagementController::class, 'update'])->name('teams.update');
+    Route::delete('/admin/teams/{team}', [TeamManagementController::class, 'destroy'])->name('teams.destroy');
+    Route::post('/admin/teams/{team}/remove-member', [TeamManagementController::class, 'removeMember'])->name('teams.removeMember');
 });
 
 // Clubs CRUD routes - require adherent role (or admin) + valid licence
