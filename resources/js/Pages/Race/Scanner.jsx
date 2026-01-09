@@ -193,14 +193,6 @@ export default function Scanner({ race, stats: initialStats }) {
                                 <p className="text-gray-600">
                                     Scanner QR Code - Pointage des équipes
                                 </p>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    {new Date(race.race_date).toLocaleDateString('fr-FR', {
-                                        weekday: 'long',
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                    })}
-                                </p>
                             </div>
                             <div className="text-right">
                                 <div className="text-4xl font-black text-blue-600">
