@@ -89,17 +89,18 @@ class VisuRaceController extends Controller
         // Admin can manage all races, otherwise check if user is race organizer or club manager
         $isRaceManager = $user && ($user->hasRole('admin') || ($race->organizer && $user->adh_id === $race->organizer->adh_id) || ($race->raid && $race->raid->club && $race->raid->club->hasManager($user)));
 
-        // Fetch participants for managers
+        // Fetch participants for managers using the new race_participants table
         $participants = [];
         if ($isRaceManager) {
-            $participants = \DB::table('registration')
+            $participants = \DB::table('race_participants')
+                ->join('registration', 'race_participants.reg_id', '=', 'registration.reg_id')
                 ->join('teams', 'registration.equ_id', '=', 'teams.equ_id')
-                ->join('has_participate', 'teams.equ_id', '=', 'has_participate.equ_id')
-                ->join('users', 'has_participate.id_users', '=', 'users.id')
+                ->join('users', 'race_participants.user_id', '=', 'users.id')
                 ->leftJoin('members', 'users.adh_id', '=', 'members.adh_id')
-                ->leftJoin('medical_docs', 'users.doc_id', '=', 'medical_docs.doc_id')
                 ->where('registration.race_id', $race->race_id)
                 ->select([
+                    'race_participants.rpa_id as participant_id',
+                    'race_participants.reg_id',
                     'users.id as user_id',
                     'users.first_name', 
                     'users.last_name', 
@@ -107,8 +108,11 @@ class VisuRaceController extends Controller
                     'users.birth_date',
                     'members.adh_license',
                     'members.adh_end_validity as license_expiry',
-                    'medical_docs.doc_num_pps as pps_number',
-                    'medical_docs.doc_end_validity as pps_expiry',
+                    'race_participants.pps_number',
+                    'race_participants.pps_expiry',
+                    'race_participants.pps_status',
+                    'race_participants.pps_verified_at',
+                    'race_participants.bib_number',
                     'registration.reg_validated',
                     'teams.equ_name',
                     'teams.equ_id'
@@ -117,7 +121,10 @@ class VisuRaceController extends Controller
                 ->map(function($p) use ($race) {
                     $now = now();
                     $p->is_license_valid = $p->license_expiry && $now->lessThan($p->license_expiry);
-                    $p->is_pps_valid = $p->pps_expiry && $now->lessThan($p->pps_expiry);
+                    $p->is_pps_valid = $p->pps_expiry && 
+                                       $now->lessThan($p->pps_expiry) && 
+                                       $p->pps_status === 'verified' &&
+                                       !str_starts_with($p->pps_number ?? '', 'PENDING-');
                     
                     // Calculate participant price
                     $age = $p->birth_date ? $now->diffInYears($p->birth_date) : null;
