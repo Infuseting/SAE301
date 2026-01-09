@@ -127,6 +127,10 @@ class RaceController extends Controller
             'typ_id' => $race->typ_id,
             'adh_id' => $race->adh_id,
             'raid_id' => $race->raid_id,
+            // Leisure age rules (A <= B <= C)
+            'leisure_age_min' => $race->leisure_age_min,
+            'leisure_age_intermediate' => $race->leisure_age_intermediate,
+            'leisure_age_supervisor' => $race->leisure_age_supervisor,
             'runner_params' => $race->runnerParams,
             'team_params' => $race->teamParams,
             'categorieAges' => $race->categorieAges->map(fn($pc) => [
@@ -213,6 +217,10 @@ class RaceController extends Controller
             'pae_id' => $paramTeam->pae_id,
             'image_url' => $imageUrl,
             'raid_id' => $request->input('raid_id'),
+            // Leisure age rules (A <= B <= C)
+            'leisure_age_min' => $request->input('leisureAgeMin'),
+            'leisure_age_intermediate' => $request->input('leisureAgeIntermediate'),
+            'leisure_age_supervisor' => $request->input('leisureAgeSupervisor'),
         ];
 
         // Create the race
@@ -308,10 +316,41 @@ class RaceController extends Controller
             'race_difficulty' => $request->input('difficulty'),
             'typ_id' => $request->input('type'),
             'image_url' => $imageUrl,
+            // Leisure age rules (A <= B <= C)
+            'leisure_age_min' => $request->input('leisureAgeMin'),
+            'leisure_age_intermediate' => $request->input('leisureAgeIntermediate'),
+            'leisure_age_supervisor' => $request->input('leisureAgeSupervisor'),
         ];
 
         // Update the race
         $race->update($raceData);
+
+        // Handle age categories for competitive races
+        $typeId = $request->input('type');
+        $type = ParamType::find($typeId);
+        $isCompetitive = $type && strtolower($type->typ_name) === 'compétitif';
+
+        // Update age categories (for competitive races)
+        $ageCategories = $request->input('selectedAgeCategories', []);
+        
+        // Handle both array and JSON formats
+        if (is_string($ageCategories)) {
+            $ageCategories = json_decode($ageCategories, true) ?? [];
+        }
+        if (!is_array($ageCategories)) {
+            $ageCategories = [];
+        }
+        
+        ParamCategorieAge::where('race_id', $race->race_id)->delete();
+        foreach ($ageCategories as $categoryId) {
+            ParamCategorieAge::create([
+                'race_id' => $race->race_id,
+                'age_categorie_id' => (int) $categoryId,
+            ]);
+        }
+
+        // Kick teams that no longer comply with the new age rules
+        $kickedTeamsCount = $this->kickNonCompliantTeams($race, $isCompetitive, $ageCategories, $request);
 
         // Assign responsable-course role to the new responsible if changed
         $responsibleUser = User::find($request->input('responsableId'));
@@ -319,8 +358,208 @@ class RaceController extends Controller
             $this->assignResponsableCourseRole($responsibleUser, $race);
         }
 
+        $successMessage = 'La course a été modifiée avec succès!';
+        if ($kickedTeamsCount > 0) {
+            $successMessage .= " {$kickedTeamsCount} équipe(s) ont été retirées car elles ne respectent plus les règles d'âge.";
+        }
+
         return redirect()->route('races.show', $race->race_id)
-            ->with('success', 'La course a été modifiée avec succès!');
+            ->with('success', $successMessage);
+    }
+
+    /**
+     * Kick teams that no longer comply with age rules after a race update.
+     *
+     * @param Race $race The race being updated
+     * @param bool $isCompetitive Whether the race is competitive
+     * @param array $ageCategories Array of accepted age category IDs (for competitive)
+     * @param Request $request The request with leisure age rules
+     * @return int Number of teams kicked
+     */
+    private function kickNonCompliantTeams(Race $race, bool $isCompetitive, array $ageCategories, Request $request): int
+    {
+        $kickedCount = 0;
+        // Get all teams registered for this race (no eager loading needed, we query members separately)
+        $registeredTeams = $race->teams()->get();
+
+        foreach ($registeredTeams as $team) {
+            $isCompliant = $this->validateTeamAgeCompliance(
+                $team,
+                $isCompetitive,
+                $ageCategories,
+                $request->input('leisureAgeMin'),
+                $request->input('leisureAgeIntermediate'),
+                $request->input('leisureAgeSupervisor')
+            );
+
+            if (!$isCompliant) {
+                // Remove team from race registration
+                \DB::table('registration')
+                    ->where('race_id', $race->race_id)
+                    ->where('equ_id', $team->equ_id)
+                    ->delete();
+
+                // Also remove from race_participants table
+                \DB::table('race_participants')
+                    ->whereIn('reg_id', function($query) use ($race, $team) {
+                        $query->select('reg_id')
+                            ->from('registration')
+                            ->where('race_id', $race->race_id)
+                            ->where('equ_id', $team->equ_id);
+                    })
+                    ->delete();
+
+                // Log the removal
+                activity()
+                    ->performedOn($race)
+                    ->causedBy(auth()->user())
+                    ->withProperties([
+                        'team_id' => $team->equ_id,
+                        'team_name' => $team->equ_name,
+                        'reason' => 'Age rules changed - team no longer compliant'
+                    ])
+                    ->log('Team removed from race due to age rule changes');
+
+                $kickedCount++;
+            }
+        }
+
+        return $kickedCount;
+    }
+
+    /**
+     * Validate if a team complies with age rules.
+     *
+     * @param \App\Models\Team $team The team to validate
+     * @param bool $isCompetitive Whether the race is competitive
+     * @param array $ageCategories Accepted age category IDs (for competitive)
+     * @param int|null $leisureAgeMin Age A - minimum age for all (leisure)
+     * @param int|null $leisureAgeIntermediate Age B - intermediate threshold (leisure)
+     * @param int|null $leisureAgeSupervisor Age C - supervisor age (leisure)
+     * @return bool True if team is compliant
+     */
+    private function validateTeamAgeCompliance(
+        $team,
+        bool $isCompetitive,
+        array $ageCategories,
+        ?int $leisureAgeMin,
+        ?int $leisureAgeIntermediate,
+        ?int $leisureAgeSupervisor
+    ): bool {
+        // Get team members with their ages
+        $members = \DB::table('has_participate')
+            ->join('users', 'has_participate.id_users', '=', 'users.id')
+            ->where('has_participate.equ_id', $team->equ_id)
+            ->select('users.id', 'users.birth_date')
+            ->get();
+
+        if ($members->isEmpty()) {
+            return false;
+        }
+
+        $now = now();
+        $memberAges = $members->map(function($m) use ($now) {
+            if (!$m->birth_date) {
+                return null;
+            }
+            $birthDate = \Carbon\Carbon::parse($m->birth_date);
+            return (int) $birthDate->diffInYears($now);
+        })->filter()->values()->toArray();
+
+        if (empty($memberAges)) {
+            return false; // No valid ages means non-compliant
+        }
+
+        if ($isCompetitive) {
+            return $this->validateCompetitiveTeam($memberAges, $ageCategories);
+        } else {
+            return $this->validateLeisureTeam($memberAges, $leisureAgeMin, $leisureAgeIntermediate, $leisureAgeSupervisor);
+        }
+    }
+
+    /**
+     * Validate a team for competitive race age rules.
+     * All members must be in the same accepted age category.
+     *
+     * @param array $memberAges Array of member ages
+     * @param array $ageCategoryIds Array of accepted age category IDs
+     * @return bool True if team is compliant
+     */
+    private function validateCompetitiveTeam(array $memberAges, array $ageCategoryIds): bool
+    {
+        if (empty($ageCategoryIds)) {
+            return true; // No categories defined = no restrictions
+        }
+
+        // Get the age categories
+        $ageCategories = AgeCategorie::whereIn('id', $ageCategoryIds)->get();
+
+        if ($ageCategories->isEmpty()) {
+            return true; // No valid categories = no restrictions
+        }
+
+        // Determine each member's category
+        $memberCategories = [];
+        foreach ($memberAges as $age) {
+            $category = $ageCategories->first(function($cat) use ($age) {
+                $minAge = $cat->age_min;
+                $maxAge = $cat->age_max !== null ? $cat->age_max : PHP_INT_MAX;
+                return $age >= $minAge && $age <= $maxAge;
+            });
+
+            if (!$category) {
+                return false; // Member age not in any accepted category
+            }
+
+            $memberCategories[] = $category->id;
+        }
+
+        // Check all members are in the same category
+        $uniqueCategories = array_unique($memberCategories);
+        return count($uniqueCategories) === 1;
+    }
+
+    /**
+     * Validate a team for leisure race age rules.
+     * Rules: A <= B <= C
+     * - All participants must be at least A years old
+     * - If any participant is under B, team must have someone at least C
+     * - OR all participants must be at least B years old
+     *
+     * @param array $memberAges Array of member ages
+     * @param int|null $ageA Minimum age for all
+     * @param int|null $ageB Intermediate threshold
+     * @param int|null $ageC Supervisor age requirement
+     * @return bool True if team is compliant
+     */
+    private function validateLeisureTeam(array $memberAges, ?int $ageA, ?int $ageB, ?int $ageC): bool
+    {
+        // If no leisure rules defined, allow all
+        if ($ageA === null || $ageB === null || $ageC === null) {
+            return true;
+        }
+
+        // Rule 1: All participants must be at least A years old
+        foreach ($memberAges as $age) {
+            if ($age < $ageA) {
+                return false;
+            }
+        }
+
+        // Check if any member is under B years old
+        $membersBelowB = array_filter($memberAges, fn($age) => $age < $ageB);
+        $needsSupervisor = count($membersBelowB) > 0;
+
+        // Check if there's a supervisor (someone at least C years old)
+        $supervisors = array_filter($memberAges, fn($age) => $age >= $ageC);
+        $hasSupervisor = count($supervisors) > 0;
+
+        // Rule 2: If any participant is under B, team must have someone at least C
+        if ($needsSupervisor && !$hasSupervisor) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
