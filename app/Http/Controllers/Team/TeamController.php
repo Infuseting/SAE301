@@ -40,6 +40,8 @@ class TeamController extends Controller
             'image' => 'nullable|image|max:2048',
             'teammates' => 'nullable|array',
             'teammates.*.id' => 'integer|exists:users,id',
+            'emailInvites' => 'nullable|array',
+            'emailInvites.*' => 'email',
             'join_team' => 'nullable|boolean',
         ]);
 
@@ -78,6 +80,25 @@ class TeamController extends Controller
         }        
         if (!empty($usersToAttach)) {
             $team->users()->attach(array_unique($usersToAttach));
+        }
+
+        // Send email invitations
+        if (!empty($validated['emailInvites'])) {
+            foreach ($validated['emailInvites'] as $email) {
+                $token = Str::random(64);
+                
+                Invitation::create([
+                    'inviter_id' => $creatorId,
+                    'invitee_id' => null,
+                    'equ_id' => $team->equ_id,
+                    'email' => $email,
+                    'token' => $token,
+                    'status' => 'pending',
+                    'expires_at' => now()->addDays(7),
+                ]);
+                
+                Mail::to($email)->send(new TeamInvitation($team->equ_name, $request->user()->name, $token));
+            }
         }
         
         return redirect()->route('dashboard')->with('success', 'Équipe créée avec succès!');
