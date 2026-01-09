@@ -260,7 +260,7 @@ export default function TeamManagement({ teams, isAdmin }) {
                                         {messages.no_teams_description || 'Vous n\'avez pas encore créé d\'équipe.'}
                                     </p>
                                     <div className="mt-6">
-                                        <Link href={route('teams.create')}>
+                                        <Link href={route('team.create')}>
                                             <PrimaryButton>
                                                 {messages.create_team || 'Créer une équipe'}
                                             </PrimaryButton>
