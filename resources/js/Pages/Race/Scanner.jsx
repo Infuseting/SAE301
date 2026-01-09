@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { QrCode, Camera, CheckCircle, XCircle, Users, TrendingUp, AlertCircle, Trophy, Loader } from 'lucide-react';
@@ -9,6 +9,7 @@ import { QrCode, Camera, CheckCircle, XCircle, Users, TrendingUp, AlertCircle, T
  * Allows race managers to scan team QR codes and mark them as present
  */
 export default function Scanner({ race, stats }) {
+    const page = usePage();
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
     const [error, setError] = useState(null);
@@ -109,11 +110,23 @@ export default function Scanner({ race, stats }) {
         setLoading(true);
 
         try {
+            console.log('QR Code scanned:', decodedText);
+            
             // Parse QR code data
-            const qrData = JSON.parse(decodedText);
+            let qrData;
+            try {
+                qrData = JSON.parse(decodedText);
+            } catch (parseError) {
+                console.error('JSON Parse Error:', parseError);
+                setError(`QR Code invalide. Contenu scanné: ${decodedText.substring(0, 100)}...`);
+                setLoading(false);
+                return;
+            }
+            
+            console.log('Parsed QR data:', qrData);
             
             if (qrData.type !== 'team_registration') {
-                setError('QR Code invalide. Ce n\'est pas un code d\'inscription d\'équipe.');
+                setError(`QR Code invalide. Type reçu: "${qrData.type || 'undefined'}". Ce n'est pas un code d'inscription d'équipe.`);
                 setLoading(false);
                 return;
             }
@@ -123,7 +136,7 @@ export default function Scanner({ race, stats }) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-CSRF-TOKEN': page.props.csrf_token || document.querySelector('meta[name="csrf-token"]')?.content || '',
                 },
                 body: JSON.stringify({
                     equ_id: qrData.equ_id,
