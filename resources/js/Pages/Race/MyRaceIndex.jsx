@@ -121,13 +121,26 @@ function MyRaceCard({ race, isRegistered = false }) {
                     </div>
                 </div>
 
-                {/* Action Button */}
-                <Link
-                    href={route("races.show", { id: race.id })}
-                    className="w-full inline-block px-4 py-2 bg-blue-600 text-white text-center rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                    Voir les détails
-                </Link>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                    <Link
+                        href={route("races.show", { id: race.id })}
+                        className="flex-1 inline-block px-4 py-2 bg-blue-600 text-white text-center rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    >
+                        Voir les détails
+                    </Link>
+                    {isRegistered && (
+                        <Link
+                            href={route("teams.registration.ticket", { 
+                                team: race.team?.id, 
+                                registration: race.registration_id 
+                            })}
+                            className="flex-1 inline-block px-4 py-2 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                        >
+                            Mon QR Code
+                        </Link>
+                    )} 
+                </div>
             </div>
         </div>
     );

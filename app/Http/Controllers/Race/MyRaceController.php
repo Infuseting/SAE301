@@ -28,13 +28,13 @@ class MyRaceController extends Controller
         })
         ->get()
         ->map(function ($race) use ($userId) {
-            // On récupère uniquement la team de l'user pour cette course précise
-            $userTeam = DB::table('teams')
+            // On récupère uniquement la team et l'inscription de l'user pour cette course précise
+            $userTeamAndRegistration = DB::table('teams')
                 ->join('has_participate', 'teams.equ_id', '=', 'has_participate.equ_id')
                 ->join('registration', 'teams.equ_id', '=', 'registration.equ_id')
                 ->where('registration.race_id', $race->race_id)
                 ->where('has_participate.id_users', $userId)
-                ->select('teams.equ_id', 'teams.equ_name', 'teams.equ_image')
+                ->select('teams.equ_id', 'teams.equ_name', 'teams.equ_image', 'registration.reg_id')
                 ->first();
 
             return [
@@ -45,11 +45,12 @@ class MyRaceController extends Controller
                 'date_end' => $race->race_date_end ? $race->race_date_end->toDateString() : null,
                 'image' => $race->image_url ? '/storage/' . $race->image_url : null,
                 'is_open' => $race->isOpen(),
-                'team' => $userTeam ? [
-                    'id' => $userTeam->equ_id,
-                    'name' => $userTeam->equ_name,
-                    'image' => $userTeam->equ_image ? '/storage/' . $userTeam->equ_image : null,
+                'team' => $userTeamAndRegistration ? [
+                    'id' => $userTeamAndRegistration->equ_id,
+                    'name' => $userTeamAndRegistration->equ_name,
+                    'image' => $userTeamAndRegistration->equ_image ? '/storage/' . $userTeamAndRegistration->equ_image : null,
                 ] : null,
+                'registration_id' => $userTeamAndRegistration ? $userTeamAndRegistration->reg_id : null,
             ];
         });
 

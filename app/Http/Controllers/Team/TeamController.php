@@ -161,9 +161,25 @@ class TeamController extends Controller
             ->where('equ_id', $team->equ_id)
             ->firstOrFail();
 
-        // Check if registration is validated
-        if (!$registration->reg_validated) {
-            return redirect()->back()->with('error', 'Cette inscription n\'est pas encore validée.');
+        // Note: We allow viewing the ticket even if not validated yet
+        // The ticket will show the validation status
+        
+        // Generate QR code if it doesn't exist yet
+        if (empty($registration->qr_code_path)) {
+            try {
+                $qrCodeService = app(\App\Services\QrCodeService::class);
+                $qrPath = $qrCodeService->generateQrCodeForTeam(
+                    $registration->equ_id,
+                    $registration->reg_id
+                );
+                $registration->updateQuietly(['qr_code_path' => $qrPath]);
+                $registration->refresh(); // Reload to get the updated qr_code_url accessor
+            } catch (\Exception $e) {
+                \Log::error('Failed to generate QR code in TeamController', [
+                    'reg_id' => $registration->reg_id,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
 
         $teamMembers = $registration->team->users->map(function ($user) {

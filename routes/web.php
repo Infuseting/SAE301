@@ -118,9 +118,6 @@ Route::middleware(['auth', 'role:gestionnaire-raid|admin', 'manager_licence'])->
     Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
     Route::match(['put', 'patch'], '/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
     Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
-    Route::get('/raids/{raid}/start-list', [RaidController::class, 'generateStartList'])->name('raids.start-list');
-    Route::get('/raids/{raid}/scanner', [RaidController::class, 'scannerPage'])->name('raids.scanner');
-    Route::post('/raids/{raid}/check-in', [RaidController::class, 'checkIn'])->name('raids.check-in');
 });
 
 // Race management routes - require responsable-course role (or admin) + valid licence
@@ -130,6 +127,9 @@ Route::middleware(['auth', 'role:responsable-course|admin', 'manager_licence'])-
     Route::get('/races/{race}/edit', [RaceController::class, 'edit'])->name('races.edit');
     Route::put('/races/{race}', [RaceController::class, 'update'])->name('races.update');
     Route::delete('/races/{race}', [RaceController::class, 'destroy'])->name('races.destroy');
+    Route::get('/races/{race}/start-list', [RaceController::class, 'generateStartList'])->name('races.start-list');
+    Route::get('/races/{race}/scanner', [RaceController::class, 'scannerPage'])->name('races.scanner');
+    Route::post('/races/{race}/check-in', [RaceController::class, 'checkIn'])->name('races.check-in');
 });
 
 // Club member management - requires authentication (authorization in controller)

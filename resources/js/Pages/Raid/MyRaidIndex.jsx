@@ -62,12 +62,14 @@ function MyRaidCard({ raid }) {
                 </div>
 
                 {/* Action Button */}
-                <Link
-                    href={route("raids.show", { id: raid.id })}
-                    className="w-full inline-block px-4 py-2 bg-emerald-600 text-white text-center rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
-                >
-                    Voir les détails du raid
-                </Link>
+                <div className="mt-auto">
+                    <Link
+                        href={route("raids.show", { id: raid.id })}
+                        className="w-full inline-block px-4 py-2 bg-emerald-600 text-white text-center rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+                    >
+                        Voir les détails du raid
+                    </Link>
+                </div>
             </div>
         </div>
     );

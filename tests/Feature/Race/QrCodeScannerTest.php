@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Raid;
+namespace Tests\Feature\Race;
 
 use App\Models\Member;
 use App\Models\MedicalDoc;
@@ -30,7 +30,7 @@ class QrCodeScannerTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
-    protected User $raidManager;
+    protected User $raceManager;
     protected User $teamLeader;
     protected User $regularUser;
     protected Raid $raid;
@@ -57,7 +57,7 @@ class QrCodeScannerTest extends TestCase
     protected function createRolesAndPermissions(): void
     {
         Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        Role::firstOrCreate(['name' => 'gestionnaire-raid', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'responsable-course', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'adherent', 'guard_name' => 'web']);
     }
@@ -76,14 +76,14 @@ class QrCodeScannerTest extends TestCase
         ]);
         $this->admin->assignRole('admin');
 
-        // Create raid manager user
+        // Create race manager user
         $managerDoc = MedicalDoc::factory()->create();
         $managerMember = Member::factory()->create(['adh_license' => 'MANAGER-2026']);
-        $this->raidManager = User::factory()->create([
+        $this->raceManager = User::factory()->create([
             'doc_id' => $managerDoc->doc_id,
             'adh_id' => $managerMember->adh_id,
         ]);
-        $this->raidManager->assignRole('gestionnaire-raid');
+        $this->raceManager->assignRole('responsable-course');
 
         // Create team leader user
         $leaderDoc = MedicalDoc::factory()->create();
@@ -103,12 +103,12 @@ class QrCodeScannerTest extends TestCase
         ]);
         $this->regularUser->assignRole('user');
 
-        // Create club with raidManager as creator
+        // Create club with raceManager as creator
         $club = \App\Models\Club::factory()->create([
-            'created_by' => $this->raidManager->id,
+            'created_by' => $this->raceManager->id,
         ]);
 
-        // Create raid with the club owned by raidManager
+        // Create raid with the club owned by raceManager
         $this->raid = Raid::factory()->create([
             'clu_id' => $club->club_id,
         ]);
@@ -160,22 +160,22 @@ class QrCodeScannerTest extends TestCase
     public function test_admin_can_access_scanner_page(): void
     {
         $response = $this->actingAs($this->admin)
-            ->get(route('raids.scanner', $this->raid));
+            ->get(route('races.scanner', $this->race));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => $page->component('Raid/Scanner'));
+        $response->assertInertia(fn ($page) => $page->component('Race/Scanner'));
     }
 
     /**
-     * Test raid manager can access scanner page
+     * Test race manager can access scanner page
      */
-    public function test_raid_manager_can_access_scanner_page(): void
+    public function test_race_manager_can_access_scanner_page(): void
     {
-        $response = $this->actingAs($this->raidManager)
-            ->get(route('raids.scanner', $this->raid));
+        $response = $this->actingAs($this->raceManager)
+            ->get(route('races.scanner', $this->race));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => $page->component('Raid/Scanner'));
+        $response->assertInertia(fn ($page) => $page->component('Race/Scanner'));
     }
 
     /**
@@ -184,7 +184,7 @@ class QrCodeScannerTest extends TestCase
     public function test_regular_user_cannot_access_scanner_page(): void
     {
         $response = $this->actingAs($this->regularUser)
-            ->get(route('raids.scanner', $this->raid));
+            ->get(route('races.scanner', $this->race));
 
         $response->assertStatus(403);
     }
@@ -194,7 +194,7 @@ class QrCodeScannerTest extends TestCase
      */
     public function test_guest_cannot_access_scanner_page(): void
     {
-        $response = $this->get(route('raids.scanner', $this->raid));
+        $response = $this->get(route('races.scanner', $this->race));
 
         $response->assertRedirect(route('login'));
     }
@@ -204,12 +204,12 @@ class QrCodeScannerTest extends TestCase
     // ==========================================
 
     /**
-     * Test raid manager can check-in a team
+     * Test race manager can check-in a team
      */
-    public function test_raid_manager_can_check_in_team(): void
+    public function test_race_manager_can_check_in_team(): void
     {
-        $response = $this->actingAs($this->raidManager)
-            ->postJson(route('raids.check-in', $this->raid), [
+        $response = $this->actingAs($this->raceManager)
+            ->postJson(route('races.check-in', $this->race), [
                 'equ_id' => $this->team->equ_id,
                 'reg_id' => $this->registration->reg_id,
             ]);
@@ -226,17 +226,17 @@ class QrCodeScannerTest extends TestCase
     }
 
     /**
-     * Test admin cannot check-in a team (only raid manager can)
+     * Test admin cannot check-in a team (only race manager can)
      */
     public function test_admin_cannot_check_in_team(): void
     {
         $response = $this->actingAs($this->admin)
-            ->postJson(route('raids.check-in', $this->raid), [
+            ->postJson(route('races.check-in', $this->race), [
                 'equ_id' => $this->team->equ_id,
                 'reg_id' => $this->registration->reg_id,
             ]);
 
-        // Admin is not the raid manager, so should be forbidden
+        // Admin is not the race manager, so should be forbidden
         $response->assertStatus(403);
     }
 
@@ -246,7 +246,7 @@ class QrCodeScannerTest extends TestCase
     public function test_regular_user_cannot_check_in_team(): void
     {
         $response = $this->actingAs($this->regularUser)
-            ->postJson(route('raids.check-in', $this->raid), [
+            ->postJson(route('races.check-in', $this->race), [
                 'equ_id' => $this->team->equ_id,
                 'reg_id' => $this->registration->reg_id,
             ]);
@@ -259,8 +259,8 @@ class QrCodeScannerTest extends TestCase
      */
     public function test_check_in_with_invalid_registration_returns_error(): void
     {
-        $response = $this->actingAs($this->raidManager)
-            ->postJson(route('raids.check-in', $this->raid), [
+        $response = $this->actingAs($this->raceManager)
+            ->postJson(route('races.check-in', $this->race), [
                 'equ_id' => 99999,
                 'reg_id' => 99999,
             ]);
@@ -278,8 +278,8 @@ class QrCodeScannerTest extends TestCase
         $this->registration->update(['is_present' => true]);
 
         // Attempt second check-in
-        $response = $this->actingAs($this->raidManager)
-            ->postJson(route('raids.check-in', $this->raid), [
+        $response = $this->actingAs($this->raceManager)
+            ->postJson(route('races.check-in', $this->race), [
                 'equ_id' => $this->team->equ_id,
                 'reg_id' => $this->registration->reg_id,
             ]);
@@ -301,19 +301,19 @@ class QrCodeScannerTest extends TestCase
     public function test_admin_can_download_start_list_pdf(): void
     {
         $response = $this->actingAs($this->admin)
-            ->get(route('raids.start-list', $this->raid));
+            ->get(route('races.start-list', $this->race));
 
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/pdf');
     }
 
     /**
-     * Test raid manager can download start-list PDF
+     * Test race manager can download start-list PDF
      */
-    public function test_raid_manager_can_download_start_list_pdf(): void
+    public function test_race_manager_can_download_start_list_pdf(): void
     {
-        $response = $this->actingAs($this->raidManager)
-            ->get(route('raids.start-list', $this->raid));
+        $response = $this->actingAs($this->raceManager)
+            ->get(route('races.start-list', $this->race));
 
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/pdf');
@@ -325,7 +325,7 @@ class QrCodeScannerTest extends TestCase
     public function test_regular_user_cannot_download_start_list_pdf(): void
     {
         $response = $this->actingAs($this->regularUser)
-            ->get(route('raids.start-list', $this->raid));
+            ->get(route('races.start-list', $this->race));
 
         $response->assertStatus(403);
     }
@@ -335,7 +335,7 @@ class QrCodeScannerTest extends TestCase
      */
     public function test_guest_cannot_download_start_list_pdf(): void
     {
-        $response = $this->get(route('raids.start-list', $this->raid));
+        $response = $this->get(route('races.start-list', $this->race));
 
         $response->assertRedirect(route('login'));
     }

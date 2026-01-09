@@ -417,4 +417,242 @@ class RaceController extends Controller
             return null;
         }
     }
+
+    /**
+     * Generate PDF start-list for race
+     * 
+     * @OA\Get(
+     *     path="/races/{race}/start-list",
+     *     tags={"Races"},
+     *     summary="Generate PDF start-list",
+     *     description="Download PDF with all validated race registrations",
+     *     @OA\Parameter(
+     *         name="race",
+     *         in="path",
+     *         description="Race ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="PDF file",
+     *         @OA\MediaType(
+     *             mediaType="application/pdf"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Must be race manager"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Race not found"
+     *     )
+     * )
+     */
+    public function generateStartList(Race $race)
+    {
+        // Check if user is race manager or admin
+        $user = auth()->user();
+        $isAdmin = $user && $user->hasRole('admin');
+        $isRaceManager = $user && ($user->hasRole('responsable-course') || $race->adh_id === $user->adh_id);
+
+        if (!$isAdmin && !$isRaceManager) {
+            abort(403, 'Unauthorized. Only race managers can download the start-list.');
+        }
+
+        // Get all validated registrations for this race
+        $registrations = \DB::table('registration')
+            ->where('race_id', $race->race_id)
+            ->where('reg_validated', true)
+            ->orderBy('reg_dossard')
+            ->get();
+
+        // Load teams and captains for each registration
+        $teams = $registrations->map(function ($registration) {
+            $team = \App\Models\Team::with('leader')->find($registration->equ_id);
+            $registration->team = $team;
+            return $registration;
+        });
+
+        // Generate PDF
+        $pdf = \PDF::loadView('pdf.race-start-list', [
+            'race' => $race,
+            'registrations' => $teams,
+            'totalTeams' => count($teams),
+        ]);
+
+        // Set paper size and orientation
+        $pdf->setPaper('A4', 'portrait');
+
+        // Download the PDF
+        return $pdf->download('start-list-' . \Str::slug($race->race_name) . '.pdf');
+    }
+
+    /**
+     * Mark team as present by scanning QR code
+     * 
+     * @OA\Post(
+     *     path="/races/{race}/check-in",
+     *     tags={"Races"},
+     *     summary="Mark team as present",
+     *     description="Scan QR code and mark team registration as present",
+     *     @OA\Parameter(
+     *         name="race",
+     *         in="path",
+     *         description="Race ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"equ_id", "reg_id"},
+     *             @OA\Property(property="equ_id", type="integer", description="Team ID"),
+     *             @OA\Property(property="reg_id", type="integer", description="Registration ID")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Team marked as present",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean"),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="registration", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Must be race manager"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Registration not found"
+     *     )
+     * )
+     */
+    public function checkIn(Request $request, Race $race)
+    {
+        // Check if user is the race manager (owner of the race)
+        $user = auth()->user();
+        
+        // Get the raid to check club ownership
+        $raid = $race->raid()->with('club')->first();
+        $isRaceManager = $user && $raid && $raid->club && ($raid->club->created_by === $user->id);
+
+        if (!$isRaceManager) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only the race manager can check-in teams.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'equ_id' => 'required|integer|exists:teams,equ_id',
+            'reg_id' => 'required|integer|exists:registration,reg_id',
+        ]);
+
+        // Find the registration
+        $registration = \App\Models\Registration::with(['team.leader', 'race'])
+            ->where('reg_id', $validated['reg_id'])
+            ->where('equ_id', $validated['equ_id'])
+            ->first();
+
+        if (!$registration) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration not found.'
+            ], 404);
+        }
+
+        // Check if registration belongs to this race
+        if ($registration->race_id !== $race->race_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This registration does not belong to this race.'
+            ], 400);
+        }
+
+        // Check if already present
+        if ($registration->is_present) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Team already checked in.',
+                'already_present' => true,
+                'registration' => [
+                    'reg_id' => $registration->reg_id,
+                    'reg_dossard' => $registration->reg_dossard,
+                    'team_name' => $registration->team->equ_name,
+                    'race_name' => $registration->race->race_name,
+                    'is_present' => $registration->is_present,
+                ]
+            ]);
+        }
+
+        // Mark as present
+        $registration->is_present = true;
+        $registration->save();
+
+        // Log activity
+        activity()
+            ->causedBy($user)
+            ->performedOn($registration)
+            ->log('Team checked in at race');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Team successfully checked in!',
+            'registration' => [
+                'reg_id' => $registration->reg_id,
+                'reg_dossard' => $registration->reg_dossard,
+                'team_name' => $registration->team->equ_name,
+                'race_name' => $registration->race->race_name,
+                'leader_name' => $registration->team->leader ? 
+                    $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name : 
+                    'N/A',
+                'is_present' => $registration->is_present,
+            ]
+        ]);
+    }
+
+    /**
+     * Display QR scanner page for race managers
+     */
+    public function scannerPage(Race $race)
+    {
+        // Check if user is race manager or admin
+        $user = auth()->user();
+        $isAdmin = $user && $user->hasRole('admin');
+        $isRaceManager = $user && ($user->hasRole('responsable-course') || $race->adh_id === $user->adh_id);
+
+        if (!$isAdmin && !$isRaceManager) {
+            abort(403, 'Unauthorized. Only race managers can access the scanner.');
+        }
+
+        // Get statistics
+        $totalRegistrations = \DB::table('registration')
+            ->where('race_id', $race->race_id)
+            ->where('reg_validated', true)
+            ->count();
+
+        $presentCount = \DB::table('registration')
+            ->where('race_id', $race->race_id)
+            ->where('reg_validated', true)
+            ->where('is_present', true)
+            ->count();
+
+        return Inertia::render('Race/Scanner', [
+            'race' => [
+                'race_id' => $race->race_id,
+                'race_name' => $race->race_name,
+                'race_date' => $race->race_date,
+            ],
+            'stats' => [
+                'total' => $totalRegistrations,
+                'present' => $presentCount,
+                'absent' => $totalRegistrations - $presentCount,
+            ],
+        ]);
+    }
 }
+
