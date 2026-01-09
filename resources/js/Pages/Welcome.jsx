@@ -144,7 +144,7 @@ export default function Welcome({ auth, upcomingRaids, ageCategories }) {
                                 </div>
                             </div>
 
-                            {/* Type (Loisir/Compétition) */}
+                            {/* Type (Leisure/Competition) */}
                             <div className="flex-1 px-4 py-3 border-b md:border-b-0 md:border-r border-gray-100">
                                 <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">
                                     {messages.search_category}

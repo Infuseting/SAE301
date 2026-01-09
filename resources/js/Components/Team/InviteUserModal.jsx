@@ -13,7 +13,7 @@ export default function InviteUserModal({ isOpen, onClose, users, teamMembers, a
     const [isSearching, setIsSearching] = useState(false);
     const { post, processing } = useForm();
 
-    // Mode création : recherche API
+    // Create mode: API search
     const isCreateMode = !!onSelect;
 
     useEffect(() => {
@@ -42,8 +42,8 @@ export default function InviteUserModal({ isOpen, onClose, users, teamMembers, a
 
     const memberIds = teamMembers?.map(m => m.id) || [];
     
-    // En mode création, utiliser les résultats de recherche API
-    // En mode équipe, filtrer la liste users fournie
+    // In create mode, use the API search results
+    // In team mode, filter the provided users list
     const availableUsers = isCreateMode 
         ? searchResults.filter(user => user.id !== auth?.user?.id && !memberIds.includes(user.id))
         : (users || [])

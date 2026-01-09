@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Insertion des catégories d'âges
+        // Insert age categories
         DB::table('age_categories')->insert([
             ['nom' => 'Benjamins', 'age_min' => 0, 'age_max' => 12, 'created_at' => now(), 'updated_at' => now()],
             ['nom' => 'Minimes', 'age_min' => 13, 'age_max' => 14, 'created_at' => now(), 'updated_at' => now()],

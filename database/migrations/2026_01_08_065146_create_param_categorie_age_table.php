@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreign('race_id')->references('race_id')->on('races')->cascadeOnDelete();
             $table->foreign('age_categorie_id')->references('id')->on('age_categories')->cascadeOnDelete();
             
-            // Unique constraint pour éviter les doublons
+            // Unique constraint to avoid duplicates
             $table->unique(['race_id', 'age_categorie_id']);
         });
     }

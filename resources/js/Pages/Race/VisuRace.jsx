@@ -446,7 +446,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 )
                             )}
 
-                            {/* Tabs for Tarifs, Équipes, Organisateur */}
+                            {/* Tabs for Prices, Teams, Organizer */}
                             <div className="bg-white rounded-2xl border border-blue-50 shadow-sm overflow-hidden">
                                 <div className="flex border-b border-blue-50">
                                     <button
@@ -504,12 +504,12 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         </div>
                                     )}
 
-                                    {/* Équipes Tab */}
+                                    {/* Teams Tab */}
                                     {activeTab === 'equipes' && (
                                         <div className="space-y-4">
                                             {/* Participants */}
                                             <div>
-                                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Coureurs</p>
+                                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Runners</p>
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
                                                         <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Min</p>
@@ -543,7 +543,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         </div>
                                     )}
 
-                                    {/* Catégories d'âges Tab */}
+                                    {/* Age categories Tab */}
                                     {activeTab === 'categories' && (
                                         <div className="space-y-3">
                                             {race.ageCategories && race.ageCategories.length > 0 ? (
@@ -891,23 +891,23 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 </div>
                             </div>
 
-                            {/* Équipes Info Card */}
+                            {/* Teams Info Card */}
                             <div className="bg-white rounded-[2.5rem] p-8 border border-blue-50 shadow-sm space-y-6">
                                 <h4 className="text-xs font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2">
                                     <Users className="h-4 w-4 text-emerald-500" />
-                                    INFORMATIONS SUR LES ÉQUIPES
+                                    TEAM INFORMATION
                                 </h4>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Équipes Min</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Min Teams</p>
                                         <p className="text-2xl font-black text-blue-900 italic">{race.minTeams}</p>
                                     </div>
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Équipes Max</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Max Teams</p>
                                         <p className="text-2xl font-black text-blue-900 italic">{race.maxTeams}</p>
                                     </div>
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Taille Équipe</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Team Size</p>
                                         <p className="text-2xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
                                     </div>
                                 </div>

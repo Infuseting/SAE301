@@ -44,7 +44,7 @@ function MyRaidCard({ raid }) {
                     </span>
                 </div>
 
-                {/* Ville/Lieu Info (si disponible dans vos données) */}
+                {/* City/Location Info (if available) */}
                 {raid.city && (
                     <div className="flex items-center gap-2 text-gray-700 text-sm mb-4">
                         <MdLocationOn className="text-red-500 w-4 h-4" />

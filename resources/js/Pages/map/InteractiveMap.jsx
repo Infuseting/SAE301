@@ -35,8 +35,8 @@ function RaidMarkers({ raids, defaultIcon, onRaidClick }) {
                     position={[raid.latitude, raid.longitude]}
                     icon={defaultIcon}
                     onClick={() => {
-                        // Appelle juste le callback parent pour mettre à jour le centre
-                        // CenterUpdater fera l'animation flyTo()
+                        // Just call the parent callback to update the center
+                        // CenterUpdater will perform the flyTo() animation
                         onRaidClick([raid.latitude, raid.longitude]);
                     }}
                 >
@@ -101,7 +101,7 @@ export default function InteractiveMap({ center, onCenterChange, raids = [] }) {
         shadowSize: [41, 41],
     });
 
-    // Utilise les raids passés en prop, sinon utilise un tableau vide
+    // Use the raids passed in props, otherwise use an empty array
     const raidsData = raids && raids.length > 0 ? raids : [];
 
     return (

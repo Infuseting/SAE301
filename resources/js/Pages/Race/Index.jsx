@@ -21,19 +21,19 @@ export default function Index({ auth, races }) {
      */
     const getRacePriority = (race) => {
         if (!race.isOpen) {
-            return 2; // Fermée
+            return 2; // Closed
         }
         const now = new Date();
         const startDate = new Date(race.race_date_start);
         if (startDate < now) {
-            return 3; // Terminée
+            return 3; // Finished
         }
-        return 1; // Ouverte
+        return 1; // Open
     };
 
     /**
      * Filter and sort races based on search query (client-side dynamic search)
-     * Sorting priority: 1. Ouvertes, 2. Fermées, 3. Terminées
+     * Sorting priority: 1. Open, 2. Closed, 3. Finished
      */
     const filteredRaces = useMemo(() => {
         let filtered = allRaces;
@@ -50,7 +50,7 @@ export default function Index({ auth, races }) {
             });
         }
         
-        // Sort by status: Ouvertes (1) -> Fermées (2) -> Terminées (3)
+        // Sort by status: Open (1) -> Closed (2) -> Finished (3)
         return filtered.sort((a, b) => {
             const priorityA = getRacePriority(a);
             const priorityB = getRacePriority(b);

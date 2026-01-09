@@ -24,7 +24,7 @@ class TeamControllerTest extends TestCase
     }
 
     // ========================================
-    // TESTS DE CRÉATION BASIQUE
+    // BASIC CREATION TESTS
     // ========================================
 
     /**
@@ -460,7 +460,7 @@ class TeamControllerTest extends TestCase
     }
 
     // ========================================
-    // TESTS AVEC PLUSIEURS COÉQUIPIERS
+    // TESTS WITH MULTIPLE TEAMMATES
     // ========================================
 
     /**

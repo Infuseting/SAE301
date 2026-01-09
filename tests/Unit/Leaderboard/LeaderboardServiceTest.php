@@ -2835,7 +2835,7 @@ class LeaderboardServiceTest extends TestCase
         // Header + 2 data rows
         $this->assertCount(3, $lines);
         
-        // Check header - CSV format: Rang, Equipe, Catégorie, Temps, Points
+        // Check header - CSV format: Rank, Team, Category, Time, Points
         $this->assertStringContainsString('Rang', $lines[0]);
         $this->assertStringContainsString('Equipe', $lines[0]);
         $this->assertStringContainsString('Catégorie', $lines[0]);
@@ -3516,7 +3516,7 @@ class LeaderboardServiceTest extends TestCase
 
         $csv = $this->service->exportToCsv($race->race_id, 'team');
 
-        // CSV format: Rang, Equipe, Catégorie, Temps, Points
+        // CSV format: Rank, Team, Category, Time, Points
         $this->assertStringContainsString('Points', $csv);
         $this->assertStringContainsString('150', $csv);
     }

@@ -58,7 +58,7 @@ export default function VisuRace({ auth, race: raceData, error, errorMessage }) 
         );
     }
 
-    // Données du backend via props
+    // Backend data via props
     const race = raceData || {
         id: 1,
         title: "La Boussole de la Forêt",
@@ -325,7 +325,7 @@ export default function VisuRace({ auth, race: raceData, error, errorMessage }) 
                                         </div>
                                     </section>
 
-                                    {/* Catégories */}
+                                    {/* Categories */}
                                     <section>
                                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Catégories & Tarifs</h3>
                                         <div className="overflow-hidden rounded-lg border border-gray-200">
@@ -359,19 +359,19 @@ export default function VisuRace({ auth, race: raceData, error, errorMessage }) 
                                     </section>
                                 </div>
 
-                                {/* Colonne latérale */}
+                                {/* Side column */}
                                 <div className="space-y-6">
-                                    {/* Bouton d'inscription */}
+                                    {/* Registration button */}
                                     <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
                                         <button className="w-full bg-amber-900 hover:bg-amber-800 text-white font-semibold py-3 px-6 rounded-lg transition mb-4">
-                                            S'inscrire à la course
+                                            Register for the race
                                         </button>
                                         <p className="text-center text-sm text-gray-500">
-                                            {availableSpots} places disponibles
+                                            {availableSpots} spots available
                                         </p>
                                     </div>
 
-                                    {/* Organisateur */}
+                                    {/* Organizer */}
                                     <div className="bg-gray-50 rounded-xl p-6">
                                         <h4 className="font-semibold text-gray-900 mb-4">Organisateur</h4>
                                         <div className="flex items-center gap-3">
@@ -387,7 +387,7 @@ export default function VisuRace({ auth, race: raceData, error, errorMessage }) 
                                         </div>
                                     </div>
 
-                                    {/* Options supplémentaires */}
+                                    {/* Additional options */}
                                     <div className="bg-gray-50 rounded-xl p-6">
                                         <h4 className="font-semibold text-gray-900 mb-4">Options</h4>
                                         <div className="space-y-3">

@@ -446,10 +446,10 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                                 </div>
 
-                                {/* Dates de Départ - Ligne 2 */}
+                                {/* Start Dates - Line 2 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Date de départ *
+                                        Start date *
                                         {raid && raid.raid_date_start && raid.raid_date_end && (
                                             <span className="text-xs font-normal text-gray-500 ml-2 block">
                                                 (Raid: {new Date(raid.raid_date_start).toLocaleDateString('fr-FR')} au {new Date(raid.raid_date_end).toLocaleDateString('fr-FR')})
@@ -492,10 +492,10 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                     />
                                 </div>
 
-                                {/* Durée et Difficulté - Ligne 3 */}
+                                {/* Duration and Difficulty - Line 3 */}
                                 <div>
                                     <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Durée (h:mm) *
+                                        Duration (h:mm) *
                                     </label>
                                     <input
                                         type="text"
@@ -598,10 +598,10 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                     />
                                 </div>
 
-                                {/* Équipes - Ligne 6 */}
+                                {/* Teams - Line 6 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Min équipes *
+                                        Min teams *
                                     </label>
                                     <input
                                         type="number"
@@ -631,10 +631,10 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                     />
                                 </div>
 
-                                {/* Max par équipe - Ligne 7 */}
+                                {/* Max per team - Line 7 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Min par équipe *
+                                        Min per team *
                                     </label>
                                     <input
                                         type="number"
@@ -739,9 +739,9 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                             {errors.priceMinor && <p className="mt-1 text-xs text-red-600">{errors.priceMinor}</p>}
                                         </div>
 
-                                        {/* Prix Adhérents */}
+                                        {/* Member Prices */}
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-600 mb-2">Adhérents (licenciés)</label>
+                                            <label className="block text-xs font-medium text-gray-600 mb-2">Members (Licensed)</label>
                                             <div className="flex items-center">
                                                 <input
                                                     type="number"
@@ -760,7 +760,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                     </div>
                                 </div>
 
-                                {/* Avertissement compétitif */}
+                                {/* Competitive warning */}
                                 {isCompetitive && (
                                     <div className="col-span-1 lg:col-span-2">
                                         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-2">
@@ -788,25 +788,25 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                     </div>
                                 )}
 
-                                {/* Règles d'âge Loisir (A, B, C) - Seulement pour type loisir */}
+                                {/* Age rules for Leisure (A, B, C) - Only for leisure type */}
                                 {!isCompetitive && (
                                     <div className="col-span-1 lg:col-span-2">
-                                        <h4 className="text-sm font-semibold text-gray-900 mb-4">Règles d'âge pour courses loisir</h4>
+                                        <h4 className="text-sm font-semibold text-gray-900 mb-4">Age rules for leisure races</h4>
                                         <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg mb-4">
                                             <p className="text-sm text-gray-600 mb-3">
-                                                <strong>Règles :</strong> Tous les participants doivent avoir au moins <strong>A ans</strong>. 
-                                                Si un participant a moins de <strong>B ans</strong>, l'équipe doit inclure un participant d'au moins <strong>C ans</strong> (accompagnateur). 
-                                                Sinon, tous doivent avoir au moins <strong>B ans</strong>.
+                                                <strong>Rules:</strong> All participants must be at least <strong>A years old</strong>. 
+                                                If a participant is under <strong>B years</strong>, the team must include a participant of at least <strong>C years</strong> (supervisor). 
+                                                Otherwise, all must be at least <strong>B years old</strong>.
                                             </p>
                                             <p className="text-xs text-gray-500 italic">
-                                                Exemple : A=12, B=16, C=18 → Tous ont au moins 12 ans, et les équipes avec un - de 16 ans doivent avoir un majeur (18+).
+                                                Example: A=12, B=16, C=18 → All at least 12 years old, and teams with someone under 16 must have an adult (18+).
                                             </p>
                                         </div>
                                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                            {/* Âge minimum (A) */}
+                                            {/* Minimum age (A) */}
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-600 mb-2">
-                                                    Âge minimum (A) *
+                                                    Minimum age (A) *
                                                 </label>
                                                 <input
                                                     type="number"
@@ -819,14 +819,14 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                     required={!isCompetitive}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                                                 />
-                                                <p className="mt-1 text-xs text-gray-500">Âge min. pour tous les participants</p>
+                                                <p className="mt-1 text-xs text-gray-500">Min age for all participants</p>
                                                 {errors.leisureAgeMin && <p className="mt-1 text-xs text-red-600">{errors.leisureAgeMin}</p>}
                                             </div>
 
-                                            {/* Âge intermédiaire (B) */}
+                                            {/* Intermediate age (B) */}
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-600 mb-2">
-                                                    Âge intermédiaire (B) *
+                                                    Intermediate age (B) *
                                                 </label>
                                                 <input
                                                     type="number"
@@ -839,14 +839,14 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                     required={!isCompetitive}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                                                 />
-                                                <p className="mt-1 text-xs text-gray-500">Seuil sans accompagnateur</p>
+                                                <p className="mt-1 text-xs text-gray-500">Threshold without supervisor</p>
                                                 {errors.leisureAgeIntermediate && <p className="mt-1 text-xs text-red-600">{errors.leisureAgeIntermediate}</p>}
                                             </div>
 
-                                            {/* Âge accompagnateur (C) */}
+                                            {/* Supervisor age (C) */}
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-600 mb-2">
-                                                    Âge accompagnateur (C) *
+                                                    Supervisor age (C) *
                                                 </label>
                                                 <input
                                                     type="number"
@@ -876,24 +876,24 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                     </div>
                                 )}
 
-                                {/* Catégories d'âges - Seulement pour type compétitif */}
+                                {/* Age categories - Only for competitive type */}
                                 {isCompetitive && (
                                     <div className="col-span-1 lg:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-3">
-                                            Catégories d'âges acceptées
+                                            Accepted age categories
                                             <span className="text-red-500 ml-1">*</span>
-                                            <span className="text-xs text-gray-500 ml-2">({data.selectedAgeCategories.length} sélectionnée{data.selectedAgeCategories.length !== 1 ? 's' : ''})</span>
+                                            <span className="text-xs text-gray-500 ml-2">({data.selectedAgeCategories.length} selected{data.selectedAgeCategories.length !== 1 ? 's' : ''})</span>
                                         </label>
                                         {data.selectedAgeCategories.length === 0 && (
                                             <p className="text-sm text-amber-600 mb-3 flex items-center gap-2">
                                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                                 </svg>
-                                                Veuillez sélectionner au moins une catégorie d'âge
+                                                Please select at least one age category
                                             </p>
                                         )}
                                         <p className="text-sm text-gray-600 mb-3">
-                                            Tous les membres d'une équipe doivent appartenir à la <strong>même catégorie d'âge</strong> parmi celles sélectionnées.
+                                            All team members must belong to the <strong>same age category</strong> among those selected.
                                         </p>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                             {ageCategories.length > 0 ? (

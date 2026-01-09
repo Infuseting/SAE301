@@ -482,17 +482,17 @@ class DemoDataSeeder extends Seeder
     private function linkUsersToTeams(array $userIds, array $teamIds): void
     {
         // Parcours B Teams
-        // Equipe DORMEUR: Responsable Claire DUPONT (635) + Participants: Claire DUPONT (635), Thomas LEFEBVRE (636)
+        // Team DORMEUR: Manager Claire DUPONT (635) + Participants: Claire DUPONT (635), Thomas LEFEBVRE (636)
         $team1Members = [self::ID_START + 35, self::ID_START + 36]; // Claire DUPONT, Thomas LEFEBVRE
         
-        // Equipe ATCHOUM: Responsable Hugo FONTAINE (641) + Participants: Hugo FONTAINE (641), Léa CARON (642)
+        // Team ATCHOUM: Manager Hugo FONTAINE (641) + Participants: Hugo FONTAINE (641), Léa CARON (642)
         $team2Members = [self::ID_START + 41, self::ID_START + 42]; // Hugo FONTAINE, Léa CARON
         
-        // Equipe SIMPLET: Responsable Hugo FONTAINE (641) + Participants: Julie GARNIER (639), Marc ROUSSEAU (640 - using Thomas LEROY ID)
+        // Team SIMPLET: Manager Hugo FONTAINE (641) + Participants: Julie GARNIER (639), Marc ROUSSEAU (640 - using Thomas LEROY ID)
         $team3Members = [self::ID_START + 39, self::ID_START + 40]; // Julie GARNIER, Thomas LEROY
 
         // Course LUTIN Teams
-        // Equipe MARVELI: Responsable Sandra MARVELI (633) + Participant: Sandra MARVELI (633)
+        // Team MARVELI: Manager Sandra MARVELI (633) + Participant: Sandra MARVELI (633)
         $team4Members = [self::ID_START + 33]; // Sandra MARVELI
         
         // Equipe DUPONT: Responsable Claire DUPONT (635) + Participant: Claire DUPONT (635)
