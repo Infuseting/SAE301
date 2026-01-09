@@ -133,11 +133,23 @@ export default function Scanner({ race, stats: initialStats }) {
         setLoading(true);
 
         try {
+            console.log('QR Code scanned:', decodedText);
+            
             // Parse QR code data
-            const qrData = JSON.parse(decodedText);
+            let qrData;
+            try {
+                qrData = JSON.parse(decodedText);
+            } catch (parseError) {
+                console.error('JSON Parse Error:', parseError);
+                setError(`QR Code invalide. Contenu scanné: ${decodedText.substring(0, 100)}...`);
+                setLoading(false);
+                return;
+            }
+            
+            console.log('Parsed QR data:', qrData);
             
             if (qrData.type !== 'team_registration') {
-                setError('QR Code invalide. Ce n\'est pas un code d\'inscription d\'équipe.');
+                setError(`QR Code invalide. Type reçu: "${qrData.type || 'undefined'}". Ce n'est pas un code d'inscription d'équipe.`);
                 setLoading(false);
                 return;
             }

@@ -1,24 +1,66 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 
 /**
  * Modal for inviting existing users to a team.
+ * Supports two modes:
+ * - Team mode (teamId provided): sends invite via API
+ * - Create mode (onSelect provided): calls callback with user data
  */
-export default function InviteUserModal({ isOpen, onClose, users, teamMembers, auth, onEmailInviteOpen, teamId }) {
+export default function InviteUserModal({ isOpen, onClose, users, teamMembers, auth, onEmailInviteOpen, teamId, onSelect }) {
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
     const { post, processing } = useForm();
 
+    // Mode création : recherche API
+    const isCreateMode = !!onSelect;
+
+    useEffect(() => {
+        if (!isCreateMode || !searchQuery.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        const timeoutId = setTimeout(async () => {
+            setIsSearching(true);
+            try {
+                const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setSearchResults(data);
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+            setIsSearching(false);
+        }, 300);
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery, isCreateMode]);
+
     const memberIds = teamMembers?.map(m => m.id) || [];
-    const availableUsers = (users || [])
-        .filter(user => user.id !== auth?.user?.id)
-        .filter(user => !memberIds.includes(user.id))
-        .filter(user => 
-            (user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (user.email || '').toLowerCase().includes(searchQuery.toLowerCase())
-        );
+    
+    // En mode création, utiliser les résultats de recherche API
+    // En mode équipe, filtrer la liste users fournie
+    const availableUsers = isCreateMode 
+        ? searchResults.filter(user => user.id !== auth?.user?.id && !memberIds.includes(user.id))
+        : (users || [])
+            .filter(user => user.id !== auth?.user?.id)
+            .filter(user => !memberIds.includes(user.id))
+            .filter(user => 
+                (user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (user.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+            );
 
     const handleInvite = (user) => {
-        post(`/teams/${teamId}/invite/${user.id}`, { preserveScroll: true });
+        if (isCreateMode) {
+            onSelect(user);
+            onClose();
+        } else {
+            post(`/teams/${teamId}/invite/${user.id}`, { preserveScroll: true });
+        }
     };
 
     if (!isOpen) return null;
@@ -70,10 +112,10 @@ export default function InviteUserModal({ isOpen, onClose, users, teamMembers, a
                                         </div>
                                         <button 
                                             onClick={() => handleInvite(user)}
-                                            disabled={processing}
+                                            disabled={processing || isSearching}
                                             className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
                                         >
-                                            {processing ? '...' : 'Inviter'}
+                                            {processing || isSearching ? '...' : (isCreateMode ? 'Ajouter' : 'Inviter')}
                                         </button>
                                     </div>
                                 ))}
