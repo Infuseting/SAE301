@@ -111,8 +111,8 @@ Route::middleware(['auth', 'role:adherent|admin', 'manager_licence'])->group(fun
     Route::delete('/clubs/{club}', [ClubController::class, 'destroy'])->name('clubs.destroy');
 });
 
-// Raids routes - require gestionnaire-raid role (or admin) + valid licence
-Route::middleware(['auth', 'role:gestionnaire-raid|admin', 'manager_licence'])->group(function () {
+// Raids routes - require gestionnaire-raid, responsable-club role (or admin) + valid licence
+Route::middleware(['auth', 'role:gestionnaire-raid|responsable-club|admin', 'manager_licence'])->group(function () {
     Route::get('/raids/create', [RaidController::class, 'create'])->name('raids.create');
     Route::post('/raids', [RaidController::class, 'store'])->name('raids.store');
     Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
@@ -120,8 +120,8 @@ Route::middleware(['auth', 'role:gestionnaire-raid|admin', 'manager_licence'])->
     Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
 });
 
-// Race management routes - require responsable-course role (or admin) + valid licence
-Route::middleware(['auth', 'role:responsable-course|admin', 'manager_licence'])->group(function () {
+// Race management routes - require responsable-course, gestionnaire-raid, responsable-club role (or admin) + valid licence
+Route::middleware(['auth', 'role:responsable-course|gestionnaire-raid|responsable-club|admin', 'manager_licence'])->group(function () {
     Route::get('/races/create', [RaceController::class, 'show'])->name('races.create');
     Route::post('/races/create', [RaceController::class, 'store'])->name('races.store');
     Route::get('/races/{race}/edit', [RaceController::class, 'edit'])->name('races.edit');

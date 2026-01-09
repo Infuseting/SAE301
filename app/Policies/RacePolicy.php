@@ -40,6 +40,12 @@ class RacePolicy
             return true;
         }
 
+        // Gestionnaire-raid and responsable-club can access the create form
+        // The actual raid ownership check happens when storing with a specific raid_id
+        if ($user->hasRole('gestionnaire-raid') || $user->hasRole('responsable-club')) {
+            return true;
+        }
+
         // If a raid is provided, check if the user has authority over it
         if ($raid) {
             // Gestionnaire-raid can create races for raids they manage
@@ -50,19 +56,18 @@ class RacePolicy
                 }
             }
 
-            // Responsable-club can ONLY create races for raids of their club IF they are the raid responsible
+            // Responsable-club can create races for raids of their club
             if ($raid->clu_id) {
-                $isClubManager = $user->hasRole('responsable-club') || 
-                               $user->clubs()->where('clubs.club_id', $raid->clu_id)
+                $isClubManager = $user->clubs()->where('clubs.club_id', $raid->clu_id)
                                     ->wherePivot('role', 'manager')
                                     ->wherePivot('status', 'approved')
                                     ->exists();
 
-                if ($isClubManager && $raid->adh_id) {
-                    $member = $user->member;
-                    if ($member && $member->adh_id === $raid->adh_id) {
-                        return true;
-                    }
+                // Also check if user is the club creator
+                $isClubCreator = $raid->club && $raid->club->created_by === $user->id;
+
+                if ($isClubManager || $isClubCreator) {
+                    return true;
                 }
             }
         }
