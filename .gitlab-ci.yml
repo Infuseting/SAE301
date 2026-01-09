@@ -45,6 +45,7 @@ deploy_production:
     # 3. On corrige les droits gitlab-runner:gitlab-runner -> g4:www-data et on assure que laravel.log est accessible
     - sudo chown -R g4:www-data /users/g4/laravel
     # Donner les permissions au répertoire logs et au fichier log en tant que www-data
-    - "sudo -u www-data bash -c 'chmod 555 /users/g4/laravel/storage/logs && chmod 555 /users/g4/laravel/storage/logs/laravel.log 2>/dev/null || true'"
+    - sudo chown -W g4:www-data storage/logs
+    - sudo chown -W g4:www-data storage/logs/laravel.log
   only:
     - stable
