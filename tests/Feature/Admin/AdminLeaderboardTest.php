@@ -208,11 +208,16 @@ class AdminLeaderboardTest extends TestCase
 
     /**
      * Test admin can export individual CSV.
+     * Note: exportToCsv only exports PUBLIC profiles.
      */
     public function test_admin_can_export_individual_csv(): void
     {
         $race = Race::factory()->create(['race_name' => 'Test Race']);
-        $user = User::factory()->create(['first_name' => 'John', 'last_name' => 'Doe']);
+        $user = User::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'is_public' => true, // Must be public to appear in CSV export
+        ]);
 
         LeaderboardUser::create([
             'user_id' => $user->id,

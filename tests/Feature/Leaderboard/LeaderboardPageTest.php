@@ -291,6 +291,7 @@ class LeaderboardPageTest extends TestCase
 
     /**
      * Test export all team leaderboard includes teams from all races.
+     * CSV format: Rang, Equipe, Catégorie, Temps, Points (no race name in team export)
      */
     public function test_export_all_team_leaderboard(): void
     {
@@ -308,6 +309,7 @@ class LeaderboardPageTest extends TestCase
             'average_malus' => 0,
             'average_temps_final' => 3600,
             'member_count' => 2,
+            'category' => 'Masculin',
         ]);
         
         LeaderboardTeam::create([
@@ -317,6 +319,7 @@ class LeaderboardPageTest extends TestCase
             'average_malus' => 0,
             'average_temps_final' => 3700,
             'member_count' => 3,
+            'category' => 'Mixte',
         ]);
 
         $response = $this->actingAs($currentUser)
@@ -325,12 +328,12 @@ class LeaderboardPageTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
         
-        // Verify CSV contains all teams and races
+        // Verify CSV contains all teams (race name no longer in team CSV format)
         $content = $response->getContent();
         $this->assertStringContainsString('Alpha Team', $content);
         $this->assertStringContainsString('Beta Team', $content);
-        $this->assertStringContainsString('Team Race 1', $content);
-        $this->assertStringContainsString('Team Race 2', $content);
+        $this->assertStringContainsString('Catégorie', $content);
+        $this->assertStringContainsString('Points', $content);
     }
 
     /**

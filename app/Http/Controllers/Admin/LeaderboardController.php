@@ -175,7 +175,13 @@ class LeaderboardController extends Controller
      */
     public function destroy(Request $request, int $resultId)
     {
-        $deleted = $this->leaderboardService->deleteResult($resultId);
+        $type = $request->input('type', 'individual');
+        
+        if ($type === 'team') {
+            $deleted = $this->leaderboardService->deleteTeamResult($resultId);
+        } else {
+            $deleted = $this->leaderboardService->deleteResult($resultId);
+        }
 
         if ($deleted) {
             activity()
@@ -183,7 +189,7 @@ class LeaderboardController extends Controller
                 ->withProperties([
                     'level' => 'warning',
                     'action' => 'LEADERBOARD_RESULT_DELETED',
-                    'content' => ['result_id' => $resultId],
+                    'content' => ['result_id' => $resultId, 'type' => $type],
                     'ip' => $request->ip(),
                 ])
                 ->log('LEADERBOARD_RESULT_DELETED');
@@ -192,5 +198,74 @@ class LeaderboardController extends Controller
         }
 
         return redirect()->back()->withErrors(['error' => 'Résultat non trouvé.']);
+    }
+
+    /**
+     * Update a leaderboard result (individual or team).
+     *
+     * @param Request $request
+     * @param int $resultId
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(Request $request, int $resultId)
+    {
+        $type = $request->input('type', 'individual');
+
+        $request->validate([
+            'type' => 'required|in:individual,team',
+        ]);
+
+        try {
+            if ($type === 'team') {
+                $request->validate([
+                    'average_temps' => 'nullable|string',
+                    'average_malus' => 'nullable|string',
+                    'points' => 'nullable|integer|min:0',
+                    'status' => 'nullable|string|in:classé,abandon,disqualifié',
+                    'category' => 'nullable|string|max:50',
+                    'puce' => 'nullable|string|max:50',
+                ]);
+
+                $result = $this->leaderboardService->updateTeamResult($resultId, [
+                    'average_temps' => $request->input('average_temps'),
+                    'average_malus' => $request->input('average_malus'),
+                    'points' => $request->input('points'),
+                    'status' => $request->input('status'),
+                    'category' => $request->input('category'),
+                    'puce' => $request->input('puce'),
+                ]);
+            } else {
+                $request->validate([
+                    'temps' => 'nullable|string',
+                    'malus' => 'nullable|string',
+                    'points' => 'nullable|integer|min:0',
+                ]);
+
+                $result = $this->leaderboardService->updateIndividualResult($resultId, [
+                    'temps' => $request->input('temps'),
+                    'malus' => $request->input('malus'),
+                    'points' => $request->input('points'),
+                ]);
+            }
+
+            if ($result) {
+                activity()
+                    ->causedBy($request->user())
+                    ->withProperties([
+                        'level' => 'info',
+                        'action' => 'LEADERBOARD_RESULT_UPDATED',
+                        'content' => ['result_id' => $resultId, 'type' => $type],
+                        'ip' => $request->ip(),
+                    ])
+                    ->log('LEADERBOARD_RESULT_UPDATED');
+
+                return redirect()->back()->with('success', 'Résultat mis à jour avec succès.');
+            }
+
+            return redirect()->back()->withErrors(['error' => 'Résultat non trouvé.']);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 }

@@ -12,12 +12,14 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
  *   Displays: rank, team name, age category, race name, raw time, malus, final time, points, team members list
  * - Search by name/team
  * - Filter by individual/team
- * - Delete results
+ * - Edit and delete results
  */
 export default function LeaderboardResults({ results, raceId, race, type, search }) {
     const messages = usePage().props.translations?.messages || {};
     const [searchTerm, setSearchTerm] = useState(search || '');
     const [selectedType, setSelectedType] = useState(type || 'individual');
+    const [editingResult, setEditingResult] = useState(null);
+    const [editForm, setEditForm] = useState({});
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -38,9 +40,49 @@ export default function LeaderboardResults({ results, raceId, race, type, search
     const handleDelete = (resultId) => {
         if (confirm(messages.confirm_delete || 'Are you sure you want to delete this result?')) {
             router.delete(route('admin.leaderboard.destroy', { resultId }), {
+                data: { type: selectedType },
                 preserveState: true,
             });
         }
+    };
+
+    const handleEdit = (result) => {
+        setEditingResult(result);
+        if (selectedType === 'team') {
+            setEditForm({
+                average_temps: result.average_temps_formatted || '',
+                average_malus: result.average_malus_formatted || '',
+                points: result.points || 0,
+                status: result.status || 'classé',
+                category: result.category || '',
+                puce: result.puce || '',
+            });
+        } else {
+            setEditForm({
+                temps: result.temps_formatted || '',
+                malus: result.malus_formatted || '',
+                points: result.points || 0,
+            });
+        }
+    };
+
+    const handleEditSubmit = (e) => {
+        e.preventDefault();
+        router.put(route('admin.leaderboard.update', { resultId: editingResult.id }), {
+            type: selectedType,
+            ...editForm,
+        }, {
+            preserveState: true,
+            onSuccess: () => {
+                setEditingResult(null);
+                setEditForm({});
+            },
+        });
+    };
+
+    const handleEditCancel = () => {
+        setEditingResult(null);
+        setEditForm({});
     };
 
     const handleExport = () => {
@@ -348,15 +390,28 @@ export default function LeaderboardResults({ results, raceId, race, type, search
                                                     </td>
                                                 )}
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
-                                                    <button
-                                                        onClick={() => handleDelete(result.id)}
-                                                        className="text-red-600 hover:text-red-800 transition"
-                                                        title={messages.delete || 'Supprimer'}
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                                        </svg>
-                                                    </button>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        {/* Edit button */}
+                                                        <button
+                                                            onClick={() => handleEdit(result)}
+                                                            className="text-blue-600 hover:text-blue-800 transition"
+                                                            title={messages.edit || 'Modifier'}
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                                            </svg>
+                                                        </button>
+                                                        {/* Delete button */}
+                                                        <button
+                                                            onClick={() => handleDelete(result.id)}
+                                                            className="text-red-600 hover:text-red-800 transition"
+                                                            title={messages.delete || 'Supprimer'}
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -417,6 +472,194 @@ export default function LeaderboardResults({ results, raceId, race, type, search
                     )}
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            {editingResult && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="px-6 py-4 border-b border-gray-100">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-gray-900">
+                                    {messages.edit_result || 'Modifier le résultat'}
+                                </h3>
+                                <button
+                                    onClick={handleEditCancel}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {isTeamView ? editingResult.team_name : editingResult.user_name}
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
+                            {/* Info about rank */}
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <p className="text-sm text-blue-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 inline mr-1">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                    </svg>
+                                    {messages.rank_auto_calculated || 'Le rang est recalculé automatiquement selon le temps final.'}
+                                </p>
+                            </div>
+
+                            {isTeamView ? (
+                                <>
+                                    {/* Team fields */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {messages.time || 'Temps'}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={editForm.average_temps}
+                                                onChange={(e) => setEditForm({...editForm, average_temps: e.target.value})}
+                                                placeholder="HH:MM:SS.SS"
+                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {messages.penalty || 'Malus'}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={editForm.average_malus}
+                                                onChange={(e) => setEditForm({...editForm, average_malus: e.target.value})}
+                                                placeholder="HH:MM:SS.SS"
+                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {messages.points || 'Points'}
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={editForm.points}
+                                                onChange={(e) => setEditForm({...editForm, points: parseInt(e.target.value) || 0})}
+                                                min="0"
+                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {messages.status || 'Statut'}
+                                            </label>
+                                            <select
+                                                value={editForm.status}
+                                                onChange={(e) => setEditForm({...editForm, status: e.target.value})}
+                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                            >
+                                                <option value="classé">{messages.classified || 'Classé'}</option>
+                                                <option value="abandon">{messages.abandoned || 'Abandon'}</option>
+                                                <option value="disqualifié">{messages.disqualified || 'Disqualifié'}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {messages.category || 'Catégorie'}
+                                            </label>
+                                            <select
+                                                value={editForm.category}
+                                                onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                            >
+                                                <option value="">{messages.none || '-'}</option>
+                                                <option value="Masculin">{messages.male || 'Masculin'}</option>
+                                                <option value="Féminin">{messages.female || 'Féminin'}</option>
+                                                <option value="Mixte">{messages.mixed || 'Mixte'}</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {messages.puce || 'Puce'}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={editForm.puce}
+                                                onChange={(e) => setEditForm({...editForm, puce: e.target.value})}
+                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    {/* Individual fields */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {messages.time || 'Temps'}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={editForm.temps}
+                                                onChange={(e) => setEditForm({...editForm, temps: e.target.value})}
+                                                placeholder="HH:MM:SS.SS"
+                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                {messages.penalty || 'Malus'}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={editForm.malus}
+                                                onChange={(e) => setEditForm({...editForm, malus: e.target.value})}
+                                                placeholder="HH:MM:SS.SS"
+                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            {messages.points || 'Points'}
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={editForm.points}
+                                            onChange={(e) => setEditForm({...editForm, points: parseInt(e.target.value) || 0})}
+                                            min="0"
+                                            className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                                        />
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Form buttons */}
+                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                                <button
+                                    type="button"
+                                    onClick={handleEditCancel}
+                                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+                                >
+                                    {messages.cancel || 'Annuler'}
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+                                >
+                                    {messages.save || 'Enregistrer'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

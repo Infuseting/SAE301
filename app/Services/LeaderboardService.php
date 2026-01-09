@@ -473,6 +473,96 @@ class LeaderboardService
     }
 
     /**
+     * Update an individual leaderboard result.
+     * The rank will be recalculated automatically based on temps_final.
+     *
+     * @param int $resultId The leaderboard_users ID
+     * @param array $data Data to update (temps, malus, points)
+     * @return LeaderboardUser|null
+     */
+    public function updateIndividualResult(int $resultId, array $data): ?LeaderboardUser
+    {
+        $result = LeaderboardUser::find($resultId);
+        if (!$result) {
+            return null;
+        }
+
+        if (isset($data['temps'])) {
+            $result->temps = $this->parseTime($data['temps']);
+        }
+        if (isset($data['malus'])) {
+            $result->malus = $this->parseTime($data['malus']);
+        }
+        if (array_key_exists('points', $data)) {
+            $result->points = $data['points'];
+        }
+
+        $result->save();
+
+        // Recalculate team averages if user is part of a team
+        $this->recalculateTeamAverages($result->race_id);
+
+        return $result;
+    }
+
+    /**
+     * Update a team leaderboard result.
+     * The rank will be recalculated automatically based on average_temps_final.
+     *
+     * @param int $resultId The leaderboard_teams ID
+     * @param array $data Data to update (average_temps, average_malus, points, status, category)
+     * @return LeaderboardTeam|null
+     */
+    public function updateTeamResult(int $resultId, array $data): ?LeaderboardTeam
+    {
+        $result = LeaderboardTeam::find($resultId);
+        if (!$result) {
+            return null;
+        }
+
+        if (isset($data['average_temps'])) {
+            $result->average_temps = $this->parseTime($data['average_temps']);
+        }
+        if (isset($data['average_malus'])) {
+            $result->average_malus = $this->parseTime($data['average_malus']);
+        }
+        if (array_key_exists('points', $data)) {
+            $result->points = $data['points'];
+        }
+        if (isset($data['status'])) {
+            $result->status = $data['status'];
+        }
+        if (isset($data['category'])) {
+            $result->category = $data['category'];
+        }
+        if (isset($data['puce'])) {
+            $result->puce = $data['puce'];
+        }
+
+        $result->save();
+
+        return $result;
+    }
+
+    /**
+     * Delete a team leaderboard result.
+     *
+     * @param int $resultId The leaderboard_teams ID
+     * @return bool
+     */
+    public function deleteTeamResult(int $resultId): bool
+    {
+        $result = LeaderboardTeam::find($resultId);
+        if (!$result) {
+            return false;
+        }
+
+        $result->delete();
+
+        return true;
+    }
+
+    /**
      * Get all results for a specific user with their rank in each race.
      *
      * @param int $userId The user ID
