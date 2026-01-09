@@ -155,7 +155,7 @@ export default function Users({ users, filters }) {
       { role: roleName },
       {
         onSuccess: () => {
-          setFeedback({ type: 'success', message: `Role "${roleName}" assigned successfully!` });
+          setFeedback({ type: 'success', message: (messages['admin.users.role_assigned'] || 'Role ":role" assigned successfully!').replace(':role', roleName) });
           setAssigningRole(false);
           // Close modal after short delay to show feedback
           setTimeout(() => {
@@ -164,7 +164,7 @@ export default function Users({ users, filters }) {
           }, 1500);
         },
         onError: (errors) => {
-          setFeedback({ type: 'error', message: errors?.role || 'Failed to assign role' });
+          setFeedback({ type: 'error', message: errors?.role || (messages['admin.users.role_assign_failed'] || 'Failed to assign role') });
           setAssigningRole(false);
         },
       }
@@ -176,7 +176,7 @@ export default function Users({ users, filters }) {
     
     // Check permission for admin role
     if (roleName === 'admin' && !canGrantAdmin) {
-      setFeedback({ type: 'error', message: 'You do not have permission to remove the admin role' });
+      setFeedback({ type: 'error', message: messages['admin.users.no_permission_remove_admin'] || 'You do not have permission to remove the admin role' });
       return;
     }
     
@@ -187,7 +187,7 @@ export default function Users({ users, filters }) {
       {
         data: { role: roleName },
         onSuccess: () => {
-          setFeedback({ type: 'success', message: `Role "${roleName}" removed successfully!` });
+          setFeedback({ type: 'success', message: (messages['admin.users.role_removed'] || 'Role ":role" removed successfully!').replace(':role', roleName) });
           setAssigningRole(false);
           setTimeout(() => {
             closeModal();
@@ -195,7 +195,7 @@ export default function Users({ users, filters }) {
           }, 1500);
         },
         onError: (errors) => {
-          setFeedback({ type: 'error', message: errors?.role || 'Failed to remove role' });
+          setFeedback({ type: 'error', message: errors?.role || (messages['admin.users.role_remove_failed'] || 'Failed to remove role') });
           setAssigningRole(false);
         },
       }
@@ -287,7 +287,7 @@ export default function Users({ users, filters }) {
                     <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    Créé le {new Date(u.created_at).toLocaleDateString('fr-FR')}
+                    {(messages['admin.users.created_on'] || 'Created on :date').replace(':date', new Date(u.created_at).toLocaleDateString())}
                   </div>
                 </div>
 
@@ -462,11 +462,11 @@ export default function Users({ users, filters }) {
               <h3 className="text-lg font-medium text-black  mb-4">{(messages['admin.users.edit_title'] || 'Edit :name').replace(':name', modalUser.name)}</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm text-gray-700 ">Nom</label>
+                  <label className="block text-sm text-gray-700 ">{messages['admin.users.name'] || 'Name'}</label>
                   <input value={form.name} onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))} className="mt-1 block w-full rounded-md border px-3 py-2 bg-white  " />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-700 ">Email</label>
+                  <label className="block text-sm text-gray-700 ">{messages['admin.users.email'] || 'Email'}</label>
                   <input value={form.email} onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))} className="mt-1 block w-full rounded-md border px-3 py-2 bg-white  " />
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
@@ -482,8 +482,8 @@ export default function Users({ users, filters }) {
               <h3 className="text-lg font-medium text-black  mb-4">{confirmAction === 'delete' ? (messages['admin.users.delete'] || 'Confirm delete') : (messages['confirm_button'] || 'Confirm')}</h3>
               <p className="text-sm text-gray-700 ">{confirmAction === 'delete' ? (messages['admin.users.confirm_delete'] || `Permanently delete ${modalUser.name}? This action cannot be undone.`).replace(':name', modalUser.name) : (messages['admin.users.confirm_toggle'] || `${modalUser.active ? 'Deactivate' : 'Activate'} user ${modalUser.name}?`).replace(':name', modalUser.name).replace(':action', modalUser.active ? (messages['admin.users.deactivate'] || 'Deactivate') : (messages['admin.users.activate'] || 'Activate'))}</p>
               <div className="flex justify-end gap-2 pt-4">
-                <button onClick={closeModal} className="rounded-md border px-3 py-2 text-sm">Annuler</button>
-                <button onClick={confirmSubmit} className="rounded-md bg-gray-800 text-white px-3 py-2 text-sm">Confirmer</button>
+                <button onClick={closeModal} className="rounded-md border px-3 py-2 text-sm">{messages['cancel'] || 'Cancel'}</button>
+                <button onClick={confirmSubmit} className="rounded-md bg-gray-800 text-white px-3 py-2 text-sm">{messages['confirm_button'] || 'Confirm'}</button>
               </div>
             </div>
           )}

@@ -8,8 +8,9 @@ export default function Dashboard({
     myresponsibleRaids,
     myresponsibleRaces,
 }) {
-    const { auth } = usePage().props;
+    const { auth, translations } = usePage().props;
     const user = auth?.user;
+    const messages = translations?.messages || {};
 
     /**
      * Helper function to check if user has a specific permission.
@@ -42,7 +43,7 @@ export default function Dashboard({
 
     return (
         <AuthenticatedLayout>
-            <Head title="Admin Dashboard" />
+            <Head title={messages['admin.dashboard.title'] || "Admin Dashboard"} />
 
             <div className="px-4 sm:px-6 lg:px-8 py-12 space-y-8">
                 {/* Section Admin Pure - Seulement pour les admins */}
@@ -51,10 +52,10 @@ export default function Dashboard({
                         <div className="mb-6">
                             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                                 <span className="inline-block w-1 h-8 bg-blue-600 rounded"></span>
-                                Administration Système
+                                {messages['admin.dashboard.system_admin'] || "Administration Système"}
                             </h1>
                             <p className="text-gray-600 mt-1">
-                                Gestion globale de la plateforme
+                                {messages['admin.dashboard.global_platform_management'] || "Gestion globale de la plateforme"}
                             </p>
                         </div>
 
@@ -64,7 +65,7 @@ export default function Dashboard({
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">
-                                            Utilisateurs
+                                            {messages['admin.dashboard.users_card'] || "Utilisateurs"}
                                         </h2>
                                         <p className="text-3xl font-bold text-gray-900 mt-2">
                                             {stats.users}
@@ -89,7 +90,7 @@ export default function Dashboard({
                                         href={route("admin.users.index")}
                                         className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
                                     >
-                                        Gérer les utilisateurs
+                                        {messages['admin.dashboard.manage_users'] || "Gérer les utilisateurs"}
                                         <svg
                                             className="w-4 h-4 ml-1"
                                             fill="none"
@@ -112,7 +113,7 @@ export default function Dashboard({
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">
-                                            Logs
+                                            {messages['admin.dashboard.logs_card'] || "Logs"}
                                         </h2>
                                         <p className="text-3xl font-bold text-gray-900 mt-2">
                                             {stats.logs}
@@ -137,7 +138,7 @@ export default function Dashboard({
                                         href={route("admin.logs.index")}
                                         className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
                                     >
-                                        Voir les logs
+                                        {messages['admin.dashboard.view_logs'] || "Voir les logs"}
                                         <svg
                                             className="w-4 h-4 ml-1"
                                             fill="none"
@@ -160,16 +161,15 @@ export default function Dashboard({
                                 <div className="bg-white border border-emerald-200 p-6 shadow sm:rounded-lg">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">
-                                            Validation des Clubs
+                                            {messages['admin.dashboard.club_validation'] || "Validation des Clubs"}
                                         </h2>
                                         <p className="text-sm text-gray-500">
-                                            Approuver ou rejeter les clubs
+                                            {messages['admin.dashboard.approve_reject_clubs'] || "Approuver ou rejeter les clubs"}
                                         </p>
                                         {stats.pendingClubs > 0 && (
                                             <div className="mt-2">
                                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                    {stats.pendingClubs} en
-                                                    attente
+                                                    {(messages['admin.dashboard.pending_count'] || ":count en attente").replace(':count', stats.pendingClubs)}
                                                 </span>
                                             </div>
                                         )}
@@ -179,7 +179,7 @@ export default function Dashboard({
                                             href={route("admin.clubs.pending")}
                                             className="inline-block rounded-md bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 text-sm transition"
                                         >
-                                            Gérer les clubs
+                                            {messages['admin.dashboard.manage_pending_clubs'] || "Gérer les clubs"}
                                         </Link>
                                     </div>
                                 </div>
@@ -190,10 +190,10 @@ export default function Dashboard({
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">
-                                            Leaderboard
+                                            {messages['admin.dashboard.leaderboard_card'] || "Leaderboard"}
                                         </h2>
                                         <p className="text-sm text-gray-500 mt-1">
-                                            Gérer les résultats
+                                            {messages['admin.dashboard.manage_results'] || "Gérer les résultats"}
                                         </p>
                                     </div>
                                     <svg
@@ -215,7 +215,7 @@ export default function Dashboard({
                                         href={route("admin.leaderboard.index")}
                                         className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
                                     >
-                                        Gérer le leaderboard
+                                        {messages['admin.dashboard.manage_leaderboard'] || "Gérer le leaderboard"}
                                         <svg
                                             className="w-4 h-4 ml-1"
                                             fill="none"
@@ -241,10 +241,10 @@ export default function Dashboard({
                     <div className="mb-6">
                         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                             <span className="inline-block w-1 h-8 bg-purple-600 rounded"></span>
-                            Mes Responsabilités
+                            {messages['admin.dashboard.my_responsibilities'] || "Mes Responsabilités"}
                         </h1>
                         <p className="text-gray-600 mt-1">
-                            Vos courses et raids
+                            {messages['admin.dashboard.your_races_and_raids'] || "Vos courses et raids"}
                         </p>
                     </div>
 
@@ -255,12 +255,12 @@ export default function Dashboard({
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">
-                                            Courses
+                                            {messages['admin.dashboard.races_card'] || "Courses"}
                                         </h2>
                                         <p className="mt-3 text-gray-600">
                                             {isAdmin
-                                                ? `Total : ${races.length} courses`
-                                                : `Vous êtes responsable de ${races.length} courses`}
+                                                ? (messages['admin.dashboard.total_races'] || "Total : :count courses").replace(':count', races.length)
+                                                : (messages['admin.dashboard.responsible_races'] || "Vous êtes responsable de :count courses").replace(':count', races.length)}
                                         </p>
                                     </div>
                                     <RiRunLine className="w-12 h-12 text-purple-400" />
@@ -271,7 +271,7 @@ export default function Dashboard({
                                             href={route("admin.races.index")}
                                             className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
                                         >
-                                            Gérer les courses
+                                            {messages['admin.dashboard.manage_races'] || "Gérer les courses"}
                                             <svg
                                                 className="w-4 h-4 ml-1"
                                                 fill="none"
@@ -297,12 +297,12 @@ export default function Dashboard({
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">
-                                            Raids
+                                            {messages['admin.dashboard.raids_card'] || "Raids"}
                                         </h2>
                                         <p className="mt-3 text-gray-600">
                                             {isAdmin
-                                                ? `Total : ${raids.length} raids`
-                                                : `Vous êtes responsable de ${raids.length} raids`}
+                                                ? (messages['admin.dashboard.total_raids'] || "Total : :count raids").replace(':count', raids.length)
+                                                : (messages['admin.dashboard.responsible_raids'] || "Vous êtes responsable de :count raids").replace(':count', raids.length)}
                                         </p>
                                     </div>
                                     <FaRegCompass className="w-12 h-12 text-purple-400" />
@@ -313,7 +313,7 @@ export default function Dashboard({
                                             href={route("admin.raids.index")}
                                             className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
                                         >
-                                            Gérer les raids
+                                            {messages['admin.dashboard.manage_raids'] || "Gérer les raids"}
                                             <svg
                                                 className="w-4 h-4 ml-1"
                                                 fill="none"
@@ -339,10 +339,10 @@ export default function Dashboard({
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">
-                                            Clubs
+                                            {messages['admin.dashboard.clubs_card'] || "Clubs"}
                                         </h2>
                                         <p className="mt-3 text-gray-600">
-                                            Gérez vos clubs
+                                            {messages['admin.dashboard.manage_your_clubs'] || "Gérez vos clubs"}
                                         </p>
                                     </div>
                                     <svg
@@ -364,7 +364,7 @@ export default function Dashboard({
                                         href={route("admin.clubs.index")}
                                         className="inline-flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-700"
                                     >
-                                        Gérer les clubs
+                                        {messages['admin.dashboard.manage_clubs'] || "Gérer les clubs"}
                                         <svg
                                             className="w-4 h-4 ml-1"
                                             fill="none"
@@ -389,12 +389,12 @@ export default function Dashboard({
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">
-                                            Équipes
+                                            {messages['admin.dashboard.teams_card'] || "Équipes"}
                                         </h2>
                                         <p className="mt-3 text-gray-600">
                                             {isAdmin
-                                                ? "Gérez toutes les équipes"
-                                                : "Gérez vos équipes"}
+                                                ? (messages['admin.dashboard.manage_all_teams'] || "Gérez toutes les équipes")
+                                                : (messages['admin.dashboard.manage_your_teams'] || "Gérez vos équipes")}
                                         </p>
                                     </div>
                                     <FaUsers className="w-12 h-12 text-indigo-400" />
@@ -404,7 +404,7 @@ export default function Dashboard({
                                         href={route("teams.management")}
                                         className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-700"
                                     >
-                                        Gérer les équipes
+                                        {messages['admin.dashboard.manage_teams'] || "Gérer les équipes"}
                                         <svg
                                             className="w-4 h-4 ml-1"
                                             fill="none"

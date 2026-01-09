@@ -8,7 +8,7 @@ export default function RaidManagement({ raids }) {
 
     return (
         <AuthenticatedLayout>
-            <Head title="Gestion des Raids" />
+            <Head title={messages['admin.raids.title'] || "Gestion des Raids"} />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -16,12 +16,12 @@ export default function RaidManagement({ raids }) {
                     <div className="mb-6">
                         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                             <FaRoute className="text-purple-600" />
-                            {messages.manage_raids || 'Gestion des Raids'}
+                            {messages['admin.raids.title'] || 'Gestion des Raids'}
                         </h1>
                         <p className="mt-2 text-gray-600">
                             {raids.length === 0 
-                                ? "Aucun raid à gérer pour le moment"
-                                : `${raids.length} raid${raids.length > 1 ? 's' : ''} à gérer`
+                                ? (messages['admin.raids.no_raids_to_manage'] || "Aucun raid à gérer pour le moment")
+                                : (messages['admin.raids.raids_to_manage'] || ":count raid(s) à gérer").replace(':count', raids.length)
                             }
                         </p>
                     </div>
@@ -34,13 +34,13 @@ export default function RaidManagement({ raids }) {
                                 {messages.no_raids || 'Aucun raid trouvé'}
                             </h3>
                             <p className="text-gray-500 mb-6">
-                                Vous n'avez aucun raid à gérer pour le moment.
+                                {messages['admin.raids.no_raids_description'] || "Vous n'avez aucun raid à gérer pour le moment."}
                             </p>
                             <Link
                                 href={route('raids.create')}
                                 className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
                             >
-                                Créer un raid
+                                {messages.create_raid || 'Créer un raid'}
                             </Link>
                         </div>
                     ) : (
@@ -81,7 +81,7 @@ export default function RaidManagement({ raids }) {
                                                     )}
                                                     {raid.races_count !== undefined && (
                                                         <span className="flex items-center gap-1">
-                                                            🏃 {raid.races_count} course{raid.races_count > 1 ? 's' : ''}
+                                                            🏃 {(messages['admin.raids.races_count'] || ":count course(s)").replace(':count', raid.races_count)}
                                                         </span>
                                                     )}
                                                 </div>
@@ -92,14 +92,14 @@ export default function RaidManagement({ raids }) {
                                                 <Link
                                                     href={route('raids.show', raid.raid_id)}
                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition"
-                                                    title="Voir"
+                                                    title={messages.view || "Voir"}
                                                 >
                                                     <FaEye className="w-5 h-5" />
                                                 </Link>
                                                 <Link
                                                     href={route('raids.edit', raid.raid_id)}
                                                     className="p-2 text-purple-600 hover:bg-purple-50 rounded-full transition"
-                                                    title="Modifier"
+                                                    title={messages.edit || "Modifier"}
                                                 >
                                                     <FaEdit className="w-5 h-5" />
                                                 </Link>

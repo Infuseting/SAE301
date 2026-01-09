@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { usePage } from '@inertiajs/react';
 
 /**
  * Modal component for selecting a responsible user
@@ -10,6 +11,7 @@ import { useState, useEffect } from 'react';
  * @param {array} users - Array of available users to select from
  */
 export default function SelectResponsableModal({ isOpen, onClose, onSelect, users = [] }) {
+    const messages = usePage().props.translations?.messages || {};
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredUsers, setFilteredUsers] = useState(users);
 
@@ -71,7 +73,7 @@ export default function SelectResponsableModal({ isOpen, onClose, onSelect, user
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                         <h3 className="text-lg font-semibold text-gray-900">
-                            Sélectionner un responsable
+                            {messages['modal.select_responsable.title'] || "Sélectionner un responsable"}
                         </h3>
                         <button
                             type="button"
@@ -96,7 +98,7 @@ export default function SelectResponsableModal({ isOpen, onClose, onSelect, user
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Rechercher par nom ou email..."
+                                placeholder={messages['modal.select_responsable.search_placeholder'] || "Rechercher par nom ou email..."}
                                 className="block w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                                 autoFocus
                             />
@@ -143,7 +145,7 @@ export default function SelectResponsableModal({ isOpen, onClose, onSelect, user
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 <p className="mt-4 text-sm text-gray-500">
-                                    {searchQuery ? 'Aucun utilisateur trouvé' : 'Aucun utilisateur disponible'}
+                                    {searchQuery ? (messages['modal.select_responsable.no_results'] || 'Aucun utilisateur trouvé') : (messages['modal.select_responsable.no_users'] || 'Aucun utilisateur disponible')}
                                 </p>
                             </div>
                         )}
@@ -156,7 +158,7 @@ export default function SelectResponsableModal({ isOpen, onClose, onSelect, user
                             onClick={onClose}
                             className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition"
                         >
-                            Fermer
+                            {messages['close'] || "Fermer"}
                         </button>
                     </div>
                 </div>

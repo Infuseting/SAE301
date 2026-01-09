@@ -13,7 +13,7 @@ export default function ClubManagement({ clubs }) {
 
     return (
         <AuthenticatedLayout>
-            <Head title="Gestion des Clubs" />
+            <Head title={messages['admin.clubs.title'] || "Gestion des Clubs"} />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -21,12 +21,12 @@ export default function ClubManagement({ clubs }) {
                     <div className="mb-6">
                         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                             <FaUsersCog className="text-emerald-600" />
-                            {messages.manage_clubs || 'Gestion des Clubs'}
+                            {messages['admin.clubs.title'] || 'Gestion des Clubs'}
                         </h1>
                         <p className="mt-2 text-gray-600">
                             {clubs.length === 0 
-                                ? "Aucun club à gérer pour le moment"
-                                : `${clubs.length} club${clubs.length > 1 ? 's' : ''} à gérer`
+                                ? (messages['admin.clubs.no_clubs_to_manage'] || "Aucun club à gérer pour le moment")
+                                : (messages['admin.clubs.clubs_to_manage'] || ":count club(s) à gérer").replace(':count', clubs.length)
                             }
                         </p>
                     </div>
@@ -39,13 +39,13 @@ export default function ClubManagement({ clubs }) {
                                 {messages.no_clubs || 'Aucun club trouvé'}
                             </h3>
                             <p className="text-gray-500 mb-6">
-                                Vous n'avez aucun club à gérer pour le moment.
+                                {messages['admin.clubs.no_clubs_description'] || "Vous n'avez aucun club à gérer pour le moment."}
                             </p>
                             <Link
                                 href={route('clubs.create')}
                                 className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
                             >
-                                Créer un club
+                                {messages.create_club || 'Créer un club'}
                             </Link>
                         </div>
                     ) : (
@@ -86,7 +86,7 @@ export default function ClubManagement({ clubs }) {
                                                     )}
                                                     {club.members_count !== undefined && (
                                                         <span className="flex items-center gap-1">
-                                                            👥 {club.members_count} membre{club.members_count > 1 ? 's' : ''}
+                                                            👥 {(messages['admin.clubs.members_count'] || ":count membre(s)").replace(':count', club.members_count)}
                                                         </span>
                                                     )}
                                                 </div>
@@ -97,14 +97,14 @@ export default function ClubManagement({ clubs }) {
                                                 <Link
                                                     href={route('clubs.show', club.club_id)}
                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition"
-                                                    title="Voir"
+                                                    title={messages.view || "Voir"}
                                                 >
                                                     <FaEye className="w-5 h-5" />
                                                 </Link>
                                                 <Link
                                                     href={route('clubs.edit', club.club_id)}
                                                     className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full transition"
-                                                    title="Modifier"
+                                                    title={messages.edit || "Modifier"}
                                                 >
                                                     <FaEdit className="w-5 h-5" />
                                                 </Link>

@@ -1,10 +1,12 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 /**
  * UserLastRaces component - Displays user's teams in a card grid layout
  * @param {Array} teams - Array of team objects with name, image, and members
  */
 export default function UserTeams({ teams = [] }) {
+    const messages = usePage().props.translations?.messages || {};
+    
     // Demo data for display purposes
     const demoTeams = [
         {
@@ -35,12 +37,12 @@ export default function UserTeams({ teams = [] }) {
         <div className="py-6">
             <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Vos équipes | <a href="/createTeam" className="text-blue-500 hover:text-blue-600 ml-2">Créer une équipe</a>
+                    {messages['user_teams.title'] || 'Your teams'} | <a href="/createTeam" className="text-blue-500 hover:text-blue-600 ml-2">{messages['user_teams.create'] || 'Create a team'}</a>
                 </h2>
 
                 {displayTeams.length === 0 ? (
                     <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm text-center text-gray-500">
-                        Vous n'êtes membre d'aucune équipe pour le moment.
+                        {messages['user_teams.no_teams'] || 'You are not a member of any team yet.'}
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -72,7 +74,7 @@ export default function UserTeams({ teams = [] }) {
                                         {team.name}
                                     </h3>
                                     <p className="text-sm text-gray-500">
-                                        {team.members?.length || 0} membre{(team.members?.length || 0) > 1 ? 's' : ''}
+                                        {team.members?.length || 0} {(team.members?.length || 0) > 1 ? (messages['user_teams.members'] || 'members') : (messages['user_teams.member'] || 'member')}
                                     </p>
                                 </div>
 
@@ -85,7 +87,7 @@ export default function UserTeams({ teams = [] }) {
                                        
                                         className="inline-block w-full text-center bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200"
                                     >
-                                        Voir l'équipe
+                                        {messages['user_teams.view_team'] || 'View team'}
                                     </button>
                                 </Link>
                             </div>

@@ -70,7 +70,7 @@ export default function CreateTeam() {
     const submit = (e) => {
         e.preventDefault();
         if (!data.join_team && data.teammates.length === 0 && data.emailInvites.length === 0) {
-            alert('L\'équipe doit avoir au moins un participant.');
+            alert(messages['team.create.at_least_one_participant'] || 'L\'équipe doit avoir au moins un participant.');
             return;
         }
         
@@ -88,7 +88,7 @@ export default function CreateTeam() {
         const Label = document.getElementById('download_label');
         const file = e.target.files[0];
         if (file) {
-            Label.textContent = "Cliquez pour changer l'image";
+            Label.textContent = messages['team.create.click_change_image'] || "Cliquez pour changer l'image";
             setData('image', file);
             const reader = new FileReader();
             reader.onload = (event) => {
@@ -100,7 +100,7 @@ export default function CreateTeam() {
 
     const addTeammate = (user) => {
         if (currentUser && user.id === currentUser.id) {
-            alert('Vous ne pouvez pas vous ajouter en tant que coéquipier.');
+            alert(messages['team.create.cannot_add_yourself'] || 'Vous ne pouvez pas vous ajouter en tant que coéquipier.');
             return;
         }
         if (!data.teammates.some(t => t.id === user.id)) {
@@ -156,7 +156,7 @@ export default function CreateTeam() {
                                 maxLength={32}
                                 required
                             />
-                            <p className="text-xs text-gray-500 mt-1">{data.name.length}/32 caractères</p>
+                            <p className="text-xs text-gray-500 mt-1">{data.name.length}/32 {messages['characters'] || 'caractères'}</p>
                             <InputError message={errors.name} className="mt-1 text-sm" />
                         </div>
                         {/* Image Upload Field */}
@@ -165,7 +165,7 @@ export default function CreateTeam() {
                             name="image"
                             onChange={(file) => setData('image', file)}
                             error={errors.image}
-                            helperText="PNG, JPG jusqu'à 10MB"
+                            helperText={messages['team.create.image_format'] || "PNG, JPG jusqu'à 10MB"}
                         />
 
                         {/* Join Team Checkbox */}
@@ -177,9 +177,9 @@ export default function CreateTeam() {
                                 onChange={(e) => setData('join_team', e.target.checked)}
                             />
                             <div>
-                                <InputLabel htmlFor="join_team" value="Je participe à cette équipe" />
+                                <InputLabel htmlFor="join_team" value={messages['team.create.i_participate'] || "Je participe à cette équipe"} />
                                 <p className="text-sm text-gray-600 mt-1">
-                                    En tant que créateur, vous êtes automatiquement le chef de cette équipe. Cochez cette case si vous souhaitez également participer activement à l'équipe.
+                                    {messages['team.create.creator_leader_hint'] || "En tant que créateur, vous êtes automatiquement le chef de cette équipe. Cochez cette case si vous souhaitez également participer activement à l'équipe."}
                                 </p>
                             </div>
                         </div>
@@ -191,7 +191,7 @@ export default function CreateTeam() {
                                         {messages.teammates || 'Coéquipiers'}
                                     </h3>
                                     <p className="text-sm text-gray-600 mt-1">
-                                        Ajoutez des coéquipiers pour former votre équipe complète
+                                        {messages['team.create.add_teammates_hint'] || "Ajoutez des coéquipiers pour former votre équipe complète"}
                                     </p>
                                 </div>
                                 <button
@@ -202,7 +202,7 @@ export default function CreateTeam() {
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                     </svg>
-                                    Ajouter des membres
+                                    {messages['team.create.add_members'] || "Ajouter des membres"}
                                 </button>
                             </div>
                             {/* Teammates List */}
@@ -245,7 +245,7 @@ export default function CreateTeam() {
                             {/* Email Invites List */}
                             {data.emailInvites.length > 0 && (
                                 <div className="space-y-2 mt-4">
-                                    <h4 className="text-sm font-medium text-gray-700">Invitations par email</h4>
+                                    <h4 className="text-sm font-medium text-gray-700">{messages['team.create.email_invites'] || "Invitations par email"}</h4>
                                     {data.emailInvites.map((email, index) => (
                                         <div
                                             key={index}
@@ -264,7 +264,7 @@ export default function CreateTeam() {
                                                 className="px-3 py-1 text-sm rounded transition"
                                                 style={{color: 'rgb(220, 38, 38)', backgroundColor: 'rgba(220, 38, 38, 0.1)'}}
                                             >
-                                                Retirer
+                                                {messages['remove'] || "Retirer"}
                                             </button>
                                         </div>
                                     ))}
@@ -281,14 +281,14 @@ export default function CreateTeam() {
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             >
-                                Annuler
+                                {messages['cancel'] || "Annuler"}
                             </Link>
                             <PrimaryButton 
                                 disabled={processing}
                                 className="px-8 py-3"
                                 style={{backgroundColor: 'rgb(4, 120, 87)'}}
                             >
-                                {processing ? 'Création en cours...' : (messages.create_team || 'Créer l\'équipe')}
+                                {processing ? (messages['team.create.creating'] || 'Création en cours...') : (messages.create_team || 'Créer l\'équipe')}
                             </PrimaryButton>
                         </div>
                     </form>

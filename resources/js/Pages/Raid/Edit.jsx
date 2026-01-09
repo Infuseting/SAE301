@@ -94,12 +94,12 @@ export default function Edit({ raid, userClub, clubMembers }) {
      * @returns {string} Club name or default message
      */
     const getClubName = () => {
-        return userClub?.club_name || 'Club non trouvé';
+        return userClub?.club_name || (messages['raid.form.club_not_found'] || 'Club non trouvé');
     };
 
     return (
         <AuthenticatedLayout>
-            <Head title={`Modifier ${raid.raid_name}`} />
+            <Head title={`${messages['raid.form.edit'] || "Modifier"} ${raid.raid_name}`} />
 
             {/* Green Header */}
             <div className="bg-emerald-600 py-6">
@@ -111,7 +111,7 @@ export default function Edit({ raid, userClub, clubMembers }) {
                             </svg>
                         </Link>
                         <h1 className="text-2xl font-bold text-white">
-                            Modifier le raid
+                            {messages['raid.form.edit_raid'] || "Modifier le raid"}
                         </h1>
                     </div>
                 </div>
@@ -124,12 +124,12 @@ export default function Edit({ raid, userClub, clubMembers }) {
                             {/* Left Column - Required Elements */}
                             <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
                                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                    Informations générales
+                                    {messages['raid.form.general_info'] || "Informations générales"}
                                 </h2>
 
                                 {/* Raid Name */}
                                 <div>
-                                    <InputLabel htmlFor="raid_name" value="Nom du raid" />
+                                    <InputLabel htmlFor="raid_name" value={messages['raid.form.raid_name'] || "Nom du raid"} />
                                     <TextInput
                                         id="raid_name"
                                         type="text"
@@ -142,13 +142,13 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                         maxLength={100}
                                         required
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">{data.raid_name.length}/100 caractères</p>
+                                    <p className="text-xs text-gray-500 mt-1">{data.raid_name.length}/100 {messages['characters'] || "caractères"}</p>
                                     <InputError message={errors.raid_name} className="mt-2" />
                                 </div>
 
                                 {/* Description */}
                                 <div>
-                                    <InputLabel htmlFor="raid_description" value="Description" />
+                                    <InputLabel htmlFor="raid_description" value={messages['description'] || "Description"} />
                                     <textarea
                                         id="raid_description"
                                         name="raid_description"
@@ -163,10 +163,10 @@ export default function Edit({ raid, userClub, clubMembers }) {
 
                                 {/* Date Range */}
                                 <div>
-                                    <InputLabel value="Date du raid" />
+                                    <InputLabel value={messages['raid.form.raid_date'] || "Date du raid"} />
                                     <div className="grid grid-cols-2 gap-4 mt-2">
                                         <div>
-                                            <label className="text-sm text-gray-600">Début</label>
+                                            <label className="text-sm text-gray-600">{messages['raid.form.start'] || "Début"}</label>
                                             <TextInput
                                                 type="datetime-local"
                                                 name="raid_date_start"
@@ -178,7 +178,7 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                             <InputError message={errors.raid_date_start} className="mt-2" />
                                         </div>
                                         <div>
-                                            <label className="text-sm text-gray-600">Fin</label>
+                                            <label className="text-sm text-gray-600">{messages['raid.form.end'] || "Fin"}</label>
                                             <TextInput
                                                 type="datetime-local"
                                                 name="raid_date_end"
@@ -195,10 +195,10 @@ export default function Edit({ raid, userClub, clubMembers }) {
 
                                 {/* Registration Period */}
                                 <div>
-                                    <InputLabel value="Période d'inscription" />
+                                    <InputLabel value={messages['raid.form.registration_period'] || "Période d'inscription"} />
                                     <div className="grid grid-cols-2 gap-4 mt-2">
                                         <div>
-                                            <label className="text-sm text-gray-600">Début des inscriptions</label>
+                                            <label className="text-sm text-gray-600">{messages['raid.form.registration_start'] || "Début des inscriptions"}</label>
                                             <TextInput
                                                 type="datetime-local"
                                                 name="ins_start_date"
@@ -211,7 +211,7 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                             <InputError message={errors.ins_start_date} className="mt-2" />
                                         </div>
                                         <div>
-                                            <label className="text-sm text-gray-600">Fin des inscriptions</label>
+                                            <label className="text-sm text-gray-600">{messages['raid.form.registration_end'] || "Fin des inscriptions"}</label>
                                             <TextInput
                                                 type="datetime-local"
                                                 name="ins_end_date"
@@ -226,16 +226,16 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                         </div>
                                     </div>
                                     <p className="mt-1 text-sm text-gray-500">
-                                        Les inscriptions doivent se terminer au plus tard la veille du début du raid
+                                        {messages['raid.form.registration_hint'] || "Les inscriptions doivent se terminer au plus tard la veille du début du raid"}
                                     </p>
                                 </div>
 
                                 {/* Lieu */}
                                 <div>
-                                    <InputLabel value="Lieu" />
+                                    <InputLabel value={messages['raid.form.location'] || "Lieu"} />
                                     <div className="grid grid-cols-2 gap-4 mt-2">
                                         <div>
-                                            <InputLabel htmlFor="raid_city" value="Ville *" />
+                                            <InputLabel htmlFor="raid_city" value={messages['raid.form.city'] || "Ville *"} />
                                             <TextInput
                                                 id="raid_city"
                                                 type="text"
@@ -248,7 +248,7 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                             <InputError message={errors.raid_city} className="mt-2" />
                                         </div>
                                         <div>
-                                            <InputLabel htmlFor="raid_postal_code" value="Code postal *" />
+                                            <InputLabel htmlFor="raid_postal_code" value={messages['raid.form.postal_code'] || "Code postal *"} />
                                             <TextInput
                                                 id="raid_postal_code"
                                                 type="text"
@@ -262,7 +262,7 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                         </div>
                                     </div>
                                     <div className="mt-4">
-                                        <InputLabel htmlFor="raid_street" value="Rue (optionnel)" />
+                                        <InputLabel htmlFor="raid_street" value={messages['raid.form.street'] || "Rue (optionnel)"} />
                                         <TextInput
                                             id="raid_street"
                                             type="text"
@@ -270,7 +270,7 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                             value={data.raid_street}
                                             className="mt-1 block w-full"
                                             onChange={(e) => setData('raid_street', e.target.value)}
-                                            placeholder="Adresse du point de rendez-vous"
+                                            placeholder={messages['raid.form.street_placeholder'] || "Adresse du point de rendez-vous"}
                                         />
                                         <InputError message={errors.raid_street} className="mt-2" />
                                     </div>
@@ -282,12 +282,12 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                 {/* Contact Info */}
                                 <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
                                     <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                        Organisation
+                                        {messages['raid.form.organization'] || "Organisation"}
                                     </h2>
 
                                     {/* Club Display (auto-assigned) */}
                                     <div>
-                                        <InputLabel value="Club organisateur" />
+                                        <InputLabel value={messages['raid.form.organizing_club'] || "Club organisateur"} />
                                         <div className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
                                             {getClubName()}
                                         </div>
@@ -295,25 +295,25 @@ export default function Edit({ raid, userClub, clubMembers }) {
 
                                     {/* Organizer Selection - Club Members */}
                                     <div>
-                                        <InputLabel htmlFor="adh_id" value="Responsable du raid" />
+                                        <InputLabel htmlFor="adh_id" value={messages['raid.form.raid_manager'] || "Responsable du raid"} />
                                         <div className="mt-1">
                                             <UserSelect
                                                 users={clubMembers}
                                                 selectedId={data.adh_id}
                                                 onSelect={(user) => setData('adh_id', user.adh_id)}
-                                                label="Responsable"
+                                                label={messages['raid.form.manager'] || "Responsable"}
                                                 idKey="adh_id"
                                             />
                                         </div>
                                         <InputError message={errors.adh_id} className="mt-2" />
                                         <p className="mt-1 text-sm text-gray-500">
-                                            Membres adhérents du club {userClub?.club_name || ''}
+                                            {messages['raid.form.club_members_hint'] || "Membres adhérents du club"} {userClub?.club_name || ''}
                                         </p>
                                     </div>
 
                                     {/* Contact */}
                                     <div>
-                                        <InputLabel htmlFor="raid_contact" value="Email de contact" />
+                                        <InputLabel htmlFor="raid_contact" value={messages['raid.form.contact_email'] || "Email de contact"} />
                                         <TextInput
                                             id="raid_contact"
                                             type="email"
@@ -331,12 +331,12 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                 {/* Optional Elements */}
                                 <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
                                     <h2 className="text-lg font-semibold text-gray-900">
-                                        Informations complémentaires
+                                        {messages['raid.form.additional_info'] || "Informations complémentaires"}
                                     </h2>
 
                                     {/* Website URL */}
                                     <div>
-                                        <InputLabel htmlFor="raid_site_url" value="Site Web" />
+                                        <InputLabel htmlFor="raid_site_url" value={messages['raid.form.website'] || "Site Web"} />
                                         <TextInput
                                             id="raid_site_url"
                                             type="url"
@@ -351,23 +351,23 @@ export default function Edit({ raid, userClub, clubMembers }) {
 
                                     {/* Image Upload */}
                                     <ImageUpload
-                                        label="Image du raid"
+                                        label={messages['raid.form.raid_image'] || "Image du raid"}
                                         name="raid_image"
                                         onChange={(file) => setData('raid_image', file)}
                                         error={errors.raid_image}
                                         currentImage={raid.raid_image ? `/storage/${raid.raid_image}` : null}
                                         maxSize={5}
-                                        helperText="Image principale qui sera affichée sur la page du raid"
+                                        helperText={messages['raid.form.image_helper'] || "Image principale qui sera affichée sur la page du raid"}
                                     />
                                 </div>
 
                                 {/* Danger Zone */}
                                 <div className="bg-white rounded-lg shadow-md p-6 border-2 border-red-200">
                                     <h2 className="text-lg font-semibold text-red-600 mb-4">
-                                        Zone de danger
+                                        {messages['raid.form.danger_zone'] || "Zone de danger"}
                                     </h2>
                                     <p className="text-sm text-gray-600 mb-4">
-                                        La suppression du raid est irréversible. Toutes les courses et inscriptions associées seront également supprimées.
+                                        {messages['raid.form.delete_warning'] || "La suppression du raid est irréversible. Toutes les courses et inscriptions associées seront également supprimées."}
                                     </p>
                                     {!showDeleteConfirm ? (
                                         <button
@@ -375,25 +375,25 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                             onClick={() => setShowDeleteConfirm(true)}
                                             className="px-4 py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors"
                                         >
-                                            Supprimer le raid
+                                            {messages['raid.form.delete_raid'] || "Supprimer le raid"}
                                         </button>
                                     ) : (
                                         <div className="space-y-3">
-                                            <p className="text-red-600 font-semibold">Êtes-vous sûr de vouloir supprimer ce raid ?</p>
+                                            <p className="text-red-600 font-semibold">{messages['raid.form.confirm_delete'] || "Êtes-vous sûr de vouloir supprimer ce raid ?"}</p>
                                             <div className="flex gap-3">
                                                 <button
                                                     type="button"
                                                     onClick={handleDelete}
                                                     className="px-4 py-2 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 transition-colors"
                                                 >
-                                                    Oui, supprimer
+                                                    {messages['raid.form.yes_delete'] || "Oui, supprimer"}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowDeleteConfirm(false)}
                                                     className="px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-md hover:bg-gray-400 transition-colors"
                                                 >
-                                                    Annuler
+                                                    {messages['cancel'] || "Annuler"}
                                                 </button>
                                             </div>
                                         </div>
@@ -409,7 +409,7 @@ export default function Edit({ raid, userClub, clubMembers }) {
                                 disabled={processing}
                                 className="px-16 py-3 bg-emerald-600 text-white font-semibold rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                                Enregistrer les modifications
+                                {messages['raid.form.save_changes'] || "Enregistrer les modifications"}
                             </button>
                         </div>
                     </form>
