@@ -15,6 +15,7 @@ import axios from 'axios';
  */
 export default function Scanner({ race, stats: initialStats }) {
     const page = usePage();
+    const messages = page.props.translations?.messages || {};
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
     const [scannedTeam, setScannedTeam] = useState(null);
@@ -53,7 +54,7 @@ export default function Scanner({ race, stats: initialStats }) {
                            window.location.hostname === '127.0.0.1';
             
             if (!isSecure) {
-                setError('⚠️ La caméra nécessite une connexion HTTPS sécurisée. Votre connexion actuelle n\'est pas sécurisée.');
+                setError(messages['scanner.error_https'] || '⚠️ La caméra nécessite une connexion HTTPS sécurisée. Votre connexion actuelle n\'est pas sécurisée.');
                 return;
             }
 
@@ -90,18 +91,18 @@ export default function Scanner({ race, stats: initialStats }) {
             setIsScanning(false);
             
             // Provide more specific error messages
-            let errorMsg = 'Impossible de démarrer la caméra. ';
+            let errorMsg = messages['scanner.error_camera'] || 'Impossible de démarrer la caméra. ';
             
             if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                errorMsg += '🚫 Vous avez refusé l\'accès à la caméra. Veuillez autoriser l\'accès dans les paramètres de votre navigateur.';
+                errorMsg += messages['scanner.error_permission'] || '🚫 Vous avez refusé l\'accès à la caméra. Veuillez autoriser l\'accès dans les paramètres de votre navigateur.';
             } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                errorMsg += '📷 Aucune caméra trouvée sur cet appareil.';
+                errorMsg += messages['scanner.error_no_camera'] || '📷 Aucune caméra trouvée sur cet appareil.';
             } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-                errorMsg += '⚠️ La caméra est déjà utilisée par une autre application.';
+                errorMsg += messages['scanner.error_camera_in_use'] || '⚠️ La caméra est déjà utilisée par une autre application.';
             } else if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
-                errorMsg += '⚙️ Les paramètres de la caméra ne sont pas supportés.';
+                errorMsg += messages['scanner.error_camera_settings'] || '⚙️ Les paramètres de la caméra ne sont pas supportés.';
             } else {
-                errorMsg += `Erreur: ${err.message || err.toString()}`;
+                errorMsg += `${messages['scanner.error_generic'] || 'Erreur'}: ${err.message || err.toString()}`;
             }
             
             setError(errorMsg);
@@ -141,7 +142,7 @@ export default function Scanner({ race, stats: initialStats }) {
                 qrData = JSON.parse(decodedText);
             } catch (parseError) {
                 console.error('JSON Parse Error:', parseError);
-                setError(`QR Code invalide. Contenu scanné: ${decodedText.substring(0, 100)}...`);
+                setError(`${messages['scanner.invalid_qr'] || 'QR Code invalide. Contenu scanné'}: ${decodedText.substring(0, 100)}...`);
                 setLoading(false);
                 return;
             }
@@ -149,7 +150,7 @@ export default function Scanner({ race, stats: initialStats }) {
             console.log('Parsed QR data:', qrData);
             
             if (qrData.type !== 'team_registration') {
-                setError(`QR Code invalide. Type reçu: "${qrData.type || 'undefined'}". Ce n'est pas un code d'inscription d'équipe.`);
+                setError(`${messages['scanner.invalid_qr_type'] || 'QR Code invalide. Type reçu'}: "${qrData.type || 'undefined'}". ${messages['scanner.not_team_qr'] || 'Ce n\'est pas un code d\'inscription d\'équipe.'}`);
                 setLoading(false);
                 return;
             }
@@ -189,11 +190,11 @@ export default function Scanner({ race, stats: initialStats }) {
                 // Fetch team members for detailed view
                 await fetchTeamMembers(qrData.reg_id);
             } else {
-                setError(data.message || 'Erreur lors de l\'enregistrement de la présence.');
+                setError(data.message || messages['scanner.error_presence'] || 'Erreur lors de l\'enregistrement de la présence.');
             }
         } catch (err) {
             console.error('Error processing QR code:', err);
-            setError('Erreur lors du traitement du QR Code. Assurez-vous qu\'il s\'agit d\'un code valide.');
+            setError(messages['scanner.error_processing'] || 'Erreur lors du traitement du QR Code. Assurez-vous qu\'il s\'agit d\'un code valide.');
         } finally {
             setLoading(false);
         }
@@ -314,7 +315,7 @@ export default function Scanner({ race, stats: initialStats }) {
                                     </h1>
                                 </div>
                                 <p className="text-gray-600">
-                                    Scanner QR Code - Pointage des équipes
+                                    {messages['scanner.title'] || 'Scanner QR Code - Pointage des équipes'}
                                 </p>
                             </div>
                             <div className="text-right">
@@ -322,7 +323,7 @@ export default function Scanner({ race, stats: initialStats }) {
                                     {progressPercentage}%
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                    Présence
+                                    {messages['scanner.presence'] || 'Présence'}
                                 </div>
                             </div>
                         </div>
@@ -332,21 +333,21 @@ export default function Scanner({ race, stats: initialStats }) {
                             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
                                 <div className="flex items-center gap-2 mb-2">
                                     <Users className="w-5 h-5 text-blue-600" />
-                                    <span className="text-xs font-semibold text-blue-700 uppercase">Total</span>
+                                    <span className="text-xs font-semibold text-blue-700 uppercase">{messages['scanner.total'] || 'Total'}</span>
                                 </div>
                                 <div className="text-3xl font-black text-blue-900">{stats.total}</div>
                             </div>
                             <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border-2 border-emerald-200">
                                 <div className="flex items-center gap-2 mb-2">
                                     <CheckCircle className="w-5 h-5 text-emerald-600" />
-                                    <span className="text-xs font-semibold text-emerald-700 uppercase">Présents</span>
+                                    <span className="text-xs font-semibold text-emerald-700 uppercase">{messages['scanner.present'] || 'Présents'}</span>
                                 </div>
                                 <div className="text-3xl font-black text-emerald-900">{stats.present}</div>
                             </div>
                             <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border-2 border-amber-200">
                                 <div className="flex items-center gap-2 mb-2">
                                     <AlertCircle className="w-5 h-5 text-amber-600" />
-                                    <span className="text-xs font-semibold text-amber-700 uppercase">Absents</span>
+                                    <span className="text-xs font-semibold text-amber-700 uppercase">{messages['scanner.absent'] || 'Absents'}</span>
                                 </div>
                                 <div className="text-3xl font-black text-amber-900">{stats.absent}</div>
                             </div>
@@ -399,7 +400,7 @@ export default function Scanner({ race, stats: initialStats }) {
                                 <div className="bg-white rounded-2xl shadow-lg p-12 border-2 border-blue-100 text-center">
                                     <Loader className="w-12 h-12 mx-auto mb-4 text-blue-600 animate-spin" />
                                     <p className="text-blue-700 font-semibold">
-                                        Chargement des membres de l'équipe...
+                                        {messages['scanner.loading_team'] || 'Chargement des membres de l\'équipe...'}
                                     </p>
                                 </div>
                             ) : (
@@ -421,7 +422,7 @@ export default function Scanner({ race, stats: initialStats }) {
                                 className="w-full bg-blue-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg flex items-center justify-center gap-2"
                             >
                                 <QrCode className="w-5 h-5" />
-                                Scanner un autre QR Code
+                                {messages['scanner.scan_another'] || 'Scanner un autre QR Code'}
                             </button>
                         </div>
                     ) : (
@@ -432,7 +433,7 @@ export default function Scanner({ race, stats: initialStats }) {
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
                                         <QrCode className="w-6 h-6 text-blue-600" />
-                                        Scanner QR Code
+                                        {messages['scanner.qr_code'] || 'Scanner QR Code'}
                                     </h2>
                                 </div>
 
@@ -442,14 +443,14 @@ export default function Scanner({ race, stats: initialStats }) {
                                         <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
                                             <Camera className="w-16 h-16 mx-auto mb-4 text-gray-400" />
                                             <p className="text-gray-600 mb-6">
-                                                Cliquez sur le bouton ci-dessous pour activer la caméra
+                                                {messages['scanner.click_to_activate'] || 'Cliquez sur le bouton ci-dessous pour activer la caméra'}
                                             </p>
                                             <button
                                                 onClick={startScanning}
                                                 className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg flex items-center gap-2 mx-auto"
                                             >
                                                 <Camera className="w-5 h-5" />
-                                                Démarrer le scanner
+                                                {messages['scanner.start'] || 'Démarrer le scanner'}
                                             </button>
                                         </div>
                                     )}
@@ -461,7 +462,7 @@ export default function Scanner({ race, stats: initialStats }) {
                                                 onClick={stopScanning}
                                                 className="w-full bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition"
                                             >
-                                                Arrêter le scanner
+                                                {messages['scanner.stop'] || 'Arrêter le scanner'}
                                             </button>
                                         </div>
                                     )}
@@ -470,7 +471,7 @@ export default function Scanner({ race, stats: initialStats }) {
                                         <div className="bg-blue-50 rounded-xl p-12 text-center border-2 border-blue-200">
                                             <Loader className="w-12 h-12 mx-auto mb-4 text-blue-600 animate-spin" />
                                             <p className="text-blue-700 font-semibold">
-                                                Vérification en cours...
+                                                {messages['scanner.verifying'] || 'Vérification en cours...'}
                                             </p>
                                         </div>
                                     )}
@@ -481,7 +482,7 @@ export default function Scanner({ race, stats: initialStats }) {
                                                 <XCircle className="w-12 h-12 text-red-600 flex-shrink-0" />
                                                 <div className="flex-1">
                                                     <h3 className="text-xl font-bold text-red-900 mb-2">
-                                                        Erreur
+                                                        {messages['scanner.error'] || 'Erreur'}
                                                     </h3>
                                                     <p className="text-red-700">{error}</p>
                                                 </div>
@@ -490,7 +491,7 @@ export default function Scanner({ race, stats: initialStats }) {
                                                 onClick={resetScanner}
                                                 className="w-full mt-4 bg-white text-red-700 border-2 border-red-300 px-6 py-3 rounded-xl font-bold hover:bg-red-50 transition"
                                             >
-                                                Réessayer
+                                                {messages['scanner.retry'] || 'Réessayer'}
                                             </button>
                                         </div>
                                     )}
@@ -501,7 +502,7 @@ export default function Scanner({ race, stats: initialStats }) {
                             <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-blue-100">
                                 <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2">
                                     <AlertCircle className="w-6 h-6 text-blue-600" />
-                                    Instructions
+                                    {messages['scanner.instructions'] || 'Instructions'}
                                 </h2>
 
                                 <div className="space-y-4">
@@ -510,9 +511,9 @@ export default function Scanner({ race, stats: initialStats }) {
                                             1
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900 mb-1">Activer la caméra</h3>
+                                            <h3 className="font-bold text-gray-900 mb-1">{messages['scanner.step1_title'] || 'Activer la caméra'}</h3>
                                             <p className="text-sm text-gray-600">
-                                                Cliquez sur "Démarrer le scanner" et autorisez l'accès à la caméra
+                                                {messages['scanner.step1_desc'] || 'Cliquez sur "Démarrer le scanner" et autorisez l\'accès à la caméra'}
                                             </p>
                                         </div>
                                     </div>
@@ -522,9 +523,9 @@ export default function Scanner({ race, stats: initialStats }) {
                                             2
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900 mb-1">Scanner le QR Code</h3>
+                                            <h3 className="font-bold text-gray-900 mb-1">{messages['scanner.step2_title'] || 'Scanner le QR Code'}</h3>
                                             <p className="text-sm text-gray-600">
-                                                Placez le QR Code du ticket d'équipe devant la caméra
+                                                {messages['scanner.step2_desc'] || 'Placez le QR Code du ticket d\'équipe devant la caméra'}
                                             </p>
                                         </div>
                                     </div>
@@ -534,9 +535,9 @@ export default function Scanner({ race, stats: initialStats }) {
                                             3
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900 mb-1">Gérer l'équipe</h3>
+                                            <h3 className="font-bold text-gray-900 mb-1">{messages['scanner.step3_title'] || 'Gérer l\'équipe'}</h3>
                                             <p className="text-sm text-gray-600">
-                                                Après le scan, validez le PPS, le paiement et la présence des membres
+                                                {messages['scanner.step3_desc'] || 'Après le scan, validez le PPS, le paiement et la présence des membres'}
                                             </p>
                                         </div>
                                     </div>
@@ -545,12 +546,12 @@ export default function Scanner({ race, stats: initialStats }) {
                                 <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
                                     <h3 className="font-bold text-amber-900 mb-2 flex items-center gap-2">
                                         <AlertCircle className="w-5 h-5" />
-                                        Important
+                                        {messages['scanner.important'] || 'Important'}
                                     </h3>
                                     <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
-                                        <li>Assurez-vous que le QR Code est bien visible et éclairé</li>
-                                        <li>Le QR Code doit être celui d'une inscription validée</li>
-                                        <li>Les équipes déjà pointées peuvent être scannées à nouveau</li>
+                                        <li>{messages['scanner.tip1'] || 'Assurez-vous que le QR Code est bien visible et éclairé'}</li>
+                                        <li>{messages['scanner.tip2'] || 'Le QR Code doit être celui d\'une inscription validée'}</li>
+                                        <li>{messages['scanner.tip3'] || 'Les équipes déjà pointées peuvent être scannées à nouveau'}</li>
                                     </ul>
                                 </div>
                             </div>

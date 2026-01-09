@@ -61,31 +61,31 @@ function MyRaceCard({ race, isRegistered = false }) {
                 {!isRegistered && race.leaderboard && (
                     <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
                         <p className="text-xs font-bold text-purple-900 mb-3 uppercase tracking-wide">
-                            📊 Vos résultats
+                            📊 {messages['my_race.your_results'] || "Vos résultats"}
                         </p>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-white rounded p-2 text-center">
-                                <p className="text-gray-600 text-xs">Temps</p>
+                                <p className="text-gray-600 text-xs">{messages['my_race.time'] || "Temps"}</p>
                                 <p className="font-bold text-purple-600 text-sm">
                                     {formatTime(race.leaderboard.temps)}
                                 </p>
                             </div>
                             <div className="bg-white rounded p-2 text-center">
                                 <p className="text-gray-600 text-xs">
-                                    Temps final
+                                    {messages['my_race.final_time'] || "Temps final"}
                                 </p>
                                 <p className="font-bold text-purple-600 text-sm">
                                     {formatTime(race.leaderboard.temps_final)}
                                 </p>
                             </div>
                             <div className="bg-white rounded p-2 text-center">
-                                <p className="text-gray-600 text-xs">Malus</p>
+                                <p className="text-gray-600 text-xs">{messages['my_race.penalty'] || "Malus"}</p>
                                 <p className="font-bold text-red-600 text-sm">
                                     {formatTime(race.leaderboard.malus)}
                                 </p>
                             </div>
                             <div className="bg-white rounded p-2 text-center">
-                                <p className="text-gray-600 text-xs">Points</p>
+                                <p className="text-gray-600 text-xs">{messages['my_race.points'] || "Points"}</p>
                                 <p className="font-bold text-green-600 text-sm">
                                     {race.leaderboard.points || 0}
                                 </p>
@@ -98,7 +98,7 @@ function MyRaceCard({ race, isRegistered = false }) {
                 {race.team && (
                     <div className="mb-4 p-3 bg-blue-50 rounded-md">
                         <p className="text-xs font-semibold text-blue-700 mb-1">
-                            Mon équipe
+                            {messages['my_race.my_team'] || "Mon équipe"}
                         </p>
                         <span className="font-medium text-blue-900">
                             {race.team.name}
@@ -111,12 +111,12 @@ function MyRaceCard({ race, isRegistered = false }) {
                     <div className="flex gap-2">
                         {isRegistered && (
                             <span className="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                                ✓ Inscrit
+                                ✓ {messages['my_race.registered'] || "Inscrit"}
                             </span>
                         )}
                         {race.is_open && !race.leaderboard && (
                             <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">
-                                Ouvert
+                                {messages['my_race.open'] || "Ouvert"}
                             </span>
                         )}
                     </div>
@@ -128,7 +128,7 @@ function MyRaceCard({ race, isRegistered = false }) {
                         href={route("races.show", { id: race.id })}
                         className="flex-1 inline-block px-4 py-2 bg-blue-600 text-white text-center rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                     >
-                        Voir les détails
+                        {messages['my_race.view_details'] || "Voir les détails"}
                     </Link>
                     {isRegistered && (
                         <Link
@@ -138,7 +138,7 @@ function MyRaceCard({ race, isRegistered = false }) {
                             })}
                             className="flex-1 inline-block px-4 py-2 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
                         >
-                            Mon QR Code
+                            {messages['my_race.my_qr_code'] || "Mon QR Code"}
                         </Link>
                     )} 
                 </div>
@@ -152,10 +152,10 @@ export default function MyRaceIndex({ races = [], registers = [], currentPeriod 
     const messages = usePage().props.translations?.messages || {};
     
     const periods = [
-        { value: 'all', label: messages.filter_all || 'Tous' },
-        { value: '1month', label: messages.filter_1month || 'Dernier mois' },
-        { value: '6months', label: messages.filter_6months || '6 mois' },
-        { value: '1year', label: messages.filter_1year || '1 an' },
+        { value: 'all', label: messages['my_race.filter_all'] || 'Tous' },
+        { value: '1month', label: messages['my_race.filter_1month'] || 'Dernier mois' },
+        { value: '6months', label: messages['my_race.filter_6months'] || '6 mois' },
+        { value: '1year', label: messages['my_race.filter_1year'] || '1 an' },
     ];
 
     const handlePeriodChange = (period) => {
@@ -176,11 +176,11 @@ export default function MyRaceIndex({ races = [], registers = [], currentPeriod 
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-1 h-8 bg-blue-600 rounded"></div>
                             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-                                Mes Courses
+                                {messages['my_race.title'] || "Mes Courses"}
                             </h1>
                         </div>
                         <p className="text-gray-600 ml-4">
-                            Consultez votre historique et vos inscriptions
+                            {messages['my_race.subtitle'] || "Consultez votre historique et vos inscriptions"}
                         </p>
                     </div>
 
@@ -210,12 +210,10 @@ export default function MyRaceIndex({ races = [], registers = [], currentPeriod 
                         <div className="bg-white rounded-lg shadow-sm p-12 text-center">
                             <RiRunLine className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                             <p className="text-gray-600 text-lg">
-                                Vous n'avez ni courses complétées ni
-                                inscriptions actuelles.
+                                {messages['my_race.empty_message'] || "Vous n'avez ni courses complétées ni inscriptions actuelles."}
                             </p>
                             <p className="text-gray-500 text-sm mt-2">
-                                Découvrez les courses disponibles et
-                                inscrivez-vous !
+                                {messages['my_race.empty_cta'] || "Découvrez les courses disponibles et inscrivez-vous !"}
                             </p>
                         </div>
                     )}
@@ -226,10 +224,10 @@ export default function MyRaceIndex({ races = [], registers = [], currentPeriod 
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                                     <span className="inline-block w-1 h-6 bg-purple-600 rounded"></span>
-                                    Historique de mes courses
+                                    {messages['my_race.history_title'] || "Historique de mes courses"}
                                 </h2>
                                 <p className="text-gray-600 text-sm ml-3 mt-1">
-                                    {races.length} course(s) complétée(s)
+                                    {races.length} {messages['my_race.history_count'] || "course(s) complétée(s)"}
                                 </p>
                             </div>
 
@@ -251,11 +249,10 @@ export default function MyRaceIndex({ races = [], registers = [], currentPeriod 
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                                     <span className="inline-block w-1 h-6 bg-green-600 rounded"></span>
-                                    Mes inscriptions
+                                    {messages['my_race.registrations_title'] || "Mes inscriptions"}
                                 </h2>
                                 <p className="text-gray-600 text-sm ml-3 mt-1">
-                                    {registers.length} course(s) en attente ou
-                                    en cours
+                                    {registers.length} {messages['my_race.registrations_count'] || "course(s) en attente ou en cours"}
                                 </p>
                             </div>
 

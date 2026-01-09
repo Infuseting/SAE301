@@ -32,7 +32,7 @@ export default function RaidButton() {
                 className="inline-flex items-center  px-3 py-2 border border-transparent text-md leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
             >
                 <FaRegCompass className="h-5 w-5 mr-1" />
-                {messages.raids || "Raids"}
+                {messages['navbar.raids'] || "Raids"}
                 <svg
                     className={`ml-2 h-4 w-4 transition-transform ${
                         isOpen ? "rotate-180" : ""
@@ -58,7 +58,7 @@ export default function RaidButton() {
                             className="block px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
                         >
                             <LuLayoutGrid className="inline mr-2 mb-1" />
-                            {messages.raids || "Voir tous les raids"}
+                            {messages['navbar.view_all_raids'] || "Voir tous les raids"}
                         </Link>
                         {user && (
                             <Link
@@ -66,7 +66,7 @@ export default function RaidButton() {
                                 className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                             >
                                 <FaTrophy className="inline mr-2 mb-1" />
-                                {messages.my_courses || "Mes raids"}
+                                {messages['navbar.my_raids'] || "Mes raids"}
                             </Link>
                         )}
                     </div>

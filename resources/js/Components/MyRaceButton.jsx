@@ -33,7 +33,7 @@ export default function MyRaceButton() {
                 className="inline-flex items-center px-3 py-2 md:border border-transparent text-md leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
             >
                 <RiRunLine className="h-5 w-5 mr-1" />
-                {messages.course || "Courses"}
+                {messages['navbar.races'] || "Courses"}
                 <svg
                     className={`ml-2 h-4 w-4 transition-transform ${
                         isOpen ? "rotate-180" : ""
@@ -59,7 +59,7 @@ export default function MyRaceButton() {
                             className="block px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
                         >
                             <LuLayoutGrid className="inline mr-2 mb-1" />
-                            {messages.view_all_races || "Voir toutes les courses"}
+                            {messages['navbar.view_all_races'] || "Voir toutes les courses"}
                         </Link>
                         {user && (
                             <Link
@@ -67,7 +67,7 @@ export default function MyRaceButton() {
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
                             >
                                 <BiSolidTimer className="inline mr-2 mb-1" />
-                                {messages.my_courses || "Mes courses"}
+                                {messages['navbar.my_races'] || "Mes courses"}
                             </Link>
                         )}
                     </div>

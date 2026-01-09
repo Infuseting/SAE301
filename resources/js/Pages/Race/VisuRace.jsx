@@ -191,23 +191,23 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
             case 'pre_race':
                 return {
                     icon: <Clock className="h-5 w-5" />,
-                    title: 'En attente du début de la course',
-                    text: 'La période d\'inscription est terminée. La course débutera bientôt.',
+                    title: translations['race.view.waiting_start'] || 'En attente du début de la course',
+                    text: translations['race.view.registration_ended'] || 'La période d\'inscription est terminée. La course débutera bientôt.',
                     color: 'bg-amber-50 border-amber-200 text-amber-800'
                 };
             case 'racing':
                 return {
                     icon: <Timer className="h-5 w-5" />,
-                    title: 'Course en cours',
-                    text: 'La course est actuellement en cours. Les résultats seront disponibles après la fin.',
+                    title: translations['race.view.race_ongoing'] || 'Course en cours',
+                    text: translations['race.view.results_after'] || 'La course est actuellement en cours. Les résultats seront disponibles après la fin.',
                     color: 'bg-blue-50 border-blue-200 text-blue-800'
                 };
             case 'post_race':
                 if (!hasResults) {
                     return {
                         icon: <AlertCircle className="h-5 w-5" />,
-                        title: 'En attente des résultats',
-                        text: 'La course est terminée. Les résultats n\'ont pas encore été publiés.',
+                        title: translations['race.view.waiting_results'] || 'En attente des résultats',
+                        text: translations['race.view.results_not_published'] || 'La course est terminée. Les résultats n\'ont pas encore été publiés.',
                         color: 'bg-gray-50 border-gray-200 text-gray-700'
                     };
                 }
@@ -228,16 +228,16 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                             <AlertCircle className="w-10 h-10 text-red-500" />
                         </div>
                         <h3 className="text-2xl font-black text-blue-900 italic uppercase italic">
-                            {error || 'ÉPREUVE INTROUVABLE'}
+                            {error || translations['race.view.not_found'] || 'ÉPREUVE INTROUVABLE'}
                         </h3>
                         <p className="text-blue-700/60 font-medium leading-relaxed">
-                            {errorMessage || "L'épreuve que vous recherchez n'existe pas ou a été déplacée."}
+                            {errorMessage || translations['race.view.not_found_desc'] || "L'épreuve que vous recherchez n'existe pas ou a été déplacée."}
                         </p>
                         <Link
                             href="/"
                             className="inline-flex items-center px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-blue-200"
                         >
-                            RETOUR À L'ACCUEIL
+                            {translations['race.view.back_home'] || 'RETOUR À L\'ACCUEIL'}
                         </Link>
                     </div>
                 </div>
@@ -247,7 +247,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
 
 
     const formatDate = (dateString) => {
-        if (!dateString) return 'Non définie';
+        if (!dateString) return translations['race.view.not_defined'] || 'Non définie';
         return new Date(dateString).toLocaleDateString('fr-FR', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
         });
@@ -262,9 +262,9 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
     };
 
     const statusConfig = {
-        completed: { label: 'Épreuve Terminée', icon: <CheckCircle2 className="h-4 w-4" />, color: 'bg-gray-900 text-white' },
-        ongoing: { label: 'En cours', icon: <Clock className="h-4 w-4" />, color: 'bg-emerald-500 text-white' },
-        planned: { label: 'À venir', icon: <Calendar className="h-4 w-4" />, color: 'bg-blue-600 text-white' }
+        completed: { label: translations['race.view.status_completed'] || 'Épreuve Terminée', icon: <CheckCircle2 className="h-4 w-4" />, color: 'bg-gray-900 text-white' },
+        ongoing: { label: translations['race.view.status_ongoing'] || 'En cours', icon: <Clock className="h-4 w-4" />, color: 'bg-emerald-500 text-white' },
+        planned: { label: translations['race.view.status_planned'] || 'À venir', icon: <Calendar className="h-4 w-4" />, color: 'bg-blue-600 text-white' }
     };
 
     const currentStatus = statusConfig[race.status] || statusConfig.planned;
@@ -286,7 +286,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                     {race.raidId && (
                         <Link href={route('raids.show', race.raidId)} className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-white mb-4 transition-colors uppercase tracking-widest">
                             <ChevronRight className="w-4 h-4 rotate-180" />
-                            Retour au raid
+                            {translations['race.view.back_to_raid'] || 'Retour au raid'}
                         </Link>
                     )}
 
@@ -334,7 +334,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 <Link href={route('races.edit', race.id)}>
                                     <button className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-black text-xs transition-all backdrop-blur-md border border-white/20 flex items-center gap-2 tracking-widest uppercase">
                                         <Settings className="h-4 w-4" />
-                                        CONFIGURER
+                                        {translations['race.view.configure'] || 'CONFIGURER'}
                                     </button>
                                 </Link>
                             </div>
@@ -354,23 +354,23 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     <div className="flex items-center gap-3">
                                         <MapPin className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                                         <div>
-                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Lieu</p>
-                                            <p className="text-sm font-bold text-blue-900">{race.raid?.location || race.location || 'Lieu à définir'}</p>
+                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{translations['race.view.location'] || 'Lieu'}</p>
+                                            <p className="text-sm font-bold text-blue-900">{race.raid?.location || race.location || translations['race.view.location_tbd'] || 'Lieu à définir'}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <Calendar className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                                         <div>
-                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Date & Heure</p>
+                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{translations['race.view.date_time'] || 'Date & Heure'}</p>
                                             <p className="text-sm font-bold text-blue-900">
-                                                {formatDate(race.raceDate)} à <span className="text-emerald-600 font-black">{formatTime(race.raceDate)}</span>
+                                                {formatDate(race.raceDate)} {translations['race.view.at'] || 'à'} <span className="text-emerald-600 font-black">{formatTime(race.raceDate)}</span>
                                             </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <ShieldCheck className="h-5 w-5 text-emerald-500 flex-shrink-0" />
                                         <div>
-                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Difficulté</p>
+                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{translations['race.view.difficulty'] || 'Difficulté'}</p>
                                             <p className="text-sm font-bold text-blue-900">{race.difficulty}</p>
                                         </div>
                                     </div>
@@ -391,7 +391,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-50">
                                         <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-4 flex items-center gap-2">
                                             <Users className="h-5 w-5 text-emerald-500" />
-                                            Catégories d'âges acceptées
+                                            {translations['race.view.age_categories'] || 'Catégories d\'âges acceptées'}
                                         </h3>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                             {race.ageCategories.map((category) => (
@@ -414,31 +414,31 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-50">
                                         <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-4 flex items-center gap-2">
                                             <Users className="h-5 w-5 text-emerald-500" />
-                                            Règles d'âge
+                                            {translations['race.view.age_rules'] || 'Règles d\'âge'}
                                         </h3>
                                         <div className="space-y-4">
                                             <div className="grid grid-cols-3 gap-3">
                                                 <div className="bg-blue-50/50 border border-blue-200 rounded-xl p-4 text-center">
-                                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Âge minimum</p>
+                                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">{translations['race.view.min_age'] || 'Âge minimum'}</p>
                                                     <p className="text-2xl font-black text-blue-900 italic">{race.leisureAgeMin ?? '—'}</p>
-                                                    <p className="text-[10px] font-bold text-blue-600 mt-1">ans</p>
+                                                    <p className="text-[10px] font-bold text-blue-600 mt-1">{translations['race.view.years'] || 'ans'}</p>
                                                 </div>
                                                 <div className="bg-amber-50/50 border border-amber-200 rounded-xl p-4 text-center">
-                                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Seuil intermédiaire</p>
+                                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">{translations['race.view.intermediate_threshold'] || 'Seuil intermédiaire'}</p>
                                                     <p className="text-2xl font-black text-amber-900 italic">{race.leisureAgeIntermediate ?? '—'}</p>
-                                                    <p className="text-[10px] font-bold text-amber-600 mt-1">ans</p>
+                                                    <p className="text-[10px] font-bold text-amber-600 mt-1">{translations['race.view.years'] || 'ans'}</p>
                                                 </div>
                                                 <div className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-4 text-center">
-                                                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Âge accompagnateur</p>
+                                                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">{translations['race.view.supervisor_age'] || 'Âge accompagnateur'}</p>
                                                     <p className="text-2xl font-black text-emerald-900 italic">{race.leisureAgeSupervisor ?? '—'}</p>
-                                                    <p className="text-[10px] font-bold text-emerald-600 mt-1">ans</p>
+                                                    <p className="text-[10px] font-bold text-emerald-600 mt-1">{translations['race.view.years'] || 'ans'}</p>
                                                 </div>
                                             </div>
                                             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
                                                 <p className="text-xs font-bold text-blue-800 leading-relaxed">
-                                                    <span className="font-black">Règles :</span> Tous les participants doivent avoir au moins <span className="font-black text-blue-600">{race.leisureAgeMin} ans</span>. 
-                                                    Si un membre a moins de <span className="font-black text-amber-600">{race.leisureAgeIntermediate} ans</span>, 
-                                                    l'équipe doit inclure un accompagnateur d'au moins <span className="font-black text-emerald-600">{race.leisureAgeSupervisor} ans</span>.
+                                                    <span className="font-black">{translations['race.view.rules'] || 'Règles'} :</span> {translations['race.view.rules_desc'] || 'Tous les participants doivent avoir au moins'} <span className="font-black text-blue-600">{race.leisureAgeMin} {translations['race.view.years'] || 'ans'}</span>. 
+                                                    {translations['race.view.if_member_less_than'] || 'Si un membre a moins de'} <span className="font-black text-amber-600">{race.leisureAgeIntermediate} {translations['race.view.years'] || 'ans'}</span>, 
+                                                    {translations['race.view.team_must_include'] || 'l\'équipe doit inclure un accompagnateur d\'au moins'} <span className="font-black text-emerald-600">{race.leisureAgeSupervisor} {translations['race.view.years'] || 'ans'}</span>.
                                                 </p>
                                             </div>
                                         </div>
@@ -458,7 +458,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         }`}
                                     >
                                         <CreditCard className="h-3 w-3 inline mr-1.5" />
-                                        Tarifs
+                                        {translations['race.view.prices'] || 'Tarifs'}
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('equipes')}
@@ -469,7 +469,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         }`}
                                     >
                                         <Users className="h-3 w-3 inline mr-1.5" />
-                                        Équipes
+                                        {translations['race.view.teams'] || 'Équipes'}
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('responsable')}
@@ -480,7 +480,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         }`}
                                     >
                                         <ShieldCheck className="h-3 w-3 inline mr-1.5" />
-                                        Responsable
+                                        {translations['race.view.manager'] || 'Responsable'}
                                     </button>
                                 </div>
 
@@ -489,9 +489,9 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     {activeTab === 'tarifs' && (
                                         <div className="space-y-3">
                                             {[
-                                                { label: 'Majeur', price: race.priceMajor, isMain: true },
-                                                ...(!race.raceType === 'compétitif' ? [{ label: 'Mineur', price: race.priceMinor }] : []),
-                                                { label: 'Adhérent', price: race.priceAdherent, sub: 'Licenciés' },
+                                                { label: translations['race.view.adult'] || 'Majeur', price: race.priceMajor, isMain: true },
+                                                ...(!race.raceType === 'compétitif' ? [{ label: translations['race.view.minor'] || 'Mineur', price: race.priceMinor }] : []),
+                                                { label: translations['race.view.member'] || 'Adhérent', price: race.priceAdherent, sub: translations['race.view.licensed'] || 'Licenciés' },
                                             ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
                                                 <div key={idx} className="flex items-center justify-between p-3 rounded-xl border bg-blue-50/30 border-blue-50 text-blue-900 transition-colors">
                                                     <div>
@@ -509,7 +509,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         <div className="space-y-4">
                                             {/* Participants */}
                                             <div>
-                                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Runners</p>
+                                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">{translations['race.view.runners'] || 'Coureurs'}</p>
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
                                                         <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Min</p>
@@ -524,7 +524,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
 
                                             {/* Teams */}
                                             <div>
-                                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Équipes</p>
+                                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">{translations['race.view.teams'] || 'Équipes'}</p>
                                                 <div className="grid grid-cols-3 gap-3">
                                                     <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
                                                         <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Min</p>
@@ -535,7 +535,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                         <p className="text-xl font-black text-blue-900 italic">{race.maxTeams}</p>
                                                     </div>
                                                     <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-center">
-                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Taille Éq</p>
+                                                        <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">{translations['race.view.team_size'] || 'Taille Éq'}</p>
                                                         <p className="text-xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
                                                     </div>
                                                 </div>
@@ -566,7 +566,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                     </div>
                                                 ))
                                             ) : (
-                                                <p className="text-center text-blue-600 text-sm font-bold py-4">Aucune catégorie d'âge définie</p>
+                                                <p className="text-center text-blue-600 text-sm font-bold py-4">{translations['race.view.no_age_category'] || 'Aucune catégorie d\'âge définie'}</p>
                                             )}
                                         </div>
                                     )}
@@ -580,11 +580,11 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                 </div>
                                                 <div>
                                                     <p className="text-xs font-black text-blue-900 uppercase italic leading-none">{race.organizer.name}</p>
-                                                    <p className="text-[8px] font-bold text-blue-700/40 uppercase tracking-widest mt-0.5">ORGANISATEUR</p>
+                                                    <p className="text-[8px] font-bold text-blue-700/40 uppercase tracking-widest mt-0.5">{translations['race.view.organizer'] || 'ORGANISATEUR'}</p>
                                                 </div>
                                             </div>
                                             <button className="w-full py-3 text-[9px] font-black text-blue-600 uppercase tracking-[0.15em] hover:bg-blue-50 rounded-xl border border-blue-100 transition-colors">
-                                                Contacter
+                                                {translations['race.view.contact'] || 'Contacter'}
                                             </button>
                                         </div>
                                     )}
@@ -595,13 +595,13 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                             {isManager && (
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between">
-                                        <h2 className="text-2xl font-black text-blue-900 italic uppercase">Gestion des Inscriptions</h2>
+                                        <h2 className="text-2xl font-black text-blue-900 italic uppercase">{translations['race.view.registration_management'] || 'Gestion des Inscriptions'}</h2>
                                         <div className="flex items-center gap-3">
                                             <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-black tracking-widest uppercase">
-                                                {teamsData.length} ÉQUIPES
+                                                {teamsData.length} {translations['race.view.teams_count'] || 'ÉQUIPES'}
                                             </span>
                                             <span className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase">
-                                                {participants.length} INSCRITS
+                                                {participants.length} {translations['race.view.registered'] || 'INSCRITS'}
                                             </span>
                                         </div>
                                     </div>
@@ -627,7 +627,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     {teamsData.length === 0 && (
                                         <div className="bg-white rounded-2xl p-12 text-center border border-blue-50">
                                             <Users className="w-12 h-12 mx-auto mb-4 text-blue-200" />
-                                            <p className="text-blue-400 font-bold">Aucune inscription pour le moment</p>
+                                            <p className="text-blue-400 font-bold">{translations['race.view.no_registration'] || 'Aucune inscription pour le moment'}</p>
                                         </div>
                                     )}
 
@@ -637,35 +637,35 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                             <div className="flex items-center justify-between">
                                                 <h3 className="text-lg font-black text-blue-900 italic uppercase flex items-center gap-3">
                                                     <Trophy className="h-5 w-5 text-amber-500" />
-                                                    Gestion des Résultats
+                                                    {translations['race.view.results_management'] || 'Gestion des Résultats'}
                                                 </h3>
                                                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
                                                     hasResults 
                                                         ? 'bg-emerald-50 text-emerald-600' 
                                                         : 'bg-orange-50 text-orange-600'
                                                 }`}>
-                                                    {hasResults ? 'Résultats publiés' : 'En attente'}
+                                                    {hasResults ? (translations['race.view.results_published'] || 'Résultats publiés') : (translations['race.view.pending'] || 'En attente')}
                                                 </span>
                                             </div>
 
                                             {/* Download Template */}
                                             <div className="space-y-3">
                                                 <p className="text-xs text-blue-700/60 font-medium">
-                                                    Téléchargez le template CSV avec la liste des équipes présentes, puis remplissez les temps et points.
+                                                    {translations['race.view.download_template_desc'] || 'Téléchargez le template CSV avec la liste des équipes présentes, puis remplissez les temps et points.'}
                                                 </p>
                                                 <a 
                                                     href={route('races.results.export-template', race.id)}
                                                     className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-black text-xs tracking-[0.15em] transition-all shadow-lg shadow-blue-200 uppercase flex items-center justify-center gap-2 text-white"
                                                 >
                                                     <Download className="h-4 w-4" />
-                                                    Télécharger le Template CSV
+                                                    {translations['race.view.download_template'] || 'Télécharger le Template CSV'}
                                                 </a>
                                             </div>
 
                                             {/* Upload Results */}
                                             <div className="space-y-3 pt-4 border-t border-blue-50">
                                                 <p className="text-xs text-blue-700/60 font-medium">
-                                                    Importez le fichier CSV complété avec les résultats de la course.
+                                                    {translations['race.view.import_desc'] || 'Importez le fichier CSV complété avec les résultats de la course.'}
                                                 </p>
                                                 <div className="flex gap-2">
                                                     <input 
@@ -687,12 +687,12 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                         {isUploading ? (
                                                             <>
                                                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                                                Import...
+                                                                {translations['race.view.importing'] || 'Import...'}
                                                             </>
                                                         ) : (
                                                             <>
                                                                 <Upload className="h-4 w-4" />
-                                                                Importer
+                                                                {translations['race.view.import'] || 'Importer'}
                                                             </>
                                                         )}
                                                     </button>
@@ -721,7 +721,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                         className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 py-3 rounded-xl font-black text-xs tracking-[0.15em] transition-all shadow-lg shadow-amber-200 uppercase flex items-center justify-center gap-2 text-white"
                                                     >
                                                         <Trophy className="h-4 w-4" />
-                                                        Voir les Résultats
+                                                        {translations['race.view.view_results'] || 'Voir les Résultats'}
                                                     </Link>
                                                 </div>
                                             )}
@@ -737,9 +737,9 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                             <div className="bg-emerald-900 rounded-2xl p-6 text-white shadow-2xl shadow-emerald-950/20 relative overflow-hidden group">
                                 <div className="relative z-10 space-y-6">
                                     <div className="space-y-2">
-                                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">État de l'épreuve</p>
+                                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.3em]">{translations['race.view.event_status'] || 'État de l\'épreuve'}</p>
                                         <h3 className="text-2xl font-black italic uppercase leading-none">
-                                            {race.status === 'completed' ? 'INSCRIPTIONS CLOSES' : race.isOpen ? 'VIVEZ L\'EXPÉRIENCE' : 'BIENTÔT DISPONIBLE'}
+                                            {race.status === 'completed' ? (translations['race.view.registrations_closed'] || 'INSCRIPTIONS CLOSES') : race.isOpen ? (translations['race.view.live_experience'] || 'VIVEZ L\'EXPÉRIENCE') : (translations['race.view.coming_soon'] || 'BIENTÔT DISPONIBLE')}
                                         </h3>
                                     </div>
 
@@ -750,7 +750,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                     onClick={handleOpenRegistration}
                                                     className="w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3"
                                                 >
-                                                    {registeredTeam ? 'VOIR MON INSCRIPTION' : 'S\'INSCRIRE MAINTENANT'}
+                                                    {registeredTeam ? (translations['race.view.view_my_registration'] || 'VOIR MON INSCRIPTION') : (translations['race.view.register_now'] || 'S\'INSCRIRE MAINTENANT')}
                                                     <ChevronRight className="h-4 w-4" />
                                                 </button>
                                             ) : (
@@ -758,20 +758,20 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                     href={route('login', { redirect_uri: window.location.href })}
                                                     className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-blue-950 uppercase flex items-center justify-center gap-3"
                                                 >
-                                                    SE CONNECTER À MON COMPTE
+                                                    {translations['race.view.login_to_account'] || 'SE CONNECTER À MON COMPTE'}
                                                     <ChevronRight className="h-4 w-4" />
                                                 </Link>
                                             )}
                                             {race.registrationPeriod && (
                                                 <div className="bg-white/10 p-3 rounded-lg text-center space-y-2">
-                                                    <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Périoide d'inscription</p>
+                                                    <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">{translations['race.view.registration_period'] || 'Périoide d\'inscription'}</p>
                                                     <div className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-100">
                                                         <Clock className="h-3 w-3" />
                                                         <span>
                                                             {new Date(race.registrationPeriod.startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(' ', ', ')}
                                                         </span>
                                                     </div>
-                                                    <p className="text-emerald-400 text-xs">jusqu'au</p>
+                                                    <p className="text-emerald-400 text-xs">{translations['race.view.until'] || 'jusqu\'au'}</p>
                                                     <div className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-100">
                                                         <Clock className="h-3 w-3" />
                                                         <span>
@@ -784,11 +784,11 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     ) : !isRegistrationOpen() && race.registrationPeriod ? (
                                         <div className="space-y-3">
                                             <button disabled className="w-full bg-gray-600 cursor-not-allowed py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-gray-950 uppercase flex items-center justify-center gap-3 opacity-50">
-                                                INSCRIPTIONS FERMÉES
+                                                {translations['race.view.registrations_closed'] || 'INSCRIPTIONS FERMÉES'}
                                                 <ChevronRight className="h-4 w-4" />
                                             </button>
                                             <div className="bg-white/10 p-3 rounded-lg text-center space-y-2">
-                                                <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Périoide d'inscription</p>
+                                                <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">{translations['race.view.registration_period'] || 'Périoide d\'inscription'}</p>
                                                 <div className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-100">
                                                     <Clock className="h-3 w-3" />
                                                     <span>
@@ -811,7 +811,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-amber-950/50 uppercase flex items-center justify-center gap-3"
                                             >
                                                 <Trophy className="h-4 w-4" />
-                                                VOIR LES RÉSULTATS
+                                                {translations['race.view.see_results'] || 'VOIR LES RÉSULTATS'}
                                                 <ChevronRight className="h-4 w-4" />
                                             </Link>
                                             <a 
@@ -819,7 +819,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                 className="w-full bg-white/10 hover:bg-white/20 py-3 rounded-xl font-bold text-[10px] tracking-[0.15em] transition-all border border-white/20 uppercase flex items-center justify-center gap-2"
                                             >
                                                 <Download className="h-3 w-3" />
-                                                Télécharger les résultats (CSV)
+                                                {translations['race.view.download_results'] || 'Télécharger les résultats (CSV)'}
                                             </a>
                                         </div>
                                     ) : racePhase !== 'registration' ? (
@@ -844,8 +844,8 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
                                             <p className="text-xs font-bold text-emerald-100/60 leading-relaxed uppercase tracking-widest text-center">
                                                 {race.registrationPeriod ? 
-                                                    `Inscriptions du ${new Date(race.registrationPeriod.startDate).toLocaleDateString('fr-FR')} au ${new Date(race.registrationPeriod.endDate).toLocaleDateString('fr-FR')}`
-                                                    : 'Dates d\'inscription à définir'
+                                                    `${translations['race.view.registration_from'] || 'Inscriptions du'} ${new Date(race.registrationPeriod.startDate).toLocaleDateString('fr-FR')} ${translations['race.view.to'] || 'au'} ${new Date(race.registrationPeriod.endDate).toLocaleDateString('fr-FR')}`
+                                                    : (translations['race.view.dates_tbd'] || 'Dates d\'inscription à définir')
                                                 }
                                             </p>
                                         </div>
@@ -853,14 +853,14 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
 
                                     <div className="pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-sm">
                                         <div>
-                                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Participants</p>
+                                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">{translations['race.view.participants'] || 'Participants'}</p>
                                             <div className="flex items-baseline gap-1">
                                                 <span className="text-xl font-black italic leading-none">{participants.length}</span>
                                                 <span className="text-xs font-bold text-white/30 uppercase">/ {race.maxParticipants}</span>
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Format</p>
+                                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">{translations['race.view.format'] || 'Format'}</p>
                                             <p className="text-sm font-black uppercase italic leading-none">{race.raceType}</p>
                                         </div>
                                     </div>
@@ -872,13 +872,13 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                             <div className="bg-white rounded-[2.5rem] p-8 border border-blue-50 shadow-sm space-y-6">
                                 <h4 className="text-xs font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2">
                                     <CreditCard className="h-4 w-4 text-emerald-500" />
-                                    LISTE DES TARIFS
+                                    {translations['race.view.price_list'] || 'LISTE DES TARIFS'}
                                 </h4>
                                 <div className="space-y-4">
                                     {[
-                                        { label: 'Tarif Majeur', price: race.priceMajor, isMain: true },
-                                        ...(!race.raceType === 'compétitif' ? [{ label: 'Tarif Mineur', price: race.priceMinor }] : []),
-                                        { label: 'Tarif Adhérent', price: race.priceAdherent, sub: 'Licenciés club' },
+                                        { label: translations['race.view.adult_price'] || 'Tarif Majeur', price: race.priceMajor, isMain: true },
+                                        ...(!race.raceType === 'compétitif' ? [{ label: translations['race.view.minor_price'] || 'Tarif Mineur', price: race.priceMinor }] : []),
+                                        { label: translations['race.view.member_price'] || 'Tarif Adhérent', price: race.priceAdherent, sub: translations['race.view.club_licensed'] || 'Licenciés club' },
                                     ].filter(t => t.price !== null && t.price !== undefined).map((t, idx) => (
                                         <div key={idx} className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${t.isMain ? 'bg-blue-900 text-white border-blue-900 shadow-xl shadow-blue-200' : 'bg-blue-50/30 border-blue-50 text-blue-900'}`}>
                                             <div>
@@ -895,19 +895,19 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                             <div className="bg-white rounded-[2.5rem] p-8 border border-blue-50 shadow-sm space-y-6">
                                 <h4 className="text-xs font-black text-blue-900 uppercase tracking-[0.2em] flex items-center gap-2">
                                     <Users className="h-4 w-4 text-emerald-500" />
-                                    TEAM INFORMATION
+                                    INFORMATIONS SUR LES ÉQUIPES
                                 </h4>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Min Teams</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Équipes Min</p>
                                         <p className="text-2xl font-black text-blue-900 italic">{race.minTeams}</p>
                                     </div>
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Max Teams</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Équipes Max</p>
                                         <p className="text-2xl font-black text-blue-900 italic">{race.maxTeams}</p>
                                     </div>
                                     <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Team Size</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Taille Équipe</p>
                                         <p className="text-2xl font-black text-blue-900 italic">{race.maxPerTeam}</p>
                                     </div>
                                 </div>

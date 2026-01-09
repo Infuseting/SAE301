@@ -1,11 +1,11 @@
 import React from "react";
 import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { MdDateRange, MdLocationOn } from "react-icons/md";
 import { GiMountainRoad } from "react-icons/gi";
 
-function MyRaidCard({ raid }) {
+function MyRaidCard({ raid, messages }) {
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
         return new Date(dateString).toLocaleDateString("fr-FR", {
@@ -39,7 +39,7 @@ function MyRaidCard({ raid }) {
                 <div className="flex items-center gap-2 text-gray-700 text-sm mb-2">
                     <MdDateRange className="text-emerald-600 w-4 h-4" />
                     <span>
-                        Du {formatDate(raid.date_start)} au{" "}
+                        {messages['my_raid.from'] || 'Du'} {formatDate(raid.date_start)} {messages['my_raid.to'] || 'au'}{" "}
                         {formatDate(raid.date_end)}
                     </span>
                 </div>
@@ -57,7 +57,7 @@ function MyRaidCard({ raid }) {
                 {/* Status Badge */}
                 <div className="flex gap-2 mb-4">
                     <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-full">
-                        ✓ Participant
+                        ✓ {messages['my_raid.participant'] || 'Participant'}
                     </span>
                 </div>
 
@@ -67,7 +67,7 @@ function MyRaidCard({ raid }) {
                         href={route("raids.show", { id: raid.id })}
                         className="w-full inline-block px-4 py-2 bg-emerald-600 text-white text-center rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
                     >
-                        Voir les détails du raid
+                        {messages['my_raid.view_raid_details'] || 'Voir les détails du raid'}
                     </Link>
                 </div>
             </div>
@@ -76,6 +76,7 @@ function MyRaidCard({ raid }) {
 }
 
 export default function MyRaidIndex({ raids = [] }) {
+    const messages = usePage().props.translations?.messages || {};
     const isEmpty = raids.length === 0;
 
     return (
@@ -89,12 +90,11 @@ export default function MyRaidIndex({ raids = [] }) {
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-1 h-8 bg-emerald-600 rounded"></div>
                             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-                                Mes Raids
+                                {messages['my_raid.title'] || 'Mes Raids'}
                             </h1>
                         </div>
                         <p className="text-gray-600 ml-4">
-                            Retrouvez l'ensemble des raids auxquels vous
-                            participez ou avez participé
+                            {messages['my_raid.subtitle'] || "Retrouvez l'ensemble des raids auxquels vous participez ou avez participé"}
                         </p>
                     </div>
 
@@ -103,17 +103,16 @@ export default function MyRaidIndex({ raids = [] }) {
                         <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-gray-100">
                             <GiMountainRoad className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                             <p className="text-gray-600 text-lg font-medium">
-                                Aucun raid à afficher pour le moment.
+                                {messages['my_raid.empty_message'] || 'Aucun raid à afficher pour le moment.'}
                             </p>
                             <p className="text-gray-500 text-sm mt-2">
-                                Parcourez les raids à venir et inscrivez votre
-                                équipe !
+                                {messages['my_raid.empty_cta'] || 'Parcourez les raids à venir et inscrivez votre équipe !'}
                             </p>
                             <Link
                                 href={route("raids.index")}
                                 className="mt-6 inline-block text-emerald-600 font-semibold hover:underline"
                             >
-                                Explorer les raids disponibles →
+                                {messages['my_raid.explore_raids'] || 'Explorer les raids disponibles'} →
                             </Link>
                         </div>
                     ) : (
@@ -122,10 +121,10 @@ export default function MyRaidIndex({ raids = [] }) {
                                 <div>
                                     <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                                         <span className="inline-block w-1 h-6 bg-emerald-500 rounded"></span>
-                                        Historique de mes raids
+                                        {messages['my_raid.history_title'] || 'Historique de mes raids'}
                                     </h2>
                                     <p className="text-gray-600 text-sm ml-3 mt-1">
-                                        {raids.length} raid(s) enregistré(s)
+                                        {raids.length} {messages['my_raid.raid_count'] || 'raid(s) enregistré(s)'}
                                     </p>
                                 </div>
                             </div>
@@ -133,7 +132,7 @@ export default function MyRaidIndex({ raids = [] }) {
                             {/* Grid Layout */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {raids.map((raid) => (
-                                    <MyRaidCard key={raid.id} raid={raid} />
+                                    <MyRaidCard key={raid.id} raid={raid} messages={messages} />
                                 ))}
                             </div>
                         </section>

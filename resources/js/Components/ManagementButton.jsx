@@ -68,7 +68,7 @@ export default function ManagementButton() {
                 className="inline-flex items-center px-3 py-2 border border-transparent text-md leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
             >
                 <MdAdminPanelSettings className="h-5 w-5 mr-1" />
-                {messages.management || "Gestion"}
+                {messages['navbar.management'] || "Gestion"}
                 <svg
                     className={`ml-2 h-4 w-4 transition-transform ${
                         isOpen ? "rotate-180" : ""
@@ -98,7 +98,7 @@ export default function ManagementButton() {
                                     onClick={() => setIsOpen(false)}
                                 >
                                     <MdAdminPanelSettings className="h-5 w-5 mr-3 text-gray-400" />
-                                    {messages.admin_dashboard || "Tableau de bord"}
+                                    {messages['navbar.admin_dashboard'] || "Tableau de bord"}
                                 </Link>
 
                                 {/* Separator */}
@@ -111,7 +111,7 @@ export default function ManagementButton() {
                                     onClick={() => setIsOpen(false)}
                                 >
                                     <FaUsersCog className="h-5 w-5 mr-3 text-gray-400" />
-                                    {messages.manage_clubs || "Gérer les clubs"}
+                                    {messages['navbar.manage_clubs'] || "Gérer les clubs"}
                                 </Link>
 
                                 <Link
@@ -121,7 +121,7 @@ export default function ManagementButton() {
                                     onClick={() => setIsOpen(false)}
                                 >
                                     <FaClipboardList className="h-5 w-5 mr-3 text-gray-400" />
-                                    {messages.manage_raids || "Gérer les raids"}
+                                    {messages['navbar.manage_raids'] || "Gérer les raids"}
                                 </Link>
 
                                 <Link
@@ -131,7 +131,7 @@ export default function ManagementButton() {
                                     onClick={() => setIsOpen(false)}
                                 >
                                     <FaRoute className="h-5 w-5 mr-3 text-gray-400" />
-                                    {messages.manage_races || "Gérer les courses"}
+                                    {messages['navbar.manage_races'] || "Gérer les courses"}
                                 </Link>
                             </>
                         )}
@@ -143,7 +143,7 @@ export default function ManagementButton() {
                             onClick={() => setIsOpen(false)}
                         >
                             <FaUsers className="h-5 w-5 mr-3 text-gray-400" />
-                            {messages.team_management || "Gérer les équipes"}
+                            {messages['navbar.team_management'] || "Gérer les équipes"}
                         </Link>
                     </div>
                 </div>

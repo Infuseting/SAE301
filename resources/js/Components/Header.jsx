@@ -80,13 +80,13 @@ export default function Header({ transparent = false, className = "" }) {
                                         href={route("login")}
                                         className={linkClasses}
                                     >
-                                        {messages.login}
+                                        {messages['navbar.login'] || "Se connecter"}
                                     </Link>
                                     <Link
                                         href={route("register")}
                                         className={buttonClasses}
                                     >
-                                        {messages.register}
+                                        {messages['navbar.register'] || "S'inscrire"}
                                     </Link>
                                 </div>
                             )}
@@ -104,13 +104,13 @@ export default function Header({ transparent = false, className = "" }) {
                                         href={route("login")}
                                         className={linkClasses}
                                     >
-                                        {messages.login}
+                                        {messages['navbar.login'] || "Se connecter"}
                                     </Link>
                                     <Link
                                         href={route("register")}
                                         className={buttonClasses}
                                     >
-                                        {messages.register}
+                                        {messages['navbar.register'] || "S'inscrire"}
                                     </Link>
                                 </div>
                             )}
@@ -152,13 +152,13 @@ export default function Header({ transparent = false, className = "" }) {
                                         href={route("login")}
                                         className={linkClasses}
                                     >
-                                        {messages.login}
+                                        {messages['navbar.login'] || "Se connecter"}
                                     </Link>
                                     <Link
                                         href={route("register")}
                                         className={buttonClasses}
                                     >
-                                        {messages.register}
+                                        {messages['navbar.register'] || "S'inscrire"}
                                     </Link>
                                 </div>
                             )}
@@ -176,13 +176,13 @@ export default function Header({ transparent = false, className = "" }) {
                                         href={route("login")}
                                         className={linkClasses}
                                     >
-                                        {messages.login}
+                                        {messages['navbar.login'] || "Se connecter"}
                                     </Link>
                                     <Link
                                         href={route("register")}
                                         className={buttonClasses}
                                     >
-                                        {messages.register}
+                                        {messages['navbar.register'] || "S'inscrire"}
                                     </Link>
                                 </div>
                             )}
