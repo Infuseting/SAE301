@@ -1,10 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import TeamRegistrationModal from '@/Components/TeamRegistrationModal';
 import MyRegistrationModal from '@/Components/MyRegistrationModal';
 import UpdatePPSModal from '@/Components/UpdatePPSModal';
 import TeamPaymentModal from '@/Components/TeamPaymentModal';
+import TeamRegistrationCard from '@/Components/TeamRegistrationCard';
 import axios from 'axios';
 import {
     Calendar, Timer, MapPin, Users, Info, ChevronRight,
@@ -25,6 +26,32 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
     const [isUploading, setIsUploading] = useState(false);
     const [uploadMessage, setUploadMessage] = useState(null);
     const fileInputRef = useRef(null);
+
+    /**
+     * Group participants by team for TeamRegistrationCard component
+     * @returns {Array} Array of team objects with their members
+     */
+    const teamsData = useMemo(() => {
+        const teamMap = new Map();
+        
+        participantsState.forEach(p => {
+            if (!teamMap.has(p.equ_id)) {
+                teamMap.set(p.equ_id, {
+                    id: p.equ_id,
+                    name: p.equ_name,
+                    dossard: p.reg_dossard,
+                    reg_id: p.reg_id,
+                    members: []
+                });
+            }
+            teamMap.get(p.equ_id).members.push({
+                ...p,
+                user_id: p.user_id || p.id_users,
+            });
+        });
+        
+        return Array.from(teamMap.values());
+    }, [participantsState]);
 
     // Handler functions for modals
     const handlePPSClick = (participant) => {
@@ -77,6 +104,19 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                 console.error('Error response:', error.response.data);
             }
         }
+    };
+
+    /**
+     * Handle member update from TeamRegistrationCard component
+     * @param {number} regId - Registration ID
+     * @param {Object} updates - Updates to apply
+     */
+    const handleMemberUpdate = (regId, updates) => {
+        setParticipantsState(prevParticipants => 
+            prevParticipants.map(p => 
+                p.reg_id === regId ? { ...p, ...updates } : p
+            )
+        );
     };
 
     const handleOpenRegistration = () => {
@@ -556,133 +596,40 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-2xl font-black text-blue-900 italic uppercase">Gestion des Inscriptions</h2>
-                                        <span className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase">
-                                            {participants.length} INSCRITS
-                                        </span>
-                                    </div>
-
-                                    <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-blue-50">
-                                        <div className="mx-auto px-auto">
-                                            <table className="w-full divide-y divide-blue-50">
-                                                <thead className="bg-blue-50/50">
-                                                    <tr>
-                                                        <th className="px-4 py-5 text-left text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Participant / Équipe</th>
-                                                        <th className="px-4 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Licence</th>
-                                                        <th className="px-4 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">PPS</th>
-                                                        <th className="px-4 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Paiement</th>
-                                                        <th className="px-4 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Dossard</th>
-                                                        <th className="px-4 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Présent</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-blue-50">
-                                                    {participantsState.map((p, idx) => (
-                                                        <tr key={p.participant_id || idx} className="hover:bg-blue-50/30 transition-colors">
-                                                            <td className="px-4 py-6">
-                                                                <div className="flex items-center gap-4">
-                                                                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center font-black text-blue-600 uppercase italic">
-                                                                        {p.first_name[0]}{p.last_name[0]}
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="text-sm font-black text-blue-900 uppercase italic">{p.first_name} {p.last_name}</p>
-                                                                        <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">{p.equ_name}</p>
-                                                                        {p.bib_number && (
-                                                                            <p className="text-[10px] text-blue-400 font-bold">Dossard: {p.bib_number}</p>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-4 py-6 text-center">
-                                                                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase ${p.is_license_valid ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                                                                    {p.is_license_valid ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-                                                                    {p.adh_license || 'SANS'}
-                                                                </div>  
-                                                            </td>
-                                                            <td className="px-4 py-6 text-center">
-                                                                {p.is_license_valid ? (
-                                                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-gray-100 text-gray-500">
-                                                                        NON REQUIS
-                                                                    </div>
-                                                                ) : p.is_pps_valid ? (
-                                                                    <button 
-                                                                        onClick={() => handlePPSClick(p)}
-                                                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors cursor-pointer"
-                                                                    >
-                                                                        <CheckCircle2 className="h-3 w-3" />
-                                                                        VALIDE
-                                                                    </button>
-                                                                ) : p.pps_status === 'pending' ? (
-                                                                    <button 
-                                                                        onClick={() => handlePPSClick(p)}
-                                                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors cursor-pointer"
-                                                                    >
-                                                                        <Clock className="h-3 w-3" />
-                                                                        EN ATTENTE
-                                                                    </button>
-                                                                ) : (
-                                                                    <button 
-                                                                        onClick={() => handlePPSClick(p)}
-                                                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-red-50 text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
-                                                                    >
-                                                                        <XCircle className="h-3 w-3" />
-                                                                        REQUIS
-                                                                    </button>
-                                                                )}
-                                                            </td>
-                                                            <td className="px-4 py-6 text-center">
-                                                                {p.reg_validated ? (
-                                                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-600">
-                                                                        <CheckCircle2 className="h-3 w-3" />
-                                                                        PAYÉ
-                                                                    </div>
-                                                                ) : (
-                                                                    <button 
-                                                                        onClick={() => handlePaymentClick(p.equ_id)}
-                                                                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors cursor-pointer"
-                                                                    >
-                                                                        <CreditCard className="h-3 w-3" />
-                                                                        EN ATTENTE
-                                                                    </button>
-                                                                )}
-                                                            </td>
-                                                            <td className="px-4 py-6 text-center">
-                                                                {p.reg_dossard ? (
-                                                                    <div className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-lg font-black bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg">
-                                                                        {p.reg_dossard}
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="text-[10px] text-gray-400 font-bold uppercase">
-                                                                        Non attribué
-                                                                    </div>
-                                                                )}
-                                                            </td>
-                                                            <td className="px-4 py-6 text-center">
-                                                                <button
-                                                                    onClick={() => handleTogglePresence(p.reg_id)}
-                                                                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase transition-colors cursor-pointer ${
-                                                                        p.is_present 
-                                                                            ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' 
-                                                                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                                                                    }`}
-                                                                >
-                                                                    {p.is_present ? (
-                                                                        <>
-                                                                            <CheckCircle2 className="h-3 w-3" />
-                                                                            PRÉSENT
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            <XCircle className="h-3 w-3" />
-                                                                            ABSENT
-                                                                        </>
-                                                                    )}
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                        <div className="flex items-center gap-3">
+                                            <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-black tracking-widest uppercase">
+                                                {teamsData.length} ÉQUIPES
+                                            </span>
+                                            <span className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase">
+                                                {participants.length} INSCRITS
+                                            </span>
                                         </div>
                                     </div>
+
+                                    {/* Teams List using TeamRegistrationCard */}
+                                    <div className="space-y-4">
+                                        {teamsData.map((team) => (
+                                            <TeamRegistrationCard
+                                                key={team.id}
+                                                team={team}
+                                                raceId={race.id}
+                                                onPPSClick={handlePPSClick}
+                                                onPaymentClick={handlePaymentClick}
+                                                onPresenceToggle={handleTogglePresence}
+                                                onMemberUpdate={handleMemberUpdate}
+                                                isCompact={true}
+                                                showHeader={true}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Empty state */}
+                                    {teamsData.length === 0 && (
+                                        <div className="bg-white rounded-2xl p-12 text-center border border-blue-50">
+                                            <Users className="w-12 h-12 mx-auto mb-4 text-blue-200" />
+                                            <p className="text-blue-400 font-bold">Aucune inscription pour le moment</p>
+                                        </div>
+                                    )}
 
                                     {/* CSV Results Management Panel */}
                                     {(racePhase === 'racing' || racePhase === 'post_race') && (

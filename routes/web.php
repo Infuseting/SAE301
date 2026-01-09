@@ -145,6 +145,7 @@ Route::middleware(['auth', 'role:responsable-course|gestionnaire-raid|responsabl
     Route::get('/races/{race}/scanner', [RaceController::class, 'scannerPage'])->name('races.scanner');
     Route::post('/races/{race}/check-in', [RaceController::class, 'checkIn'])->name('races.check-in');
     Route::post('/races/{race}/toggle-presence', [RaceController::class, 'togglePresence'])->name('races.toggle-presence');
+    Route::get('/races/{race}/team-members/{registration}', [RaceController::class, 'getTeamMembers'])->name('races.team-members');
     
     // Race results management (CSV export/import)
     Route::get('/races/{race}/results/export-template', [RaceResultController::class, 'exportTeamsTemplate'])->name('races.results.export-template');

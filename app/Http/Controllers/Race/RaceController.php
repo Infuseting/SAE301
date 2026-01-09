@@ -980,5 +980,140 @@ class RaceController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Get team members for a registration (used after QR scan)
+     * 
+     * @OA\Get(
+     *     path="/races/{race}/team-members/{registration}",
+     *     tags={"Races"},
+     *     summary="Get team members for registration",
+     *     description="Retrieves all team members with their registration status for a given registration",
+     *     @OA\Parameter(
+     *         name="race",
+     *         in="path",
+     *         description="Race ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="registration",
+     *         in="path",
+     *         description="Registration ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Team members retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean"),
+     *             @OA\Property(property="team", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Must be race manager"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Registration not found"
+     *     )
+     * )
+     */
+    public function getTeamMembers(Race $race, int $registration)
+    {
+        // Check if user is race manager or admin
+        $user = auth()->user();
+        $isAdmin = $user && $user->hasRole('admin');
+        $isRaceManager = $user && ($user->hasRole('responsable-course') || ($race->organizer && $user->adh_id === $race->organizer->adh_id) || ($race->raid && $race->raid->club && $race->raid->club->hasManager($user)));
+
+        if (!$isAdmin && !$isRaceManager) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only race managers can access team members.'
+            ], 403);
+        }
+
+        // Find the registration
+        $registrationData = \App\Models\Registration::with(['team.leader'])
+            ->where('reg_id', $registration)
+            ->where('race_id', $race->race_id)
+            ->first();
+
+        if (!$registrationData) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration not found.'
+            ], 404);
+        }
+
+        // Get team members with their status
+        $members = \DB::table('race_participants')
+            ->join('registration', 'race_participants.reg_id', '=', 'registration.reg_id')
+            ->join('users', 'race_participants.user_id', '=', 'users.id')
+            ->leftJoin('members', 'users.adh_id', '=', 'members.adh_id')
+            ->where('race_participants.reg_id', $registration)
+            ->select([
+                'race_participants.rpa_id as participant_id',
+                'race_participants.reg_id',
+                'users.id as user_id',
+                'users.id as id_users',
+                'users.first_name', 
+                'users.last_name', 
+                'users.email',
+                'users.birth_date',
+                'members.adh_license',
+                'members.adh_end_validity as license_expiry',
+                'race_participants.pps_number',
+                'race_participants.pps_expiry',
+                'race_participants.pps_status',
+                'race_participants.pps_verified_at',
+                'race_participants.bib_number',
+                'registration.reg_validated',
+                'registration.reg_dossard',
+                'registration.is_present',
+            ])
+            ->get()
+            ->map(function($p) use ($race, $registrationData) {
+                $now = now();
+                $p->is_license_valid = $p->license_expiry && $now->lessThan($p->license_expiry);
+                $p->is_pps_valid = $p->pps_expiry && 
+                                   $now->lessThan($p->pps_expiry) && 
+                                   $p->pps_status === 'verified' &&
+                                   !str_starts_with($p->pps_number ?? '', 'PENDING-');
+                $p->is_captain = $registrationData->team && $registrationData->team->user_id === $p->user_id;
+                
+                // Calculate participant price
+                $age = $p->birth_date ? $now->diffInYears($p->birth_date) : null;
+                $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'compétitif';
+                
+                if ($p->is_license_valid && $race->price_adherent !== null) {
+                    $p->price = $race->price_adherent;
+                    $p->price_category = 'Adhérent';
+                } elseif (!$isCompetitive && $age !== null && $age < 18 && $race->price_minor !== null) {
+                    $p->price = $race->price_minor;
+                    $p->price_category = 'Mineur';
+                } else {
+                    $p->price = $race->price_major ?? 0;
+                    $p->price_category = 'Majeur';
+                }
+                
+                return $p;
+            });
+
+        return response()->json([
+            'success' => true,
+            'team' => [
+                'id' => $registrationData->team->equ_id,
+                'name' => $registrationData->team->equ_name,
+                'dossard' => $registrationData->reg_dossard,
+                'reg_id' => $registrationData->reg_id,
+                'reg_validated' => $registrationData->reg_validated,
+                'is_present' => $registrationData->is_present,
+                'members' => $members,
+            ]
+        ]);
+    }
 }
 

@@ -2,21 +2,32 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { QrCode, Camera, CheckCircle, XCircle, Users, TrendingUp, AlertCircle, Trophy, Loader } from 'lucide-react';
+import { QrCode, Camera, CheckCircle, XCircle, Users, TrendingUp, AlertCircle, Trophy, Loader, ArrowLeft } from 'lucide-react';
+import TeamRegistrationCard from '@/Components/TeamRegistrationCard';
+import UpdatePPSModal from '@/Components/UpdatePPSModal';
+import TeamPaymentModal from '@/Components/TeamPaymentModal';
+import axios from 'axios';
 
 /**
  * QR Code Scanner Component for Race Check-in
- * Allows race managers to scan team QR codes and mark them as present
+ * Allows race managers to scan team QR codes, view team members,
+ * and manage their registration status (PPS, payment, presence)
  */
 export default function Scanner({ race, stats: initialStats }) {
     const page = usePage();
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
+    const [scannedTeam, setScannedTeam] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [loadingTeam, setLoadingTeam] = useState(false);
     const [stats, setStats] = useState(initialStats);
     const scannerRef = useRef(null);
     const html5QrCodeRef = useRef(null);
+    
+    // Modal states
+    const [selectedParticipant, setSelectedParticipant] = useState(null);
+    const [selectedTeamForPayment, setSelectedTeamForPayment] = useState(null);
 
     useEffect(() => {
         return () => {
@@ -27,10 +38,14 @@ export default function Scanner({ race, stats: initialStats }) {
         };
     }, [isScanning]);
 
+    /**
+     * Start the QR code scanner
+     */
     const startScanning = async () => {
         try {
             setError(null);
             setScanResult(null);
+            setScannedTeam(null);
             
             // Check if running on HTTPS or localhost
             const isSecure = window.location.protocol === 'https:' || 
@@ -93,6 +108,9 @@ export default function Scanner({ race, stats: initialStats }) {
         }
     };
 
+    /**
+     * Stop the QR code scanner
+     */
     const stopScanning = async () => {
         if (html5QrCodeRef.current && isScanning) {
             try {
@@ -105,6 +123,10 @@ export default function Scanner({ race, stats: initialStats }) {
         }
     };
 
+    /**
+     * Handle successful QR code scan
+     * @param {string} decodedText - The decoded QR code content
+     */
     const onScanSuccess = async (decodedText) => {
         // Stop scanning temporarily
         await stopScanning();
@@ -145,17 +167,15 @@ export default function Scanner({ race, stats: initialStats }) {
 
                 // Update stats immediately if this is a new check-in
                 if (!data.already_present) {
-                    console.log('Updating stats - Before:', stats);
-                    setStats(prevStats => {
-                        const newStats = {
-                            ...prevStats,
-                            present: prevStats.present + 1,
-                            absent: prevStats.absent - 1
-                        };
-                        console.log('Updating stats - After:', newStats);
-                        return newStats;
-                    });
+                    setStats(prevStats => ({
+                        ...prevStats,
+                        present: prevStats.present + 1,
+                        absent: prevStats.absent - 1
+                    }));
                 }
+
+                // Fetch team members for detailed view
+                await fetchTeamMembers(qrData.reg_id);
             } else {
                 setError(data.message || 'Erreur lors de l\'enregistrement de la présence.');
             }
@@ -167,14 +187,100 @@ export default function Scanner({ race, stats: initialStats }) {
         }
     };
 
+    /**
+     * Fetch team members after successful scan
+     * @param {number} regId - Registration ID
+     */
+    const fetchTeamMembers = async (regId) => {
+        setLoadingTeam(true);
+        try {
+            const response = await axios.get(route('races.team-members', { race: race.race_id, registration: regId }));
+            
+            if (response.data.success) {
+                setScannedTeam(response.data.team);
+            }
+        } catch (err) {
+            console.error('Error fetching team members:', err);
+        } finally {
+            setLoadingTeam(false);
+        }
+    };
+
+    /**
+     * Handle QR scan error (ignored as errors happen continuously)
+     */
     const onScanError = (errorMessage) => {
         // Ignore scan errors (they happen continuously while scanning)
     };
 
+    /**
+     * Reset scanner to scan another QR code
+     */
     const resetScanner = () => {
         setScanResult(null);
+        setScannedTeam(null);
         setError(null);
         startScanning();
+    };
+
+    /**
+     * Handle PPS click from TeamRegistrationCard
+     * @param {Object} participant - Participant data
+     */
+    const handlePPSClick = (participant) => {
+        setSelectedParticipant(participant);
+    };
+
+    /**
+     * Handle payment click from TeamRegistrationCard
+     * @param {number} teamId - Team ID
+     */
+    const handlePaymentClick = (teamId) => {
+        if (scannedTeam) {
+            const teamData = {
+                id: teamId,
+                name: scannedTeam.name,
+                members: scannedTeam.members.map(member => ({
+                    id: member.user_id,
+                    first_name: member.first_name,
+                    last_name: member.last_name,
+                    price: member.price,
+                    price_category: member.price_category,
+                    validated: member.reg_validated
+                }))
+            };
+            setSelectedTeamForPayment(teamData);
+        }
+    };
+
+    /**
+     * Handle presence toggle from TeamRegistrationCard
+     * @param {number} regId - Registration ID
+     * @param {boolean} isPresent - New presence status
+     */
+    const handlePresenceToggle = (regId, isPresent) => {
+        // Update stats based on presence change
+        setStats(prevStats => ({
+            ...prevStats,
+            present: isPresent ? prevStats.present + 1 : prevStats.present - 1,
+            absent: isPresent ? prevStats.absent - 1 : prevStats.absent + 1
+        }));
+    };
+
+    /**
+     * Handle member update from TeamRegistrationCard
+     * @param {number} regId - Registration ID
+     * @param {Object} updates - Updates to apply
+     */
+    const handleMemberUpdate = (regId, updates) => {
+        if (scannedTeam) {
+            setScannedTeam(prevTeam => ({
+                ...prevTeam,
+                members: prevTeam.members.map(m => 
+                    m.reg_id === regId ? { ...m, ...updates } : m
+                )
+            }));
+        }
     };
 
     const progressPercentage = stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0;
@@ -245,176 +351,216 @@ export default function Scanner({ race, stats: initialStats }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Scanner Section */}
-                        <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-blue-100">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
-                                    <QrCode className="w-6 h-6 text-blue-600" />
-                                    Scanner QR Code
-                                </h2>
+                    {/* Main Content */}
+                    {scannedTeam ? (
+                        /* Team Details View after successful scan */
+                        <div className="space-y-6">
+                            {/* Success Message */}
+                            <div className={`rounded-xl p-4 border-2 ${
+                                scanResult?.alreadyPresent 
+                                    ? 'bg-amber-50 border-amber-200' 
+                                    : 'bg-emerald-50 border-emerald-200'
+                            }`}>
+                                <div className="flex items-center gap-3">
+                                    {scanResult?.alreadyPresent ? (
+                                        <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0" />
+                                    ) : (
+                                        <CheckCircle className="w-6 h-6 text-emerald-600 flex-shrink-0" />
+                                    )}
+                                    <div>
+                                        <h3 className={`font-bold ${
+                                            scanResult?.alreadyPresent ? 'text-amber-900' : 'text-emerald-900'
+                                        }`}>
+                                            {scanResult?.message}
+                                        </h3>
+                                        {scanResult?.registration?.reg_dossard && (
+                                            <p className="text-sm opacity-75">
+                                                Dossard: <span className="font-black">{scanResult.registration.reg_dossard}</span>
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Scanner Container */}
-                            <div className="relative">
-                                {!isScanning && !scanResult && !error && (
-                                    <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
-                                        <Camera className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                                        <p className="text-gray-600 mb-6">
-                                            Cliquez sur le bouton ci-dessous pour activer la caméra
-                                        </p>
-                                        <button
-                                            onClick={startScanning}
-                                            className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg flex items-center gap-2 mx-auto"
-                                        >
-                                            <Camera className="w-5 h-5" />
-                                            Démarrer le scanner
-                                        </button>
-                                    </div>
-                                )}
+                            {/* Team Registration Card */}
+                            {loadingTeam ? (
+                                <div className="bg-white rounded-2xl shadow-lg p-12 border-2 border-blue-100 text-center">
+                                    <Loader className="w-12 h-12 mx-auto mb-4 text-blue-600 animate-spin" />
+                                    <p className="text-blue-700 font-semibold">
+                                        Chargement des membres de l'équipe...
+                                    </p>
+                                </div>
+                            ) : (
+                                <TeamRegistrationCard
+                                    team={scannedTeam}
+                                    raceId={race.race_id}
+                                    onPPSClick={handlePPSClick}
+                                    onPaymentClick={handlePaymentClick}
+                                    onPresenceToggle={handlePresenceToggle}
+                                    onMemberUpdate={handleMemberUpdate}
+                                    isCompact={false}
+                                    showHeader={true}
+                                />
+                            )}
 
-                                {isScanning && (
-                                    <div className="space-y-4">
-                                        <div id="qr-reader" className="rounded-xl overflow-hidden border-4 border-blue-500 shadow-2xl" />
-                                        <button
-                                            onClick={stopScanning}
-                                            className="w-full bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition"
-                                        >
-                                            Arrêter le scanner
-                                        </button>
-                                    </div>
-                                )}
+                            {/* Scan Another Button */}
+                            <button
+                                onClick={resetScanner}
+                                className="w-full bg-blue-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg flex items-center justify-center gap-2"
+                            >
+                                <QrCode className="w-5 h-5" />
+                                Scanner un autre QR Code
+                            </button>
+                        </div>
+                    ) : (
+                        /* Scanner View */
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Scanner Section */}
+                            <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-blue-100">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
+                                        <QrCode className="w-6 h-6 text-blue-600" />
+                                        Scanner QR Code
+                                    </h2>
+                                </div>
 
-                                {loading && (
-                                    <div className="bg-blue-50 rounded-xl p-12 text-center border-2 border-blue-200">
-                                        <Loader className="w-12 h-12 mx-auto mb-4 text-blue-600 animate-spin" />
-                                        <p className="text-blue-700 font-semibold">
-                                            Vérification en cours...
-                                        </p>
-                                    </div>
-                                )}
+                                {/* Scanner Container */}
+                                <div className="relative">
+                                    {!isScanning && !scanResult && !error && (
+                                        <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
+                                            <Camera className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                                            <p className="text-gray-600 mb-6">
+                                                Cliquez sur le bouton ci-dessous pour activer la caméra
+                                            </p>
+                                            <button
+                                                onClick={startScanning}
+                                                className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg flex items-center gap-2 mx-auto"
+                                            >
+                                                <Camera className="w-5 h-5" />
+                                                Démarrer le scanner
+                                            </button>
+                                        </div>
+                                    )}
 
-                                {scanResult && (
-                                    <div className={`rounded-xl p-6 border-2 ${
-                                        scanResult.alreadyPresent 
-                                            ? 'bg-amber-50 border-amber-200' 
-                                            : 'bg-emerald-50 border-emerald-200'
-                                    }`}>
-                                        <div className="flex items-start gap-4">
-                                            {scanResult.alreadyPresent ? (
-                                                <AlertCircle className="w-12 h-12 text-amber-600 flex-shrink-0" />
-                                            ) : (
-                                                <CheckCircle className="w-12 h-12 text-emerald-600 flex-shrink-0" />
-                                            )}
-                                            <div className="flex-1">
-                                                <h3 className={`text-xl font-bold mb-2 ${
-                                                    scanResult.alreadyPresent ? 'text-amber-900' : 'text-emerald-900'
-                                                }`}>
-                                                    {scanResult.message}
-                                                </h3>
-                                                <div className="space-y-1 text-sm text-gray-700">
-                                                    <p><strong>Équipe:</strong> {scanResult.registration.team_name}</p>
-                                                    <p><strong>Course:</strong> {scanResult.registration.race_name}</p>
-                                                    {scanResult.registration.reg_dossard && (
-                                                        <p><strong>Dossard:</strong> {scanResult.registration.reg_dossard}</p>
-                                                    )}
-                                                    {scanResult.registration.leader_name && (
-                                                        <p><strong>Capitaine:</strong> {scanResult.registration.leader_name}</p>
-                                                    )}
+                                    {isScanning && (
+                                        <div className="space-y-4">
+                                            <div id="qr-reader" className="rounded-xl overflow-hidden border-4 border-blue-500 shadow-2xl" />
+                                            <button
+                                                onClick={stopScanning}
+                                                className="w-full bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition"
+                                            >
+                                                Arrêter le scanner
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {loading && (
+                                        <div className="bg-blue-50 rounded-xl p-12 text-center border-2 border-blue-200">
+                                            <Loader className="w-12 h-12 mx-auto mb-4 text-blue-600 animate-spin" />
+                                            <p className="text-blue-700 font-semibold">
+                                                Vérification en cours...
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {error && (
+                                        <div className="bg-red-50 rounded-xl p-6 border-2 border-red-200">
+                                            <div className="flex items-start gap-4">
+                                                <XCircle className="w-12 h-12 text-red-600 flex-shrink-0" />
+                                                <div className="flex-1">
+                                                    <h3 className="text-xl font-bold text-red-900 mb-2">
+                                                        Erreur
+                                                    </h3>
+                                                    <p className="text-red-700">{error}</p>
                                                 </div>
                                             </div>
+                                            <button
+                                                onClick={resetScanner}
+                                                className="w-full mt-4 bg-white text-red-700 border-2 border-red-300 px-6 py-3 rounded-xl font-bold hover:bg-red-50 transition"
+                                            >
+                                                Réessayer
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={resetScanner}
-                                            className="w-full mt-4 bg-white text-emerald-700 border-2 border-emerald-300 px-6 py-3 rounded-xl font-bold hover:bg-emerald-50 transition"
-                                        >
-                                            Scanner un autre QR Code
-                                        </button>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
+                            </div>
 
-                                {error && (
-                                    <div className="bg-red-50 rounded-xl p-6 border-2 border-red-200">
-                                        <div className="flex items-start gap-4">
-                                            <XCircle className="w-12 h-12 text-red-600 flex-shrink-0" />
-                                            <div className="flex-1">
-                                                <h3 className="text-xl font-bold text-red-900 mb-2">
-                                                    Erreur
-                                                </h3>
-                                                <p className="text-red-700">{error}</p>
-                                            </div>
+                            {/* Instructions Section */}
+                            <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-blue-100">
+                                <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2">
+                                    <AlertCircle className="w-6 h-6 text-blue-600" />
+                                    Instructions
+                                </h2>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                        <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                                            1
                                         </div>
-                                        <button
-                                            onClick={resetScanner}
-                                            className="w-full mt-4 bg-white text-red-700 border-2 border-red-300 px-6 py-3 rounded-xl font-bold hover:bg-red-50 transition"
-                                        >
-                                            Réessayer
-                                        </button>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 mb-1">Activer la caméra</h3>
+                                            <p className="text-sm text-gray-600">
+                                                Cliquez sur "Démarrer le scanner" et autorisez l'accès à la caméra
+                                            </p>
+                                        </div>
                                     </div>
-                                )}
+
+                                    <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                        <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                                            2
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 mb-1">Scanner le QR Code</h3>
+                                            <p className="text-sm text-gray-600">
+                                                Placez le QR Code du ticket d'équipe devant la caméra
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                                        <div className="w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                                            3
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 mb-1">Gérer l'équipe</h3>
+                                            <p className="text-sm text-gray-600">
+                                                Après le scan, validez le PPS, le paiement et la présence des membres
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
+                                    <h3 className="font-bold text-amber-900 mb-2 flex items-center gap-2">
+                                        <AlertCircle className="w-5 h-5" />
+                                        Important
+                                    </h3>
+                                    <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
+                                        <li>Assurez-vous que le QR Code est bien visible et éclairé</li>
+                                        <li>Le QR Code doit être celui d'une inscription validée</li>
+                                        <li>Les équipes déjà pointées peuvent être scannées à nouveau</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-
-                        {/* Instructions Section */}
-                        <div className="bg-white rounded-2xl shadow-lg p-6 border-2 border-blue-100">
-                            <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2">
-                                <AlertCircle className="w-6 h-6 text-blue-600" />
-                                Instructions
-                            </h2>
-
-                            <div className="space-y-4">
-                                <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
-                                        1
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 mb-1">Activer la caméra</h3>
-                                        <p className="text-sm text-gray-600">
-                                            Cliquez sur "Démarrer le scanner" et autorisez l'accès à la caméra
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
-                                        2
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 mb-1">Scanner le QR Code</h3>
-                                        <p className="text-sm text-gray-600">
-                                            Placez le QR Code du ticket d'équipe devant la caméra
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-xl border border-purple-200">
-                                    <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">
-                                        3
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 mb-1">Validation automatique</h3>
-                                        <p className="text-sm text-gray-600">
-                                            La présence est enregistrée automatiquement après le scan
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
-                                <h3 className="font-bold text-amber-900 mb-2 flex items-center gap-2">
-                                    <AlertCircle className="w-5 h-5" />
-                                    Important
-                                </h3>
-                                <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
-                                    <li>Assurez-vous que le QR Code est bien visible et éclairé</li>
-                                    <li>Le QR Code doit être celui d'une inscription validée</li>
-                                    <li>Les équipes déjà pointées peuvent être scannées à nouveau</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
+
+            {/* Modals */}
+            <UpdatePPSModal
+                isOpen={selectedParticipant !== null}
+                onClose={() => setSelectedParticipant(null)}
+                participant={selectedParticipant}
+                raceId={race.race_id}
+                canVerify={true}
+            />
+            <TeamPaymentModal
+                isOpen={selectedTeamForPayment !== null}
+                onClose={() => setSelectedTeamForPayment(null)}
+                team={selectedTeamForPayment}
+                raceId={race.race_id}
+            />
         </AuthenticatedLayout>
     );
 }
