@@ -52,16 +52,22 @@ export default function SelectResponsableModal({ isOpen, onClose, onSelect, user
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-[60] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             {/* Backdrop overlay */}
             <div 
-                className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-                onClick={onClose}
+                className="fixed inset-0 bg-black bg-opacity-30 transition-opacity"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onClose();
+                }}
             />
             
             {/* Modal container */}
             <div className="flex min-h-full items-center justify-center p-4">
-                <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg transform transition-all">
+                <div 
+                    className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg transform transition-all"
+                    onClick={(e) => e.stopPropagation()}
+                >
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                         <h3 className="text-lg font-semibold text-gray-900">
