@@ -319,9 +319,19 @@ class RaidController extends Controller
         // Create the raid
         $raid = Raid::create($validated);
 
-        // Assign gestionnaire-raid role to the designated responsible if adh_id is set
-        if (!empty($validated['adh_id'])) {
-            $responsibleUser = User::where('adh_id', $validated['adh_id'])->first();
+        // Get the current user
+        $currentUser = auth()->user();
+
+        // Assign gestionnaire-raid role to the designated responsible or current user
+        $responsibleAdhId = $validated['adh_id'] ?? $currentUser->adh_id;
+        
+        if ($responsibleAdhId) {
+            // Update raid with adh_id if not already set
+            if (empty($raid->adh_id)) {
+                $raid->update(['adh_id' => $responsibleAdhId]);
+            }
+            
+            $responsibleUser = User::where('adh_id', $responsibleAdhId)->first();
             if ($responsibleUser) {
                 $this->assignGestionnaireRaidRole($responsibleUser->id, $raid);
             }
@@ -679,10 +689,69 @@ class RaidController extends Controller
     {
         $this->authorize('delete', $raid);
 
+        // Get all users who might need role removal
+        $raidManagerId = $raid->adh_id;
+        $raceManagerIds = $raid->races()->pluck('adh_id')->unique()->filter()->toArray();
+
+        // Delete the raid (cascades to races)
         $raid->delete();
+
+        // Check and remove gestionnaire-raid role if user has no other raids
+        if ($raidManagerId) {
+            $this->removeRoleIfNoMoreEntities($raidManagerId, 'gestionnaire-raid', 'raids');
+        }
+
+        // Check and remove responsable-course role for each race manager
+        foreach ($raceManagerIds as $raceManagerId) {
+            if ($raceManagerId) {
+                $this->removeRoleIfNoMoreEntities($raceManagerId, 'responsable-course', 'races');
+            }
+        }
 
         return redirect()->route('raids.index')
             ->with('success', 'Raid deleted successfully.');
+    }
+
+    /**
+     * Remove a role from user if they no longer manage any entities of that type
+     *
+     * @param int $adhId The member/adherent ID (adh_id)
+     * @param string $role
+     * @param string $entityType 'raids' or 'races'
+     * @return void
+     */
+    protected function removeRoleIfNoMoreEntities(int $adhId, string $role, string $entityType): void
+    {
+        $user = User::where('adh_id', $adhId)->first();
+        
+        if (!$user || !$user->hasRole($role)) {
+            return;
+        }
+
+        // Don't remove roles from admins
+        if ($user->hasRole('admin')) {
+            return;
+        }
+
+        $hasOtherEntities = false;
+
+        if ($entityType === 'raids') {
+            // Check if user manages other raids
+            $hasOtherEntities = Raid::where('adh_id', $adhId)->exists();
+        } elseif ($entityType === 'races') {
+            // Check if user manages other races
+            $hasOtherEntities = \App\Models\Race::where('adh_id', $adhId)->exists();
+        }
+
+        if (!$hasOtherEntities) {
+            $user->removeRole($role);
+            
+            activity()
+                ->causedBy(auth()->user())
+                ->performedOn($user)
+                ->withProperties(['role' => $role])
+                ->log("Role '$role' removed - no more $entityType to manage");
+        }
     }
 
     /**

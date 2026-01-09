@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Team;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Invitation;
@@ -274,5 +275,48 @@ class TeamController extends Controller
         $invitation->update(['status' => 'accepted', 'invitee_id' => auth()->id()]);
 
         return redirect()->route('teams.show', $team->equ_id)->with('success', 'Vous avez rejoint l\'équipe!');
+    }
+
+    /**
+     * Delete a team.
+     * Only the team creator can delete the team.
+     * Cannot delete if team has active registrations.
+     */
+    public function destroy(Team $team)
+    {
+        $user = auth()->user();
+
+        // Check if user is the team creator
+        if ($team->user_id !== $user->id) {
+            return redirect()->back()->with('error', 'Seul le créateur de l\'équipe peut la supprimer.');
+        }
+
+        // Check if team has active registrations
+        $hasRegistrations = \App\Models\Registration::where('equ_id', $team->equ_id)->exists();
+        if ($hasRegistrations) {
+            return redirect()->back()->with('error', 'Impossible de supprimer l\'équipe : elle a des inscriptions actives.');
+        }
+
+        // Delete pending invitations for this team
+        Invitation::where('equ_id', $team->equ_id)->delete();
+
+        // Detach all users from the team
+        $team->users()->detach();
+
+        // Delete team image if exists
+        if ($team->equ_image) {
+            Storage::disk('public')->delete($team->equ_image);
+        }
+
+        // Delete the team
+        $team->delete();
+
+        // Log the activity
+        activity()
+            ->causedBy($user)
+            ->withProperties(['team_name' => $team->equ_name])
+            ->log('Team deleted');
+
+        return redirect()->route('dashboard')->with('success', 'Équipe supprimée avec succès.');
     }
 }

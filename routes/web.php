@@ -95,6 +95,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/createTeam', [TeamController::class, 'store'])->name('team.store');
     // Show team details
     Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show')->whereNumber('team');
+    Route::delete('/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy')->whereNumber('team');
     Route::post('/teams/{team}/invite-email', [TeamController::class, 'inviteByEmail'])->name('teams.invite-email');
     Route::post('/teams/{team}/invite/{user}', [TeamController::class, 'inviteByEmail'])->name('teams.invite-user');
     

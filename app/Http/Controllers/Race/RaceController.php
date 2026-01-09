@@ -619,6 +619,7 @@ class RaceController extends Controller
         $this->authorize('delete', $race);
         
         $raidId = $race->raid_id;
+        $raceManagerId = $race->adh_id;
         
         // Delete associated ParamRunner if exists
         if ($race->pac_id) {
@@ -632,9 +633,47 @@ class RaceController extends Controller
         
         // Delete the race
         $race->delete();
+
+        // Check and remove responsable-course role if user has no other races
+        if ($raceManagerId) {
+            $this->removeRoleIfNoMoreRaces($raceManagerId);
+        }
         
         return redirect()->route('raids.show', $raidId)
             ->with('success', 'La course a été supprimée avec succès!');
+    }
+
+    /**
+     * Remove responsable-course role if user no longer manages any races
+     *
+     * @param int $adhId
+     * @return void
+     */
+    protected function removeRoleIfNoMoreRaces(int $adhId): void
+    {
+        $user = \App\Models\User::where('adh_id', $adhId)->first();
+        
+        if (!$user || !$user->hasRole('responsable-course')) {
+            return;
+        }
+
+        // Don't remove roles from admins
+        if ($user->hasRole('admin')) {
+            return;
+        }
+
+        // Check if user manages other races
+        $hasOtherRaces = Race::where('adh_id', $adhId)->exists();
+
+        if (!$hasOtherRaces) {
+            $user->removeRole('responsable-course');
+            
+            activity()
+                ->causedBy(auth()->user())
+                ->performedOn($user)
+                ->withProperties(['role' => 'responsable-course'])
+                ->log("Role 'responsable-course' removed - no more races to manage");
+        }
     }
 
     /**

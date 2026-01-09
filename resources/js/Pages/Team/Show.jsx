@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import InviteUserModal from '@/Components/Team/InviteUserModal';
 import InviteByEmailModal from '@/Components/Team/InviteByEmailModal';
@@ -11,7 +11,22 @@ import UserAvatar from '@/Components/UserAvatar';
 export default function Show({ team, auth, users }) {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showEmailModal, setShowEmailModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const isCreator = auth?.user?.id === team?.creator_id;
+
+    /**
+     * Handle team deletion with confirmation.
+     */
+    const handleDeleteTeam = () => {
+        setIsDeleting(true);
+        router.delete(route('teams.destroy', team.id), {
+            onFinish: () => {
+                setIsDeleting(false);
+                setShowDeleteModal(false);
+            },
+        });
+    };
 
     return (
         <AuthenticatedLayout>
@@ -40,12 +55,20 @@ export default function Show({ team, auth, users }) {
                                             {team.name}
                                         </h1>
                                         {isCreator && (
-                                            <button 
-                                                onClick={() => setShowInviteModal(true)}
-                                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                            >
-                                                Inviter
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => setShowInviteModal(true)}
+                                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                                >
+                                                    Inviter
+                                                </button>
+                                                <button 
+                                                    onClick={() => setShowDeleteModal(true)}
+                                                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                     <div className="text-gray-600">
@@ -118,6 +141,37 @@ export default function Show({ team, auth, users }) {
                 onClose={() => setShowEmailModal(false)}
                 teamId={team.id}
             />
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">
+                            Supprimer l'équipe
+                        </h3>
+                        <p className="text-gray-600 mb-6">
+                            Êtes-vous sûr de vouloir supprimer l'équipe <strong>{team.name}</strong> ? 
+                            Cette action est irréversible.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                                disabled={isDeleting}
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                onClick={handleDeleteTeam}
+                                disabled={isDeleting}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                            >
+                                {isDeleting ? 'Suppression...' : 'Supprimer'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }
