@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useForm, router } from '@inertiajs/react';
+import { useForm, router, usePage } from '@inertiajs/react';
 import { X, Users, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
 import Modal from '@/Components/Modal';
 
 export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, raceId }) {
     const { delete: destroy, processing } = useForm();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const messages = usePage().props.translations?.messages || {};
 
     // Block body scroll when modal is open
     useEffect(() => {
@@ -39,7 +40,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                 <div className="bg-blue-900 p-6 flex items-center justify-between flex-shrink-0">
                     <h3 className="text-xl font-black text-white italic uppercase tracking-wider flex items-center gap-3">
                         <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                        Mon Inscription
+                        {messages['modal.my_registration.title'] || 'My Registration'}
                     </h3>
                     <button onClick={onClose} className="text-blue-200 hover:text-white transition-colors">
                         <X className="w-6 h-6" />
@@ -57,10 +58,10 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="text-sm font-black text-orange-900 uppercase tracking-wider mb-2">
-                                        En attente de validation
+                                        {messages['modal.my_registration.pending_validation'] || 'Pending validation'}
                                     </h4>
                                     <p className="text-sm text-orange-700 font-medium">
-                                        Votre inscription sera validée par l'organisateur après vérification de vos documents.
+                                        {messages['modal.my_registration.pending_validation_desc'] || 'Your registration will be validated by the organizer after verifying your documents.'}
                                     </p>
                                 </div>
                             </div>
@@ -76,10 +77,10 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="text-sm font-black text-emerald-900 uppercase tracking-wider mb-2">
-                                        Inscription confirmée
+                                        {messages['modal.my_registration.confirmed'] || 'Registration confirmed'}
                                     </h4>
                                     <p className="text-sm text-emerald-700 font-medium">
-                                        Vous êtes inscrit à cette course avec l'équipe suivante.
+                                        {messages['modal.my_registration.confirmed_desc'] || 'You are registered for this race with the following team.'}
                                     </p>
                                 </div>
                             </div>
@@ -94,7 +95,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                             </div>
                             <div className="flex-1">
                                 <p className="text-xs font-black text-blue-400 uppercase tracking-widest mb-1">
-                                    Votre Équipe
+                                    {messages['modal.my_registration.your_team'] || 'Your Team'}
                                 </p>
                                 <h4 className="text-2xl font-black text-blue-900 italic uppercase">
                                     {registeredTeam.name}
@@ -105,7 +106,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
                             <div className="bg-white rounded-xl p-4 text-center">
                                 <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                                    Membres
+                                    {messages['modal.team_payment.members'] || 'Members'}
                                 </p>
                                 <p className="text-3xl font-black text-blue-900 italic">
                                     {registeredTeam.members_count}
@@ -113,10 +114,10 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                             </div>
                             <div className="bg-white rounded-xl p-4 text-center">
                                 <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                                    Statut
+                                    {messages['modal.my_registration.status'] || 'Status'}
                                 </p>
                                 <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase ${registeredTeam.validated ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>
-                                    {registeredTeam.validated ? 'Validé' : 'En attente'}
+                                    {registeredTeam.validated ? (messages['modal.team_payment.validated'] || 'Validated') : (messages['modal.team_payment.pending'] || 'Pending')}
                                 </div>
                             </div>
                         </div>
@@ -124,7 +125,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                         {registeredTeam.members && registeredTeam.members.length > 0 && (
                             <div className="mt-6 pt-6 border-t border-gray-200">
                                 <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">
-                                    Membres de l'équipe
+                                    {messages['modal.my_registration.team_members'] || 'Team members'}
                                 </p>
                                 <div className="space-y-2">
                                     {registeredTeam.members.map((member, idx) => (
@@ -152,7 +153,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                                                 )}
                                                 {member.is_leader && (
                                                     <span className="text-xs font-black text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded">
-                                                        Chef
+                                                        {messages['modal.my_registration.leader'] || 'Leader'}
                                                     </span>
                                                 )}
                                             </div>
@@ -164,7 +165,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                                         <div className="bg-blue-50 rounded-xl p-4 mt-4 border-2 border-blue-200">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm font-black text-blue-900 uppercase tracking-wider">
-                                                    Total à payer
+                                                    {messages['modal.team_payment.total_to_pay'] || 'Total to pay'}
                                                 </span>
                                                 <span className="text-2xl font-black text-blue-600 italic">
                                                     {registeredTeam.total_price.toFixed(2)}€
@@ -184,7 +185,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                         onClick={onClose}
                         className="flex-1 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs uppercase tracking-widest rounded-xl transition-colors"
                     >
-                        Fermer
+                        {messages['close'] || 'Close'}
                     </button>
                     <button
                         onClick={() => setShowConfirmModal(true)}
@@ -192,7 +193,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                         className="flex-1 px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         <Trash2 className="w-4 h-4" />
-                        {processing ? 'Annulation...' : 'Annuler l\'inscription'}
+                        {processing ? (messages['modal.my_registration.cancelling'] || 'Cancelling...') : (messages['modal.my_registration.cancel_registration'] || 'Cancel registration')}
                     </button>
                 </div>
             </div>
@@ -207,7 +208,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                                 <AlertTriangle className="w-6 h-6 text-white" />
                             </div>
                             <h3 className="text-xl font-black text-white italic uppercase tracking-wider">
-                                Confirmer l'annulation
+                                {messages['modal.my_registration.confirm_cancel_title'] || 'Confirm cancellation'}
                             </h3>
                         </div>
                     </div>
@@ -215,11 +216,11 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                     {/* Content */}
                     <div className="p-8 space-y-4">
                         <p className="text-base text-gray-700 font-semibold">
-                            Êtes-vous sûr de vouloir annuler votre inscription ?
+                            {messages['modal.my_registration.confirm_cancel_question'] || 'Are you sure you want to cancel your registration?'}
                         </p>
                         <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
                             <p className="text-sm text-red-700 font-medium">
-                                ⚠️ Cette action est <span className="font-black">irréversible</span>. Vous devrez vous réinscrire si vous changez d'avis.
+                                ⚠️ {messages['modal.my_registration.confirm_cancel_warning'] || 'This action is irreversible. You will need to register again if you change your mind.'}
                             </p>
                         </div>
                     </div>
@@ -231,7 +232,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                             disabled={processing}
                             className="flex-1 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50"
                         >
-                            Non, garder mon inscription
+                            {messages['modal.my_registration.keep_registration'] || 'No, keep my registration'}
                         </button>
                         <button
                             onClick={handleCancelRegistration}
@@ -239,7 +240,7 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                             className="flex-1 px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             <Trash2 className="w-4 h-4" />
-                            {processing ? 'Annulation...' : 'Oui, annuler'}
+                            {processing ? (messages['modal.my_registration.cancelling'] || 'Cancelling...') : (messages['modal.my_registration.yes_cancel'] || 'Yes, cancel')}
                         </button>
                     </div>
                 </div>

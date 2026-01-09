@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Users, Mail, User } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 
 /**
  * RegisteredMembersModal component - Displays list of members registered to raid courses
@@ -10,6 +11,8 @@ import { X, Users, Mail, User } from 'lucide-react';
  * @param {array} members - Array of registered members
  */
 export default function RegisteredMembersModal({ isOpen, onClose, members = [] }) {
+    const messages = usePage().props.translations?.messages || {};
+
     return (
         <Transition appear show={isOpen} as={Fragment}>
             <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -48,10 +51,10 @@ export default function RegisteredMembersModal({ isOpen, onClose, members = [] }
                                                 as="h3"
                                                 className="text-2xl font-black text-gray-900 uppercase italic"
                                             >
-                                                Membres inscrits
+                                                {messages['modal.registered_members.title'] || 'Registered members'}
                                             </Dialog.Title>
                                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
-                                                {members.length} participant{members.length > 1 ? 's' : ''}
+                                                {members.length} {members.length > 1 ? (messages['modal.registered_members.participants'] || 'participants') : (messages['modal.registered_members.participant'] || 'participant')}
                                             </p>
                                         </div>
                                     </div>
@@ -70,7 +73,7 @@ export default function RegisteredMembersModal({ isOpen, onClose, members = [] }
                                         <div className="text-center py-12">
                                             <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                                             <p className="text-sm font-semibold text-gray-500">
-                                                Aucun membre inscrit pour le moment
+                                                {messages['modal.registered_members.no_members'] || 'No members registered yet'}
                                             </p>
                                         </div>
                                     ) : (
@@ -105,7 +108,7 @@ export default function RegisteredMembersModal({ isOpen, onClose, members = [] }
                                         className="bg-gray-900 text-white px-6 py-3 rounded-2xl font-black text-xs transition-all hover:bg-gray-800 uppercase tracking-widest"
                                         onClick={onClose}
                                     >
-                                        Fermer
+                                        {messages['close'] || 'Close'}
                                     </button>
                                 </div>
                             </Dialog.Panel>

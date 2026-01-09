@@ -3,6 +3,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
 import { useEffect, useRef } from 'react';
+import { usePage } from '@inertiajs/react';
 
 /**
  * LicenseValidationModal
@@ -16,6 +17,7 @@ import { useEffect, useRef } from 'react';
  * Protection: If removed from DOM, page interaction is blocked.
  */
 export default function LicenseValidationModal({ show, onClose, onConfirmWithoutLicense }) {
+    const messages = usePage().props.translations?.messages || {};
     const modalRef = useRef(null);
     const overlayRef = useRef(null);
 
@@ -61,8 +63,8 @@ export default function LicenseValidationModal({ show, onClose, onConfirmWithout
                                 <svg class="mx-auto h-16 w-16 text-red-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
-                                <p>Action non autorisée détectée.</p>
-                                <p class="text-lg mt-2">Veuillez recharger la page.</p>
+                                <p>${messages['modal.license_validation.unauthorized_action'] || "Action non autorisée détectée."}</p>
+                                <p class="text-lg mt-2">${messages['modal.license_validation.reload_page'] || "Veuillez recharger la page."}</p>
                             </div>
                         `;
                         
@@ -99,20 +101,20 @@ export default function LicenseValidationModal({ show, onClose, onConfirmWithout
                     </div>
                     <div>
                         <h3 className="text-lg font-semibold text-gray-900">
-                            Numéro de licence non conforme
+                            {messages['modal.license_validation.title'] || "Numéro de licence non conforme"}
                         </h3>
                     </div>
                 </div>
 
                 <div className="mb-6">
                     <p className="text-sm text-gray-700 mb-3">
-                        Le numéro de licence FFCO que vous avez saisi n'est pas valide.
+                        {messages['modal.license_validation.invalid_message'] || "Le numéro de licence FFCO que vous avez saisi n'est pas valide."}
                     </p>
                     <p className="text-sm text-gray-600 mb-2">
-                        Format attendu : <span className="font-mono font-medium">123456</span> ou <span className="font-mono font-medium">AB12345</span>
+                        {messages['modal.license_validation.expected_format'] || "Format attendu :"} <span className="font-mono font-medium">123456</span> {messages['or'] || "ou"} <span className="font-mono font-medium">AB12345</span>
                     </p>
                     <p className="text-sm text-gray-600">
-                        (5-6 chiffres ou 1-2 lettres suivies de 5-6 chiffres)
+                        {messages['modal.license_validation.format_explanation'] || "(5-6 chiffres ou 1-2 lettres suivies de 5-6 chiffres)"}
                     </p>
                 </div>
 
@@ -122,10 +124,9 @@ export default function LicenseValidationModal({ show, onClose, onConfirmWithout
                             <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                         </svg>
                         <div className="text-sm text-amber-800">
-                            <p className="font-medium mb-1">Important</p>
+                            <p className="font-medium mb-1">{messages['important'] || "Important"}</p>
                             <p>
-                                Si vous continuez sans numéro de licence, vous ne pourrez pas obtenir (ou vous perdrez) 
-                                le rôle <span className="font-semibold">"Adhérent"</span> qui vous donne accès à certaines fonctionnalités.
+                                {messages['modal.license_validation.warning'] || "Si vous continuez sans numéro de licence, vous ne pourrez pas obtenir (ou vous perdrez) le rôle"} <span className="font-semibold">{messages['modal.license_validation.adherent_role'] || "\"Adhérent\""}</span> {messages['modal.license_validation.features_access'] || "qui vous donne accès à certaines fonctionnalités."}
                             </p>
                         </div>
                     </div>
@@ -133,10 +134,10 @@ export default function LicenseValidationModal({ show, onClose, onConfirmWithout
 
                 <div className="flex gap-3 justify-end">
                     <SecondaryButton onClick={onClose}>
-                        Changer le numéro
+                        {messages['modal.license_validation.change_number'] || "Changer le numéro"}
                     </SecondaryButton>
                     <DangerButton onClick={onConfirmWithoutLicense}>
-                        Continuer sans licence
+                        {messages['modal.license_validation.continue_without'] || "Continuer sans licence"}
                     </DangerButton>
                 </div>
             </div>

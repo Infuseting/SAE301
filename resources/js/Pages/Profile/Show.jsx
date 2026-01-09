@@ -88,7 +88,7 @@ export default function Show({ user, teams = [], races = [], isOwner }) {
                                             <p className="text-l text-gray-500">{(messages.member_since || 'Membre depuis le :date').replace(':date', formattedDate)}</p>
                                         </div>
                                         <div className="flex items-baseline space-x-2 justify-center sm:justify-start">
-                                            <p className="text-s text-gray-500">{"Age : " + calculateAge(user.birth_date)} {messages.years_old || 'ans'}</p>
+                                            <p className="text-s text-gray-500">{(messages['profile.age'] || 'Age: :age') + " " + calculateAge(user.birth_date)} {messages.years_old || 'years old'}</p>
                                         </div>
                                     </div>
                                     {usePage().props.auth.user && usePage().props.auth.user.id === user.id && (
@@ -132,25 +132,25 @@ export default function Show({ user, teams = [], races = [], isOwner }) {
                             </svg>
                             {user.license_number && (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-700 font-medium">Licence:</span>
+                                    <span className="text-sm text-gray-700 font-medium">{messages['profile.license'] || 'License'}:</span>
                                     <span className="text-sm text-gray-600">{user.license_number}</span>
                                 </div>
                             )}
                             {user.licence_end_validity && (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-700 font-medium">Validité de la licence:</span>
-                                    <span className="text-sm text-gray-600">jusqu'au {user.licence_end_validity}</span>
+                                    <span className="text-sm text-gray-700 font-medium">{messages['profile.license_validity'] || 'License validity'}:</span>
+                                    <span className="text-sm text-gray-600">{(messages['profile.until'] || 'until :date').replace(':date', user.licence_end_validity)}</span>
                                 </div>
                             )}
                             {user.address && (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-700 font-medium">Adresse:</span>
+                                    <span className="text-sm text-gray-700 font-medium">{messages['profile.address'] || 'Address'}:</span>
                                     <span className="text-sm text-gray-600">{user.address}</span>
                                 </div>
                             )}
                             {user.phone && (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-700 font-medium">Telephone:</span>
+                                    <span className="text-sm text-gray-700 font-medium">{messages['profile.phone'] || 'Phone'}:</span>
                                     <span className="text-sm text-gray-600">{user.phone}</span>
                                 </div>
                             )}

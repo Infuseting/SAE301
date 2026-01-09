@@ -124,7 +124,7 @@ export default function UpdateProfileInformation({
                                     htmlFor="photo-upload"
                                     className="cursor-pointer inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150"
                                 >
-                                    Select New Photo
+                                    {messages['profile.select_photo'] || 'Select New Photo'}
                                 </label>
                                 <input
                                     id="photo-upload"
@@ -134,7 +134,7 @@ export default function UpdateProfileInformation({
                                         const file = e.target.files[0];
                                         if (file) {
                                             if (file.size > 8 * 1024 * 1024) { // 8MB Hard Limit
-                                                alert("La taille de l'image ne doit pas dépasser 8Mo.");
+                                                alert(messages['profile.image_size_error'] || "Image size must not exceed 8MB.");
                                                 e.target.value = "";
                                                 return;
                                             }
@@ -165,7 +165,7 @@ export default function UpdateProfileInformation({
                                                     setData('photo', compressedFile);
                                                 } catch (error) {
                                                     console.error("Compression failed", error);
-                                                    alert("Impossible de compresser l'image. Veuillez choisir une image plus petite.");
+                                                    alert(messages['profile.compression_error'] || "Unable to compress the image. Please choose a smaller image.");
                                                 }
                                             } else {
                                                 setData('photo', file);
@@ -174,9 +174,9 @@ export default function UpdateProfileInformation({
                                     }}
                                     accept="image/*"
                                 />
-                                {data.photo && <span className="text-sm text-green-600 font-medium">Photo selected</span>}
+                                {data.photo && <span className="text-sm text-green-600 font-medium">{messages['profile.photo_selected'] || 'Photo selected'}</span>}
                             </div>
-                            <p className="mt-2 text-xs text-gray-500">JPG, GIF or PNG. Max 8MB (Auto-compressed).</p>
+                            <p className="mt-2 text-xs text-gray-500">{messages['profile.photo_hint'] || 'JPG, GIF or PNG. Max 8MB (Auto-compressed).'}</p>
                         </label>
                         <InputError className="mt-2" message={errors.photo} />
                     </div>
@@ -242,7 +242,7 @@ export default function UpdateProfileInformation({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <InputLabel htmlFor="birth_date" value="Date de naissance *" />
+                        <InputLabel htmlFor="birth_date" value={(messages['profile.birth_date'] || 'Birth date') + ' *'} />
                         <TextInput
                             id="birth_date"
                             type="date"
@@ -255,7 +255,7 @@ export default function UpdateProfileInformation({
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="phone" value="Téléphone *" />
+                        <InputLabel htmlFor="phone" value={(messages['profile.phone'] || 'Phone') + ' *'} />
                         <TextInput
                             id="phone"
                             className="mt-1 block w-full"
@@ -269,28 +269,28 @@ export default function UpdateProfileInformation({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div className="md:col-span-2">
-                        <InputLabel htmlFor="address" value="Adresse *" className="text-gray-700 font-medium mb-1" />
+                        <InputLabel htmlFor="address" value={(messages['profile.address'] || 'Address') + ' *'} className="text-gray-700 font-medium mb-1" />
                         <TextInput
                             id="address"
                             className="mt-1 block w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-[#9333ea] focus:ring-[#9333ea] transition-all duration-200"
                             value={data.address}
                             onChange={(e) => setData('address', e.target.value)}
-                            placeholder="Votre adresse complète"
+                            placeholder={messages['profile.address_placeholder'] || 'Your complete address'}
                             required
                         />
                         <InputError className="mt-2" message={errors.address} />
                     </div>
 
                     <div className="md:col-span-2">
-                        <InputLabel htmlFor="license_number" value="Numéro de Licence FFCO (Optionnel)" className="text-gray-700 font-medium mb-1" />
+                        <InputLabel htmlFor="license_number" value={messages['profile.license_ffco'] || 'FFCO License Number (Optional)'} className="text-gray-700 font-medium mb-1" />
                         <TextInput
                             id="license_number"
                             className="mt-1 block w-full rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:border-[#9333ea] focus:ring-[#9333ea] transition-all duration-200"
                             value={data.license_number}
                             onChange={(e) => setData('license_number', e.target.value)}
-                            placeholder="Ex: 123456 ou AB12345"
+                            placeholder={messages['profile.license_placeholder'] || 'Ex: 123456 or AB12345'}
                         />
-                        <p className="mt-1 text-xs text-gray-500">Format : 5-6 chiffres ou 1-2 lettres suivies de 5-6 chiffres (Fédération Française de Course d'Orientation)</p>
+                        <p className="mt-1 text-xs text-gray-500">{messages['profile.license_hint'] || 'Format: 5-6 digits or 1-2 letters followed by 5-6 digits (French Orienteering Federation)'}</p>
                         <InputError className="mt-2" message={errors.license_number} />
                     </div>
                 </div>
@@ -303,7 +303,7 @@ export default function UpdateProfileInformation({
                             checked={data.is_public}
                             onChange={(e) => setData('is_public', e.target.checked)}
                         />
-                        <span className="ml-2 text-sm text-gray-600">Rendre mon profil public (Visible par les autres utilisateurs)</span>
+                        <span className="ml-2 text-sm text-gray-600">{messages['profile.make_public'] || 'Make my profile public (Visible to other users)'}</span>
                     </label>
                     <InputError className="mt-2" message={errors.is_public} />
                 </div>

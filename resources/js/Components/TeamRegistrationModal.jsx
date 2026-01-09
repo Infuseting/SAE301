@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useForm, Link } from '@inertiajs/react';
+import { useForm, Link, usePage } from '@inertiajs/react';
 import { X, Search, Users, UserPlus, Check, AlertCircle, Info } from 'lucide-react';
 import Modal from '@/Components/Modal';
 
@@ -207,6 +207,7 @@ export default function TeamRegistrationModal({
     currentTeamsCount = 0, 
     currentParticipantsCount = 0 
 }) {
+    const messages = usePage().props.translations?.messages || {};
     const [searchQuery, setSearchQuery] = useState('');
     const { data, setData, post, processing, errors, reset } = useForm({
         team_id: null,
@@ -341,7 +342,7 @@ export default function TeamRegistrationModal({
                 <div className="bg-blue-900 p-6 flex items-center justify-between">
                     <h3 className="text-xl font-black text-white italic uppercase tracking-wider flex items-center gap-3">
                         <Users className="w-6 h-6 text-emerald-400" />
-                        Inscription par équipe
+                        {messages['modal.team_registration.title'] || 'Team Registration'}
                     </h3>
                     <button onClick={onClose} className="text-blue-200 hover:text-white transition-colors">
                         <X className="w-6 h-6" />
@@ -362,16 +363,18 @@ export default function TeamRegistrationModal({
                             <h4 className={`font-black text-sm uppercase ${
                                 isCompetitive ? 'text-blue-900' : 'text-emerald-900'
                             }`}>
-                                Course {isCompetitive ? 'Compétitive' : 'Loisir'}
+                                {isCompetitive 
+                                    ? (messages['modal.team_registration.competitive'] || 'Competitive Race')
+                                    : (messages['modal.team_registration.leisure'] || 'Leisure Race')}
                             </h4>
                             <p className={`text-xs font-medium ${
                                 isCompetitive ? 'text-blue-700' : 'text-emerald-700'
                             }`}>
                                 {isCompetitive 
-                                    ? 'Tous les membres de l\'équipe doivent être dans la même catégorie d\'âge parmi celles acceptées.'
+                                    ? (messages['modal.team_registration.competitive_desc'] || 'All team members must be in the same age category.')
                                     : leisureAgeMin !== null 
-                                        ? `Règles d'âge: minimum ${leisureAgeMin} ans. Les équipes avec des membres de moins de ${leisureAgeIntermediate} ans doivent avoir un accompagnateur d'au moins ${leisureAgeSupervisor} ans.`
-                                        : 'Pas de restriction d\'âge spécifique.'
+                                        ? `${(messages['modal.team_registration.min_age_required'] || 'Minimum age required: :age years').replace(':age', leisureAgeMin)}`
+                                        : (messages['modal.team_registration.leisure_desc'] || 'No specific age restrictions.')
                                 }
                             </p>
                         </div>
@@ -382,12 +385,9 @@ export default function TeamRegistrationModal({
                         <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 flex items-start gap-4">
                             <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
                             <div className="space-y-2">
-                                <h4 className="font-black text-red-900 uppercase text-sm">Inscriptions complètes</h4>
+                                <h4 className="font-black text-red-900 uppercase text-sm">{messages['modal.team_registration.registrations_full'] || 'Registrations full'}</h4>
                                 <p className="text-sm text-red-700 font-medium leading-relaxed">
-                                    {isTeamsLimitReached && `Le nombre maximum d'équipes (${maxTeams}) est atteint.`}
-                                    {isParticipantsLimitReached && !isTeamsLimitReached && `Le nombre maximum de participants (${maxParticipants}) est atteint.`}
-                                    {isTeamsLimitReached && isParticipantsLimitReached && ` Les deux limites sont atteintes.`}
-                                    {' '}Aucune nouvelle inscription n'est possible pour le moment.
+                                    {messages['modal.team_registration.registrations_full_warning'] || 'This race has reached the maximum number of registered teams.'}
                                 </p>
                             </div>
                         </div>
@@ -399,7 +399,7 @@ export default function TeamRegistrationModal({
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Rechercher une équipe..."
+                                placeholder={messages['modal.team_registration.select_team'] || 'Select a team...'}
                                 className="w-full pl-12 pr-4 py-3 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 font-medium"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -410,7 +410,7 @@ export default function TeamRegistrationModal({
                             className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-colors shadow-lg shadow-emerald-200"
                         >
                             <UserPlus className="w-4 h-4" />
-                            Créer
+                            {messages['modal.team_registration.create'] || 'Create'}
                         </a>
                     </div>
 
@@ -467,7 +467,7 @@ export default function TeamRegistrationModal({
                                         {/* Errors */}
                                         {teamErrors.length > 0 && (
                                             <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-100">
-                                                <p className="text-xs font-black text-red-700 uppercase mb-1">Non éligible</p>
+                                                <p className="text-xs font-black text-red-700 uppercase mb-1">{messages['modal.team_registration.not_eligible'] || 'Not eligible'}</p>
                                                 <ul className="text-xs text-red-600 space-y-0.5">
                                                     {teamErrors.slice(0, 3).map((err, idx) => (
                                                         <li key={idx}>• {err}</li>
@@ -482,7 +482,7 @@ export default function TeamRegistrationModal({
                                         {/* Warnings */}
                                         {teamWarnings.length > 0 && teamIsValid && (
                                             <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
-                                                <p className="text-xs font-black text-amber-700 uppercase mb-1">Information</p>
+                                                <p className="text-xs font-black text-amber-700 uppercase mb-1">{messages['modal.team_registration.information'] || 'Information'}</p>
                                                 <ul className="text-xs text-amber-600 space-y-0.5">
                                                     {teamWarnings.map((warn, idx) => (
                                                         <li key={idx}>• {warn}</li>
@@ -496,8 +496,8 @@ export default function TeamRegistrationModal({
                         ) : (
                             <div className="text-center py-8 text-gray-400">
                                 <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                <p className="font-medium">Aucune équipe trouvée</p>
-                                <p className="text-sm">Créez une équipe pour vous inscrire</p>
+                                <p className="font-medium">{messages['modal.select_responsable.no_users_found'] || 'No teams found'}</p>
+                                <p className="text-sm">{messages['modal.team_registration.create_team_prompt'] || 'Create a team to register'}</p>
                             </div>
                         )}
                     </div>
@@ -507,7 +507,7 @@ export default function TeamRegistrationModal({
                         <div className="bg-gray-50 rounded-2xl p-6 space-y-6 border border-gray-100">
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Coureurs</p>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{messages['modal.team_registration.total_runners'] || 'Total Runners'}</p>
                                     <div className={`flex items-baseline gap-2 ${selectedTeam.validation.isValid ? 'text-emerald-600' : 'text-red-500'}`}>
                                         <span className="text-3xl font-black italic">{selectedTeam.members_count}</span>
                                         <span className="text-xs font-bold uppercase overflow-visible whitespace-nowrap">
@@ -518,7 +518,7 @@ export default function TeamRegistrationModal({
                                 
                                 {racePrices.major && (
                                     <div>
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Prix Estimé</p>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{messages['modal.team_registration.estimated_price'] || 'Estimated Price'}</p>
                                         <div className="flex items-baseline gap-2 text-blue-600">
                                             <span className="text-3xl font-black italic">
                                                 {(() => {
@@ -559,12 +559,12 @@ export default function TeamRegistrationModal({
                                 <div className="space-y-1">
                                     {racePrices.adherent && (
                                         <p className="text-xs text-gray-600">
-                                            <span className="font-black text-emerald-600">{racePrices.adherent}€</span> si licencié
+                                            <span className="font-black text-emerald-600">{racePrices.adherent}€</span> {messages['modal.team_registration.if_licensed'] || 'if licensed'}
                                         </p>
                                     )}
                                     {!isCompetitive && racePrices.minor && (
                                         <p className="text-xs text-gray-600">
-                                            <span className="font-black text-blue-600">{racePrices.minor}€</span> si mineur
+                                            <span className="font-black text-blue-600">{racePrices.minor}€</span> {messages['modal.team_registration.if_minor'] || 'if minor'}
                                         </p>
                                     )}
                                 </div>
@@ -572,7 +572,7 @@ export default function TeamRegistrationModal({
                                 {!selectedTeam.validation.isValid && (
                                     <div className="flex items-center gap-2 text-red-500 text-xs font-bold max-w-[50%] text-right bg-red-50 px-3 py-2 rounded-lg">
                                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                        <span>Équipe non éligible - Voir les erreurs ci-dessus</span>
+                                        <span>{messages['modal.team_registration.team_not_eligible'] || 'Team not eligible - See errors above'}</span>
                                     </div>
                                 )}
                             </div>
@@ -585,7 +585,7 @@ export default function TeamRegistrationModal({
                             onClick={onClose}
                             className="px-6 py-3 font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors uppercase text-xs tracking-widest"
                         >
-                            Annuler
+                            {messages['cancel'] || 'Cancel'}
                         </button>
                         <button
                             onClick={handleSubmit}
@@ -596,7 +596,7 @@ export default function TeamRegistrationModal({
                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             }`}
                         >
-                            {processing ? 'INSCRIPTION...' : 'VALIDER L\'INSCRIPTION'}
+                            {processing ? (messages['modal.team_registration.registering'] || 'REGISTERING...') : (messages['modal.team_registration.validate_registration'] || 'VALIDATE REGISTRATION')}
                             <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>

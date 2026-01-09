@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { X, FileText, Save, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import Modal from '@/Components/Modal';
 
@@ -13,6 +13,7 @@ import Modal from '@/Components/Modal';
  * @param {number} raceId - ID of the race for API routing
  */
 export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, canVerify = false }) {
+    const messages = usePage().props.translations?.messages || {};
     const { data, setData, put, post, processing, errors } = useForm({
         pps_number: participant?.pps_number || '',
         pps_expiry: participant?.pps_expiry || '',
@@ -86,7 +87,7 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
                 <div className="bg-blue-900 p-6 flex items-center justify-between">
                     <h3 className="text-xl font-black text-white italic uppercase tracking-wider flex items-center gap-3">
                         <FileText className="w-6 h-6 text-emerald-400" />
-                        {hasPPSData ? 'Gérer le PPS' : 'Ajouter un PPS'}
+                        {hasPPSData ? (messages['modal.update_pps.manage_title'] || 'Gérer le PPS') : (messages['modal.update_pps.add_title'] || 'Ajouter un PPS')}
                     </h3>
                     <button onClick={onClose} className="text-blue-200 hover:text-white transition-colors">
                         <X className="w-6 h-6" />
@@ -97,7 +98,7 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
                     {/* Participant Info */}
                     <div className="bg-gray-50 rounded-xl p-4">
                         <p className="text-xs font-black text-blue-400 uppercase tracking-widest mb-2">
-                            Participant
+                            {messages['modal.update_pps.participant'] || "Participant"}
                         </p>
                         <p className="text-lg font-black text-blue-900 uppercase italic">
                             {participant.first_name} {participant.last_name}
@@ -113,19 +114,19 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
                             {isPending && (
                                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 text-orange-600">
                                     <Clock className="w-4 h-4" />
-                                    <span className="text-xs font-black uppercase tracking-wider">En attente de vérification</span>
+                                    <span className="text-xs font-black uppercase tracking-wider">{messages['modal.update_pps.pending_verification'] || "En attente de vérification"}</span>
                                 </div>
                             )}
                             {isVerified && (
                                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-600">
                                     <CheckCircle2 className="w-4 h-4" />
-                                    <span className="text-xs font-black uppercase tracking-wider">Vérifié</span>
+                                    <span className="text-xs font-black uppercase tracking-wider">{messages['modal.update_pps.verified'] || "Vérifié"}</span>
                                 </div>
                             )}
                             {participant.pps_status === 'rejected' && (
                                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 text-red-600">
                                     <XCircle className="w-4 h-4" />
-                                    <span className="text-xs font-black uppercase tracking-wider">Rejeté</span>
+                                    <span className="text-xs font-black uppercase tracking-wider">{messages['modal.update_pps.rejected'] || "Rejeté"}</span>
                                 </div>
                             )}
                         </div>
@@ -134,14 +135,14 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
                     {/* PPS Number */}
                     <div>
                         <label className="block text-xs font-black text-blue-900 uppercase tracking-wider mb-2">
-                            Numéro PPS *
+                            {messages['modal.update_pps.pps_number'] || "Numéro PPS *"}
                         </label>
                         <input
                             type="text"
                             value={data.pps_number}
                             onChange={(e) => setData('pps_number', e.target.value)}
                             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 font-medium"
-                            placeholder="Ex: 1234567890"
+                            placeholder={messages['modal.update_pps.pps_placeholder'] || "Ex: 1234567890"}
                             required
                         />
                         {errors.pps_number && (
@@ -152,7 +153,7 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
                     {/* PPS Expiry */}
                     <div>
                         <label className="block text-xs font-black text-blue-900 uppercase tracking-wider mb-2">
-                            Date d'expiration *
+                            {messages['modal.update_pps.expiry_date'] || "Date d'expiration *"}
                         </label>
                         <input
                             type="date"
@@ -178,10 +179,10 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
                                 />
                                 <span className="flex-1">
                                     <span className="block text-xs font-black text-emerald-900 uppercase tracking-wider">
-                                        Approuver directement
+                                        {messages['modal.update_pps.approve_directly'] || "Approuver directement"}
                                     </span>
                                     <span className="block text-xs text-emerald-700 mt-1">
-                                        Enregistrer et vérifier le PPS en une seule action
+                                        {messages['modal.update_pps.approve_directly_desc'] || "Enregistrer et vérifier le PPS en une seule action"}
                                     </span>
                                 </span>
                                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -201,7 +202,7 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
                                     className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     <CheckCircle2 className="w-4 h-4" />
-                                    Approuver
+                                    {messages['modal.update_pps.approve'] || "Approuver"}
                                 </button>
                                 <button
                                     type="button"
@@ -210,7 +211,7 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
                                     className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     <XCircle className="w-4 h-4" />
-                                    Rejeter
+                                    {messages['modal.update_pps.reject'] || "Rejeter"}
                                 </button>
                             </div>
                         )}
@@ -222,7 +223,7 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
                                 onClick={onClose}
                                 className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs uppercase tracking-widest rounded-xl transition-colors"
                             >
-                                Annuler
+                                {messages['cancel'] || "Annuler"}
                             </button>
                             <button
                                 type="submit"
@@ -230,7 +231,7 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
                                 className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 <Save className="w-4 h-4" />
-                                {processing ? 'Enregistrement...' : 'Enregistrer'}
+                                {processing ? (messages['modal.update_pps.saving'] || 'Enregistrement...') : (messages['save'] || 'Enregistrer')}
                             </button>
                         </div>
                     </div>

@@ -1,21 +1,22 @@
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 
 /**
  * UserLastRaces component - Displays user's teams in a card grid layout
  * @param {Array} teams - Array of team objects with name, image, and members
  */
 export default function UserLastRaces({ races = [] }) {
+    const messages = usePage().props.translations?.messages || {};
 
     return (
         <div className="py-6">
             <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Vos dernières courses
+                    {messages['user_last_races.title'] || 'Your last races'}
                 </h2>
                 
                 {races.length === 0 ? (
                     <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm text-center text-gray-500">
-                        Vous n'avez participé à aucune course pour le moment.
+                        {messages['user_last_races.no_races'] || 'You have not participated in any race yet.'}
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -55,11 +56,11 @@ export default function UserLastRaces({ races = [] }) {
                                 <div className="p-4 pt-3">
                                     <div className="flex justify-between items-center">
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase tracking-wide">Date</p>
+                                            <p className="text-xs text-gray-500 uppercase tracking-wide">{messages['user_last_races.date'] || 'Date'}</p>
                                             <p className="text-sm font-medium text-gray-900">{race.date}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs text-gray-500 uppercase tracking-wide">Position</p>
+                                            <p className="text-xs text-gray-500 uppercase tracking-wide">{messages['user_last_races.position'] || 'Position'}</p>
                                             <p className="text-lg font-bold text-blue-600">{race.position}</p>
                                         </div>
                                     </div>
@@ -70,7 +71,7 @@ export default function UserLastRaces({ races = [] }) {
                                             
                                             className="inline-block w-full text-center bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200"
                                         >
-                                            Voir la course
+                                            {messages['user_last_races.view_race'] || 'View race'}
                                         </button>
                                     </Link>
                                 </div>

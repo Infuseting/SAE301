@@ -13,6 +13,7 @@ import InputError from '@/Components/InputError';
  */
 export default function LicenceRequiredModal({ show }) {
     const { translations, auth } = usePage().props;
+    const messages = translations?.messages || {};
     const currentUser = auth?.user;
     const t = (key, fallback) => translations?.profile?.[key] || fallback;
     
@@ -78,10 +79,10 @@ export default function LicenceRequiredModal({ show }) {
                             </svg>
                             <div>
                                 <h3 className="text-xl font-bold text-white">
-                                    Licence Requise - Accès Bloqué
+                                    {messages['modal.licence_required.title'] || 'Licence Required - Access Blocked'}
                                 </h3>
                                 <p className="mt-1 text-sm text-red-100">
-                                    Votre rôle nécessite une licence valide pour accéder à l'application
+                                    {messages['modal.licence_required.description'] || 'Your role requires a valid licence to access the application'}
                                 </p>
                             </div>
                         </div>
@@ -103,13 +104,9 @@ export default function LicenceRequiredModal({ show }) {
                                     />
                                 </svg>
                                 <div className="text-sm text-yellow-800">
-                                    <p className="font-semibold mb-1">Pourquoi cette restriction ?</p>
+                                    <p className="font-semibold mb-1">{messages['modal.licence_required.why_title'] || 'Why this restriction?'}</p>
                                     <p>
-                                        En tant que gestionnaire (club, raid, course ou équipe), vous devez disposer d'une licence valide 
-                                        pour exercer vos fonctions et accéder à l'application. Cette mesure garantit la conformité réglementaire.
-                                    </p>
-                                    <p className="mt-2">
-                                        <strong>Veuillez entrer votre numéro de licence ci-dessous pour continuer.</strong>
+                                        {messages['modal.licence_required.why_description'] || 'As a club member or event manager, you must have a valid licence to ensure compliance with the French Orienteering Federation (FFCO) regulations.'}
                                     </p>
                                 </div>
                             </div>
@@ -118,7 +115,7 @@ export default function LicenceRequiredModal({ show }) {
                         {/* Form */}
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <InputLabel htmlFor="license_number" value="Numéro de Licence *" />
+                                <InputLabel htmlFor="license_number" value={messages['modal.licence_required.licence_label'] || 'Licence Number *'} />
                                 <TextInput
                                     id="license_number"
                                     type="text"
@@ -127,11 +124,11 @@ export default function LicenceRequiredModal({ show }) {
                                     onChange={(e) => setData('license_number', e.target.value)}
                                     required
                                     autoFocus
-                                    placeholder="Ex: ABC123456789"
+                                    placeholder={messages['modal.licence_required.licence_placeholder'] || 'Ex: 123456 or AB12345'}
                                 />
                                 <InputError message={errors.license_number} className="mt-2" />
                                 <p className="mt-1 text-xs text-gray-500">
-                                    Votre licence sera valide pendant 1 an à partir d'aujourd'hui
+                                    {messages['modal.licence_required.licence_hint'] || 'Your licence will be valid for 1 year from validation.'}
                                 </p>
                             </div>
 
@@ -145,14 +142,14 @@ export default function LicenceRequiredModal({ show }) {
 
                             <div className="flex justify-end pt-4 border-t border-gray-200">
                                 <PrimaryButton disabled={processing || !data.license_number}>
-                                    {processing ? 'Validation en cours...' : 'Valider ma Licence'}
+                                    {processing ? (messages['modal.licence_required.validating'] || 'Validating...') : (messages['modal.licence_required.validate'] || 'Validate my Licence')}
                                 </PrimaryButton>
                             </div>
                         </form>
 
                         <div className="mt-4 text-center">
                             <p className="text-xs text-gray-500">
-                                ⚠️ Ce modal ne peut pas être fermé. Vous devez entrer une licence pour continuer.
+                                {messages['modal.licence_required.cannot_close'] || '⚠️ This modal cannot be closed until you have added a valid licence.'}
                             </p>
                         </div>
                     </div>

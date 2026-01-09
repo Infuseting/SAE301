@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 
 /**
  * Modal component for adding licence or PPS code
@@ -9,6 +9,7 @@ import { router } from '@inertiajs/react';
  * @param {function} onSuccess - Function to call when licence/PPS is added successfully
  */
 export default function LicenceModal({ isOpen, onClose, onSuccess }) {
+    const messages = usePage().props.translations?.messages || {};
     const [activeTab, setActiveTab] = useState('licence');
     const [licenceNumber, setLicenceNumber] = useState('');
     const [ppsCode, setPpsCode] = useState('');
@@ -37,10 +38,10 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                 if (onSuccess) onSuccess(data);
                 onClose();
             } else {
-                setError(data.message || 'Une erreur est survenue');
+                setError(data.message || (messages['modal.licence.error_occurred'] || 'An error occurred'));
             }
         } catch (err) {
-            setError('Une erreur est survenue lors de l\'ajout de la licence');
+            setError(messages['modal.licence.error_adding_licence'] || 'An error occurred while adding the licence');
         } finally {
             setLoading(false);
         }
@@ -68,10 +69,10 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                 if (onSuccess) onSuccess(data);
                 onClose();
             } else {
-                setError(data.message || 'Une erreur est survenue');
+                setError(data.message || (messages['modal.licence.error_occurred'] || 'An error occurred'));
             }
         } catch (err) {
-            setError('Une erreur est survenue lors de l\'ajout du code PPS');
+            setError(messages['modal.licence.error_adding_pps'] || 'An error occurred while adding the PPS code');
         } finally {
             setLoading(false);
         }
@@ -93,10 +94,10 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                     {/* Header */}
                     <div className="border-b border-gray-200 px-6 py-4">
                         <h3 className="text-lg font-semibold text-gray-900">
-                            Licence ou Code PPS Requis
+                            {messages['modal.licence.title'] || 'Licence or PPS Code Required'}
                         </h3>
                         <p className="mt-1 text-sm text-gray-500">
-                            Pour vous inscrire à une course, vous devez avoir un numéro de licence valide ou un code PPS.
+                            {messages['modal.licence.description'] || 'To register for a race, you must have a valid licence number or PPS code.'}
                         </p>
                     </div>
 
@@ -110,7 +111,7 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                                     : 'text-gray-500 hover:text-gray-700'
                             }`}
                         >
-                            Licence (1 an)
+                            {messages['modal.licence.tab_licence'] || 'Licence (1 year)'}
                         </button>
                         <button
                             onClick={() => setActiveTab('pps')}
@@ -120,7 +121,7 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                                     : 'text-gray-500 hover:text-gray-700'
                             }`}
                         >
-                            Code PPS (3 mois)
+                            {messages['modal.licence.tab_pps'] || 'PPS Code (3 months)'}
                         </button>
                     </div>
 
@@ -140,7 +141,7 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                                         htmlFor="licence_number"
                                         className="block text-sm font-medium text-gray-700"
                                     >
-                                        Numéro de Licence
+                                        {messages['modal.licence.licence_number'] || 'Licence Number'}
                                     </label>
                                     <input
                                         type="text"
@@ -148,12 +149,12 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                                         value={licenceNumber}
                                         onChange={(e) => setLicenceNumber(e.target.value)}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        placeholder="Entrez votre numéro de licence"
+                                        placeholder={messages['modal.licence.licence_placeholder'] || 'Enter your licence number'}
                                         required
                                         disabled={loading}
                                     />
                                     <p className="mt-2 text-sm text-gray-500">
-                                        Valide pendant 1 an à partir de la date d'ajout
+                                        {messages['modal.licence.licence_hint'] || 'Valid for 1 year from the date of addition'}
                                     </p>
                                 </div>
 
@@ -164,14 +165,14 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                                         className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                                         disabled={loading}
                                     >
-                                        Annuler
+                                        {messages['cancel'] || 'Cancel'}
                                     </button>
                                     <button
                                         type="submit"
                                         className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
                                         disabled={loading}
                                     >
-                                        {loading ? 'Ajout...' : 'Ajouter la Licence'}
+                                        {loading ? (messages['modal.licence.adding'] || 'Adding...') : (messages['modal.licence.add_licence'] || 'Add Licence')}
                                     </button>
                                 </div>
                             </form>
@@ -182,7 +183,7 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                                         htmlFor="pps_code"
                                         className="block text-sm font-medium text-gray-700"
                                     >
-                                        Code PPS
+                                        {messages['modal.licence.pps_code'] || 'PPS Code'}
                                     </label>
                                     <input
                                         type="text"
@@ -190,12 +191,12 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                                         value={ppsCode}
                                         onChange={(e) => setPpsCode(e.target.value)}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        placeholder="Entrez votre code PPS"
+                                        placeholder={messages['modal.licence.pps_placeholder'] || 'Enter your PPS code'}
                                         required
                                         disabled={loading}
                                     />
                                     <p className="mt-2 text-sm text-gray-500">
-                                        Valide pendant 3 mois à partir de la date d'ajout
+                                        {messages['modal.licence.pps_hint'] || 'Valid for 3 months from the date of addition'}
                                     </p>
                                 </div>
 
@@ -206,14 +207,14 @@ export default function LicenceModal({ isOpen, onClose, onSuccess }) {
                                         className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                                         disabled={loading}
                                     >
-                                        Annuler
+                                        {messages['cancel'] || 'Cancel'}
                                     </button>
                                     <button
                                         type="submit"
                                         className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
                                         disabled={loading}
                                     >
-                                        {loading ? 'Ajout...' : 'Ajouter le Code PPS'}
+                                        {loading ? (messages['modal.licence.adding'] || 'Adding...') : (messages['modal.licence.add_pps'] || 'Add PPS Code')}
                                     </button>
                                 </div>
                             </form>

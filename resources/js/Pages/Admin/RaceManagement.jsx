@@ -8,7 +8,7 @@ export default function RaceManagement({ races }) {
 
     return (
         <AuthenticatedLayout>
-            <Head title="Gestion des Courses" />
+            <Head title={messages['admin.races.title'] || "Gestion des Courses"} />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -16,12 +16,12 @@ export default function RaceManagement({ races }) {
                     <div className="mb-6">
                         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                             <FaRunning className="text-blue-600" />
-                            {messages.manage_races || 'Gestion des Courses'}
+                            {messages['admin.races.title'] || 'Gestion des Courses'}
                         </h1>
                         <p className="mt-2 text-gray-600">
                             {races.length === 0 
-                                ? "Aucune course à gérer pour le moment"
-                                : `${races.length} course${races.length > 1 ? 's' : ''} à gérer`
+                                ? (messages['admin.races.no_races_to_manage'] || "Aucune course à gérer pour le moment")
+                                : (messages['admin.races.races_to_manage'] || ":count course(s) à gérer").replace(':count', races.length)
                             }
                         </p>
                     </div>
@@ -34,13 +34,13 @@ export default function RaceManagement({ races }) {
                                 {messages.no_races || 'Aucune course trouvée'}
                             </h3>
                             <p className="text-gray-500 mb-6">
-                                Vous n'avez aucune course à gérer pour le moment.
+                                {messages['admin.races.no_races_description'] || "Vous n'avez aucune course à gérer pour le moment."}
                             </p>
                             <Link
                                 href={route('races.create')}
                                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                             >
-                                Créer une course
+                                {messages.create_race || 'Créer une course'}
                             </Link>
                         </div>
                     ) : (
@@ -97,14 +97,14 @@ export default function RaceManagement({ races }) {
                                                 <Link
                                                     href={route('races.show', race.race_id)}
                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition"
-                                                    title="Voir"
+                                                    title={messages.view || "Voir"}
                                                 >
                                                     <FaEye className="w-5 h-5" />
                                                 </Link>
                                                 <Link
                                                     href={route('races.edit', race.race_id)}
                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition"
-                                                    title="Modifier"
+                                                    title={messages.edit || "Modifier"}
                                                 >
                                                     <FaEdit className="w-5 h-5" />
                                                 </Link>

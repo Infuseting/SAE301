@@ -23,6 +23,7 @@ import { createPortal } from 'react-dom';
  */
 export default function ProfileCompletionModal() {
     const user = usePage().props.auth.user;
+    const messages = usePage().props.translations?.messages || {};
     const [isOpen, setIsOpen] = useState(false);
     const [showLicenseModal, setShowLicenseModal] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null);
@@ -98,17 +99,17 @@ export default function ProfileCompletionModal() {
             <Modal show={isOpen} maxWidth="lg">
             <div className="p-6">
                 <h2 className="text-lg font-medium text-gray-900">
-                    Finaliser votre inscription
+                    {messages['modal.complete_profile.title'] || "Finaliser votre inscription"}
                 </h2>
 
                 <p className="mt-1 text-sm text-gray-600 mb-6">
-                    Veuillez compléter vos informations personnelles pour continuer.
+                    {messages['modal.complete_profile.description'] || "Veuillez compléter vos informations personnelles pour continuer."}
                 </p>
 
                 <form onSubmit={submit}>
                     <div className="space-y-4">
                         <div>
-                            <InputLabel htmlFor="birth_date" value="Date de naissance *" />
+                            <InputLabel htmlFor="birth_date" value={messages['modal.complete_profile.birth_date'] || "Date de naissance *"} />
                             <DatePicker
                                 id="birth_date"
                                 selected={selectedDate}
@@ -125,7 +126,7 @@ export default function ProfileCompletionModal() {
                                 }}
                                 className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                                 dateFormat="dd/MM/yyyy"
-                                placeholderText="JJ/MM/AAAA"
+                                placeholderText={messages['modal.complete_profile.date_placeholder'] || "JJ/MM/AAAA"}
                                 required
                                 showYearDropdown
                                 dropdownMode="select"
@@ -137,7 +138,7 @@ export default function ProfileCompletionModal() {
                         </div>
 
                         <div>
-                            <InputLabel htmlFor="address" value="Adresse complète *" />
+                            <InputLabel htmlFor="address" value={messages['modal.complete_profile.address'] || "Adresse complète *"} />
                             <TextInput
                                 id="address"
                                 type="text"
@@ -150,7 +151,7 @@ export default function ProfileCompletionModal() {
                         </div>
 
                         <div>
-                            <InputLabel htmlFor="phone" value="Numéro de téléphone *" />
+                            <InputLabel htmlFor="phone" value={messages['modal.complete_profile.phone'] || "Numéro de téléphone *"} />
                             <TextInput
                                 id="phone"
                                 type="tel"
@@ -163,22 +164,22 @@ export default function ProfileCompletionModal() {
                         </div>
 
                         <div className="border-t pt-4 mt-4">
-                            <InputLabel htmlFor="license_number" value="Numéro de licence FFCO (Facultatif)" />
+                            <InputLabel htmlFor="license_number" value={messages['modal.complete_profile.license_number'] || "Numéro de licence FFCO (Facultatif)"} />
                             <TextInput
                                 id="license_number"
                                 type="text"
                                 className="mt-1 block w-full"
                                 value={data.license_number}
                                 onChange={(e) => setData('license_number', e.target.value)}
-                                placeholder="Ex: 123456 ou AB12345"
+                                placeholder={messages['modal.complete_profile.license_placeholder'] || "Ex: 123456 ou AB12345"}
                             />
-                            <p className="mt-1 text-xs text-gray-500">Format : 5-6 chiffres ou 1-2 lettres suivies de 5-6 chiffres (Fédération Française de Course d'Orientation)</p>
+                            <p className="mt-1 text-xs text-gray-500">{messages['modal.complete_profile.license_format'] || "Format : 5-6 chiffres ou 1-2 lettres suivies de 5-6 chiffres (Fédération Française de Course d'Orientation)"}</p>
                             <InputError message={errors.license_number} className="mt-2" />
                         </div>
 
                         <div className="mt-6 flex justify-end">
                             <PrimaryButton disabled={processing} className="bg-emerald-600 hover:bg-emerald-500">
-                                Terminer l'inscription
+                                {messages['modal.complete_profile.submit'] || "Terminer l'inscription"}
                             </PrimaryButton>
                         </div>
                     </div>
