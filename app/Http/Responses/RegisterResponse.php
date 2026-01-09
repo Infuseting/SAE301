@@ -2,10 +2,19 @@
 
 namespace App\Http\Responses;
 
+<<<<<<< HEAD
 use Illuminate\Http\JsonResponse;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Fortify;
 
+=======
+use Inertia\Inertia;
+use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
+
+/**
+ * Custom register response to redirect to pending invitation after registration.
+ */
+>>>>>>> origin/team_invite
 class RegisterResponse implements RegisterResponseContract
 {
     /**
@@ -16,6 +25,7 @@ class RegisterResponse implements RegisterResponseContract
      */
     public function toResponse($request)
     {
+<<<<<<< HEAD
         $redirectUri = $request->input('redirect_uri');
 
         if ($request->wantsJson()) {
@@ -27,5 +37,15 @@ class RegisterResponse implements RegisterResponseContract
         }
 
         return redirect()->intended(Fortify::redirects('register'));
+=======
+        // Check for pending invitation token in session
+        if ($token = session()->pull('pending_invitation_token')) {
+            return Inertia::location(route('invitations.accept', $token));
+        }
+
+        return $request->wantsJson()
+            ? response()->json(['two_factor' => false])
+            : redirect()->intended(config('fortify.home'));
+>>>>>>> origin/team_invite
     }
 }

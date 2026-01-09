@@ -124,18 +124,19 @@ class TeamController extends Controller
         if ($request->user()->id !== $team->user_id) return response()->json(['error' => 'Unauthorized'], 403);
         
         $email = $user?->email ?? $request->validate(['email' => 'required|email'])['email'];
+        $token = Str::random(64);
         
         Invitation::create([
             'inviter_id' => $request->user()->id,
             'invitee_id' => $user?->id,
             'equ_id' => $team->equ_id,
             'email' => $email,
-            'token' => Str::random(64),
+            'token' => $token,
             'status' => 'pending',
             'expires_at' => now()->addDays(7),
         ]);
         
-        Mail::to($email)->send(new TeamInvitation($team->equ_name, $request->user()->name));
+        Mail::to($email)->send(new TeamInvitation($team->equ_name, $request->user()->name, $token));
         return redirect()->back()->with('success', 'Invitation envoyée');
     }
 
@@ -220,5 +221,58 @@ class TeamController extends Controller
                 'raid_postal_code' => $registration->race->raid->raid_postal_code,
             ],
         ]);
+    }
+
+    /**
+     * Show the invitation acceptance page.
+     */
+    public function showAcceptInvitation($token)
+    {
+        $invitation = Invitation::where('token', $token)->firstOrFail();
+        
+        if ($invitation->expires_at < now() || $invitation->status !== 'pending') {
+            return redirect()->route('home')->with('error', 'Cette invitation a expiré ou a déjà été utilisée.');
+        }
+
+        // If not authenticated, store token in session and redirect to login
+        if (!auth()->check()) {
+            session()->put('pending_invitation_token', $token);
+            return redirect()->route('login')->with('info', 'Connectez-vous pour accepter l\'invitation.');
+        }
+
+        $team = Team::findOrFail($invitation->equ_id);
+
+        return Inertia::render('Invitation/AcceptInvitation', [
+            'invitation' => [
+                'token' => $invitation->token,
+                'inviterName' => $invitation->inviter->name,
+            ],
+            'team' => [
+                'name' => $team->equ_name,
+            ],
+        ]);
+    }
+
+    /**
+     * Accept an invitation via token.
+     */
+    public function acceptInvitation($token)
+    {
+        $invitation = Invitation::where('token', $token)->firstOrFail();
+        
+        if ($invitation->expires_at < now() || $invitation->status !== 'pending') {
+            return redirect()->route('home')->with('error', 'Cette invitation a expiré ou a déjà été utilisée.');
+        }
+
+        $team = Team::findOrFail($invitation->equ_id);
+        
+        // Add user to team if not already a member
+        if (!$team->users()->wherePivot('id_users', auth()->id())->exists()) {
+            $team->users()->attach(auth()->id());
+        }
+        
+        $invitation->update(['status' => 'accepted', 'invitee_id' => auth()->id()]);
+
+        return redirect()->route('teams.show', $team->equ_id)->with('success', 'Vous avez rejoint l\'équipe!');
     }
 }
