@@ -1,10 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import TeamRegistrationModal from '@/Components/TeamRegistrationModal';
 import MyRegistrationModal from '@/Components/MyRegistrationModal';
 import UpdatePPSModal from '@/Components/UpdatePPSModal';
 import TeamPaymentModal from '@/Components/TeamPaymentModal';
+import axios from 'axios';
 import {
     Calendar, Timer, MapPin, Users, Info, ChevronRight,
     Trophy, Heart, ShieldCheck, FileText, UserCheck,
@@ -19,6 +20,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
     const [isMyRegistrationModalOpen, setIsMyRegistrationModalOpen] = useState(false);
     const [selectedParticipant, setSelectedParticipant] = useState(null);
     const [selectedTeamForPayment, setSelectedTeamForPayment] = useState(null);
+    const [participantsState, setParticipantsState] = useState(participants);
 
     // Handler functions for modals
     const handlePPSClick = (participant) => {
@@ -27,7 +29,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
 
     const handlePaymentClick = (teamId) => {
         // Get all participants from this team
-        const teamMembers = participants.filter(p => p.equ_id === teamId);
+        const teamMembers = participantsState.filter(p => p.equ_id === teamId);
         if (teamMembers.length > 0) {
             const teamData = {
                 id: teamId,
@@ -42,6 +44,34 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                 }))
             };
             setSelectedTeamForPayment(teamData);
+        }
+    };
+
+    const handleTogglePresence = async (regId) => {
+        console.log('Toggle presence called for reg_id:', regId);
+        try {
+            const response = await axios.post(`/races/${race.id}/toggle-presence`, {
+                reg_id: regId
+            });
+
+            console.log('Toggle response:', response.data);
+
+            if (response.data.success) {
+                console.log('Updating state for reg_id:', regId, 'to is_present:', response.data.is_present);
+                // Update local state
+                setParticipantsState(prevParticipants => 
+                    prevParticipants.map(p => 
+                        p.reg_id === regId 
+                            ? { ...p, is_present: response.data.is_present }
+                            : p
+                    )
+                );
+            }
+        } catch (error) {
+            console.error('Error toggling presence:', error);
+            if (error.response) {
+                console.error('Error response:', error.response.data);
+            }
         }
     };
 
@@ -400,21 +430,22 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     </div>
 
                                     <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-blue-50">
-                                        <div className="overflow-x-auto">
-                                            <table className="min-w-full divide-y divide-blue-50">
+                                        <div className="mx-auto px-auto">
+                                            <table className="w-full divide-y divide-blue-50">
                                                 <thead className="bg-blue-50/50">
                                                     <tr>
-                                                        <th className="px-8 py-5 text-left text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Participant / Équipe</th>
-                                                        <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Licence</th>
-                                                        <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">PPS</th>
-                                                        <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Paiement</th>
-                                                        <th className="px-8 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Dossard</th>
+                                                        <th className="px-4 py-5 text-left text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Participant / Équipe</th>
+                                                        <th className="px-4 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Licence</th>
+                                                        <th className="px-4 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">PPS</th>
+                                                        <th className="px-4 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Paiement</th>
+                                                        <th className="px-4 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Dossard</th>
+                                                        <th className="px-4 py-5 text-center text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">Présent</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-blue-50">
-                                                    {participants.map((p, idx) => (
+                                                    {participantsState.map((p, idx) => (
                                                         <tr key={p.participant_id || idx} className="hover:bg-blue-50/30 transition-colors">
-                                                            <td className="px-8 py-6">
+                                                            <td className="px-4 py-6">
                                                                 <div className="flex items-center gap-4">
                                                                     <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center font-black text-blue-600 uppercase italic">
                                                                         {p.first_name[0]}{p.last_name[0]}
@@ -428,13 +459,13 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                                     </div>
                                                                 </div>
                                                             </td>
-                                                            <td className="px-8 py-6 text-center">
+                                                            <td className="px-4 py-6 text-center">
                                                                 <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase ${p.is_license_valid ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
                                                                     {p.is_license_valid ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                                                                     {p.adh_license || 'SANS'}
-                                                                </div>
+                                                                </div>  
                                                             </td>
-                                                            <td className="px-8 py-6 text-center">
+                                                            <td className="px-4 py-6 text-center">
                                                                 {p.is_license_valid ? (
                                                                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-gray-100 text-gray-500">
                                                                         NON REQUIS
@@ -465,7 +496,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                                     </button>
                                                                 )}
                                                             </td>
-                                                            <td className="px-8 py-6 text-center">
+                                                            <td className="px-4 py-6 text-center">
                                                                 {p.reg_validated ? (
                                                                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-600">
                                                                         <CheckCircle2 className="h-3 w-3" />
@@ -481,7 +512,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                                     </button>
                                                                 )}
                                                             </td>
-                                                            <td className="px-8 py-6 text-center">
+                                                            <td className="px-4 py-6 text-center">
                                                                 {p.reg_dossard ? (
                                                                     <div className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-lg font-black bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg">
                                                                         {p.reg_dossard}
@@ -491,6 +522,28 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                                         Non attribué
                                                                     </div>
                                                                 )}
+                                                            </td>
+                                                            <td className="px-4 py-6 text-center">
+                                                                <button
+                                                                    onClick={() => handleTogglePresence(p.reg_id)}
+                                                                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase transition-colors cursor-pointer ${
+                                                                        p.is_present 
+                                                                            ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' 
+                                                                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                                                    }`}
+                                                                >
+                                                                    {p.is_present ? (
+                                                                        <>
+                                                                            <CheckCircle2 className="h-3 w-3" />
+                                                                            PRÉSENT
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <XCircle className="h-3 w-3" />
+                                                                            ABSENT
+                                                                        </>
+                                                                    )}
+                                                                </button>
                                                             </td>
                                                         </tr>
                                                     ))}
@@ -595,7 +648,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         <div>
                                             <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Participants</p>
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-xl font-black italic leading-none">{race.registeredCount}</span>
+                                                <span className="text-xl font-black italic leading-none">{participants.length}</span>
                                                 <span className="text-xs font-bold text-white/30 uppercase">/ {race.maxParticipants}</span>
                                             </div>
                                         </div>

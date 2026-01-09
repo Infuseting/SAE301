@@ -616,6 +616,93 @@ class RaceController extends Controller
     }
 
     /**
+     * Toggle participant presence status
+     * 
+     * @OA\Post(
+     *     path="/races/{race}/toggle-presence",
+     *     summary="Toggle participant presence",
+     *     tags={"Races"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="race",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"reg_id"},
+     *             @OA\Property(property="reg_id", type="integer", description="Registration ID")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Presence toggled successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean"),
+     *             @OA\Property(property="is_present", type="boolean"),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Must be race manager"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Registration not found"
+     *     )
+     * )
+     */
+    public function togglePresence(Request $request, Race $race)
+    {
+        // Check if user is race manager or admin
+        $user = auth()->user();
+        $isAdmin = $user && $user->hasRole('admin');
+        $isRaceManager = $user && ($user->hasRole('responsable-course') || ($race->organizer && $user->adh_id === $race->organizer->adh_id) || ($race->raid && $race->raid->club && $race->raid->club->hasManager($user)));
+
+        if (!$isAdmin && !$isRaceManager) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only race managers can toggle presence.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'reg_id' => 'required|integer|exists:registration,reg_id',
+        ]);
+
+        // Find the registration
+        $registration = \App\Models\Registration::where('reg_id', $validated['reg_id'])
+            ->where('race_id', $race->race_id)
+            ->first();
+
+        if (!$registration) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration not found.'
+            ], 404);
+        }
+
+        // Toggle presence
+        $registration->is_present = !$registration->is_present;
+        $registration->save();
+
+        // Log activity
+        activity()
+            ->causedBy($user)
+            ->performedOn($registration)
+            ->log($registration->is_present ? 'Participant marked as present' : 'Participant marked as absent');
+
+        return response()->json([
+            'success' => true,
+            'is_present' => $registration->is_present,
+            'message' => $registration->is_present ? 'Participant marqué comme présent' : 'Participant marqué comme absent'
+        ]);
+    }
+
+    /**
      * Display QR scanner page for race managers
      */
     public function scannerPage(Race $race)

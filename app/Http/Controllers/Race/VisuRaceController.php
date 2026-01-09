@@ -115,6 +115,7 @@ class VisuRaceController extends Controller
                     'race_participants.bib_number',
                     'registration.reg_validated',
                     'registration.reg_dossard',
+                    'registration.is_present',
                     'teams.equ_name',
                     'teams.equ_id'
                 ])

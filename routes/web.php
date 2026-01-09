@@ -133,6 +133,7 @@ Route::middleware(['auth', 'role:responsable-course|gestionnaire-raid|responsabl
     Route::get('/races/{race}/start-list', [RaceController::class, 'generateStartList'])->name('races.start-list');
     Route::get('/races/{race}/scanner', [RaceController::class, 'scannerPage'])->name('races.scanner');
     Route::post('/races/{race}/check-in', [RaceController::class, 'checkIn'])->name('races.check-in');
+    Route::post('/races/{race}/toggle-presence', [RaceController::class, 'togglePresence'])->name('races.toggle-presence');
 });
 
 // Club member management - requires authentication (authorization in controller)
