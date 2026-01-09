@@ -350,25 +350,25 @@ class DemoDataSeeder extends Seeder
     {
         // Create members for users (only for those with a license)
         $membersData = [
-            ['adh_id' => self::ID_START + 30, 'name' => 'MARTIN', 'firstname' => 'Julien', 'club' => 'CO Azimut 77', 'licence' => '77001234', 'birthday' => '1990-04-15', 'phone' => '0612345678'],
-            ['adh_id' => self::ID_START + 31, 'name' => 'DUMONT', 'firstname' => 'Clara', 'club' => 'Raidlinks', 'licence' => '25004567', 'birthday' => '1985-09-22', 'phone' => '0698765432'],
-            ['adh_id' => self::ID_START + 32, 'name' => 'PETIT', 'firstname' => 'Antoine', 'club' => 'Balise 25', 'licence' => '2025-T1L1F3', 'birthday' => '2002-01-03', 'phone' => '0711223344'],
-            ['adh_id' => self::ID_START + 33, 'name' => 'MARVELI', 'firstname' => 'Sandra', 'club' => 'VIKAZIM', 'licence' => '64005678', 'birthday' => '1995-07-18', 'phone' => '0655443322'],
-            ['adh_id' => self::ID_START + 34, 'name' => 'BERNARD', 'firstname' => 'Lucas', 'club' => 'Raidlinks', 'licence' => '91002345', 'birthday' => '1988-11-30', 'phone' => '0766778899'],
-            ['adh_id' => self::ID_START + 35, 'name' => 'DUPONT', 'firstname' => 'Claire', 'club' => 'CO Azimut 77', 'licence' => '1204558', 'birthday' => '1992-05-14', 'phone' => '0612457890'],
-            ['adh_id' => self::ID_START + 36, 'name' => 'LEFEBVRE', 'firstname' => 'Thomas', 'club' => 'Balise 25', 'licence' => '2298741', 'birthday' => '1985-11-23', 'phone' => '0654892133'],
-            ['adh_id' => self::ID_START + 37, 'name' => 'MOREAU', 'firstname' => 'Sophie', 'club' => 'Raidlinks', 'licence' => '6003214', 'birthday' => '2001-02-02', 'phone' => '0781024456'],
-            ['adh_id' => self::ID_START + 38, 'name' => 'LEROY', 'firstname' => 'Thomas', 'club' => 'CO Azimut 77', 'licence' => '6901122', 'birthday' => '1995-08-30', 'phone' => '0633571288'],
-            ['adh_id' => self::ID_START + 39, 'name' => 'GARNIER', 'firstname' => 'Julie', 'club' => 'CO Azimut 77', 'licence' => '', 'birthday' => '1988-07-12', 'phone' => '0765901122'], // No license = not a member
-            ['adh_id' => self::ID_START + 40, 'name' => 'LEROY', 'firstname' => 'Thomas', 'club' => 'CO Azimut 77', 'licence' => '6700548', 'birthday' => '1974-01-19', 'phone' => '0609883451'],
-            ['adh_id' => self::ID_START + 41, 'name' => 'FONTAINE', 'firstname' => 'Hugo', 'club' => 'Balise 25', 'licence' => '91006754', 'birthday' => '2003-10-05', 'phone' => '0673849516'],
-            ['adh_id' => self::ID_START + 42, 'name' => 'CARON', 'firstname' => 'Léa', 'club' => 'Balise 25', 'licence' => '', 'birthday' => '1990-04-27', 'phone' => '0614253647'], // No license = not a member
-            ['adh_id' => self::ID_START + 43, 'name' => 'PETIT', 'firstname' => 'Emma', 'club' => 'Balise 25', 'licence' => '77009876', 'birthday' => '2005-12-08', 'phone' => '0621436587'],
-            ['adh_id' => self::ID_START + 44, 'name' => 'ROUX', 'firstname' => 'Nathan', 'club' => 'Balise 25', 'licence' => '25006789', 'birthday' => '2000-01-26', 'phone' => '0734567812'],
-            ['adh_id' => self::ID_START + 45, 'name' => 'DORBEC', 'firstname' => 'Paul', 'club' => 'CO AZIMUT 77', 'licence' => '23456789', 'birthday' => '1980-04-02', 'phone' => '0743672311'],
-            ['adh_id' => self::ID_START + 46, 'name' => 'JACQUIER', 'firstname' => 'Yohann', 'club' => 'VIKAZIM', 'licence' => '', 'birthday' => '2013-06-03', 'phone' => '0642864628'], // No license = not a member
-            ['adh_id' => self::ID_START + 47, 'name' => 'DELHOUMI', 'firstname' => 'Sylvian', 'club' => 'VIKAZIM', 'licence' => '2025-D2S1I3', 'birthday' => '1985-06-02', 'phone' => '0705324567'],
-            ['adh_id' => self::ID_START + 48, 'name' => 'ANNE', 'firstname' => 'Jean-François', 'club' => 'VIKAZIM', 'licence' => '56723478', 'birthday' => '1964-11-05', 'phone' => '0645389485'],
+            ['adh_id' => self::ID_START + 30, 'name' => 'MARTIN', 'firstname' => 'Julien', 'club' => 'CO Azimut 77', 'licence' => '77001234', 'birthday' => '1990-04-15', 'phone' => '0612345678', 'email' => 'julien.martin@test.fr'],
+            ['adh_id' => self::ID_START + 31, 'name' => 'DUMONT', 'firstname' => 'Clara', 'club' => 'Raidlinks', 'licence' => '25004567', 'birthday' => '1985-09-22', 'phone' => '0698765432', 'email' => 'claire.dupont@test.fr'],
+            ['adh_id' => self::ID_START + 32, 'name' => 'PETIT', 'firstname' => 'Antoine', 'club' => 'Balise 25', 'licence' => '2025-T1L1F3', 'birthday' => '2002-01-03', 'phone' => '0711223344', 'email' => 'thomas.leroy@test.fr'],
+            ['adh_id' => self::ID_START + 33, 'name' => 'MARVELI', 'firstname' => 'Sandra', 'club' => 'VIKAZIM', 'licence' => '64005678', 'birthday' => '1995-07-18', 'phone' => '0655443322', 'email' => 'sophie.moreau@test.fr'],
+            ['adh_id' => self::ID_START + 34, 'name' => 'BERNARD', 'firstname' => 'Lucas', 'club' => 'Raidlinks', 'licence' => '91002345', 'birthday' => '1988-11-30', 'phone' => '0766778899', 'email' => 'lucas.bernard@test.fr'],
+            ['adh_id' => self::ID_START + 35, 'name' => 'DUPONT', 'firstname' => 'Claire', 'club' => 'CO Azimut 77', 'licence' => '1204558', 'birthday' => '1992-05-14', 'phone' => '0612457890', 'email' => 'c.dumont@email.fr'],
+            ['adh_id' => self::ID_START + 36, 'name' => 'LEFEBVRE', 'firstname' => 'Thomas', 'club' => 'Balise 25', 'licence' => '2298741', 'birthday' => '1985-11-23', 'phone' => '0654892133', 'email' => 't.lefebvre@orange.fr'],
+            ['adh_id' => self::ID_START + 37, 'name' => 'MOREAU', 'firstname' => 'Sophie', 'club' => 'Raidlinks', 'licence' => '6003214', 'birthday' => '2001-02-02', 'phone' => '0781024456', 'email' => 'sophie.m60@wanadoo.fr'],
+            ['adh_id' => self::ID_START + 38, 'name' => 'LEROY', 'firstname' => 'Thomas', 'club' => 'CO Azimut 77', 'licence' => '6901122', 'birthday' => '1995-08-30', 'phone' => '0633571288', 'email' => 'antoine.petit@gmail.com'],
+            ['adh_id' => self::ID_START + 39, 'name' => 'GARNIER', 'firstname' => 'Julie', 'club' => 'CO Azimut 77', 'licence' => '', 'birthday' => '1988-07-12', 'phone' => '0765901122', 'email' => 'julie.garnier@outlook.com'], // No license = not a member
+            ['adh_id' => self::ID_START + 40, 'name' => 'LEROY', 'firstname' => 'Thomas', 'club' => 'CO Azimut 77', 'licence' => '6700548', 'birthday' => '1974-01-19', 'phone' => '0609883451', 'email' => 'm.rousseau@sfr.fr'],
+            ['adh_id' => self::ID_START + 41, 'name' => 'FONTAINE', 'firstname' => 'Hugo', 'club' => 'Balise 25', 'licence' => '91006754', 'birthday' => '2003-10-05', 'phone' => '0673849516', 'email' => 'hugo.fontaine@test.fr'],
+            ['adh_id' => self::ID_START + 42, 'name' => 'CARON', 'firstname' => 'Léa', 'club' => 'Balise 25', 'licence' => '', 'birthday' => '1990-04-27', 'phone' => '0614253647', 'email' => 'lea.caron@test.fr'], // No license = not a member
+            ['adh_id' => self::ID_START + 43, 'name' => 'PETIT', 'firstname' => 'Emma', 'club' => 'Balise 25', 'licence' => '77009876', 'birthday' => '2005-12-08', 'phone' => '0621436587', 'email' => 'emma.petit@test.fr'],
+            ['adh_id' => self::ID_START + 44, 'name' => 'ROUX', 'firstname' => 'Nathan', 'club' => 'Balise 25', 'licence' => '25006789', 'birthday' => '2000-01-26', 'phone' => '0734567812', 'email' => 'nathan.roux@test.fr'],
+            ['adh_id' => self::ID_START + 45, 'name' => 'DORBEC', 'firstname' => 'Paul', 'club' => 'CO AZIMUT 77', 'licence' => '23456789', 'birthday' => '1980-04-02', 'phone' => '0743672311', 'email' => 'paul.dorbec@unicaen.fr'],
+            ['adh_id' => self::ID_START + 46, 'name' => 'JACQUIER', 'firstname' => 'Yohann', 'club' => 'VIKAZIM', 'licence' => '', 'birthday' => '2013-06-03', 'phone' => '0642864628', 'email' => 'yohann.jacquier@unicaen.fr'], // No license = not a member
+            ['adh_id' => self::ID_START + 47, 'name' => 'DELHOUMI', 'firstname' => 'Sylvian', 'club' => 'VIKAZIM', 'licence' => '2025-D2S1I3', 'birthday' => '1985-06-02', 'phone' => '0705324567', 'email' => 'sylvian.delhoumi@unicaen.fr'],
+            ['adh_id' => self::ID_START + 48, 'name' => 'ANNE', 'firstname' => 'Jean-François', 'club' => 'VIKAZIM', 'licence' => '56723478', 'birthday' => '1964-11-05', 'phone' => '0645389485', 'email' => 'jeanfrancois.anne@unicaen.fr'],
         ];
 
         foreach ($membersData as $index => $member) {
@@ -419,7 +419,7 @@ class DemoDataSeeder extends Seeder
                 'id' => $userId,
                 'first_name' => $member['firstname'],
                 'last_name' => $member['name'],
-                'email' => strtolower($member['firstname'] . '.' . $member['name']) . '@example.com',
+                'email' => $member['email'],
                 'email_verified_at' => now(),
                 'password' => '$2y$12$dnWSGCpdICbHsdeXidDJYepmhlOBg.bqNrMI3etC73Fyual6Dh8Wu',
                 'doc_id' => null,
@@ -485,11 +485,11 @@ class DemoDataSeeder extends Seeder
         // Equipe DORMEUR: Responsable Claire DUPONT (635) + Participants: Claire DUPONT (635), Thomas LEFEBVRE (636)
         $team1Members = [self::ID_START + 35, self::ID_START + 36]; // Claire DUPONT, Thomas LEFEBVRE
         
-        // Equipe ATCHOUM: Responsable Hugo FONTAINE (641) + Participants: Hugo FONTAINE (641), Léa CARON (642)
-        $team2Members = [self::ID_START + 41, self::ID_START + 42]; // Hugo FONTAINE, Léa CARON
+        // Equipe ATCHOUM: Responsable Hugo FONTAINE (641) + Participants: Hugo FONTAINE (641), Emma PETIT (643)
+        $team2Members = [self::ID_START + 41, self::ID_START + 43]; // Hugo FONTAINE, Emma PETIT
         
-        // Equipe SIMPLET: Responsable Hugo FONTAINE (641) + Participants: Julie GARNIER (639), Marc ROUSSEAU (640 - using Thomas LEROY ID)
-        $team3Members = [self::ID_START + 39, self::ID_START + 40]; // Julie GARNIER, Thomas LEROY
+        // Equipe SIMPLET: Responsable Hugo FONTAINE (641) + Participants: Paul DORBEC (645), Nathan ROUX (644)
+        $team3Members = [self::ID_START + 45, self::ID_START + 44]; // Paul DORBEC, Nathan ROUX
 
         // Course LUTIN Teams
         // Equipe MARVELI: Responsable Sandra MARVELI (633) + Participant: Sandra MARVELI (633)
@@ -549,11 +549,17 @@ class DemoDataSeeder extends Seeder
     }
 
     /**
-     * Create demo times/results for races
+     * Create demo times/results for races (only for users with members/licenses)
      */
     private function createDemoTimes(array $raceIds, array $userIds): void
     {
         $timeId = self::ID_START + 70;
+
+        // Filter only users who have members (have a license)
+        $usersWithLicense = DB::table('members')
+            ->whereBetween('adh_id', [self::ID_START, self::ID_END])
+            ->pluck('adh_id')
+            ->toArray();
 
         foreach ($raceIds as $raceIndex => $raceId) {
             // Get race duration to adjust times
@@ -562,8 +568,8 @@ class DemoDataSeeder extends Seeder
             // Use race_duration_minutes as base time (convert to seconds)
             $baseTime = $race->race_duration_minutes * 60;
             
-            // Create times for each user with realistic variations
-            foreach ($userIds as $userIndex => $userId) {
+            // Create times for each user with license
+            foreach ($usersWithLicense as $userIndex => $userId) {
                 if ($timeId >= self::ID_END) {
                     $this->command->warn('Reached ID limit for demo data');
                     break 2;
