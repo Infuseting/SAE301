@@ -84,7 +84,12 @@ class DemoDataSeeder extends Seeder
         DB::table('param_runners')->insertOrIgnore(['pac_id' => 1, 'pac_nb_min' => 1, 'pac_nb_max' => 100, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('param_teams')->insertOrIgnore(['pae_id' => 1, 'pae_nb_min' => 2, 'pae_nb_max' => 6, 'pae_team_count_max' => 50, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('param_type')->insertOrIgnore(['typ_id' => 1, 'typ_name' => 'Trail', 'created_at' => now(), 'updated_at' => now()]);
-        DB::table('registration_period')->insertOrIgnore(['ins_id' => 1, 'ins_start_date' => now()->subMonths(2)->format('Y-m-d H:i:s'), 'ins_end_date' => now()->addMonths(2)->format('Y-m-d H:i:s'), 'created_at' => now(), 'updated_at' => now()]);
+        
+        // Registration period for Raid CHAMPETRE: 10/08/2025 - 30/10/2025
+        DB::table('registration_period')->insertOrIgnore(['ins_id' => 1, 'ins_start_date' => '2025-08-10 00:00:00', 'ins_end_date' => '2025-10-30 23:59:59', 'created_at' => now(), 'updated_at' => now()]);
+        
+        // Registration period for Raid O'Bivwak: 09/01/2026 - 30/04/2026
+        DB::table('registration_period')->insertOrIgnore(['ins_id' => 2, 'ins_start_date' => '2026-01-09 00:00:00', 'ins_end_date' => '2026-04-30 23:59:59', 'created_at' => now(), 'updated_at' => now()]);
     }
 
     private function createDemoClubs(int $createdByUserId): array
@@ -119,14 +124,43 @@ class DemoDataSeeder extends Seeder
 
     /**
      * Add members to clubs using club_user table
+     * Maps all users to their respective clubs according to CSV data
      */
     private function addClubMembers(array $clubIds): void
     {
-        // Add Claire DUPONT (635) and Paul DORBEC (645) to CO Azimut 77 (601)
-        $coAzimutId = self::ID_START + 1; // CO Azimut 77
+        // Club IDs
+        $coAzimutId = self::ID_START + 1;   // CO Azimut 77
+        $balise25Id = self::ID_START + 2;   // Balise 25
+        $raidlinksId = self::ID_START + 3;  // Raidlinks
+        $vikazimId = self::ID_START + 4;    // VIKAZIM
+        
+        // Map users to clubs according to CSV
         $clubMembers = [
-            ['club_id' => $coAzimutId, 'user_id' => self::ID_START + 35, 'role' => 'manager'], // Claire DUPONT
+            // CO Azimut 77 members
+            ['club_id' => $coAzimutId, 'user_id' => self::ID_START + 30, 'role' => 'member'], // Julien MARTIN
+            ['club_id' => $coAzimutId, 'user_id' => self::ID_START + 35, 'role' => 'manager'], // Claire DUPONT (Responsable)
+            ['club_id' => $coAzimutId, 'user_id' => self::ID_START + 38, 'role' => 'member'], // Thomas LEROY
+            ['club_id' => $coAzimutId, 'user_id' => self::ID_START + 39, 'role' => 'member'], // Julie GARNIER
+            ['club_id' => $coAzimutId, 'user_id' => self::ID_START + 40, 'role' => 'member'], // Marc ROUSSEAU
             ['club_id' => $coAzimutId, 'user_id' => self::ID_START + 45, 'role' => 'member'], // Paul DORBEC
+            
+            // Balise 25 members
+            ['club_id' => $balise25Id, 'user_id' => self::ID_START + 32, 'role' => 'manager'], // Antoine PETIT (Responsable)
+            ['club_id' => $balise25Id, 'user_id' => self::ID_START + 36, 'role' => 'member'], // Thomas LEFEBVRE
+            ['club_id' => $balise25Id, 'user_id' => self::ID_START + 41, 'role' => 'member'], // Hugo FONTAINE
+            ['club_id' => $balise25Id, 'user_id' => self::ID_START + 42, 'role' => 'member'], // Léa CARON
+            ['club_id' => $balise25Id, 'user_id' => self::ID_START + 43, 'role' => 'member'], // Emma PETIT
+            
+            // Raidlinks members
+            ['club_id' => $raidlinksId, 'user_id' => self::ID_START + 31, 'role' => 'member'], // Clara DUMONT
+            ['club_id' => $raidlinksId, 'user_id' => self::ID_START + 34, 'role' => 'manager'], // Lucas BERNARD (Responsable)
+            ['club_id' => $raidlinksId, 'user_id' => self::ID_START + 37, 'role' => 'member'], // Sophie MOREAU
+            
+            // VIKAZIM members
+            ['club_id' => $vikazimId, 'user_id' => self::ID_START + 33, 'role' => 'member'], // Sandra MARVELI
+            ['club_id' => $vikazimId, 'user_id' => self::ID_START + 46, 'role' => 'member'], // Yohann JACQUIER
+            ['club_id' => $vikazimId, 'user_id' => self::ID_START + 47, 'role' => 'member'], // Sylvian DELHOUMI
+            ['club_id' => $vikazimId, 'user_id' => self::ID_START + 48, 'role' => 'manager'], // Jean-François ANNE (Responsable)
         ];
 
         foreach ($clubMembers as $member) {
@@ -147,15 +181,15 @@ class DemoDataSeeder extends Seeder
     {
         $allRaceIds = [];
 
-        // Raid 1: CHAMPETRE
+        // Raid 1: CHAMPETRE (Inscriptions: 10/08/2025 - 30/10/2025)
         $raid1Id = self::ID_START + 10;
         DB::table('raids')->insertOrIgnore([
             'raid_id' => $raid1Id,
             'raid_name' => 'Raid CHAMPETRE',
-            'raid_description' => 'Course d’orientation en milieu naturel',
+            'raid_description' => 'Course d\'orientation en milieu naturel',
             'adh_id' => self::ID_START + 45, // Paul DORBEC
             'clu_id' => $clubIds[0],
-            'ins_id' => $registrationPeriodId,
+            'ins_id' => 1, // Registration period 1: CHAMPETRE
             'raid_date_start' => '2025-11-13 08:00:00',
             'raid_date_end' => '2025-11-14 20:00:00',
             'raid_contact' => 'contact.dorbec@coazimut77.fr',
@@ -203,7 +237,7 @@ class DemoDataSeeder extends Seeder
             $allRaceIds[] = $race['race_id'];
         }
         
-        // Raid 2: O'Bivwak
+        // Raid 2: O'Bivwak (Inscriptions: 09/01/2026 - 30/04/2026)
         $raid2Id = self::ID_START + 11;
         DB::table('raids')->insertOrIgnore([
             'raid_id' => $raid2Id,
@@ -211,7 +245,7 @@ class DemoDataSeeder extends Seeder
             'raid_description' => '3 parcours chronométrés (A,B,C)',
             'adh_id' => self::ID_START + 35, // DUPONT Claire
             'clu_id' => $clubIds[0], // CO AZIMUT 77
-            'ins_id' => $registrationPeriodId,
+            'ins_id' => 2, // Registration period 2: O'Bivwak
             'raid_date_start' => '2026-05-23 10:00:00',
             'raid_date_end' => '2026-05-24 18:00:00',
             'raid_contact' => 'contact.dupont@coazimut77.fr',
