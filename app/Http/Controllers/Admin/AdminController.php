@@ -18,6 +18,11 @@ class AdminController extends Controller
     {
         try {
             $user = Auth::user();
+            
+            if (!$user) {
+                \Log::error('AdminController@index: No authenticated user');
+                return redirect()->route('login');
+            }
 
             $stats = [
                 'users' => User::count(),
@@ -68,6 +73,11 @@ class AdminController extends Controller
     {
         try {
             $user = Auth::user();
+            
+            if (!$user) {
+                \Log::error('AdminController@racemanagement: No authenticated user');
+                return redirect()->route('login');
+            }
 
             // Admins can see all races, others only their own
             if ($user->hasRole('admin')) {
@@ -95,6 +105,11 @@ class AdminController extends Controller
     {
         try {
             $user = Auth::user();
+            
+            if (!$user) {
+                \Log::error('AdminController@raidmanagement: No authenticated user');
+                return redirect()->route('login');
+            }
 
             // Admins can see all raids, others only their own
             if ($user->hasRole('admin')) {
@@ -126,6 +141,11 @@ class AdminController extends Controller
     {
         try {
             $user = Auth::user();
+            
+            if (!$user) {
+                \Log::error('AdminController@clubmanagement: No authenticated user');
+                return redirect()->route('login');
+            }
 
             // Admins can see all clubs, others only their managed clubs
             if ($user->hasRole('admin')) {
