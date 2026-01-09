@@ -249,8 +249,14 @@ class RaceRegistrationController extends Controller
                 ->max('reg_dossard');
             $nextDossard = $nextDossard ? $nextDossard + 1 : 1;
 
-            // Create registration
-            $regId = \DB::table('registration')->insertGetId([
+            // Generate next dossard number for this race (auto-increment per race)
+            $nextDossard = \DB::table('registration')
+                ->where('race_id', $race->race_id)
+                ->max('reg_dossard');
+            $nextDossard = $nextDossard ? $nextDossard + 1 : 1;
+
+            // Create registration using Eloquent to trigger observer (auto dossard assignment)
+            $registration = \App\Models\Registration::create([
                 'equ_id' => $team->equ_id,
                 'race_id' => $race->race_id,
                 'pay_id' => $paiId,
@@ -261,6 +267,8 @@ class RaceRegistrationController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            $regId = $registration->reg_id;
 
             // Add all team members as race participants
             // Eager load the leader relationship

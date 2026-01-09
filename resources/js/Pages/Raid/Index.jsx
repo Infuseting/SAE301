@@ -5,7 +5,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
 import RaidProgress from '@/Components/Raid/RaidProgress';
 import RegisteredMembersModal from '@/Components/Raid/RegisteredMembersModal';
-import { Settings, Plus, MapPin, Calendar, Info, Users, ChevronRight, Trophy } from 'lucide-react';
+import { Settings, Plus, MapPin, Calendar, Info, Users, ChevronRight, Trophy, FileText } from 'lucide-react';
 
 /**
  * Raid Detail Component
@@ -70,7 +70,14 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                         </div>
 
                         <div className="flex items-center gap-3">
-                           
+                            {isRaidManager && (
+                                <a href={`/raids/${raid.raid_id}/start-list`} target="_blank" rel="noopener noreferrer">
+                                    <button className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 px-6 py-3 rounded-2xl font-black text-sm transition-all flex items-center gap-2 border border-white/20">
+                                        <FileText className="h-4 w-4" />
+                                        START-LIST PDF
+                                    </button>
+                                </a>
+                            )}
                             {canEditRaid && (
                                 <Link href={route('raids.edit', raid.raid_id)}>
                                     <button className="bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 rounded-2xl font-black text-sm transition-all shadow-xl shadow-emerald-900/20 flex items-center gap-2">
