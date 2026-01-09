@@ -2,6 +2,7 @@ import { useForm, usePage } from '@inertiajs/react';
 import DangerButton from '@/Components/DangerButton';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import UserAvatar from '@/Components/UserAvatar';
 
 /**
  * ClubMembersList component - Displays club members and pending requests

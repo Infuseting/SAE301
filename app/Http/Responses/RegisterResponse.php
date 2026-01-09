@@ -2,19 +2,14 @@
 
 namespace App\Http\Responses;
 
-<<<<<<< HEAD
+use Inertia\Inertia;
 use Illuminate\Http\JsonResponse;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Fortify;
 
-=======
-use Inertia\Inertia;
-use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
-
 /**
- * Custom register response to redirect to pending invitation after registration.
+ * Custom register response to handle pending invitations and custom redirects.
  */
->>>>>>> origin/team_invite
 class RegisterResponse implements RegisterResponseContract
 {
     /**
@@ -25,27 +20,24 @@ class RegisterResponse implements RegisterResponseContract
      */
     public function toResponse($request)
     {
-<<<<<<< HEAD
-        $redirectUri = $request->input('redirect_uri');
-
+        // Handle JSON responses
         if ($request->wantsJson()) {
             return new JsonResponse('', 201);
         }
 
-        if ($redirectUri && filter_var($redirectUri, FILTER_VALIDATE_URL) && str_starts_with($redirectUri, url('/'))) {
-             return redirect()->to($redirectUri);
-        }
-
-        return redirect()->intended(Fortify::redirects('register'));
-=======
-        // Check for pending invitation token in session
-        if ($token = session()->pull('pending_invitation_token')) {
+        // Priority 1: Check for pending invitation token in session
+        $token = session()->pull('pending_invitation_token');
+        if ($token) {
             return Inertia::location(route('invitations.accept', $token));
         }
 
-        return $request->wantsJson()
-            ? response()->json(['two_factor' => false])
-            : redirect()->intended(config('fortify.home'));
->>>>>>> origin/team_invite
+        // Priority 2: Check for custom redirect_uri (with security validation)
+        $redirectUri = $request->input('redirect_uri');
+        if ($redirectUri && filter_var($redirectUri, FILTER_VALIDATE_URL) && str_starts_with($redirectUri, url('/'))) {
+            return redirect()->to($redirectUri);
+        }
+
+        // Priority 3: Default redirection
+        return redirect()->intended(Fortify::redirects('register'));
     }
 }
