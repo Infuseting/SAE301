@@ -188,15 +188,12 @@ class VisuRaceController extends Controller
                 'email' => $race->organizer?->user?->email ?? ''
             ],
             'userTeams' => $user ? (function() use ($user, $race) {
-                \Log::info("Fetching teams for user: {$user->id}");
-                
+               
                 // Only get teams where user is the leader
                 $teams = \App\Models\Team::query()
                     ->where('user_id', $user->id)
                     ->get();
 
-                \Log::info("Found " . $teams->count() . " teams.");
-                
                 // Get age categories for competitive race validation
                 $ageCategories = $race->categorieAges->map(fn($pc) => [
                     'id' => $pc->ageCategory->id,

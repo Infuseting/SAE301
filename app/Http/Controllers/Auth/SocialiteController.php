@@ -75,9 +75,7 @@ class SocialiteController extends Controller
                 ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
                 ->user();
         } catch (\Exception $e) {
-            // Log the raw error for debugging
-            \Illuminate\Support\Facades\Log::error("Socialite Login Error ($provider): " . $e->getMessage());
-            
+         
             // Return a safe, generic error message to the user to avoid UTF-8 encoding issues in the session/view
             return redirect()->route('login')->withErrors(['email' => "Unable to login with $provider. Please try again."]);
         }

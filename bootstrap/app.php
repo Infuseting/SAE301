@@ -33,8 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function ($response, \Throwable $exception, \Illuminate\Http\Request $request) {
-            \Illuminate\Support\Facades\Log::info('Response type: ' . get_class($response));
-
+            
             // Return original response (Ignition) if debug mode is on
             if (app()->hasDebugModeEnabled() && app()->isLocal() && $response->getStatusCode() === 500) {
                 return $response;

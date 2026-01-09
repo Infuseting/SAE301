@@ -167,8 +167,6 @@ class RaceController extends Controller
      */
     public function store(StoreRaceRequest $request)
     {
-        // Debug: Log all incoming request data
-        \Log::info('Race store request data:', $request->all());
         
         $raid = $request->input('raid_id') ? Raid::find($request->input('raid_id')) : null;
 
@@ -236,12 +234,9 @@ class RaceController extends Controller
         if (!is_array($selectedCategories)) {
             $selectedCategories = [];
         }
-        
-        \Log::info('Selected age categories:', ['categories' => $selectedCategories, 'count' => count($selectedCategories), 'type' => gettype($selectedCategories)]);
-        
+
         if (!empty($selectedCategories)) {
             foreach ($selectedCategories as $ageCategorieId) {
-                \Log::info('Creating param categorie age:', ['race_id' => $race->race_id, 'age_categorie_id' => $ageCategorieId]);
                 ParamCategorieAge::create([
                     'race_id' => $race->race_id,
                     'age_categorie_id' => (int)$ageCategorieId,

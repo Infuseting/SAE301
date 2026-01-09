@@ -28,10 +28,7 @@ class EnsureUserIsClubLeader
         if ($user && $user->hasRole('gestionnaire-raid')) {
             return $next($request);
         }
-
-        \Log::info('EnsureUserIsClubLeader: Checking user ' . ($user ? $user->id : 'null'));
         if (!$user || !$user->isClubLeader()) {
-            \Log::info('EnsureUserIsClubLeader: User is NOT club leader');
             abort(403, 'Only club leaders can perform this action.');
         }
 

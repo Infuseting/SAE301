@@ -162,13 +162,7 @@ class RaidController extends Controller
             ->where('created_by', auth()->id())
             ->first(['club_id', 'club_name']);
 
-        // Log current user info
-        \Log::info('User connecté:', [
-            'user_id' => auth()->id(),
-            'user_name' => auth()->user()->first_name . ' ' . auth()->user()->last_name,
-            'user_adh_id' => auth()->user()->adh_id,
-            'club_found' => $userClub ? $userClub->club_name : 'Aucun club'
-        ]);
+        
 
         // Get members (adherents) of this club from club_user table
         $clubMembers = collect();
@@ -206,13 +200,7 @@ class RaidController extends Controller
                 ]);
             }
 
-            // Log club members
-            \Log::info('Liste des responsables possibles:', [
-                'club_id' => $userClub->club_id,
-                'club_name' => $userClub->club_name,
-                'members_count' => $clubMembers->count(),
-                'members' => $clubMembers->toArray()
-            ]);
+          
         }
 
         return Inertia::render('Raid/Create', [

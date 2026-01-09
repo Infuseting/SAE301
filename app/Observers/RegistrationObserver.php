@@ -56,10 +56,7 @@ class RegistrationObserver
             // Update the registration with QR code path (without triggering the observer again)
             $registration->updateQuietly(['qr_code_path' => $qrPath]);
         } catch (\Exception $e) {
-            \Log::error('Failed to generate QR code for registration', [
-                'reg_id' => $registration->reg_id,
-                'error' => $e->getMessage()
-            ]);
+            
         }
     }
 
@@ -84,16 +81,9 @@ class RegistrationObserver
             
             // Also update the model instance
             $registration->reg_dossard = $nextDossard;
-            
-            \Log::info('Dossard assigned', [
-                'reg_id' => $registration->reg_id,
-                'dossard' => $nextDossard
-            ]);
+       
         } catch (\Exception $e) {
-            \Log::error('Failed to assign dossard for registration', [
-                'reg_id' => $registration->reg_id,
-                'error' => $e->getMessage()
-            ]);
+           
         }
     }
 

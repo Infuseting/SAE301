@@ -160,11 +160,7 @@ class ProfileController extends Controller
 
             return Redirect::route('profile.edit');
         } catch (\Exception $e) {
-            \Log::error('Profile update error: ' . $e->getMessage(), [
-                'user_id' => $request->user()->id,
-                'trace' => $e->getTraceAsString()
-            ]);
-            
+      
             if ($request->wantsJson() || $request->header('X-Inertia')) {
                 return back()->withErrors(['error' => 'Une erreur est survenue lors de la mise à jour du profil.']);
             }

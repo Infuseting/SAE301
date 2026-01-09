@@ -69,7 +69,6 @@ class HandleInertiaRequests extends Middleware
                     
                     $requiresLicenceUpdate = $isManager && !$hasValidLicence;
                 } catch (\Throwable $e) {
-                    \Log::error('Error checking licence status in HandleInertiaRequests: ' . $e->getMessage());
                     $requiresLicenceUpdate = false;
                 }
             }
@@ -96,9 +95,6 @@ class HandleInertiaRequests extends Middleware
                         ]
                     );
                 } catch (\Throwable $e) {
-                    \Log::error('Error loading auth data in HandleInertiaRequests: ' . $e->getMessage(), [
-                        'trace' => $e->getTraceAsString()
-                    ]);
                     // Fallback to basic user data
                     $authData = $request->user()->toArray();
                 }

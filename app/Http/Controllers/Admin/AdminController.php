@@ -20,7 +20,6 @@ class AdminController extends Controller
             $user = Auth::user();
             
             if (!$user) {
-                \Log::error('AdminController@index: No authenticated user');
                 return redirect()->route('login');
             }
 
@@ -39,17 +38,7 @@ class AdminController extends Controller
                 $myresponsibleRaces = Race::where('adh_id', $user->adh_id)->get();
             }
 
-            \Log::debug('myresponsibleRaids query', [
-                'user_id' => $user->id,
-                'is_admin' => $user->hasRole('admin'),
-                'count' => $myresponsibleRaids->count(),
-            ]);
-
-            \Log::debug('myresponsibleRaces query', [
-                'user_id' => $user->id,
-                'is_admin' => $user->hasRole('admin'),
-                'count' => $myresponsibleRaces->count(),
-            ]);
+        
 
             $user->load('roles.permissions');
 
@@ -59,10 +48,6 @@ class AdminController extends Controller
                 'myresponsibleRaces' => $myresponsibleRaces,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Admin dashboard error: ' . $e->getMessage(), [
-                'user_id' => Auth::id(),
-                'trace' => $e->getTraceAsString()
-            ]);
             
             return redirect()->route('dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès au tableau de bord admin.']);
         }
@@ -75,7 +60,6 @@ class AdminController extends Controller
             $user = Auth::user();
             
             if (!$user) {
-                \Log::error('AdminController@racemanagement: No authenticated user');
                 return redirect()->route('login');
             }
 
@@ -92,10 +76,6 @@ class AdminController extends Controller
                 'races' => $races,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Admin race management error: ' . $e->getMessage(), [
-                'user_id' => Auth::id(),
-                'trace' => $e->getTraceAsString()
-            ]);
             
             return redirect()->route('admin.dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès à la gestion des courses.']);
         }
@@ -107,7 +87,6 @@ class AdminController extends Controller
             $user = Auth::user();
             
             if (!$user) {
-                \Log::error('AdminController@raidmanagement: No authenticated user');
                 return redirect()->route('login');
             }
 
@@ -122,10 +101,6 @@ class AdminController extends Controller
                 'raids' => $raids,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Admin raid management error: ' . $e->getMessage(), [
-                'user_id' => Auth::id(),
-                'trace' => $e->getTraceAsString()
-            ]);
             
             return redirect()->route('admin.dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès à la gestion des raids.']);
         }
@@ -143,7 +118,6 @@ class AdminController extends Controller
             $user = Auth::user();
             
             if (!$user) {
-                \Log::error('AdminController@clubmanagement: No authenticated user');
                 return redirect()->route('login');
             }
 
@@ -162,10 +136,6 @@ class AdminController extends Controller
                 'clubs' => $clubs,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Admin club management error: ' . $e->getMessage(), [
-                'user_id' => Auth::id(),
-                'trace' => $e->getTraceAsString()
-            ]);
             
             return redirect()->route('admin.dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès à la gestion des clubs.']);
         }

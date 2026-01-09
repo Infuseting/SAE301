@@ -78,8 +78,7 @@ class ClubApprovalController extends Controller
             return back()->with('error', __('messages.club_already_approved'));
         }
 
-        \Illuminate\Support\Facades\Log::info('Approving club ' . $club->club_id);
-
+       
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($club) {
                 // Approve the club
@@ -109,7 +108,7 @@ class ClubApprovalController extends Controller
                     ->log('Club approved');
             });
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Club approval failed: ' . $e->getMessage());
+           
             return back()->with('error', 'Approval failed: ' . $e->getMessage());
         }
 

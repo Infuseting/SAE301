@@ -345,10 +345,7 @@ class TeamController extends Controller
                 $registration->updateQuietly(['qr_code_path' => $qrPath]);
                 $registration->refresh(); // Reload to get the updated qr_code_url accessor
             } catch (\Exception $e) {
-                \Log::error('Failed to generate QR code in TeamController', [
-                    'reg_id' => $registration->reg_id,
-                    'error' => $e->getMessage()
-                ]);
+                //
             }
         }
 
