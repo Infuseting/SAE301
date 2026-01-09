@@ -8,12 +8,13 @@ import { QrCode, Camera, CheckCircle, XCircle, Users, TrendingUp, AlertCircle, T
  * QR Code Scanner Component for Race Check-in
  * Allows race managers to scan team QR codes and mark them as present
  */
-export default function Scanner({ race, stats }) {
+export default function Scanner({ race, stats: initialStats }) {
     const page = usePage();
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [stats, setStats] = useState(initialStats);
     const scannerRef = useRef(null);
     const html5QrCodeRef = useRef(null);
 
@@ -142,10 +143,14 @@ export default function Scanner({ race, stats }) {
                     alreadyPresent: data.already_present || false,
                 });
 
-                // Reload page after 3 seconds to update stats
-                setTimeout(() => {
-                    router.reload({ only: ['stats'] });
-                }, 3000);
+                // Update stats immediately if this is a new check-in
+                if (!data.already_present) {
+                    setStats(prevStats => ({
+                        ...prevStats,
+                        present: prevStats.present + 1,
+                        absent: prevStats.absent - 1
+                    }));
+                }
             } else {
                 setError(data.message || 'Erreur lors de l\'enregistrement de la présence.');
             }
