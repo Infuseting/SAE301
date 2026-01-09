@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Race;
 use App\Http\Controllers\Controller;
 use App\Models\Race;
 use App\Services\LicenceService;
+use App\Rules\NoConflictingRegistration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use OpenApi\Annotations as OA;
@@ -185,11 +186,16 @@ class RaceRegistrationController extends Controller
         }
 
         $validated = $request->validate([
-            'team_id' => 'required|exists:teams,equ_id',
+            'team_id' => [
+                'required',
+                'exists:teams,equ_id',
+                new NoConflictingRegistration($race)
+            ],
         ]);
 
         $team = \App\Models\Team::where('equ_id', $validated['team_id'])
             ->where('user_id', $user->id)
+            ->with(['leader.member', 'leader.medicalDoc', 'users.member', 'users.medicalDoc'])
             ->firstOrFail();
 
         // Check team size - must be between minPerTeam and maxPerTeam
@@ -207,7 +213,11 @@ class RaceRegistrationController extends Controller
 
         try {
             // Check if team is already registered
-            $existing = $race->teams()->where('teams.equ_id', $team->equ_id)->exists();
+            $existing = \DB::table('registration')
+                ->where('equ_id', $team->equ_id)
+                ->where('race_id', $race->race_id)
+                ->exists();
+                
             if ($existing) {
                 return response()->json([
                     'success' => false,
@@ -224,27 +234,60 @@ class RaceRegistrationController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // Medical certificate is handled on-site, create a placeholder if needed
-            $docId = $user->doc_id;
-            if (!$docId) {
-                // Create a placeholder medical document (to be verified on-site)
-                $docId = \DB::table('medical_docs')->insertGetId([
-                    'doc_num_pps' => 'PENDING-' . time(),
-                    'doc_end_validity' => now()->addYear(),
-                    'doc_date_added' => now(),
+            // Medical certificate is handled per participant, create a placeholder if needed
+            $docId = \DB::table('medical_docs')->insertGetId([
+                'doc_num_pps' => 'PLACEHOLDER-' . time(),
+                'doc_end_validity' => now()->addYear(),
+                'doc_date_added' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Generate next dossard number for this race (auto-increment per race)
+            $nextDossard = \DB::table('registration')
+                ->where('race_id', $race->race_id)
+                ->max('reg_dossard');
+            $nextDossard = $nextDossard ? $nextDossard + 1 : 1;
+
+            // Generate next dossard number for this race (auto-increment per race)
+            $nextDossard = \DB::table('registration')
+                ->where('race_id', $race->race_id)
+                ->max('reg_dossard');
+            $nextDossard = $nextDossard ? $nextDossard + 1 : 1;
+
+            // Create registration using Eloquent to trigger observer (auto dossard assignment)
+            $registration = \App\Models\Registration::create([
+                'equ_id' => $team->equ_id,
+                'race_id' => $race->race_id,
+                'pay_id' => $paiId,
+                'doc_id' => $docId,
+                'reg_validated' => false,
+                'reg_points' => 0,
+                'reg_dossard' => $nextDossard,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $regId = $registration->reg_id;
+
+            // Add all team members as race participants
+            // Eager load the leader relationship
+            $team->load('leader');
+            $teamMembers = collect([$team->leader])->merge($team->users)->unique('id');
+            
+            foreach ($teamMembers as $member) {
+                \DB::table('race_participants')->insert([
+                    'reg_id' => $regId,
+                    'user_id' => $member->id,
+                    'pps_number' => null, // Will be filled later
+                    'pps_expiry' => null,
+                    'pps_status' => 'pending',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
             }
 
-            $race->teams()->attach($team->equ_id, [
-                'pay_id' => $paiId,
-                'doc_id' => $docId,
-                'reg_validated' => false,
-                'reg_points' => 0
-            ]);
-
-            return redirect()->back()->with('success', 'Équipe inscrite avec succès!');
+            return redirect()->back()->with('success', 'Équipe inscrite avec succès! Les coureurs peuvent maintenant ajouter leur PPS.');
 
         } catch (\Exception $e) {
             return response()->json([

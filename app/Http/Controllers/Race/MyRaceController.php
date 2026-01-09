@@ -3,33 +3,103 @@
 namespace App\Http\Controllers\Race;
 
 use App\Http\Controllers\Controller;
-use App\Models\Time;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Race;
+use Carbon\Carbon;
 
 class MyRaceController extends Controller
 {
-    /**
-     * Display a listing of the user's races where they have a time record.
-     *
-     * @return \Inertia\Response
-     */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $user = Auth::user();
-        
-        // Get races where the user has a time record
-        $races = Race::whereHas('times', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
+        $userId = $user->id;
+        $period = $request->input('period', 'all'); // Default: all
+
+        // Calculate date filter based on period
+        $dateFilter = null;
+        switch ($period) {
+            case '1month':
+                $dateFilter = Carbon::now()->subMonth();
+                break;
+            case '6months':
+                $dateFilter = Carbon::now()->subMonths(6);
+                break;
+            case '1year':
+                $dateFilter = Carbon::now()->subYear();
+                break;
+            case 'all':
+            default:
+                $dateFilter = null;
+                break;
+        }
+
+        // 1. Récupération des courses "Inscrites" (sans forcément de résultat au leaderboard)
+        $registers = Race::whereIn('race_id', function ($query) use ($userId) {
+            $query->select('race_id')
+                ->from('registration')
+                ->whereIn('equ_id', function ($subQuery) use ($userId) {
+                    $subQuery->select('equ_id')
+                        ->from('has_participate')
+                        ->where('id_users', $userId);
+                });
         })
+        ->when($dateFilter, function ($query) use ($dateFilter) {
+            $query->where('race_date_start', '>=', $dateFilter);
+        })
+        ->get()
+        ->map(function ($race) use ($userId) {
+            // On récupère uniquement la team et l'inscription de l'user pour cette course précise
+            $userTeamAndRegistration = DB::table('teams')
+                ->join('has_participate', 'teams.equ_id', '=', 'has_participate.equ_id')
+                ->join('registration', 'teams.equ_id', '=', 'registration.equ_id')
+                ->where('registration.race_id', $race->race_id)
+                ->where('has_participate.id_users', $userId)
+                ->select('teams.equ_id', 'teams.equ_name', 'teams.equ_image', 'registration.reg_id')
+                ->first();
+
+            return [
+                'id' => $race->race_id,
+                'name' => $race->race_name,
+                'description' => $race->race_description,
+                'date_start' => $race->race_date_start ? $race->race_date_start->toDateString() : null,
+                'date_end' => $race->race_date_end ? $race->race_date_end->toDateString() : null,
+                'image' => $race->image_url ? '/storage/' . $race->image_url : null,
+                'is_open' => $race->isOpen(),
+                'team' => $userTeamAndRegistration ? [
+                    'id' => $userTeamAndRegistration->equ_id,
+                    'name' => $userTeamAndRegistration->equ_name,
+                    'image' => $userTeamAndRegistration->equ_image ? '/storage/' . $userTeamAndRegistration->equ_image : null,
+                ] : null,
+                'registration_id' => $userTeamAndRegistration ? $userTeamAndRegistration->reg_id : null,
+            ];
+        });
+
+        // 2. Récupération des courses avec "Leaderboard" (résultats finaux)
+        $races = Race::whereHas('leaderboardUsers', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->when($dateFilter, function ($query) use ($dateFilter) {
+                $query->where('race_date_start', '>=', $dateFilter);
+            })
+            ->with(['leaderboardUsers' => function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            }])
             ->orderBy('race_date_start', 'desc')
             ->get()
-            ->map(function ($race) use ($user) {
-                // Get the time record for this user and race
-                $timeRecord = Time::where('user_id', $user->id)
-                    ->where('race_id', $race->race_id)
+            ->map(function ($race) use ($userId) {
+                $leaderboardEntry = $race->leaderboardUsers->first();
+
+                // On récupère uniquement la team de l'user pour cette course précise
+                $userTeam = DB::table('teams')
+                    ->join('has_participate', 'teams.equ_id', '=', 'has_participate.equ_id')
+                    ->join('registration', 'teams.equ_id', '=', 'registration.equ_id')
+                    ->where('registration.race_id', $race->race_id)
+                    ->where('has_participate.id_users', $userId)
+                    ->select('teams.equ_id', 'teams.equ_name', 'teams.equ_image')
                     ->first();
 
                 return [
@@ -40,19 +110,24 @@ class MyRaceController extends Controller
                     'date_end' => $race->race_date_end ? $race->race_date_end->toDateString() : null,
                     'image' => $race->image_url ? '/storage/' . $race->image_url : null,
                     'is_open' => $race->isOpen(),
-                    'time' => $timeRecord ? [
-                        'hours' => $timeRecord->time_hours,
-                        'minutes' => $timeRecord->time_minutes,
-                        'seconds' => $timeRecord->time_seconds,
-                        'total_seconds' => $timeRecord->time_total_seconds,
-                        'rank' => $timeRecord->time_rank,
-                        'rank_start' => $timeRecord->time_rank_start,
+                    'team' => $userTeam ? [
+                        'id' => $userTeam->equ_id,
+                        'name' => $userTeam->equ_name,
+                        'image' => $userTeam->equ_image ? '/storage/' . $userTeam->equ_image : null,
+                    ] : null,
+                    'leaderboard' => $leaderboardEntry ? [
+                        'temps' => $leaderboardEntry->temps,
+                        'malus' => $leaderboardEntry->malus,
+                        'temps_final' => $leaderboardEntry->temps_final,
+                        'points' => $leaderboardEntry->points,
                     ] : null,
                 ];
             });
 
         return Inertia::render('Race/MyRaceIndex', [
             'races' => $races,
+            'registers' => $registers,
+            'currentPeriod' => $period,
         ]);
     }
 }

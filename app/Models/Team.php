@@ -46,7 +46,17 @@ class Team extends Model
      */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'has_participate', 'equ_id', 'id_users');
+        return $this->belongsToMany(User::class, 'has_participate', 'equ_id', 'id_users')
+            ->withPivot(['adh_id', 'reg_id', 'par_time'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all race registrations for this team.
+     */
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(Registration::class, 'equ_id', 'equ_id');
     }
 
     /**

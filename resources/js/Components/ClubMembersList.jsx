@@ -2,6 +2,7 @@ import { useForm, usePage } from '@inertiajs/react';
 import DangerButton from '@/Components/DangerButton';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import UserAvatar from '@/Components/UserAvatar';
 
 /**
  * ClubMembersList component - Displays club members and pending requests
@@ -41,10 +42,10 @@ export default function ClubMembersList({ members = [], pendingRequests = [], is
                         {pendingRequests.map((request) => (
                             <div key={request.id} className={`p-4 flex ${compact ? 'flex-col' : 'items-center justify-between'} gap-3`}>
                                 <div className="flex items-center space-x-3">
-                                    <img
-                                        src={request.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(request.name)}&background=10b981&color=fff`}
-                                        alt={request.name}
-                                        className="w-10 h-10 rounded-full flex-shrink-0"
+                                    <UserAvatar
+                                        user={request}
+                                        size="md"
+                                        className="flex-shrink-0"
                                     />
                                     <div className="min-w-0 flex-1">
                                         <p className="font-semibold text-gray-900 truncate">{request.name}</p>
@@ -87,10 +88,10 @@ export default function ClubMembersList({ members = [], pendingRequests = [], is
                         members.map((member) => (
                             <div key={member.id} className={`p-4 flex ${compact ? 'flex-col' : 'items-center justify-between'} gap-3 hover:bg-gray-50 transition`}>
                                 <div className="flex items-center space-x-3 min-w-0">
-                                    <img
-                                        src={member.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=10b981&color=fff`}
-                                        alt={member.name}
-                                        className="w-10 h-10 rounded-full flex-shrink-0"
+                                    <UserAvatar
+                                        user={member}
+                                        size="md"
+                                        className="flex-shrink-0"
                                     />
                                     <div className="min-w-0 flex-1">
                                         <p className="font-semibold text-gray-900 truncate">{member.name}</p>

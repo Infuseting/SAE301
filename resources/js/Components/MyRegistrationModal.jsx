@@ -1,19 +1,31 @@
-import React from 'react';
-import { useForm } from '@inertiajs/react';
+import React, { useEffect, useState } from 'react';
+import { useForm, router } from '@inertiajs/react';
 import { X, Users, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
 import Modal from '@/Components/Modal';
 
 export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, raceId }) {
     const { delete: destroy, processing } = useForm();
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+    // Block body scroll when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
 
     const handleCancelRegistration = () => {
-        if (!confirm('Êtes-vous sûr de vouloir annuler votre inscription ? Cette action est irréversible.')) {
-            return;
-        }
-
         destroy(route('race.cancelRegistration', { race: raceId, team: registeredTeam.id }), {
             onSuccess: () => {
+                setShowConfirmModal(false);
                 onClose();
+                router.reload();
             },
         });
     };
@@ -22,9 +34,9 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
 
     return (
         <Modal show={isOpen} onClose={onClose} maxWidth="2xl">
-            <div className="bg-white rounded-2xl overflow-hidden shadow-xl transform transition-all">
-                {/* Header */}
-                <div className="bg-blue-900 p-6 flex items-center justify-between">
+            <div className="bg-white rounded-2xl shadow-xl transform transition-all flex flex-col max-h-[calc(100vh-4rem)]">
+                {/* Header - Fixed */}
+                <div className="bg-blue-900 p-6 flex items-center justify-between flex-shrink-0">
                     <h3 className="text-xl font-black text-white italic uppercase tracking-wider flex items-center gap-3">
                         <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                         Mon Inscription
@@ -34,23 +46,45 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                     </button>
                 </div>
 
-                <div className="p-8 space-y-8">
-                    {/* Success Message */}
-                    <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6">
-                        <div className="flex items-start gap-4">
-                            <div className="bg-emerald-500 rounded-full p-2">
-                                <CheckCircle2 className="w-5 h-5 text-white" />
-                            </div>
-                            <div className="flex-1">
-                                <h4 className="text-sm font-black text-emerald-900 uppercase tracking-wider mb-2">
-                                    Inscription confirmée
-                                </h4>
-                                <p className="text-sm text-emerald-700 font-medium">
-                                    Vous êtes inscrit à cette course avec l'équipe suivante.
-                                </p>
+                {/* Content - Scrollable */}
+                <div className="p-8 space-y-8 overflow-y-auto flex-grow">
+                    {/* Warning Message - Shown when pending validation */}
+                    {!registeredTeam.validated && (
+                        <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="bg-orange-500 rounded-full p-2">
+                                    <AlertTriangle className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="text-sm font-black text-orange-900 uppercase tracking-wider mb-2">
+                                        En attente de validation
+                                    </h4>
+                                    <p className="text-sm text-orange-700 font-medium">
+                                        Votre inscription sera validée par l'organisateur après vérification de vos documents.
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
+
+                    {/* Success Message - Shown when validated */}
+                    {registeredTeam.validated && (
+                        <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="bg-emerald-500 rounded-full p-2">
+                                    <CheckCircle2 className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="text-sm font-black text-emerald-900 uppercase tracking-wider mb-2">
+                                        Inscription confirmée
+                                    </h4>
+                                    <p className="text-sm text-emerald-700 font-medium">
+                                        Vous êtes inscrit à cette course avec l'équipe suivante.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Team Details */}
                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
@@ -142,43 +176,74 @@ export default function MyRegistrationModal({ isOpen, onClose, registeredTeam, r
                             </div>
                         )}
                     </div>
+                </div>
 
-                    {/* Warning Message */}
-                    {!registeredTeam.validated && (
-                        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-                            <div className="flex items-start gap-3">
-                                <AlertTriangle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="text-xs font-bold text-orange-900 uppercase tracking-wider mb-1">
-                                        En attente de validation
-                                    </p>
-                                    <p className="text-sm text-orange-700 font-medium">
-                                        Votre inscription sera validée par l'organisateur après vérification de vos documents.
-                                    </p>
-                                </div>
+                {/* Footer - Fixed */}
+                <div className="p-6 bg-gray-50 border-t border-gray-200 flex gap-4 flex-shrink-0">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs uppercase tracking-widest rounded-xl transition-colors"
+                    >
+                        Fermer
+                    </button>
+                    <button
+                        onClick={() => setShowConfirmModal(true)}
+                        disabled={processing}
+                        className="flex-1 px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        {processing ? 'Annulation...' : 'Annuler l\'inscription'}
+                    </button>
+                </div>
+            </div>
+
+            {/* Confirmation Modal */}
+            <Modal show={showConfirmModal} onClose={() => setShowConfirmModal(false)} maxWidth="md">
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-red-600 p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                <AlertTriangle className="w-6 h-6 text-white" />
                             </div>
+                            <h3 className="text-xl font-black text-white italic uppercase tracking-wider">
+                                Confirmer l'annulation
+                            </h3>
                         </div>
-                    )}
+                    </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-4 pt-4">
+                    {/* Content */}
+                    <div className="p-8 space-y-4">
+                        <p className="text-base text-gray-700 font-semibold">
+                            Êtes-vous sûr de vouloir annuler votre inscription ?
+                        </p>
+                        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                            <p className="text-sm text-red-700 font-medium">
+                                ⚠️ Cette action est <span className="font-black">irréversible</span>. Vous devrez vous réinscrire si vous changez d'avis.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="p-6 bg-gray-50 border-t border-gray-200 flex gap-4">
                         <button
-                            onClick={onClose}
-                            className="flex-1 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs uppercase tracking-widest rounded-xl transition-colors"
+                            onClick={() => setShowConfirmModal(false)}
+                            disabled={processing}
+                            className="flex-1 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50"
                         >
-                            Fermer
+                            Non, garder mon inscription
                         </button>
                         <button
                             onClick={handleCancelRegistration}
                             disabled={processing}
-                            className="flex-1 px-6 py-4 bg-red-500 hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="flex-1 px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             <Trash2 className="w-4 h-4" />
-                            {processing ? 'Annulation...' : 'Annuler l\'inscription'}
+                            {processing ? 'Annulation...' : 'Oui, annuler'}
                         </button>
                     </div>
                 </div>
-            </div>
+            </Modal>
         </Modal>
     );
 }

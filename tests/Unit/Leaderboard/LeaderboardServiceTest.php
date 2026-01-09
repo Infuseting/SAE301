@@ -337,11 +337,16 @@ class LeaderboardServiceTest extends TestCase
 
     /**
      * Test exportToCsv generates valid CSV for individuals.
+     * Note: exportToCsv only exports PUBLIC profiles (is_public = true).
      */
     public function test_export_to_csv_individual(): void
     {
         $race = Race::factory()->create();
-        $user = User::factory()->create(['first_name' => 'John', 'last_name' => 'Doe']);
+        $user = User::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'is_public' => true, // Must be public to appear in CSV export
+        ]);
 
         $this->service->addResult($user->id, $race->race_id, 3661.50, 60.00);
 
@@ -354,6 +359,7 @@ class LeaderboardServiceTest extends TestCase
 
     /**
      * Test exportToCsv generates valid CSV for teams.
+     * CSV format: Rang, Equipe, Catégorie, Temps, Points
      */
     public function test_export_to_csv_team(): void
     {
@@ -367,13 +373,16 @@ class LeaderboardServiceTest extends TestCase
             'average_malus' => 60.00,
             'average_temps_final' => 3660.00,
             'member_count' => 3,
+            'category' => 'Senior',
+            'points' => 990,
         ]);
 
         $csv = $this->service->exportToCsv($race->race_id, 'team');
 
         $this->assertStringContainsString('Equipe', $csv);
         $this->assertStringContainsString('Super Team', $csv);
-        $this->assertStringContainsString('Membres', $csv);
+        $this->assertStringContainsString('Catégorie', $csv);
+        $this->assertStringContainsString('Points', $csv);
     }
 
     /**
@@ -2641,11 +2650,16 @@ class LeaderboardServiceTest extends TestCase
 
     /**
      * Test export CSV individual format.
+     * Note: exportToCsv only exports PUBLIC profiles.
      */
     public function test_export_csv_individual_format(): void
     {
         $race = Race::factory()->create();
-        $user = User::factory()->create(['first_name' => 'Test', 'last_name' => 'Runner']);
+        $user = User::factory()->create([
+            'first_name' => 'Test',
+            'last_name' => 'Runner',
+            'is_public' => true, // Must be public to appear in CSV export
+        ]);
 
         LeaderboardUser::create([
             'user_id' => $user->id,
@@ -2663,6 +2677,7 @@ class LeaderboardServiceTest extends TestCase
 
     /**
      * Test export CSV team format.
+     * CSV format: Rang, Equipe, Catégorie, Temps, Points
      */
     public function test_export_csv_team_format(): void
     {
@@ -2676,24 +2691,26 @@ class LeaderboardServiceTest extends TestCase
             'average_malus' => 60,
             'average_temps_final' => 3721,
             'member_count' => 3,
+            'category' => 'Senior',
         ]);
 
         $csv = $this->service->exportToCsv($race->race_id, 'team');
         
         $this->assertStringContainsString('Equipe', $csv);
-        $this->assertStringContainsString('Membres', $csv);
+        $this->assertStringContainsString('Catégorie', $csv);
         $this->assertStringContainsString('Test Team', $csv);
     }
 
     /**
      * Test export CSV preserves ranking order.
+     * Note: exportToCsv only exports PUBLIC profiles.
      */
     public function test_export_csv_preserves_ranking_order(): void
     {
         $race = Race::factory()->create();
         
-        $user1 = User::factory()->create(['first_name' => 'First', 'last_name' => 'Place']);
-        $user2 = User::factory()->create(['first_name' => 'Second', 'last_name' => 'Place']);
+        $user1 = User::factory()->create(['first_name' => 'First', 'last_name' => 'Place', 'is_public' => true]);
+        $user2 = User::factory()->create(['first_name' => 'Second', 'last_name' => 'Place', 'is_public' => true]);
 
         LeaderboardUser::create(['user_id' => $user2->id, 'race_id' => $race->race_id, 'temps' => 4000, 'malus' => 0]);
         LeaderboardUser::create(['user_id' => $user1->id, 'race_id' => $race->race_id, 'temps' => 3600, 'malus' => 0]);
@@ -2742,10 +2759,12 @@ class LeaderboardServiceTest extends TestCase
         $this->assertCount(3, $lines);
         
         // Check header includes race columns
+        // CSV format: Rang, Nom, Temps, Course, Malus, Temps Final, Points
         $this->assertStringContainsString('Rang', $lines[0]);
         $this->assertStringContainsString('Nom', $lines[0]);
         $this->assertStringContainsString('Course', $lines[0]);
-        $this->assertStringContainsString('Date Course', $lines[0]);
+        $this->assertStringContainsString('Malus', $lines[0]);
+        $this->assertStringContainsString('Points', $lines[0]);
         
         // Check data includes race names
         $csvContent = implode("\n", $lines);
@@ -2816,18 +2835,16 @@ class LeaderboardServiceTest extends TestCase
         // Header + 2 data rows
         $this->assertCount(3, $lines);
         
-        // Check header includes race and member columns
+        // Check header - CSV format: Rang, Equipe, Catégorie, Temps, Points
         $this->assertStringContainsString('Rang', $lines[0]);
         $this->assertStringContainsString('Equipe', $lines[0]);
-        $this->assertStringContainsString('Course', $lines[0]);
-        $this->assertStringContainsString('Membres', $lines[0]);
+        $this->assertStringContainsString('Catégorie', $lines[0]);
+        $this->assertStringContainsString('Points', $lines[0]);
         
         // Check data
         $csvContent = implode("\n", $lines);
         $this->assertStringContainsString('Alpha Team', $csvContent);
         $this->assertStringContainsString('Beta Team', $csvContent);
-        $this->assertStringContainsString('Race Alpha', $csvContent);
-        $this->assertStringContainsString('Race Beta', $csvContent);
     }
 
     /**
@@ -3433,7 +3450,6 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 3600,
             'member_count' => 1,
             'points' => 0, // Wrong
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
         ]);
         LeaderboardTeam::create([
             'equ_id' => $team2->equ_id,
@@ -3443,7 +3459,6 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 4000,
             'member_count' => 1,
             'points' => 0, // Wrong
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
         ]);
 
         $updated = $this->service->recalculateTeamPoints($race->race_id);
@@ -3473,18 +3488,12 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 3600,
             'member_count' => 1,
             'points' => 100,
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
-            'category' => 'Masculin',
         ]);
 
         $leaderboard = $this->service->getTeamLeaderboard($race->race_id);
 
         $this->assertArrayHasKey('points', $leaderboard['data'][0]);
-        $this->assertArrayHasKey('status', $leaderboard['data'][0]);
-        $this->assertArrayHasKey('category', $leaderboard['data'][0]);
         $this->assertEquals(100, $leaderboard['data'][0]['points']);
-        $this->assertEquals('classé', $leaderboard['data'][0]['status']);
-        $this->assertEquals('Masculin', $leaderboard['data'][0]['category']);
     }
 
     /**
@@ -3503,76 +3512,13 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 3600,
             'member_count' => 1,
             'points' => 150,
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
-            'category' => 'Mixte',
         ]);
 
         $csv = $this->service->exportToCsv($race->race_id, 'team');
 
+        // CSV format: Rang, Equipe, Catégorie, Temps, Points
         $this->assertStringContainsString('Points', $csv);
         $this->assertStringContainsString('150', $csv);
-        $this->assertStringContainsString('Mixte', $csv);
-        $this->assertStringContainsString('classé', $csv);
-    }
-
-    /**
-     * Test update team status to abandoned sets 0 points.
-     */
-    public function test_update_team_status_abandoned(): void
-    {
-        $race = Race::factory()->create(['race_difficulty' => 'facile']);
-        $team1 = Team::factory()->create();
-        $team2 = Team::factory()->create();
-
-        $entry1 = LeaderboardTeam::create([
-            'equ_id' => $team1->equ_id,
-            'race_id' => $race->race_id,
-            'average_temps' => 3600,
-            'average_malus' => 0,
-            'average_temps_final' => 3600,
-            'member_count' => 1,
-            'points' => 100,
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
-        ]);
-        LeaderboardTeam::create([
-            'equ_id' => $team2->equ_id,
-            'race_id' => $race->race_id,
-            'average_temps' => 4000,
-            'average_malus' => 0,
-            'average_temps_final' => 4000,
-            'member_count' => 1,
-            'points' => 90,
-            'status' => LeaderboardTeam::STATUS_CLASSIFIED,
-        ]);
-
-        $result = $this->service->updateTeamStatus($entry1->id, LeaderboardTeam::STATUS_ABANDONED);
-
-        $this->assertTrue($result);
-
-        $entry1->refresh();
-        $this->assertEquals(LeaderboardTeam::STATUS_ABANDONED, $entry1->status);
-        $this->assertEquals(0, $entry1->points);
-    }
-
-    /**
-     * Test team status constants exist.
-     */
-    public function test_team_status_constants(): void
-    {
-        $this->assertEquals('classé', LeaderboardTeam::STATUS_CLASSIFIED);
-        $this->assertEquals('abandon', LeaderboardTeam::STATUS_ABANDONED);
-        $this->assertEquals('disqualifié', LeaderboardTeam::STATUS_DISQUALIFIED);
-        $this->assertEquals('hors_classement', LeaderboardTeam::STATUS_OUT_OF_RANKING);
-    }
-
-    /**
-     * Test team category constants exist.
-     */
-    public function test_team_category_constants(): void
-    {
-        $this->assertEquals('Masculin', LeaderboardTeam::CATEGORY_MALE);
-        $this->assertEquals('Féminin', LeaderboardTeam::CATEGORY_FEMALE);
-        $this->assertEquals('Mixte', LeaderboardTeam::CATEGORY_MIXED);
     }
 
     /**
@@ -3626,5 +3572,504 @@ class LeaderboardServiceTest extends TestCase
         
         // Verify leaderboard entries exist
         $this->assertDatabaseHas('leaderboard_teams', ['race_id' => $race->race_id]);
+    }
+
+    // ==================== NEW TESTS FOR ADMIN LEADERBOARD ====================
+
+    /**
+     * Test getAdminIndividualLeaderboard includes both public and private users.
+     */
+    public function test_admin_individual_leaderboard_includes_all_users(): void
+    {
+        $race = Race::factory()->create();
+        
+        // Create public and private users
+        $publicUser = User::factory()->create([
+            'first_name' => 'Public',
+            'last_name' => 'User',
+            'is_public' => true,
+        ]);
+        $privateUser = User::factory()->create([
+            'first_name' => 'Private',
+            'last_name' => 'User',
+            'is_public' => false,
+        ]);
+
+        LeaderboardUser::create([
+            'user_id' => $publicUser->id,
+            'race_id' => $race->race_id,
+            'temps' => 3600,
+            'malus' => 0,
+        ]);
+        LeaderboardUser::create([
+            'user_id' => $privateUser->id,
+            'race_id' => $race->race_id,
+            'temps' => 3700,
+            'malus' => 0,
+        ]);
+
+        $result = $this->service->getAdminIndividualLeaderboard($race->race_id);
+
+        // Admin leaderboard should show both users
+        $this->assertEquals(2, $result['total']);
+        
+        $names = collect($result['data'])->pluck('user_name')->toArray();
+        $this->assertContains('Public User', $names);
+        $this->assertContains('Private User', $names);
+        
+        // Should include is_public flag for each user
+        $publicEntry = collect($result['data'])->firstWhere('user_name', 'Public User');
+        $privateEntry = collect($result['data'])->firstWhere('user_name', 'Private User');
+        
+        $this->assertTrue($publicEntry['is_public']);
+        $this->assertFalse($privateEntry['is_public']);
+    }
+
+    /**
+     * Test getAdminTeamLeaderboard returns all teams with members.
+     */
+    public function test_admin_team_leaderboard_includes_members(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create(['equ_name' => 'Test Team']);
+        
+        // Create users in the team
+        $user1 = User::factory()->create(['first_name' => 'Alice', 'last_name' => 'Smith']);
+        $user2 = User::factory()->create(['first_name' => 'Bob', 'last_name' => 'Jones']);
+        
+        // Link users to team via has_participate (using id_users column)
+        \DB::table('has_participate')->insert([
+            ['id_users' => $user1->id, 'equ_id' => $team->equ_id, 'created_at' => now(), 'updated_at' => now()],
+            ['id_users' => $user2->id, 'equ_id' => $team->equ_id, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 2,
+        ]);
+
+        $result = $this->service->getAdminTeamLeaderboard($race->race_id);
+
+        $this->assertEquals(1, $result['total']);
+        $this->assertEquals('Test Team', $result['data'][0]['team_name']);
+        $this->assertArrayHasKey('members', $result['data'][0]);
+        $this->assertCount(2, $result['data'][0]['members']);
+    }
+
+    /**
+     * Test getAdminLeaderboard dispatches to correct method based on type.
+     */
+    public function test_admin_leaderboard_dispatcher(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create();
+        $team = Team::factory()->create();
+
+        LeaderboardUser::create([
+            'user_id' => $user->id,
+            'race_id' => $race->race_id,
+            'temps' => 3600,
+            'malus' => 0,
+        ]);
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 1,
+        ]);
+
+        // Test individual
+        $individualResult = $this->service->getAdminLeaderboard($race->race_id, null, 'individual');
+        $this->assertArrayHasKey('user_name', $individualResult['data'][0]);
+
+        // Test team
+        $teamResult = $this->service->getAdminLeaderboard($race->race_id, null, 'team');
+        $this->assertArrayHasKey('team_name', $teamResult['data'][0]);
+    }
+
+    /**
+     * Test admin leaderboard calculates points dynamically when null.
+     */
+    public function test_admin_leaderboard_calculates_points_when_null(): void
+    {
+        $race = Race::factory()->create();
+        $user1 = User::factory()->create(['first_name' => 'First', 'last_name' => 'Place']);
+        $user2 = User::factory()->create(['first_name' => 'Second', 'last_name' => 'Place']);
+
+        // Create entries without points (null)
+        LeaderboardUser::create([
+            'user_id' => $user1->id,
+            'race_id' => $race->race_id,
+            'temps' => 3600,
+            'malus' => 0,
+            'points' => null,
+        ]);
+        LeaderboardUser::create([
+            'user_id' => $user2->id,
+            'race_id' => $race->race_id,
+            'temps' => 3700,
+            'malus' => 0,
+            'points' => null,
+        ]);
+
+        $result = $this->service->getAdminIndividualLeaderboard($race->race_id);
+
+        // Points should be calculated dynamically
+        $firstPlace = collect($result['data'])->firstWhere('rank', 1);
+        $secondPlace = collect($result['data'])->firstWhere('rank', 2);
+        
+        $this->assertNotNull($firstPlace['points']);
+        $this->assertNotNull($secondPlace['points']);
+        // First place should have more points than second
+        $this->assertGreaterThan($secondPlace['points'], $firstPlace['points']);
+    }
+
+    /**
+     * Test admin leaderboard search works across all users.
+     */
+    public function test_admin_leaderboard_search_includes_private_users(): void
+    {
+        $race = Race::factory()->create();
+        
+        $privateUser = User::factory()->create([
+            'first_name' => 'Hidden',
+            'last_name' => 'Ninja',
+            'is_public' => false,
+        ]);
+
+        LeaderboardUser::create([
+            'user_id' => $privateUser->id,
+            'race_id' => $race->race_id,
+            'temps' => 3600,
+            'malus' => 0,
+        ]);
+
+        // Search for private user
+        $result = $this->service->getAdminIndividualLeaderboard($race->race_id, 'Ninja');
+
+        $this->assertEquals(1, $result['total']);
+        $this->assertEquals('Hidden Ninja', $result['data'][0]['user_name']);
+    }
+
+    // ==================== UTF-8 IMPORT TESTS ====================
+
+    /**
+     * Test CSV import handles UTF-8 headers with accented characters.
+     */
+    public function test_import_team_csv_v2_utf8_headers(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create(['equ_name' => 'Test Team']);
+
+        // CSV with accented header CATÉGORIE (É = UTF-8)
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000001;Test Team;Féminin;01:00:00;100";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $result = $this->service->importTeamCsvV2($file, $race->race_id);
+
+        $this->assertEquals(1, $result['success']);
+        
+        // Verify category was imported correctly
+        $entry = LeaderboardTeam::where('race_id', $race->race_id)->first();
+        $this->assertEquals('Féminin', $entry->category);
+    }
+
+    /**
+     * Test CSV import handles special characters in category names.
+     */
+    public function test_import_team_csv_v2_special_category_names(): void
+    {
+        $race = Race::factory()->create();
+        $team1 = Team::factory()->create(['equ_name' => 'Team Alpha']);
+        $team2 = Team::factory()->create(['equ_name' => 'Team Beta']);
+        $team3 = Team::factory()->create(['equ_name' => 'Team Gamma']);
+
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7000001;Team Alpha;Mixte;01:00:00;100\n";
+        $csvContent .= "2;7000002;Team Beta;Féminin;01:05:00;90\n";
+        $csvContent .= "3;7000003;Team Gamma;Masculin;01:10:00;80";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $result = $this->service->importTeamCsvV2($file, $race->race_id);
+
+        $this->assertEquals(3, $result['success']);
+        
+        // Verify categories
+        $entries = LeaderboardTeam::where('race_id', $race->race_id)
+            ->orderBy('average_temps_final')
+            ->get();
+        
+        $this->assertEquals('Mixte', $entries[0]->category);
+        $this->assertEquals('Féminin', $entries[1]->category);
+        $this->assertEquals('Masculin', $entries[2]->category);
+    }
+
+    /**
+     * Test import team CSV sets puce field correctly.
+     */
+    public function test_import_team_csv_v2_imports_puce(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create(['equ_name' => 'Puce Team']);
+
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n";
+        $csvContent .= "1;7141178;Puce Team;Mixte;01:00:00;100";
+
+        Storage::fake('local');
+        $file = UploadedFile::fake()->createWithContent('teams.csv', $csvContent);
+
+        $result = $this->service->importTeamCsvV2($file, $race->race_id);
+
+        $entry = LeaderboardTeam::where('race_id', $race->race_id)->first();
+        $this->assertEquals('7141178', $entry->puce);
+    }
+
+    /**
+     * Test points in leaderboard response when database value is used.
+     */
+    public function test_team_leaderboard_uses_stored_points(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create();
+
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 1,
+            'points' => 500, // Specific stored value
+        ]);
+
+        $result = $this->service->getAdminTeamLeaderboard($race->race_id);
+
+        // Should use stored value, not calculated
+        $this->assertEquals(500, $result['data'][0]['points']);
+    }
+
+    // ==================== UPDATE RESULT TESTS ====================
+
+    /**
+     * Test updateIndividualResult updates temps and malus.
+     */
+    public function test_update_individual_result_updates_temps(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create();
+
+        $entry = LeaderboardUser::create([
+            'user_id' => $user->id,
+            'race_id' => $race->race_id,
+            'temps' => 3600,
+            'malus' => 60,
+            'points' => 100,
+        ]);
+
+        $result = $this->service->updateIndividualResult($entry->id, [
+            'temps' => '02:00:00',
+            'malus' => '00:02:00',
+            'points' => 150,
+        ]);
+
+        $this->assertNotNull($result);
+        $this->assertEquals(7200, $result->temps); // 2 hours in seconds
+        $this->assertEquals(120, $result->malus);  // 2 minutes in seconds
+        $this->assertEquals(150, $result->points);
+    }
+
+    /**
+     * Test updateIndividualResult returns null for non-existent result.
+     */
+    public function test_update_individual_result_not_found(): void
+    {
+        $result = $this->service->updateIndividualResult(99999, [
+            'temps' => '01:00:00',
+        ]);
+
+        $this->assertNull($result);
+    }
+
+    /**
+     * Test updateTeamResult updates all team fields.
+     */
+    public function test_update_team_result_updates_all_fields(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create();
+
+        $entry = LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 1,
+            'points' => 100,
+            'puce' => '123456',
+        ]);
+
+        $result = $this->service->updateTeamResult($entry->id, [
+            'average_temps' => '02:30:00',
+            'average_malus' => '00:05:00',
+            'points' => 200,
+            'puce' => '654321',
+        ]);
+
+        $this->assertNotNull($result);
+        $this->assertEquals(9000, $result->average_temps); // 2h30m in seconds
+        $this->assertEquals(300, $result->average_malus);  // 5min in seconds
+        $this->assertEquals(200, $result->points);
+        $this->assertEquals('654321', $result->puce);
+    }
+
+    /**
+     * Test updateTeamResult returns null for non-existent result.
+     */
+    public function test_update_team_result_not_found(): void
+    {
+        $result = $this->service->updateTeamResult(99999, [
+            'average_temps' => '01:00:00',
+        ]);
+
+        $this->assertNull($result);
+    }
+
+    /**
+     * Test deleteTeamResult removes team entry.
+     */
+    public function test_delete_team_result(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create();
+
+        $entry = LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 0,
+            'average_temps_final' => 3600,
+            'member_count' => 1,
+        ]);
+
+        $deleted = $this->service->deleteTeamResult($entry->id);
+
+        $this->assertTrue($deleted);
+        $this->assertDatabaseMissing('leaderboard_teams', ['id' => $entry->id]);
+    }
+
+    /**
+     * Test deleteTeamResult returns false for non-existent result.
+     */
+    public function test_delete_team_result_not_found(): void
+    {
+        $deleted = $this->service->deleteTeamResult(99999);
+
+        $this->assertFalse($deleted);
+    }
+
+    /**
+     * Test updating individual result recalculates team averages.
+     */
+    public function test_update_individual_result_recalculates_team_averages(): void
+    {
+        $race = Race::factory()->create();
+        $team = Team::factory()->create();
+        $user = User::factory()->create();
+
+        // Link user to team - use both id and id_users to cover both columns
+        $participationData = [
+            'equ_id' => $team->equ_id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+        
+        // Check which column exists and use the appropriate one
+        if (\Schema::hasColumn('has_participate', 'id_users')) {
+            $participationData['id_users'] = $user->id;
+        }
+        if (\Schema::hasColumn('has_participate', 'id')) {
+            $participationData['id'] = $user->id;
+        }
+        
+        \DB::table('has_participate')->insert($participationData);
+
+        // Create individual result
+        $entry = LeaderboardUser::create([
+            'user_id' => $user->id,
+            'race_id' => $race->race_id,
+            'temps' => 3600,
+            'malus' => 60,
+        ]);
+
+        // Create team result - will be recalculated based on individual results
+        LeaderboardTeam::create([
+            'equ_id' => $team->equ_id,
+            'race_id' => $race->race_id,
+            'average_temps' => 3600,
+            'average_malus' => 60,
+            'average_temps_final' => 3660,
+            'member_count' => 1,
+        ]);
+
+        // Update individual result
+        $this->service->updateIndividualResult($entry->id, [
+            'temps' => '02:00:00',
+            'malus' => '00:00:00',
+        ]);
+
+        // Refresh the entry to get updated values
+        $entry->refresh();
+        
+        // Verify individual entry was updated
+        $this->assertEquals(7200, $entry->temps);
+        $this->assertEquals(0, $entry->malus);
+
+        // Team averages should be recalculated from individual results
+        $teamEntry = LeaderboardTeam::where('equ_id', $team->equ_id)
+            ->where('race_id', $race->race_id)
+            ->first();
+
+        // The team averages are calculated from leaderboard_users joined with has_participate
+        $this->assertEquals(7200, (float) $teamEntry->average_temps);
+        $this->assertEquals(0, (float) $teamEntry->average_malus);
+    }
+
+    /**
+     * Test partial update only changes specified fields.
+     */
+    public function test_update_individual_result_partial_update(): void
+    {
+        $race = Race::factory()->create();
+        $user = User::factory()->create();
+
+        $entry = LeaderboardUser::create([
+            'user_id' => $user->id,
+            'race_id' => $race->race_id,
+            'temps' => 3600,
+            'malus' => 60,
+            'points' => 100,
+        ]);
+
+        // Only update points
+        $result = $this->service->updateIndividualResult($entry->id, [
+            'points' => 200,
+        ]);
+
+        $this->assertNotNull($result);
+        $this->assertEquals(3600, $result->temps);  // Unchanged
+        $this->assertEquals(60, $result->malus);    // Unchanged
+        $this->assertEquals(200, $result->points);  // Changed
     }
 }

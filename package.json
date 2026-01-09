@@ -20,6 +20,7 @@
         "vite": "^7.3.0"
     },
     "dependencies": {
+        "html5-qrcode": "^2.3.8",
         "leaflet": "^1.9.4",
         "lucide-react": "^0.562.0",
         "rc-slider": "^11.1.9",

@@ -82,11 +82,15 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         priceMinor: race?.price_minor || '0',
         priceAdherent: race?.price_adherent || '',
         difficulty: race?.race_difficulty || '',
-        type: race?.typ_id || (types.length > 0 ? types[0].id : ''),
+        type: race?.typ_id ? parseInt(race.typ_id) : (types.length > 0 ? parseInt(types[0].id) : ''),
         mealPrice: race?.race_meal_price || '',
         image: null,
         raid_id: race?.raid_id || raid_id || '',
-        selectedAgeCategories: race?.categorieAges?.map(pc => pc.ageCategory?.id) || [],
+        selectedAgeCategories: race?.categorieAges?.map(pc => parseInt(pc.ageCategory?.id)) || [],
+        // Leisure age rules (A <= B <= C)
+        leisureAgeMin: race?.leisure_age_min || '12',
+        leisureAgeIntermediate: race?.leisure_age_intermediate || '16',
+        leisureAgeSupervisor: race?.leisure_age_supervisor || '18',
     });
 
     // Date validation state
@@ -94,10 +98,11 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
     
     // Toggle age category selection
     const toggleAgeCategory = (categoryId) => {
+        const parsedId = parseInt(categoryId);
         setData('selectedAgeCategories', 
-            data.selectedAgeCategories.includes(categoryId)
-                ? data.selectedAgeCategories.filter(id => id !== categoryId)
-                : [...data.selectedAgeCategories, categoryId]
+            data.selectedAgeCategories.includes(parsedId)
+                ? data.selectedAgeCategories.filter(id => id !== parsedId)
+                : [...data.selectedAgeCategories, parsedId]
         );
     };
     // Delete confirmation modal state (only used in edit mode)
@@ -206,8 +211,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         validateDates(name, value);
     };
 
-    const isCompetitive = types.find(t => t.id === data.type)?.name.toLowerCase() === 'compétitif' ||
-        types.find(t => t.id === data.type)?.name.toLowerCase() === 'competitif';
+    const isCompetitive = types.find(t => t.id === parseInt(data.type))?.name.toLowerCase() === 'compétitif' ||
+        types.find(t => t.id === parseInt(data.type))?.name.toLowerCase() === 'competitif';
 
     // Check if an age category is available for competitive races
     const isAgeCategoryAvailable = (category) => {
@@ -224,7 +229,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         if (newIsCompetitive) {
             // Filter out categories with age_min < 18
             const filteredCategories = data.selectedAgeCategories.filter(catId => {
-                const category = ageCategories.find(c => c.id === catId);
+                const category = ageCategories.find(c => parseInt(c.id) === parseInt(catId));
                 return category && category.age_min >= 18;
             });
             setData('selectedAgeCategories', filteredCategories);
@@ -241,10 +246,27 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Validation: Check if at least one age category is selected
-        if (data.selectedAgeCategories.length === 0) {
-            alert('Veuillez sélectionner au moins une catégorie d\'âge pour cette course.');
+        // Validation for competitive races: Check if at least one age category is selected
+        if (isCompetitive && data.selectedAgeCategories.length === 0) {
+            alert('Veuillez sélectionner au moins une catégorie d\'âge pour cette course compétitive.');
             return;
+        }
+
+        // Validation for leisure races: Check A <= B <= C
+        if (!isCompetitive) {
+            const a = parseInt(data.leisureAgeMin);
+            const b = parseInt(data.leisureAgeIntermediate);
+            const c = parseInt(data.leisureAgeSupervisor);
+            
+            if (isNaN(a) || isNaN(b) || isNaN(c)) {
+                alert('Veuillez renseigner les trois valeurs d\'âge (A, B, C) pour cette course loisir.');
+                return;
+            }
+            
+            if (a > b || b > c) {
+                alert('Les valeurs d\'âge doivent respecter la règle : A ≤ B ≤ C');
+                return;
+            }
         }
         
         // Prepare submission data
@@ -253,6 +275,13 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         // Clear priceMinor if competitive race
         if (isCompetitive) {
             submissionData.priceMinor = '';
+            // Clear leisure age rules for competitive races
+            submissionData.leisureAgeMin = null;
+            submissionData.leisureAgeIntermediate = null;
+            submissionData.leisureAgeSupervisor = null;
+        } else {
+            // Clear age categories for leisure races
+            submissionData.selectedAgeCategories = [];
         }
         
         // Debug: Log all form data
@@ -433,10 +462,14 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         value={data.startDate}
                                         onChange={handleDateChange}
                                         min={(() => {
-                                            const today = new Date().toISOString().split('T')[0];
-                                            if (!raid?.raid_date_start) return today;
+                                            const today = new Date();
+                                            const year = today.getFullYear();
+                                            const month = String(today.getMonth() + 1).padStart(2, '0');
+                                            const day = String(today.getDate()).padStart(2, '0');
+                                            const todayStr = `${year}-${month}-${day}`;
+                                            if (!raid?.raid_date_start) return todayStr;
                                             const raidStart = raid.raid_date_start.split('T')[0];
-                                            return today > raidStart ? today : raidStart;
+                                            return todayStr > raidStart ? todayStr : raidStart;
                                         })()}
                                         {...(raid?.raid_date_end && { max: raid.raid_date_end.split('T')[0] })}
                                         className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.startDate ? 'border-red-500' : 'border-gray-300'}`}
@@ -505,7 +538,13 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         name="endDate"
                                         value={data.endDate}
                                         onChange={handleDateChange}
-                                        min={data.startDate || new Date().toISOString().split('T')[0]}
+                                        min={data.startDate || (() => {
+                                            const today = new Date();
+                                            const year = today.getFullYear();
+                                            const month = String(today.getMonth() + 1).padStart(2, '0');
+                                            const day = String(today.getDate()).padStart(2, '0');
+                                            return `${year}-${month}-${day}`;
+                                        })()}
                                         {...(raid?.raid_date_end && { max: raid.raid_date_end.split('T')[0] })}
                                         className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${dateErrors.endDate ? 'border-red-500' : 'border-gray-300'}`}
                                     />
@@ -729,65 +768,172 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             <p className="text-xs text-blue-700">
-                                                <strong>Mode Compétitif activé :</strong> Les courses compétitives sont réservées aux adultes (18 ans et plus). Les catégories d'âges seront filtrées automatiquement.
+                                                <strong>Mode Compétitif activé :</strong> Les courses compétitives requièrent que tous les membres d'une équipe soient dans la même catégorie d'âge parmi celles sélectionnées ci-dessous.
                                             </p>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Catégories d'âges - Colonne pleine */}
-                                <div className="col-span-1 lg:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                                        Catégories d'âges
-                                        <span className="text-red-500 ml-1">*</span>
-                                        <span className="text-xs text-gray-500 ml-2">({data.selectedAgeCategories.length} sélectionnée{data.selectedAgeCategories.length !== 1 ? 's' : ''})</span>
-                                    </label>
-                                    {data.selectedAgeCategories.length === 0 && (
-                                        <p className="text-sm text-amber-600 mb-3 flex items-center gap-2">
-                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                {/* Avertissement loisir */}
+                                {!isCompetitive && (
+                                    <div className="col-span-1 lg:col-span-2">
+                                        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-2">
+                                            <svg className="w-5 h-5 text-emerald-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            Veuillez sélectionner au moins une catégorie d'âge
-                                        </p>
-                                    )}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        {ageCategories.length > 0 ? (
-                                            ageCategories.map((category) => {
-                                                const isAvailable = isAgeCategoryAvailable(category);
-                                                const isSelected = data.selectedAgeCategories.includes(category.id);
-                                                
-                                                return (
-                                                    <label 
-                                                        key={category.id} 
-                                                        className={`flex items-center p-3 border rounded-lg transition-colors text-sm ${
-                                                            isAvailable 
-                                                                ? 'border-gray-200 hover:bg-blue-50 cursor-pointer' 
-                                                                : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                                                        }`}
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={isSelected}
-                                                            onChange={() => isAvailable && toggleAgeCategory(category.id)}
-                                                            disabled={!isAvailable}
-                                                            className="w-4 h-4 text-emerald-600 rounded disabled:opacity-50"
-                                                        />
-                                                        <span className="ml-3">
-                                                            <span className="font-medium text-gray-900">{category.nom}</span>
-                                                            <span className="text-gray-500 text-xs ml-2">({category.age_min}-{category.age_max})</span>
-                                                            {!isAvailable && (
-                                                                <span className="text-red-600 text-xs ml-2 font-medium block">Non disponible</span>
-                                                            )}
-                                                        </span>
-                                                    </label>
-                                                );
-                                            })
-                                        ) : (
-                                            <p className="text-sm text-gray-500 italic">Aucune catégorie</p>
+                                            <p className="text-xs text-emerald-700">
+                                                <strong>Mode Loisir activé :</strong> Les règles d'âge sont plus souples. Configurez les valeurs A, B, C ci-dessous pour définir les règles de participation.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Règles d'âge Loisir (A, B, C) - Seulement pour type loisir */}
+                                {!isCompetitive && (
+                                    <div className="col-span-1 lg:col-span-2">
+                                        <h4 className="text-sm font-semibold text-gray-900 mb-4">Règles d'âge pour courses loisir</h4>
+                                        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg mb-4">
+                                            <p className="text-sm text-gray-600 mb-3">
+                                                <strong>Règles :</strong> Tous les participants doivent avoir au moins <strong>A ans</strong>. 
+                                                Si un participant a moins de <strong>B ans</strong>, l'équipe doit inclure un participant d'au moins <strong>C ans</strong> (accompagnateur). 
+                                                Sinon, tous doivent avoir au moins <strong>B ans</strong>.
+                                            </p>
+                                            <p className="text-xs text-gray-500 italic">
+                                                Exemple : A=12, B=16, C=18 → Tous ont au moins 12 ans, et les équipes avec un - de 16 ans doivent avoir un majeur (18+).
+                                            </p>
+                                        </div>
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                            {/* Âge minimum (A) */}
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-2">
+                                                    Âge minimum (A) *
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="leisureAgeMin"
+                                                    value={data.leisureAgeMin}
+                                                    onChange={handleInputChange}
+                                                    placeholder="12"
+                                                    min="0"
+                                                    max={data.leisureAgeIntermediate || 100}
+                                                    required={!isCompetitive}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                                                />
+                                                <p className="mt-1 text-xs text-gray-500">Âge min. pour tous les participants</p>
+                                                {errors.leisureAgeMin && <p className="mt-1 text-xs text-red-600">{errors.leisureAgeMin}</p>}
+                                            </div>
+
+                                            {/* Âge intermédiaire (B) */}
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-2">
+                                                    Âge intermédiaire (B) *
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="leisureAgeIntermediate"
+                                                    value={data.leisureAgeIntermediate}
+                                                    onChange={handleInputChange}
+                                                    placeholder="16"
+                                                    min={data.leisureAgeMin || 0}
+                                                    max={data.leisureAgeSupervisor || 100}
+                                                    required={!isCompetitive}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                                                />
+                                                <p className="mt-1 text-xs text-gray-500">Seuil sans accompagnateur</p>
+                                                {errors.leisureAgeIntermediate && <p className="mt-1 text-xs text-red-600">{errors.leisureAgeIntermediate}</p>}
+                                            </div>
+
+                                            {/* Âge accompagnateur (C) */}
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-2">
+                                                    Âge accompagnateur (C) *
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="leisureAgeSupervisor"
+                                                    value={data.leisureAgeSupervisor}
+                                                    onChange={handleInputChange}
+                                                    placeholder="18"
+                                                    min={data.leisureAgeIntermediate || 0}
+                                                    required={!isCompetitive}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                                                />
+                                                <p className="mt-1 text-xs text-gray-500">Âge requis de l'accompagnateur</p>
+                                                {errors.leisureAgeSupervisor && <p className="mt-1 text-xs text-red-600">{errors.leisureAgeSupervisor}</p>}
+                                            </div>
+                                        </div>
+
+                                        {/* Validation A <= B <= C */}
+                                        {(parseInt(data.leisureAgeMin) > parseInt(data.leisureAgeIntermediate) || 
+                                          parseInt(data.leisureAgeIntermediate) > parseInt(data.leisureAgeSupervisor)) && (
+                                            <p className="mt-3 text-sm text-red-600 flex items-center gap-2">
+                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                                Les valeurs doivent respecter : A ≤ B ≤ C
+                                            </p>
                                         )}
                                     </div>
-                                    {errors.selectedAgeCategories && <p className="mt-2 text-sm text-red-600">{errors.selectedAgeCategories}</p>}
-                                </div>
+                                )}
+
+                                {/* Catégories d'âges - Seulement pour type compétitif */}
+                                {isCompetitive && (
+                                    <div className="col-span-1 lg:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                                            Catégories d'âges acceptées
+                                            <span className="text-red-500 ml-1">*</span>
+                                            <span className="text-xs text-gray-500 ml-2">({data.selectedAgeCategories.length} sélectionnée{data.selectedAgeCategories.length !== 1 ? 's' : ''})</span>
+                                        </label>
+                                        {data.selectedAgeCategories.length === 0 && (
+                                            <p className="text-sm text-amber-600 mb-3 flex items-center gap-2">
+                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                                Veuillez sélectionner au moins une catégorie d'âge
+                                            </p>
+                                        )}
+                                        <p className="text-sm text-gray-600 mb-3">
+                                            Tous les membres d'une équipe doivent appartenir à la <strong>même catégorie d'âge</strong> parmi celles sélectionnées.
+                                        </p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                            {ageCategories.length > 0 ? (
+                                                ageCategories.map((category) => {
+                                                    const isAvailable = isAgeCategoryAvailable(category);
+                                                    const isSelected = data.selectedAgeCategories.includes(parseInt(category.id));
+                                                    
+                                                    return (
+                                                        <label 
+                                                            key={category.id} 
+                                                            className={`flex items-center p-3 border rounded-lg transition-colors text-sm ${
+                                                                isAvailable 
+                                                                    ? 'border-gray-200 hover:bg-blue-50 cursor-pointer' 
+                                                                    : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                                                            }`}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isSelected}
+                                                                onChange={() => isAvailable && toggleAgeCategory(category.id)}
+                                                                disabled={!isAvailable}
+                                                                className="w-4 h-4 text-emerald-600 rounded disabled:opacity-50"
+                                                            />
+                                                            <span className="ml-3">
+                                                                <span className="font-medium text-gray-900">{category.nom}</span>
+                                                                <span className="text-gray-500 text-xs ml-2">({category.age_min}-{category.age_max || '∞'})</span>
+                                                                {!isAvailable && (
+                                                                    <span className="text-red-600 text-xs ml-2 font-medium block">Non disponible en compétitif</span>
+                                                                )}
+                                                            </span>
+                                                        </label>
+                                                    );
+                                                })
+                                            ) : (
+                                                <p className="text-sm text-gray-500 italic">Aucune catégorie</p>
+                                            )}
+                                        </div>
+                                        {errors.selectedAgeCategories && <p className="mt-2 text-sm text-red-600">{errors.selectedAgeCategories}</p>}
+                                    </div>
+                                )}
 
                                 {/* Prix du repas et Image - Ligne 9 */}
                                 <div>

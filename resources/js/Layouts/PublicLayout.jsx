@@ -10,12 +10,12 @@ export default function PublicLayout({ children }) {
     const { auth } = usePage().props;
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 flex flex-col">
             {auth.user && <ProfileCompletionModal />}
 
             <Header />
 
-            <main>{children}</main>
+            <main className="flex-1">{children}</main>
 
             <Footer />
         </div>

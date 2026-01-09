@@ -16,65 +16,42 @@ class AdminController extends Controller
     public function index()
 
     {
-
-
         $user = Auth::user();
 
         $stats = [
-
             'users' => User::count(),
-
             'logs' => Activity::count(),
-
             'pendingClubs' => \App\Models\Club::where('is_approved', false)->count(),
-
         ];
 
-
-        // Debug: Voir la requête SQL générée
-
-        $myresponsibleRaids = Raid::where('adh_id', $user->adh_id)->get();
+        // Admins can see all raids and races, others only their own
+        if ($user->hasRole('admin')) {
+            $myresponsibleRaids = Raid::all();
+            $myresponsibleRaces = Race::all();
+        } else {
+            $myresponsibleRaids = Raid::where('adh_id', $user->adh_id)->get();
+            $myresponsibleRaces = Race::where('adh_id', $user->adh_id)->get();
+        }
 
         \Log::debug('myresponsibleRaids query', [
-
             'user_id' => $user->id,
-
+            'is_admin' => $user->hasRole('admin'),
             'count' => $myresponsibleRaids->count(),
-
-            'data' => $myresponsibleRaids->toArray(),
-
         ]);
-
-
-        $myresponsibleRaces = Race::where('adh_id', $user->adh_id)->get();
 
         \Log::debug('myresponsibleRaces query', [
-
             'user_id' => $user->id,
-
+            'is_admin' => $user->hasRole('admin'),
             'count' => $myresponsibleRaces->count(),
-
-            'data' => $myresponsibleRaces->toArray(),
-
         ]);
-
-
-        $user = auth()->user();
 
         $user->load('roles.permissions');
 
-
-
         return inertia('Admin/Dashboard', [
-
             'stats' => $stats,
-
             'myresponsibleRaids' => $myresponsibleRaids,
-
             'myresponsibleRaces' => $myresponsibleRaces,
-
         ]);
-
     }
     
 
@@ -82,9 +59,14 @@ class AdminController extends Controller
     {
         $user = Auth::user();
 
-        $races = Race::where('adh_id', $user->adh_id)
-            ->with('raid') 
-            ->get();
+        // Admins can see all races, others only their own
+        if ($user->hasRole('admin')) {
+            $races = Race::with('raid')->get();
+        } else {
+            $races = Race::where('adh_id', $user->adh_id)
+                ->with('raid') 
+                ->get();
+        }
 
         return inertia('Admin/RaceManagement', [
             'races' => $races,
@@ -95,7 +77,12 @@ class AdminController extends Controller
     {
         $user = Auth::user();
 
-        $raids = Raid::where('adh_id', $user->adh_id)->get();
+        // Admins can see all raids, others only their own
+        if ($user->hasRole('admin')) {
+            $raids = Raid::all();
+        } else {
+            $raids = Raid::where('adh_id', $user->adh_id)->get();
+        }
 
         return inertia('Admin/RaidManagement', [
             'raids' => $raids,
@@ -104,7 +91,7 @@ class AdminController extends Controller
 
     /**
      * Display the club management page for responsable-club users.
-     * Shows only clubs where the user is a leader or manager.
+     * Admins can see all clubs, others only clubs where they are leader or manager.
      *
      * @return \Inertia\Response
      */
@@ -112,11 +99,16 @@ class AdminController extends Controller
     {
         $user = Auth::user();
 
-        // Get clubs where user is leader or manager
-        $clubs = Club::whereHas('members', function ($query) use ($user) {
-            $query->where('user_id', $user->id)
-                  ->whereIn('role', ['leader', 'manager']);
-        })->with('members:id,first_name,last_name,email')->get();
+        // Admins can see all clubs, others only their managed clubs
+        if ($user->hasRole('admin')) {
+            $clubs = Club::with('members:id,first_name,last_name,email')->get();
+        } else {
+            // Get clubs where user is leader or manager
+            $clubs = Club::whereHas('members', function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                      ->whereIn('role', ['leader', 'manager']);
+            })->with('members:id,first_name,last_name,email')->get();
+        }
 
         return inertia('Admin/ClubManagement', [
             'clubs' => $clubs,

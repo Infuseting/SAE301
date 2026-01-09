@@ -23,6 +23,7 @@ export default function CreateTeam() {
     const { auth, translations } = usePage().props;
     const currentUser = auth?.user;
     const messages = translations?.messages || {};
+    const [redirectUri, setRedirectUri] = useState(null);
 
     // evite trop d'appels (300ms)
     useEffect(() => {
@@ -48,6 +49,18 @@ export default function CreateTeam() {
         };
     }, []);
 
+    // Read optional redirect_uri query parameter so we can redirect
+    // back to the race/course flow after creating a team.
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const uri = params.get('redirect_uri');
+            if (uri) setRedirectUri(uri);
+        } catch (e) {
+            // ignore malformed URLSearchParams in older browsers
+        }
+    }, []);
+
     const submit = (e) => {
         e.preventDefault();
         
@@ -57,7 +70,14 @@ export default function CreateTeam() {
             return;
         }
         
-        post(route('team.store'));
+        post(route('team.store'), {
+            onSuccess: () => {
+                if (redirectUri) {
+                    // If a redirect URI was provided, go back to that flow.
+                    window.location.href = redirectUri;
+                }
+            },
+        });
     };
 
     const addTeammate = (userId, name, email) => {

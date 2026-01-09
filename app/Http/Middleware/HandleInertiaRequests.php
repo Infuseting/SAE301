@@ -71,6 +71,7 @@ class HandleInertiaRequests extends Middleware
 
             return [
                 ...$parent,
+                'csrf_token' => csrf_token(),
                 'auth' => [
                     'user' => $request->user() ? array_merge(
                         $request->user()->load([
@@ -84,6 +85,7 @@ class HandleInertiaRequests extends Middleware
                         [
                             'permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray(),
                             'is_club_leader' => $request->user()->isClubLeader(),
+                            'team_leader' => \App\Models\Team::where('user_id', $request->user()->id)->exists(),
                         ]
                     ) : null,
                 ],

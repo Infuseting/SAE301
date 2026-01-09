@@ -25,6 +25,7 @@ export default function ProfileCompletionModal() {
     const user = usePage().props.auth.user;
     const [isOpen, setIsOpen] = useState(false);
     const [showLicenseModal, setShowLicenseModal] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(null);
 
     // Check if profile is incomplete
     useEffect(() => {
@@ -33,7 +34,7 @@ export default function ProfileCompletionModal() {
         } else {
             setIsOpen(false);
         }
-    }, [user]);
+    }, [user?.has_completed_profile]);
 
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         birth_date: user.birth_date || '',
@@ -41,6 +42,17 @@ export default function ProfileCompletionModal() {
         phone: user.phone || '',
         license_number: user.license_number || '',
     });
+    
+    // Initialize selectedDate from user.birth_date only once when modal opens
+    useEffect(() => {
+        if (isOpen && user.birth_date && !selectedDate) {
+            try {
+                setSelectedDate(new Date(user.birth_date + 'T00:00:00'));
+            } catch (e) {
+                setSelectedDate(null);
+            }
+        }
+    }, [isOpen, user.birth_date]);
 
     const submit = (e) => {
         e.preventDefault();
@@ -99,8 +111,18 @@ export default function ProfileCompletionModal() {
                             <InputLabel htmlFor="birth_date" value="Date de naissance *" />
                             <DatePicker
                                 id="birth_date"
-                                selected={data.birth_date ? new Date(data.birth_date) : null}
-                                onChange={(date) => setData('birth_date', date ? date.toISOString().split('T')[0] : '')}
+                                selected={selectedDate}
+                                onChange={(date) => {
+                                    setSelectedDate(date);
+                                    if (date) {
+                                        const year = date.getFullYear();
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        const day = String(date.getDate()).padStart(2, '0');
+                                        setData('birth_date', `${year}-${month}-${day}`);
+                                    } else {
+                                        setData('birth_date', '');
+                                    }
+                                }}
                                 className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                                 dateFormat="dd/MM/yyyy"
                                 placeholderText="JJ/MM/AAAA"

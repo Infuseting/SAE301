@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Race;
 
 use App\Http\Controllers\Controller;
 use App\Models\Race;
+use App\Models\LeaderboardTeam;
 use Inertia\Inertia;
 
 /**
@@ -89,17 +90,18 @@ class VisuRaceController extends Controller
         // Admin can manage all races, otherwise check if user is race organizer or club manager
         $isRaceManager = $user && ($user->hasRole('admin') || ($race->organizer && $user->adh_id === $race->organizer->adh_id) || ($race->raid && $race->raid->club && $race->raid->club->hasManager($user)));
 
-        // Fetch participants for managers
+        // Fetch participants for managers using the new race_participants table
         $participants = [];
         if ($isRaceManager) {
-            $participants = \DB::table('registration')
+            $participants = \DB::table('race_participants')
+                ->join('registration', 'race_participants.reg_id', '=', 'registration.reg_id')
                 ->join('teams', 'registration.equ_id', '=', 'teams.equ_id')
-                ->join('has_participate', 'teams.equ_id', '=', 'has_participate.equ_id')
-                ->join('users', 'has_participate.id_users', '=', 'users.id')
+                ->join('users', 'race_participants.user_id', '=', 'users.id')
                 ->leftJoin('members', 'users.adh_id', '=', 'members.adh_id')
-                ->leftJoin('medical_docs', 'users.doc_id', '=', 'medical_docs.doc_id')
                 ->where('registration.race_id', $race->race_id)
                 ->select([
+                    'race_participants.rpa_id as participant_id',
+                    'race_participants.reg_id',
                     'users.id as user_id',
                     'users.first_name', 
                     'users.last_name', 
@@ -107,9 +109,14 @@ class VisuRaceController extends Controller
                     'users.birth_date',
                     'members.adh_license',
                     'members.adh_end_validity as license_expiry',
-                    'medical_docs.doc_num_pps as pps_number',
-                    'medical_docs.doc_end_validity as pps_expiry',
+                    'race_participants.pps_number',
+                    'race_participants.pps_expiry',
+                    'race_participants.pps_status',
+                    'race_participants.pps_verified_at',
+                    'race_participants.bib_number',
                     'registration.reg_validated',
+                    'registration.reg_dossard',
+                    'registration.is_present',
                     'teams.equ_name',
                     'teams.equ_id'
                 ])
@@ -117,11 +124,14 @@ class VisuRaceController extends Controller
                 ->map(function($p) use ($race) {
                     $now = now();
                     $p->is_license_valid = $p->license_expiry && $now->lessThan($p->license_expiry);
-                    $p->is_pps_valid = $p->pps_expiry && $now->lessThan($p->pps_expiry);
+                    $p->is_pps_valid = $p->pps_expiry && 
+                                       $now->lessThan($p->pps_expiry) && 
+                                       $p->pps_status === 'verified' &&
+                                       !str_starts_with($p->pps_number ?? '', 'PENDING-');
                     
                     // Calculate participant price
                     $age = $p->birth_date ? $now->diffInYears($p->birth_date) : null;
-                    $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'competitif';
+                    $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'compétitif';
                     
                     if ($p->is_license_valid && $race->price_adherent !== null) {
                         // Licensed member price
@@ -154,7 +164,7 @@ class VisuRaceController extends Controller
             'endDate' => $race->race_date_end?->toIso8601String(),
             'duration' => $race->race_duration_minutes ? floor($race->race_duration_minutes / 60) . ':' . str_pad((int)($race->race_duration_minutes % 60), 2, '0', STR_PAD_LEFT) : '0:00',
             'raceType' => $race->type?->typ_name ?? 'Classique',
-            'isCompetitive' => $race->type && strtolower($race->type->typ_name) === 'competitif',
+            'isCompetitive' => $race->type && strtolower($race->type->typ_name) === 'compétitif',
             'difficulty' => $race->race_difficulty ?? 'Moyen',
             'status' => $this->getRaceStatus($race),
             'isOpen' => $race->isOpen(),
@@ -170,14 +180,14 @@ class VisuRaceController extends Controller
             'registeredCount' => \DB::table('registration')
                 ->join('has_participate', 'registration.equ_id', '=', 'has_participate.equ_id')
                 ->where('registration.race_id', $race->race_id)
-                ->distinct('has_participate.id_users')
-                ->count('has_participate.id_users'),
+                ->where('registration.reg_validated', true)
+                ->count(),
             'organizer' => [
                 'id' => $race->organizer?->user?->id,
                 'name' => trim(($race->organizer?->adh_firstname ?? '') . ' ' . ($race->organizer?->adh_lastname ?? '')) ?: ($race->organizer?->user?->name ?? 'Organisateur'),
                 'email' => $race->organizer?->user?->email ?? ''
             ],
-            'userTeams' => $user ? (function() use ($user) {
+            'userTeams' => $user ? (function() use ($user, $race) {
                 \Log::info("Fetching teams for user: {$user->id}");
                 
                 // Only get teams where user is the leader
@@ -187,22 +197,50 @@ class VisuRaceController extends Controller
 
                 \Log::info("Found " . $teams->count() . " teams.");
                 
-                return $teams->map(function($team) {
-                    // Get members with their license status
+                // Get age categories for competitive race validation
+                $ageCategories = $race->categorieAges->map(fn($pc) => [
+                    'id' => $pc->ageCategory->id,
+                    'nom' => $pc->ageCategory->nom,
+                    'age_min' => $pc->ageCategory->age_min,
+                    'age_max' => $pc->ageCategory->age_max,
+                ])->toArray();
+                
+                $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'compétitif';
+                
+                return $teams->map(function($team) use ($ageCategories, $isCompetitive, $race) {
+                    // Get members with their license status and birth dates
                     $members = \DB::table('has_participate')
                         ->leftJoin('users', 'has_participate.id_users', '=', 'users.id')
                         ->leftJoin('members', 'users.adh_id', '=', 'members.adh_id')
                         ->where('has_participate.equ_id', $team->equ_id)
-                        ->select('users.id', 'members.adh_license')
+                        ->select('users.id', 'users.first_name', 'users.last_name', 'users.birth_date', 'members.adh_license')
                         ->get();
                     
                     $licensedCount = $members->filter(fn($m) => !empty($m->adh_license))->count();
+                    
+                    // Calculate ages of all members (from birth date to now, rounded to full years)
+                    $now = now();
+                    $memberAges = $members->map(function($m) use ($now) {
+                        $age = null;
+                        if ($m->birth_date) {
+                            $birthDate = \Carbon\Carbon::parse($m->birth_date);
+                            $age = (int) $birthDate->diffInYears($now);
+                        }
+                        return [
+                            'id' => $m->id,
+                            'first_name' => $m->first_name,
+                            'last_name' => $m->last_name,
+                            'age' => $age,
+                            'has_license' => !empty($m->adh_license),
+                        ];
+                    })->toArray();
                     
                     return [
                         'id' => $team->equ_id,
                         'name' => $team->equ_name,
                         'members_count' => $members->count(),
                         'licensed_members_count' => $licensedCount,
+                        'members' => $memberAges,
                     ];
                 })->values()->toArray();
             })() : [],
@@ -234,6 +272,10 @@ class VisuRaceController extends Controller
             'priceMajor' => $race->price_major,
             'priceMinor' => $race->price_minor,
             'priceAdherent' => $race->price_adherent,
+            // Leisure age rules (A <= B <= C)
+            'leisureAgeMin' => $race->leisure_age_min,
+            'leisureAgeIntermediate' => $race->leisure_age_intermediate,
+            'leisureAgeSupervisor' => $race->leisure_age_supervisor,
             'minParticipants' => $race->runnerParams?->pac_nb_min ?? 0,
             'maxParticipants' => $race->runnerParams?->pac_nb_max ?? 100,
             'minTeams' => $race->teamParams?->pae_nb_min ?? 1,
@@ -283,7 +325,7 @@ class VisuRaceController extends Controller
                         $now = now();
                         $isLicenseValid = $member->license_expiry && $now->lessThan($member->license_expiry);
                         $age = $member->birth_date ? $now->diffInYears($member->birth_date) : null;
-                        $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'competitif';
+                        $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'compétitif';
                         
                         // Calculate price
                         if ($isLicenseValid && $race->price_adherent !== null) {
@@ -335,6 +377,12 @@ class VisuRaceController extends Controller
 
         $raceData['alreadyRegistered'] = $alreadyRegistered;
 
+        // Determine race phase for UI display
+        $racePhase = $this->getRacePhase($race);
+        
+        // Check if results have been uploaded
+        $hasResults = LeaderboardTeam::where('race_id', $race->race_id)->exists();
+
         return Inertia::render('Race/VisuRace', [
             'race' => $raceData,
             'isManager' => $isRaceManager,
@@ -342,7 +390,51 @@ class VisuRaceController extends Controller
             'userTeams' => $userTeams,
             'registeredByLeader' => $registeredByLeader,
             'registeredTeam' => $registeredTeam,
+            'racePhase' => $racePhase,
+            'hasResults' => $hasResults,
         ]);
+    }
+
+    /**
+     * Determine the current phase of the race.
+     *
+     * @param Race $race
+     * @return string 'registration' | 'pre_race' | 'racing' | 'post_race'
+     */
+    private function getRacePhase(Race $race): string
+    {
+        $now = now();
+        
+        // Check registration period
+        $regStart = $race->raid?->registrationPeriod?->ins_start_date;
+        $regEnd = $race->raid?->registrationPeriod?->ins_end_date;
+        
+        // Check race dates
+        $raceStart = $race->race_date_start;
+        $raceEnd = $race->race_date_end;
+        
+        // Registration phase: during registration period
+        if ($regStart && $regEnd && $now >= $regStart && $now <= $regEnd) {
+            return 'registration';
+        }
+        
+        // Pre-race phase: after registration ends but before race starts
+        if ($regEnd && $raceStart && $now > $regEnd && $now < $raceStart) {
+            return 'pre_race';
+        }
+        
+        // Racing phase: during the race
+        if ($raceStart && $raceEnd && $now >= $raceStart && $now <= $raceEnd) {
+            return 'racing';
+        }
+        
+        // Post-race phase: after race ends
+        if ($raceEnd && $now > $raceEnd) {
+            return 'post_race';
+        }
+        
+        // Default to registration if dates not set
+        return 'registration';
     }
 
     /**

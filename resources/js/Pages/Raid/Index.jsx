@@ -4,14 +4,20 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import { Head, Link, usePage } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
 import RaidProgress from '@/Components/Raid/RaidProgress';
-import { Settings, Plus, MapPin, Calendar, Info, Users, ChevronRight, Trophy } from 'lucide-react';
+import RegisteredMembersModal from '@/Components/Raid/RegisteredMembersModal';
+import { Settings, Plus, MapPin, Calendar, Info, Users, ChevronRight, Trophy, FileText } from 'lucide-react';
 
 /**
  * Raid Detail Component
  * Displays raid information and associated courses with premium UI
  */
-export default function Index({ raid, courses = [], typeCategories = [], isRaidManager, canEditRaid, canAddRace }) {
+export default function Index({ raid, courses = [], typeCategories = [], isRaidManager, canEditRaid, canAddRace, registeredMembers = [] }) {
     const messages = usePage().props.translations?.messages || {};
+    const [showMembersModal, setShowMembersModal] = useState(false);
+
+    // Show only first 3 members in preview
+    const previewMembers = registeredMembers.slice(0, 3);
+    const hasMoreMembers = registeredMembers.length > 3;
 
     return (
         <AuthenticatedLayout>
@@ -54,10 +60,24 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                     <Trophy className="h-3.5 w-3.5" />
                                     {courses.length} Courses
                                 </div>
+                                {isRaidManager && (
+                                    <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
+                                        <Users className="h-3.5 w-3.5" />
+                                        {registeredMembers.length} Inscrit{registeredMembers.length > 1 ? 's' : ''}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         <div className="flex items-center gap-3">
+                            {isRaidManager && (
+                                <a href={`/raids/${raid.raid_id}/start-list`} target="_blank" rel="noopener noreferrer">
+                                    <button className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 px-6 py-3 rounded-2xl font-black text-sm transition-all flex items-center gap-2 border border-white/20">
+                                        <FileText className="h-4 w-4" />
+                                        START-LIST PDF
+                                    </button>
+                                </a>
+                            )}
                             {canEditRaid && (
                                 <Link href={route('raids.edit', raid.raid_id)}>
                                     <button className="bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 rounded-2xl font-black text-sm transition-all shadow-xl shadow-emerald-900/20 flex items-center gap-2">
@@ -77,6 +97,60 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                         {/* Left Column: Progress & Info */}
                         <div className="lg:col-span-4 space-y-8">
                             <RaidProgress raid={raid} />
+
+                            {/* Registered Members Section - Only for Raid Managers */}
+                            {isRaidManager && (
+                                <div className="bg-white rounded-3xl border border-emerald-100 p-6 shadow-sm space-y-4">
+                                    <h3 className="text-xs font-black text-emerald-900 flex items-center uppercase tracking-widest">
+                                        <Users className="h-4 w-4 mr-2 text-emerald-500" />
+                                        Membres inscrits
+                                    </h3>
+
+                                    {registeredMembers.length === 0 ? (
+                                        <div className="text-center py-6">
+                                            <Users className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                                            <p className="text-sm font-semibold text-gray-500">
+                                                Aucun membre inscrit
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                Les inscriptions apparaîtront ici
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <p className="text-xs text-emerald-700 font-semibold">
+                                                {registeredMembers.length} participant{registeredMembers.length > 1 ? 's' : ''} inscrit{registeredMembers.length > 1 ? 's' : ''}
+                                            </p>
+
+                                            {/* Preview of first 3 members */}
+                                            <div className="space-y-2">
+                                                {previewMembers.map((member) => (
+                                                    <div
+                                                        key={member.id}
+                                                        className="bg-emerald-50/50 rounded-2xl p-3 border border-emerald-100"
+                                                    >
+                                                        <p className="text-sm font-bold text-emerald-900">
+                                                            {member.name}
+                                                        </p>
+                                                        <p className="text-xs text-emerald-600">
+                                                            {member.email}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* See More Button */}
+                                            <button
+                                                onClick={() => setShowMembersModal(true)}
+                                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-2xl font-black text-xs transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 uppercase tracking-widest"
+                                            >
+                                                <Users className="h-4 w-4" />
+                                                {hasMoreMembers ? `Voir tous les ${registeredMembers.length} membres` : 'Voir les détails'}
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Right Column: Description & Race List */}
@@ -198,9 +272,17 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                                 <Link href={route('races.show', course.id)} className="flex-1">
                                                     <button className={`w-full py-4 rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2 tracking-widest uppercase ${course.is_finished
                                                         ? 'bg-blue-900 text-white hover:bg-black shadow-xl shadow-blue-900/20'
+                                                        : course.is_registered
+                                                        ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-200'
                                                         : 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-200'
                                                         }`}>
-                                                        {course.is_finished ? 'Consulter les résultats' : course.is_open ? "S'inscrire" : 'Plus de détails'}
+                                                        {course.is_finished 
+                                                            ? 'Consulter les résultats' 
+                                                            : course.is_registered 
+                                                            ? 'Voir mon inscription' 
+                                                            : course.is_open 
+                                                            ? "S'inscrire" 
+                                                            : 'Plus de détails'}
                                                         <ChevronRight className="h-4 w-4" />
                                                     </button>
                                                 </Link>
@@ -233,6 +315,13 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                     </div>
                 </div>
             </div>
+
+            {/* Registered Members Modal */}
+            <RegisteredMembersModal
+                isOpen={showMembersModal}
+                onClose={() => setShowMembersModal(false)}
+                members={registeredMembers}
+            />
         </AuthenticatedLayout>
     );
 }

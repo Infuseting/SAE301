@@ -18,7 +18,8 @@ class TeamInvitation extends Mailable
      */
     public function __construct(
         public string $teamName,
-        public string $inviterName
+        public string $inviterName,
+        public string $token = ''
     ) {}
 
     /**

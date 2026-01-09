@@ -410,6 +410,16 @@ class RaidController extends Controller
         $courses = $raid->races->map(function ($race) use ($user, $isRaidManager) {
             $isRaceManager = $user && ($user->adh_id === $race->adh_id || $isRaidManager);
 
+            // Check if user is already registered to this race
+            $isRegistered = false;
+            if ($user) {
+                $isRegistered = \DB::table('registration')
+                    ->join('has_participate', 'registration.equ_id', '=', 'has_participate.equ_id')
+                    ->where('registration.race_id', $race->race_id)
+                    ->where('has_participate.id_users', $user->id)
+                    ->exists();
+            }
+
             // Map age categories for display
             $ageCategories = $race->categorieAges->map(function ($categorieAge) {
                 return [
@@ -433,6 +443,7 @@ class RaidController extends Controller
                 'registration_upcoming' => $race->isRegistrationUpcoming(),
                 'is_finished' => $race->isCompleted(),
                 'can_edit' => $isRaceManager,
+                'is_registered' => $isRegistered,
             ];
         });
 
@@ -441,12 +452,36 @@ class RaidController extends Controller
         $raid->is_upcoming = $raid->isUpcoming();
         $raid->is_finished = $raid->isFinished();
 
+        // Get registered members for raid managers
+        $registeredMembers = collect();
+        if ($isRaidManager) {
+            // Get all race IDs for this raid
+            $raceIds = $raid->races->pluck('race_id');
+            
+            // Get unique users registered through the registration table and has_participate
+            $registeredMembers = \DB::table('registration')
+                ->join('has_participate', 'registration.equ_id', '=', 'has_participate.equ_id')
+                ->join('users', 'has_participate.id_users', '=', 'users.id')
+                ->whereIn('registration.race_id', $raceIds)
+                ->select('users.id', 'users.first_name', 'users.last_name', 'users.email')
+                ->distinct()
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
+                    ];
+                });
+        }
+
         return Inertia::render('Raid/Index', [
             'raid' => $raid,
             'courses' => $courses,
             'isRaidManager' => $isRaidManager,
             'canEditRaid' => $user && $user->can('update', $raid),
             'canAddRace' => $user && $user->can('create', [\App\Models\Race::class, $raid]),
+            'registeredMembers' => $registeredMembers,
             'typeCategories' => \App\Models\ParamType::all()->map(function ($t) {
                 return [
                     'type_id' => $t->typ_id,
@@ -648,5 +683,233 @@ class RaidController extends Controller
 
         return redirect()->route('raids.index')
             ->with('success', 'Raid deleted successfully.');
+    }
+
+    /**
+     * Display the QR code scanner page for check-in
+     *
+     * @OA\Get(
+     *     path="/raids/{raid}/scanner",
+     *     summary="Display QR code scanner page",
+     *     tags={"Raids"},
+     *     @OA\Parameter(
+     *         name="raid",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Scanner page displayed"),
+     *     @OA\Response(response=403, description="Unauthorized")
+     * )
+     */
+    public function scannerPage(Raid $raid): Response
+    {
+        $user = auth()->user();
+        
+        // Check if user can manage this raid
+        $isRaidManager = $user && (
+            $user->hasRole('admin') || 
+            ($raid->club && $raid->club->created_by === $user->id)
+        );
+
+        if (!$isRaidManager) {
+            abort(403, 'Unauthorized. Only raid managers can access the scanner.');
+        }
+
+        // Get all registrations for this raid with team info
+        $registrations = \App\Models\Registration::with(['team.leader', 'race'])
+            ->whereHas('race', function ($query) use ($raid) {
+                $query->where('raid_id', $raid->raid_id);
+            })
+            ->where('reg_validated', true)
+            ->get()
+            ->map(function ($registration) {
+                return [
+                    'reg_id' => $registration->reg_id,
+                    'equ_id' => $registration->equ_id,
+                    'team_name' => $registration->team->equ_name ?? 'Unknown',
+                    'leader_name' => $registration->team->leader 
+                        ? $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name 
+                        : 'Unknown',
+                    'race_name' => $registration->race->race_name ?? 'Unknown',
+                    'dossard' => $registration->reg_dossard,
+                    'is_present' => $registration->is_present,
+                    'qr_code_url' => $registration->qr_code_url,
+                ];
+            });
+
+        return Inertia::render('Raid/Scanner', [
+            'raid' => [
+                'raid_id' => $raid->raid_id,
+                'raid_name' => $raid->raid_name,
+            ],
+            'registrations' => $registrations,
+        ]);
+    }
+
+    /**
+     * Check-in a team via QR code scan
+     *
+     * @OA\Post(
+     *     path="/raids/{raid}/check-in",
+     *     summary="Check-in a team",
+     *     tags={"Raids"},
+     *     @OA\Parameter(
+     *         name="raid",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="equ_id", type="integer"),
+     *             @OA\Property(property="reg_id", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Team checked in"),
+     *     @OA\Response(response=403, description="Unauthorized"),
+     *     @OA\Response(response=404, description="Registration not found")
+     * )
+     */
+    public function checkIn(Request $request, Raid $raid)
+    {
+        // Check if user is raid manager (club creator)
+        $user = auth()->user();
+        $isRaidManager = $user && $raid->club && $raid->club->created_by === $user->id;
+
+        if (!$isRaidManager) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only raid managers can check-in teams.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'equ_id' => 'required|integer|exists:teams,equ_id',
+            'reg_id' => 'required|integer|exists:registration,reg_id',
+        ]);
+
+        // Find the registration
+        $registration = \App\Models\Registration::with(['team.leader', 'race'])
+            ->where('reg_id', $validated['reg_id'])
+            ->where('equ_id', $validated['equ_id'])
+            ->first();
+
+        if (!$registration) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration not found.'
+            ], 404);
+        }
+
+        // Check if registration belongs to this raid
+        if ($registration->race->raid_id !== $raid->raid_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This registration does not belong to this raid.'
+            ], 400);
+        }
+
+        // Check if already present
+        if ($registration->is_present) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Team already checked in.',
+                'already_present' => true,
+                'registration' => [
+                    'reg_id' => $registration->reg_id,
+                    'reg_dossard' => $registration->reg_dossard,
+                    'team_name' => $registration->team->equ_name,
+                    'race_name' => $registration->race->race_name,
+                    'leader_name' => $registration->team->leader 
+                        ? $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name 
+                        : 'Unknown',
+                    'is_present' => true,
+                ],
+            ]);
+        }
+
+        // Mark as present
+        $registration->update(['is_present' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Team successfully checked in!',
+            'registration' => [
+                'reg_id' => $registration->reg_id,
+                'reg_dossard' => $registration->reg_dossard,
+                'team_name' => $registration->team->equ_name,
+                'race_name' => $registration->race->race_name,
+                'leader_name' => $registration->team->leader 
+                    ? $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name 
+                    : 'Unknown',
+                'is_present' => true,
+            ],
+        ]);
+    }
+
+    /**
+     * Generate start-list PDF for the raid
+     *
+     * @OA\Get(
+     *     path="/raids/{raid}/start-list",
+     *     summary="Generate start-list PDF",
+     *     tags={"Raids"},
+     *     @OA\Parameter(
+     *         name="raid",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="PDF generated"),
+     *     @OA\Response(response=403, description="Unauthorized")
+     * )
+     */
+    public function generateStartList(Raid $raid)
+    {
+        $user = auth()->user();
+        
+        // Check if user can manage this raid
+        $isRaidManager = $user && (
+            $user->hasRole('admin') || 
+            ($raid->club && $raid->club->created_by === $user->id)
+        );
+
+        if (!$isRaidManager) {
+            abort(403, 'Unauthorized. Only raid managers can generate start lists.');
+        }
+
+        // Get all races for this raid
+        $races = $raid->races()->get();
+
+        // Get all registrations for this raid grouped by race (all, not just validated)
+        $racesByCategory = $races->map(function ($race) {
+            // Attach all registrations to the race object for check-in on event day
+            $race->teams = \App\Models\Registration::with(['team.leader', 'team.users'])
+                ->where('race_id', $race->race_id)
+                ->orderBy('reg_dossard')
+                ->orderBy('created_at')
+                ->get();
+
+            return $race;
+        });
+
+        // Count total teams
+        $totalTeams = $racesByCategory->sum(function ($race) {
+            return $race->teams->count();
+        });
+
+        // Generate PDF
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.start-list', [
+            'raid' => $raid,
+            'racesByCategory' => $racesByCategory,
+            'totalTeams' => $totalTeams,
+            'generatedAt' => now()->format('d/m/Y H:i'),
+        ]);
+
+        $filename = 'start-list-' . \Illuminate\Support\Str::slug($raid->raid_name) . '.pdf';
+
+        return $pdf->download($filename);
     }
 }

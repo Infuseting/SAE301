@@ -271,6 +271,27 @@ return [
     'member_since' => 'Mitglied seit :date',
     'description_bio' => 'Beschreibung / Bio',
     'edit_profile' => 'Bearbeiten',
+    
+    // Registration and credentials
+    'pps_added_successfully' => 'PPS-Code erfolgreich hinzugefügt',
+    'add_licence' => 'Lizenz hinzufügen',
+    'add_pps' => 'PPS-Code hinzufügen',
+    'licence_required_title' => 'Lizenz oder PPS-Code erforderlich',
+    'licence_required_text' => 'Um sich für ein Rennen anzumelden, müssen Sie eine gültige Lizenznummer oder einen PPS-Code haben.',
+    'licence_valid_for' => 'Gültig für 1 Jahr',
+    'pps_valid_for' => 'Gültig für 3 Monate',
+    'enter_licence_or_pps' => 'Geben Sie Ihre Lizenznummer oder Ihren PPS-Code ein',
+    'need_valid_credentials' => 'Sie benötigen eine gültige Lizenznummer oder einen PPS-Code, um sich für dieses Rennen anzumelden',
+    'no_permission_to_register' => 'Sie haben keine Berechtigung, sich für dieses Rennen anzumelden',
+    'registration_successful' => 'Registrierung erfolgreich',
+    'valid_until' => 'Gültig bis',
+    
+    // Registration conflicts
+    'team_not_found' => 'Team nicht gefunden',
+    'team_has_no_members' => 'Das Team hat keine Mitglieder',
+    'you_already_registered_in_period' => 'Sie sind bereits für :race während dieses Anmeldezeitraums registriert',
+    'team_member_already_registered' => ':user ist bereits für :race während dieses Anmeldezeitraums registriert',
+    'member_missing_credentials' => ':name hat keine gültige Lizenz oder PPS',
 
     // Clubs
     'join_club' => 'Dem Club beitreten',
@@ -284,6 +305,42 @@ return [
     'user_not_member' => 'Dieser Benutzer ist kein Mitglied dieses Clubs',
     'promote_to_manager' => 'Zum Verantwortlichen befördern',
     'demote_to_member' => 'Zum Mitglied zurückstufen',
+
+    // Teams
+    'create_team' => 'Team erstellen',
+    'team_name' => 'Teamname',
+    'team_image' => 'Team-Logo',
+    'teammates' => 'Teammitglieder',
+
+    // Team Management
+    'team_management' => 'Teamverwaltung',
+    'team_leader_info' => 'Sie verwalten Ihre Teams. Sie können die Teams bearbeiten, die Sie leiten.',
+    'admin_team_info' => 'Als Administrator können Sie alle Teams verwalten.',
+    'no_teams' => 'Keine Teams',
+    'no_teams_description' => 'Sie haben noch keine Teams erstellt.',
+    'leader' => 'Leiter',
+    'members' => 'Mitglieder',
+    'registrations' => 'Anmeldungen',
+    'created_on' => 'Erstellt am',
+    'edit' => 'Bearbeiten',
+    'delete' => 'Löschen',
+    'race_registrations' => 'Rennanmeldungen',
+    'view_team_details' => 'Teamdetails anzeigen',
+    'view_full_details' => 'Vollständige Details',
+    'edit_team' => 'Team bearbeiten',
+    'delete_team' => 'Team löschen',
+    'delete_team_confirmation' => 'Sind Sie sicher, dass Sie dieses Team löschen möchten? Diese Aktion ist irreversibel.',
+    'cannot_delete_team_with_registrations' => 'Dieses Team hat aktive Anmeldungen und kann nicht gelöscht werden.',
+    'team_updated_successfully' => 'Team erfolgreich aktualisiert',
+    'team_deleted_successfully' => 'Team erfolgreich gelöscht',
+    'member_removed_successfully' => 'Mitglied erfolgreich aus dem Team entfernt',
+    'cancel' => 'Abbrechen',
+    'team_members' => 'Teammitglieder',
+    'add_member' => 'Mitglied hinzufügen',
+    'search_member' => 'Nach Name oder E-Mail suchen...',
+    'will_be_added' => 'Wird hinzugefügt',
+    'remove_member' => 'Entfernen',
+    'team_image_helper' => 'Teambild (optional, max 2MB)',
 
     // Leaderboard Navigation
     'leaderboard' => 'Rangliste',

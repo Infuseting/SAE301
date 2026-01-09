@@ -20,8 +20,7 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(property="average_temps_final", type="number", format="float", example=3660.50),
  *     @OA\Property(property="member_count", type="integer", example=3),
  *     @OA\Property(property="points", type="integer", example=100, description="Points earned based on ranking"),
- *     @OA\Property(property="status", type="string", example="classé", description="Team status: classé, abandon, disqualifié, hors_classement"),
- *     @OA\Property(property="category", type="string", example="Masculin", description="Team category: Masculin, Féminin, Mixte"),
+ *     @OA\Property(property="age_category_id", type="integer", example=1, description="Age category ID for competitive races"),
  *     @OA\Property(property="puce", type="string", example="7000586", description="Chip/puce number"),
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time")
@@ -41,8 +40,7 @@ class LeaderboardTeam extends Model
         'average_temps_final',
         'member_count',
         'points',
-        'status',
-        'category',
+        'age_category_id',
         'puce',
     ];
 
@@ -54,41 +52,6 @@ class LeaderboardTeam extends Model
         'points' => 'integer',
     ];
 
-    /**
-     * Valid status values for teams.
-     */
-    public const STATUS_CLASSIFIED = 'classé';
-    public const STATUS_ABANDONED = 'abandon';
-    public const STATUS_DISQUALIFIED = 'disqualifié';
-    public const STATUS_OUT_OF_RANKING = 'hors_classement';
-
-    /**
-     * Valid category values for teams.
-     */
-    public const CATEGORY_MALE = 'Masculin';
-    public const CATEGORY_FEMALE = 'Féminin';
-    public const CATEGORY_MIXED = 'Mixte';
-
-    /**
-     * Check if team is classified (eligible for ranking).
-     */
-    public function isClassified(): bool
-    {
-        return $this->status === self::STATUS_CLASSIFIED;
-    }
-
-    /**
-     * Check if team should receive 0 points (abandoned, disqualified, or out of ranking).
-     */
-    public function hasZeroPoints(): bool
-    {
-        return in_array($this->status, [
-            self::STATUS_ABANDONED,
-            self::STATUS_DISQUALIFIED,
-            self::STATUS_OUT_OF_RANKING,
-        ]);
-    }
-
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'equ_id', 'equ_id');
@@ -97,6 +60,14 @@ class LeaderboardTeam extends Model
     public function race(): BelongsTo
     {
         return $this->belongsTo(Race::class, 'race_id', 'race_id');
+    }
+
+    /**
+     * Get the age category for this leaderboard entry.
+     */
+    public function ageCategory(): BelongsTo
+    {
+        return $this->belongsTo(AgeCategory::class, 'age_category_id');
     }
 
     public function getFormattedAverageTempsAttribute(): string

@@ -280,6 +280,12 @@ return [
     'description_bio' => 'Description / Bio',
     'edit_profile' => 'Edit',
 
+    // Filters
+    'filter_all' => 'All',
+    'filter_1month' => 'Last month',
+    'filter_6months' => '6 months',
+    'filter_1year' => '1 year',
+
     // Club Management
     'clubs' => 'Clubs',
     'my_clubs' => 'My Clubs',
@@ -364,6 +370,13 @@ return [
     'no_permission_to_register' => 'You do not have permission to register for this race',
     'registration_successful' => 'Registration successful',
     'valid_until' => 'Valid until',
+    
+    // Registration conflicts
+    'team_not_found' => 'Team not found',
+    'team_has_no_members' => 'Team has no members',
+    'you_already_registered_in_period' => 'You are already registered for :race during this registration period',
+    'team_member_already_registered' => ':user is already registered for :race during this registration period',
+    'member_missing_credentials' => ':name does not have a valid licence or PPS',
 
     // Roles
     'my_roles' => 'My Roles',
@@ -375,6 +388,42 @@ return [
     'role_user' => 'User',
     'role_guest' => 'Guest',
     'no_roles_assigned' => 'No roles assigned',
+
+    // Teams
+    'create_team' => 'Create Team',
+    'team_name' => 'Team Name',
+    'team_image' => 'Team Logo',
+    'teammates' => 'Teammates',
+
+    // Team Management
+    'team_management' => 'Team Management',
+    'team_leader_info' => 'You manage your teams. You can edit teams you lead.',
+    'admin_team_info' => 'As an administrator, you can manage all teams.',
+    'no_teams' => 'No teams',
+    'no_teams_description' => 'You haven\'t created any teams yet.',
+    'leader' => 'Leader',
+    'members' => 'members',
+    'registrations' => 'registrations',
+    'created_on' => 'Created on',
+    'edit' => 'Edit',
+    'delete' => 'Delete',
+    'race_registrations' => 'Race Registrations',
+    'view_team_details' => 'View team details',
+    'view_full_details' => 'Full details',
+    'edit_team' => 'Edit Team',
+    'delete_team' => 'Delete Team',
+    'delete_team_confirmation' => 'Are you sure you want to delete this team? This action is irreversible.',
+    'cannot_delete_team_with_registrations' => 'This team has active registrations and cannot be deleted.',
+    'team_updated_successfully' => 'Team updated successfully',
+    'team_deleted_successfully' => 'Team deleted successfully',
+    'member_removed_successfully' => 'Member removed from team successfully',
+    'cancel' => 'Cancel',
+    'team_members' => 'Team Members',
+    'add_member' => 'Add Member',
+    'search_member' => 'Search by name or email...',
+    'will_be_added' => 'Will be added',
+    'remove_member' => 'Remove',
+    'team_image_helper' => 'Team image (optional, max 2MB)',
 
     // Leaderboard Navigation
     'leaderboard' => 'Leaderboard',

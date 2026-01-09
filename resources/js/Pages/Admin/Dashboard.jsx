@@ -1,7 +1,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link, usePage } from "@inertiajs/react";
 import { RiRunLine } from "react-icons/ri";
-import { FaRegCompass } from "react-icons/fa6";
+import { FaRegCompass, FaUsers } from "react-icons/fa6";
 
 export default function Dashboard({
     stats,
@@ -35,6 +35,7 @@ export default function Dashboard({
     const canAccessRaces = isAdmin || hasPermission("access-admin-races");
     const canAccessRaids = isAdmin || hasPermission("access-admin-raids");
     const canAccessClubs = isAdmin || hasPermission("access-admin-clubs");
+    const canAccessTeams = isAdmin || user?.roles?.some((role) => role.name === "team_leader" || role === "team_leader");
 
     const raids = myresponsibleRaids || [];
     const races = myresponsibleRaces || [];
@@ -265,25 +266,27 @@ export default function Dashboard({
                                     <RiRunLine className="w-12 h-12 text-purple-400" />
                                 </div>
                                 <div className="mt-4">
-                                    <Link
-                                        href={route("admin.races.index")}
-                                        className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
-                                    >
-                                        Gérer les courses
-                                        <svg
-                                            className="w-4 h-4 ml-1"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
+                                    {races.length > 0 && (
+                                        <Link
+                                            href={route("admin.races.index")}
+                                            className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
                                         >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M9 5l7 7-7 7"
-                                            />
-                                        </svg>
-                                    </Link>
+                                            Gérer les courses
+                                            <svg
+                                                className="w-4 h-4 ml-1"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 5l7 7-7 7"
+                                                />
+                                            </svg>
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -305,25 +308,27 @@ export default function Dashboard({
                                     <FaRegCompass className="w-12 h-12 text-purple-400" />
                                 </div>
                                 <div className="mt-4">
-                                    <Link
-                                        href={route("admin.raids.index")}
-                                        className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
-                                    >
-                                        Gérer les raids
-                                        <svg
-                                            className="w-4 h-4 ml-1"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
+                                    {raids.length > 0 && (
+                                        <Link
+                                            href={route("admin.raids.index")}
+                                            className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700"
                                         >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M9 5l7 7-7 7"
-                                            />
-                                        </svg>
-                                    </Link>
+                                            Gérer les raids
+                                            <svg
+                                                className="w-4 h-4 ml-1"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 5l7 7-7 7"
+                                                />
+                                            </svg>
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -360,6 +365,46 @@ export default function Dashboard({
                                         className="inline-flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-700"
                                     >
                                         Gérer les clubs
+                                        <svg
+                                            className="w-4 h-4 ml-1"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 5l7 7-7 7"
+                                            />
+                                        </svg>
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Teams Management Card - Only show if user has permission */}
+                        {canAccessTeams && (
+                            <div className="bg-white border-l-4 border-indigo-500 p-6 shadow sm:rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-lg font-semibold text-gray-800">
+                                            Équipes
+                                        </h2>
+                                        <p className="mt-3 text-gray-600">
+                                            {isAdmin
+                                                ? "Gérez toutes les équipes"
+                                                : "Gérez vos équipes"}
+                                        </p>
+                                    </div>
+                                    <FaUsers className="w-12 h-12 text-indigo-400" />
+                                </div>
+                                <div className="mt-4">
+                                    <Link
+                                        href={route("teams.management")}
+                                        className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                                    >
+                                        Gérer les équipes
                                         <svg
                                             className="w-4 h-4 ml-1"
                                             fill="none"

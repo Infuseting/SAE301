@@ -86,6 +86,9 @@ class Race extends Model
         'price_major',
         'price_minor',
         'price_adherent',
+        'leisure_age_min',
+        'leisure_age_intermediate',
+        'leisure_age_supervisor',
     ];
 
     /**
@@ -102,6 +105,9 @@ class Race extends Model
         'price_major' => 'float',
         'price_minor' => 'float',
         'price_adherent' => 'float',
+        'leisure_age_min' => 'integer',
+        'leisure_age_intermediate' => 'integer',
+        'leisure_age_supervisor' => 'integer',
     ];
 
     /**

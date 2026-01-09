@@ -19,8 +19,8 @@ return new class extends Migration
             $table->foreign('race_id')->references('race_id')->on('races')->onDelete('cascade');
             $table->decimal('temps', 10, 2);
             $table->decimal('malus', 10, 2)->default(0);
-            $table->integer('points')->default(0);
             $table->decimal('temps_final', 10, 2)->storedAs('temps + malus');
+            $table->integer('points')->nullable()->comment('Points earned based on ranking, null = calculate dynamically');
             $table->unique(['user_id', 'race_id'], 'unique_runner_race');
             $table->timestamps();
         });

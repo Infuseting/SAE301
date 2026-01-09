@@ -88,20 +88,68 @@ class UserController extends Controller
         $query = $validated['q'];
 
         // Search users by first_name, last_name, or email
-        $users = User::where(function ($q) use ($query) {
-            $q->where('first_name', 'like', "%{$query}%")
-              ->orWhere('last_name', 'like', "%{$query}%")
-              ->orWhere('email', 'like', "%{$query}%");
-        })
-        ->select('id', 'first_name', 'last_name', 'email')
-        ->get()
-        ->map(function ($user) {
-            return [
-                'id' => $user->id,
-                'name'  => trim($user->first_name . ' ' . $user->last_name),
-                'email' => $user->email,
-            ];
-        });
+        // Only include users with 'adherent' role
+        $users = User::role('adherent')
+            ->where(function ($q) use ($query) {
+                $q->where('first_name', 'like', "%{$query}%")
+                  ->orWhere('last_name', 'like', "%{$query}%")
+                  ->orWhere('email', 'like', "%{$query}%");
+            })
+            ->select('id', 'first_name', 'last_name', 'email')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name'  => trim($user->first_name . ' ' . $user->last_name),
+                    'email' => $user->email,
+                ];
+            });
+
+        return response()->json($users);
+    }
+
+    /**
+     * Get all users with adherent role.
+     *
+     * @OA\Get(
+     *      path="/api/users/adherents",
+     *      operationId="getAdherents",
+     *      tags={"User"},
+     *      summary="Get all adherents",
+     *      description="Returns all users with adherent role",
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *          @OA\JsonContent(
+     *              type="array",
+     *              @OA\Items(
+     *                  @OA\Property(property="id", type="integer"),
+     *                  @OA\Property(property="name", type="string"),
+     *                  @OA\Property(property="email", type="string")
+     *              )
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated"
+     *      ),
+     *      security={{"apiAuth": {}}}
+     * )
+     */
+    public function adherents(Request $request)
+    {
+        $users = User::role('adherent')
+            ->select('id', 'first_name', 'last_name', 'email')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name'  => trim($user->first_name . ' ' . $user->last_name),
+                    'email' => $user->email,
+                ];
+            });
 
         return response()->json($users);
     }
