@@ -16,77 +16,104 @@ class AdminController extends Controller
     public function index()
 
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        $stats = [
-            'users' => User::count(),
-            'logs' => Activity::count(),
-            'pendingClubs' => \App\Models\Club::where('is_approved', false)->count(),
-        ];
+            $stats = [
+                'users' => User::count(),
+                'logs' => Activity::count(),
+                'pendingClubs' => \App\Models\Club::where('is_approved', false)->count(),
+            ];
 
-        // Admins can see all raids and races, others only their own
-        if ($user->hasRole('admin')) {
-            $myresponsibleRaids = Raid::all();
-            $myresponsibleRaces = Race::all();
-        } else {
-            $myresponsibleRaids = Raid::where('adh_id', $user->adh_id)->get();
-            $myresponsibleRaces = Race::where('adh_id', $user->adh_id)->get();
+            // Admins can see all raids and races, others only their own
+            if ($user->hasRole('admin')) {
+                $myresponsibleRaids = Raid::all();
+                $myresponsibleRaces = Race::all();
+            } else {
+                $myresponsibleRaids = Raid::where('adh_id', $user->adh_id)->get();
+                $myresponsibleRaces = Race::where('adh_id', $user->adh_id)->get();
+            }
+
+            \Log::debug('myresponsibleRaids query', [
+                'user_id' => $user->id,
+                'is_admin' => $user->hasRole('admin'),
+                'count' => $myresponsibleRaids->count(),
+            ]);
+
+            \Log::debug('myresponsibleRaces query', [
+                'user_id' => $user->id,
+                'is_admin' => $user->hasRole('admin'),
+                'count' => $myresponsibleRaces->count(),
+            ]);
+
+            $user->load('roles.permissions');
+
+            return inertia('Admin/Dashboard', [
+                'stats' => $stats,
+                'myresponsibleRaids' => $myresponsibleRaids,
+                'myresponsibleRaces' => $myresponsibleRaces,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Admin dashboard error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès au tableau de bord admin.']);
         }
-
-        \Log::debug('myresponsibleRaids query', [
-            'user_id' => $user->id,
-            'is_admin' => $user->hasRole('admin'),
-            'count' => $myresponsibleRaids->count(),
-        ]);
-
-        \Log::debug('myresponsibleRaces query', [
-            'user_id' => $user->id,
-            'is_admin' => $user->hasRole('admin'),
-            'count' => $myresponsibleRaces->count(),
-        ]);
-
-        $user->load('roles.permissions');
-
-        return inertia('Admin/Dashboard', [
-            'stats' => $stats,
-            'myresponsibleRaids' => $myresponsibleRaids,
-            'myresponsibleRaces' => $myresponsibleRaces,
-        ]);
     }
     
 
     public function racemanagement()
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        // Admins can see all races, others only their own
-        if ($user->hasRole('admin')) {
-            $races = Race::with('raid')->get();
-        } else {
-            $races = Race::where('adh_id', $user->adh_id)
-                ->with('raid') 
-                ->get();
+            // Admins can see all races, others only their own
+            if ($user->hasRole('admin')) {
+                $races = Race::with('raid')->get();
+            } else {
+                $races = Race::where('adh_id', $user->adh_id)
+                    ->with('raid') 
+                    ->get();
+            }
+
+            return inertia('Admin/RaceManagement', [
+                'races' => $races,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Admin race management error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('admin.dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès à la gestion des courses.']);
         }
-
-        return inertia('Admin/RaceManagement', [
-            'races' => $races,
-        ]);
     }
 
     public function raidmanagement()
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        // Admins can see all raids, others only their own
-        if ($user->hasRole('admin')) {
-            $raids = Raid::all();
-        } else {
-            $raids = Raid::where('adh_id', $user->adh_id)->get();
+            // Admins can see all raids, others only their own
+            if ($user->hasRole('admin')) {
+                $raids = Raid::all();
+            } else {
+                $raids = Raid::where('adh_id', $user->adh_id)->get();
+            }
+
+            return inertia('Admin/RaidManagement', [
+                'raids' => $raids,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Admin raid management error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('admin.dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès à la gestion des raids.']);
         }
-
-        return inertia('Admin/RaidManagement', [
-            'raids' => $raids,
-        ]);
     }
 
     /**

@@ -93,71 +93,84 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
 
-        // Ensure is_public is always set (false if not present, true if checked)
-        if (!isset($validated['is_public'])) {
-            $validated['is_public'] = false;
-        }
-
-        $request->user()->fill($validated);
-
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
-        // Handle Profile Photo
-        if ($request->hasFile('photo')) {
-            // Delete old photo if exists
-            if ($request->user()->profile_photo_path) {
-                Storage::disk('public')->delete($request->user()->profile_photo_path);
+            // Ensure is_public is always set (false if not present, true if checked)
+            if (!isset($validated['is_public'])) {
+                $validated['is_public'] = false;
             }
-            $path = $request->file('photo')->store('profile-photos', 'public');
-            $request->user()->profile_photo_path = $path;
-        }
 
-        // Handle Description and Public Toggle (if passed in request, strictly speaking validted by ProfileUpdateRequest)
-        // We might need to update ProfileUpdateRequest to include these rules.
-        if ($request->has('description')) {
-            $request->user()->description = $request->input('description');
-        }
+            $request->user()->fill($validated);
 
-        // Handle License Number (Stored in Members table)
-        if ($request->has('license_number')) {
-            $licenseNumber = $request->input('license_number');
+            if ($request->user()->isDirty('email')) {
+                $request->user()->email_verified_at = null;
+            }
 
-            if ($licenseNumber) {
-                if ($request->user()->member) {
-                    $request->user()->member->update(['adh_license' => $licenseNumber]);
-                } else {
-                    // Create new member record if not exists
-                    $member = Member::create([
-                        'adh_license' => $licenseNumber,
-                        'adh_end_validity' => now()->addYear(), // Default 1 year validity
-                        'adh_date_added' => now(),
-                    ]);
-                    $request->user()->adh_id = $member->adh_id;
+            // Handle Profile Photo
+            if ($request->hasFile('photo')) {
+                // Delete old photo if exists
+                if ($request->user()->profile_photo_path) {
+                    Storage::disk('public')->delete($request->user()->profile_photo_path);
                 }
-            } else {
-                // If license number is cleared/empty, remove adh_id from user
-                $request->user()->adh_id = null;
+                $path = $request->file('photo')->store('profile-photos', 'public');
+                $request->user()->profile_photo_path = $path;
             }
+
+            // Handle Description and Public Toggle (if passed in request, strictly speaking validted by ProfileUpdateRequest)
+            // We might need to update ProfileUpdateRequest to include these rules.
+            if ($request->has('description')) {
+                $request->user()->description = $request->input('description');
+            }
+
+            // Handle License Number (Stored in Members table)
+            if ($request->has('license_number')) {
+                $licenseNumber = $request->input('license_number');
+
+                if ($licenseNumber) {
+                    if ($request->user()->member) {
+                        $request->user()->member->update(['adh_license' => $licenseNumber]);
+                    } else {
+                        // Create new member record if not exists
+                        $member = Member::create([
+                            'adh_license' => $licenseNumber,
+                            'adh_end_validity' => now()->addYear(), // Default 1 year validity
+                            'adh_date_added' => now(),
+                        ]);
+                        $request->user()->adh_id = $member->adh_id;
+                    }
+                } else {
+                    // If license number is cleared/empty, remove adh_id from user
+                    $request->user()->adh_id = null;
+                }
+            }
+
+            $request->user()->save();
+
+            // Update role after saving user changes
+            if ($request->has('license_number')) {
+                // Refresh user and reload member relationship
+                $request->user()->refresh()->load('member');
+                $this->licenceService->checkAndAssignAdherentRole($request->user());
+            }
+
+            if ($request->wantsJson() && !$request->header('X-Inertia')) {
+                return response()->json(['data' => $request->user()], 200);
+            }
+
+            return Redirect::route('profile.edit');
+        } catch (\Exception $e) {
+            \Log::error('Profile update error: ' . $e->getMessage(), [
+                'user_id' => $request->user()->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if ($request->wantsJson() || $request->header('X-Inertia')) {
+                return back()->withErrors(['error' => 'Une erreur est survenue lors de la mise à jour du profil.']);
+            }
+            
+            throw $e;
         }
-
-        $request->user()->save();
-
-        // Update role after saving user changes
-        if ($request->has('license_number')) {
-            // Refresh user and reload member relationship
-            $request->user()->refresh()->load('member');
-            $this->licenceService->checkAndAssignAdherentRole($request->user());
-        }
-
-        if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json(['data' => $request->user()], 200);
-        }
-
-        return Redirect::route('profile.edit');
     }
 
     /**
