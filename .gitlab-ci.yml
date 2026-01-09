@@ -42,10 +42,8 @@ deploy_production:
     - php artisan storage:link
     
     - php artisan config:cache
-    # 3. On corrige les droits gitlab-runner:gitlab-runner -> g4:www-data et on assure que laravel.log est accessible
-    - sudo chown -R g4:www-data /users/g4/laravel
-    # Donner les permissions au répertoire logs et au fichier log en tant que www-data
-    - sudo chown -W g4:www-data /users/g4/laravel
+    # 3. Chown + Chmod en une seule commande sudo pour éviter les timeouts
+    - sudo sh -c 'chown -R g4:www-data /users/g4/laravel && chmod -R 775 /users/g4/laravel/storage && chmod 666 /users/g4/laravel/storage/logs/laravel.log'
     
   only:
     - stable
