@@ -40,6 +40,29 @@ export default function Users({ users, filters }) {
     );
   }
 
+  /**
+   * Dynamic search with debounce
+   */
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (q !== (filters?.q || '')) {
+        submitFilters({ q, page: 1 });
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [q]);
+
+  /**
+   * Handle Enter key press for search
+   */
+  function handleSearchKeyDown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitFilters({ page: 1 });
+    }
+  }
+
   function openEditModal(user) {
     setModalType('edit');
     setModalUser(user);
@@ -191,6 +214,7 @@ export default function Users({ users, filters }) {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               placeholder={messages['admin.users.search_placeholder'] || 'Search name/email...'}
               className="w-full md:w-80 flex-1 min-w-0 rounded-md border px-3 py-2 text-sm bg-white  "
             />
