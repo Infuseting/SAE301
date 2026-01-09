@@ -16,65 +16,42 @@ class AdminController extends Controller
     public function index()
 
     {
-
-
         $user = Auth::user();
 
         $stats = [
-
             'users' => User::count(),
-
             'logs' => Activity::count(),
-
             'pendingClubs' => \App\Models\Club::where('is_approved', false)->count(),
-
         ];
 
-
-        // Debug: Voir la requête SQL générée
-
-        $myresponsibleRaids = Raid::where('adh_id', $user->adh_id)->get();
+        // Admins can see all raids and races, others only their own
+        if ($user->hasRole('admin')) {
+            $myresponsibleRaids = Raid::all();
+            $myresponsibleRaces = Race::all();
+        } else {
+            $myresponsibleRaids = Raid::where('adh_id', $user->adh_id)->get();
+            $myresponsibleRaces = Race::where('adh_id', $user->adh_id)->get();
+        }
 
         \Log::debug('myresponsibleRaids query', [
-
             'user_id' => $user->id,
-
+            'is_admin' => $user->hasRole('admin'),
             'count' => $myresponsibleRaids->count(),
-
-            'data' => $myresponsibleRaids->toArray(),
-
         ]);
-
-
-        $myresponsibleRaces = Race::where('adh_id', $user->adh_id)->get();
 
         \Log::debug('myresponsibleRaces query', [
-
             'user_id' => $user->id,
-
+            'is_admin' => $user->hasRole('admin'),
             'count' => $myresponsibleRaces->count(),
-
-            'data' => $myresponsibleRaces->toArray(),
-
         ]);
-
-
-        $user = auth()->user();
 
         $user->load('roles.permissions');
 
-
-
         return inertia('Admin/Dashboard', [
-
             'stats' => $stats,
-
             'myresponsibleRaids' => $myresponsibleRaids,
-
             'myresponsibleRaces' => $myresponsibleRaces,
-
         ]);
-
     }
     
 
