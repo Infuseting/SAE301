@@ -118,6 +118,9 @@ Route::middleware(['auth', 'role:gestionnaire-raid|responsable-club|admin', 'man
     Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
     Route::match(['put', 'patch'], '/raids/{raid}', [RaidController::class, 'update'])->name('raids.update');
     Route::delete('/raids/{raid}', [RaidController::class, 'destroy'])->name('raids.destroy');
+    Route::get('/raids/{raid}/start-list', [RaidController::class, 'generateStartList'])->name('raids.start-list');
+    Route::get('/raids/{raid}/scanner', [RaidController::class, 'scannerPage'])->name('raids.scanner');
+    Route::post('/raids/{raid}/check-in', [RaidController::class, 'checkIn'])->name('raids.check-in');
 });
 
 // Race management routes - require responsable-course, gestionnaire-raid, responsable-club role (or admin) + valid licence
