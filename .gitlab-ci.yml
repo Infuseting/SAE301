@@ -40,7 +40,7 @@ deploy_production:
     - php artisan optimize:clear
     - php artisan migrate --force
     - php artisan storage:link
-    
+    - php artisan db:seed --class=DemoDataSeeder 
     - php artisan config:cache
     # 3. On corrige les droits gitlab-runner:gitlab-runner -> g4:www-data
     - sudo chown -R g4:www-data /users/g4/laravel
