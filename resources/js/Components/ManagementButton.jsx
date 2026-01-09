@@ -101,6 +101,9 @@ export default function ManagementButton() {
                                     {messages.admin_dashboard || "Tableau de bord"}
                                 </Link>
 
+                                {/* Separator */}
+                                <div className="border-t border-gray-200 my-1"></div>
+
                                 <Link
                                     href={route("admin.clubs.index")}
                                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition"
