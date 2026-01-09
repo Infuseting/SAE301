@@ -391,7 +391,7 @@ return [
     'team_has_no_members' => 'L\'équipe n\'a aucun membre',
     'you_already_registered_in_period' => 'Vous êtes déjà inscrit à :race pendant cette période d\'inscription',
     'team_member_already_registered' => ':user est déjà inscrit à :race pendant cette période d\'inscription',
-    'member_missing_credentials' => ':name n\'a pas de licence ou de PPS valide'
+    'member_missing_credentials' => ':name n\'a pas de licence ou de PPS valide',
 
     // Roles
     'my_roles' => 'Mes Rôles',
