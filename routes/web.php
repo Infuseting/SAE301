@@ -190,6 +190,7 @@ Route::middleware(['auth',  'can:access-admin'])->prefix('admin')->name('admin.'
     Route::post('/leaderboard/import', [AdminLeaderboardController::class, 'import'])->name('leaderboard.import')->middleware('can:edit users');
     Route::get('/leaderboard/export/{raceId}', [AdminLeaderboardController::class, 'export'])->name('leaderboard.export')->middleware('can:view users');
     Route::get('/leaderboard/{raceId}/results', [AdminLeaderboardController::class, 'results'])->name('leaderboard.results')->middleware('can:view users');
+    Route::put('/leaderboard/results/{resultId}', [AdminLeaderboardController::class, 'update'])->name('leaderboard.update')->middleware('can:edit users');
     Route::delete('/leaderboard/results/{resultId}', [AdminLeaderboardController::class, 'destroy'])->name('leaderboard.destroy')->middleware('can:delete users');
 
     // Club approval - admin only

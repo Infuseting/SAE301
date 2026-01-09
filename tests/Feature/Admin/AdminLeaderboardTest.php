@@ -130,13 +130,15 @@ class AdminLeaderboardTest extends TestCase
 
     /**
      * Test admin can import team CSV.
+     * Uses the new format: CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS
      */
     public function test_admin_can_import_team_csv(): void
     {
         $race = Race::factory()->create();
         $team = Team::factory()->create();
 
-        $csvContent = "equ_id;temps;malus;member_count\n{$team->equ_id};3600.50;60;3";
+        // New format: CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS
+        $csvContent = "CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS\n1;12345;{$team->equ_name};Mixte;01:00:00;100";
         
         Storage::fake('local');
         $file = UploadedFile::fake()->createWithContent('results.csv', $csvContent);
@@ -206,11 +208,16 @@ class AdminLeaderboardTest extends TestCase
 
     /**
      * Test admin can export individual CSV.
+     * Note: exportToCsv only exports PUBLIC profiles.
      */
     public function test_admin_can_export_individual_csv(): void
     {
         $race = Race::factory()->create(['race_name' => 'Test Race']);
-        $user = User::factory()->create(['first_name' => 'John', 'last_name' => 'Doe']);
+        $user = User::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'is_public' => true, // Must be public to appear in CSV export
+        ]);
 
         LeaderboardUser::create([
             'user_id' => $user->id,
