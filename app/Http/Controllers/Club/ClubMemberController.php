@@ -108,9 +108,9 @@ class ClubMemberController extends Controller
      */
     public function approveJoin(Club $club, User $user): RedirectResponse
     {
-        // Only club managers can approve
-        if (!$club->hasManager(auth()->user())) {
-            abort(403, 'Only club managers can approve join requests');
+        // Only club managers or admins can approve
+        if (!$club->hasManager(auth()->user()) && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Only club managers or admins can approve join requests');
         }
 
         // Update the pivot status using allMembers() to include pending requests
@@ -160,9 +160,9 @@ class ClubMemberController extends Controller
      */
     public function rejectJoin(Club $club, User $user): RedirectResponse
     {
-        // Only club managers can reject
-        if (!$club->hasManager(auth()->user())) {
-            abort(403, 'Only club managers can reject join requests');
+        // Only club managers or admins can reject
+        if (!$club->hasManager(auth()->user()) && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Only club managers or admins can reject join requests');
         }
 
         // Remove the pending request using allMembers() to include pending entries
@@ -210,9 +210,9 @@ class ClubMemberController extends Controller
      */
     public function removeMember(Club $club, User $user): RedirectResponse
     {
-        // Only club managers can remove members
-        if (!$club->hasManager(auth()->user())) {
-            abort(403, 'Only club managers can remove members');
+        // Only club managers or admins can remove members
+        if (!$club->hasManager(auth()->user()) && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Only club managers or admins can remove members');
         }
 
         // Cannot remove managers
@@ -340,9 +340,9 @@ class ClubMemberController extends Controller
      */
     public function promoteToManager(Club $club, User $user): RedirectResponse
     {
-        // Only club managers can promote
-        if (!$club->hasManager(auth()->user())) {
-            abort(403, 'Only club managers can promote members');
+        // Only club managers or admins can promote
+        if (!$club->hasManager(auth()->user()) && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Only club managers or admins can promote members');
         }
 
         // Check if user is an approved member
@@ -407,9 +407,9 @@ class ClubMemberController extends Controller
      */
     public function demoteFromManager(Club $club, User $user): RedirectResponse
     {
-        // Only club managers can demote
-        if (!$club->hasManager(auth()->user())) {
-            abort(403, 'Only club managers can demote managers');
+        // Only club managers or admins can demote
+        if (!$club->hasManager(auth()->user()) && !auth()->user()->hasRole('admin')) {
+            abort(403, 'Only club managers or admins can demote managers');
         }
 
         // Cannot demote yourself if you're the last manager

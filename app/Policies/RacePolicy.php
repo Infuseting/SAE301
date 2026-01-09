@@ -78,7 +78,7 @@ class RacePolicy
 
     /**
      * Determine whether the user can update the model.
-     * Only the race organizer (adh_id matches user's member) or admin can update.
+     * The race organizer (adh_id matches), the raid manager, or admin can update.
      */
     public function update(User $user, Race $race): bool
     {
@@ -93,12 +93,24 @@ class RacePolicy
         }
 
         // Check if user is the organizer of this race (adh_id matches)
-        return $user->adh_id !== null && $user->adh_id === $race->adh_id;
+        if ($user->adh_id !== null && $user->adh_id === $race->adh_id) {
+            return true;
+        }
+
+        // Check if user is the raid manager and manages this race's raid
+        if ($user->hasRole('gestionnaire-raid') && $race->raid_id) {
+            $raid = $race->raid;
+            if ($raid && $user->adh_id !== null && $user->adh_id === $raid->adh_id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
      * Determine whether the user can delete the model.
-     * Only the race organizer (adh_id matches user's member) or admin can delete.
+     * The race organizer (adh_id matches), the raid manager, or admin can delete.
      */
     public function delete(User $user, Race $race): bool
     {
@@ -113,7 +125,19 @@ class RacePolicy
         }
 
         // Only the organizer can delete their own race (adh_id matches)
-        return $user->adh_id !== null && $user->adh_id === $race->adh_id;
+        if ($user->adh_id !== null && $user->adh_id === $race->adh_id) {
+            return true;
+        }
+
+        // Check if user is the raid manager and manages this race's raid
+        if ($user->hasRole('gestionnaire-raid') && $race->raid_id) {
+            $raid = $race->raid;
+            if ($raid && $user->adh_id !== null && $user->adh_id === $raid->adh_id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
