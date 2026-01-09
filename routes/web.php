@@ -32,6 +32,21 @@ use App\Models\Raid;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
+// Debug route - Laravel Logs (WARNING: Remove in production!)
+Route::get('/logs/laravel', function () {
+    $logPath = storage_path('logs/laravel.log');
+    
+    if (!file_exists($logPath)) {
+        abort(404, 'Log file not found');
+    }
+    
+    $lines = file($logPath);
+    $lastLines = array_slice($lines, -500); // Last 500 lines
+    
+    return response('<pre>' . htmlspecialchars(implode('', $lastLines)) . '</pre>')
+        ->header('Content-Type', 'text/html; charset=UTF-8');
+})->name('logs.laravel');
+
 // Race routes
 Route::get('/races', [VisuRaceController::class, 'index'])->name('races.index');
 Route::get('/race/{id}', [VisuRaceController::class, 'show'])->name('races.show');

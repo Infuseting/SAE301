@@ -15,6 +15,11 @@ use OpenApi\Annotations as OA;
  * Controller for team age validation.
  * 
  * Handles validation of team compositions based on age requirements.
+ * 
+ * @OA\Tag(
+ *     name="Team Age Validation",
+ *     description="Endpoints for validating team age composition and participant eligibility"
+ * )
  */
 class TeamAgeController extends Controller
 {
@@ -35,6 +40,18 @@ class TeamAgeController extends Controller
 
     /**
      * Display the team age validation page.
+     * 
+     * @OA\Get(
+     *     path="/team/age-validation",
+     *     tags={"Team Age Validation"},
+     *     summary="Show age validation page",
+     *     description="Display the team age validation interface with rules and thresholds",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Age validation page"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      *
      * @return Response
      */
@@ -51,7 +68,7 @@ class TeamAgeController extends Controller
      *
      * @OA\Get(
      *     path="/api/team/age-thresholds",
-     *     tags={"Team"},
+     *     tags={"Team Age Validation"},
      *     summary="Get age thresholds",
      *     description="Returns the current age thresholds (A, B, C) for team validation",
      *     @OA\Response(
@@ -83,7 +100,7 @@ class TeamAgeController extends Controller
      *
      * @OA\Post(
      *     path="/api/team/validate-ages",
-     *     tags={"Team"},
+     *     tags={"Team Age Validation"},
      *     summary="Validate team ages",
      *     description="Validates a team's age composition against the rules: all >= A, and if any < B then at least one >= C",
      *     @OA\RequestBody(
@@ -132,7 +149,7 @@ class TeamAgeController extends Controller
      *
      * @OA\Post(
      *     path="/api/team/validate-birthdates",
-     *     tags={"Team"},
+     *     tags={"Team Age Validation"},
      *     summary="Validate team by birthdates",
      *     description="Validates a team's composition by calculating ages from birthdates",
      *     @OA\RequestBody(
@@ -203,7 +220,7 @@ class TeamAgeController extends Controller
      *
      * @OA\Post(
      *     path="/api/team/check-participant",
-     *     tags={"Team"},
+     *     tags={"Team Age Validation"},
      *     summary="Check participant eligibility",
      *     description="Checks if a single participant meets the minimum age requirement",
      *     @OA\RequestBody(

@@ -11,11 +11,32 @@ use App\Models\Invitation;
 use App\Mail\TeamInvitation;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use OpenApi\Annotations as OA;
 
+/**
+ * Controller for managing teams.
+ * 
+ * @OA\Tag(
+ *     name="Teams",
+ *     description="Team creation, management, and invitation endpoints"
+ * )
+ */
 class TeamController extends Controller
 {
     /**
      * Show the form for creating a new team.
+     * 
+     * @OA\Get(
+     *     path="/team/create",
+     *     tags={"Teams"},
+     *     summary="Show team creation form",
+     *     description="Display the team creation page",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Team creation page"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      */
     public function create()
     {
@@ -28,6 +49,47 @@ class TeamController extends Controller
      * Creates a new team, assigns the leader and teammates,
      * and adds the creator based on their selected role (leader or teammate).
      * Prevents duplicate entries and ensures the creator is not added multiple times.
+     * 
+     * @OA\Post(
+     *     path="/team",
+     *     tags={"Teams"},
+     *     summary="Create a new team",
+     *     description="Create a new team with optional teammates and email invitations",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"name"},
+     *                 @OA\Property(property="name", type="string", maxLength=32, example="Les Aventuriers"),
+     *                 @OA\Property(property="image", type="file", description="Team logo (max 2MB)"),
+     *                 @OA\Property(
+     *                     property="teammates",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="id", type="integer", example=5)
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="emailInvites",
+     *                     type="array",
+     *                     @OA\Items(type="string", format="email", example="user@example.com")
+     *                 ),
+     *                 @OA\Property(property="join_team", type="boolean", example=true)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Team created successfully, redirect to dashboard"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      */
     public function store(Request $request)
     {
@@ -106,6 +168,28 @@ class TeamController extends Controller
 
     /**
      * Display team details.
+     * 
+     * @OA\Get(
+     *     path="/teams/{team}",
+     *     tags={"Teams"},
+     *     summary="Get team details",
+     *     description="Display detailed information about a specific team",
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         required=true,
+     *         description="Team ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Team details page"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Team not found"
+     *     )
+     * )
      */
     public function show(Team $team)
     {
@@ -139,6 +223,36 @@ class TeamController extends Controller
 
     /**
      * Send invitation email to a user.
+     * 
+     * @OA\Post(
+     *     path="/teams/{team}/invite",
+     *     tags={"Teams"},
+     *     summary="Send team invitation",
+     *     description="Send an invitation to join the team via email",
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         required=true,
+     *         description="Team ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email"},
+     *             @OA\Property(property="email", type="string", format="email", example="invitee@example.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Invitation sent successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Only team leader can invite"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      */
     public function inviteByEmail(Team $team, Request $request, User $user = null)
     {
@@ -162,8 +276,42 @@ class TeamController extends Controller
     }
 
     /**
-     * Display registration ticket with QR code
-     * Shows the QR code for a validated team registration
+     * Display registration ticket with QR code.
+     * Shows the QR code for a validated team registration.
+     * 
+     * @OA\Get(
+     *     path="/teams/{team}/registration/{registrationId}/ticket",
+     *     tags={"Teams"},
+     *     summary="Show team registration ticket",
+     *     description="Display the registration ticket with QR code for race check-in",
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         required=true,
+     *         description="Team ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="registrationId",
+     *         in="path",
+     *         required=true,
+     *         description="Registration ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Registration ticket page with QR code"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Must be team member"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Registration not found"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      */
     public function showRegistrationTicket(Team $team, int $registrationId)
     {
@@ -246,6 +394,32 @@ class TeamController extends Controller
 
     /**
      * Show the invitation acceptance page.
+     * 
+     * @OA\Get(
+     *     path="/invitations/{token}",
+     *     tags={"Teams"},
+     *     summary="Show invitation acceptance page",
+     *     description="Display the page to accept a team invitation via token",
+     *     @OA\Parameter(
+     *         name="token",
+     *         in="path",
+     *         required=true,
+     *         description="Invitation token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Invitation acceptance page"
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Redirect to login if not authenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Invitation not found or expired"
+     *     )
+     * )
      */
     public function showAcceptInvitation($token)
     {
@@ -276,6 +450,29 @@ class TeamController extends Controller
 
     /**
      * Accept an invitation via token.
+     * 
+     * @OA\Post(
+     *     path="/invitations/{token}/accept",
+     *     tags={"Teams"},
+     *     summary="Accept team invitation",
+     *     description="Accept a team invitation and join the team",
+     *     @OA\Parameter(
+     *         name="token",
+     *         in="path",
+     *         required=true,
+     *         description="Invitation token",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Invitation accepted, redirect to team page"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Invitation not found or expired"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      */
     public function acceptInvitation($token)
     {

@@ -54,40 +54,61 @@ class HandleInertiaRequests extends Middleware
             // Check if user is a manager without valid licence
             $requiresLicenceUpdate = false;
             if ($request->user()) {
-                // Load member relationship first
-                $request->user()->load('member');
-                
-                $licenceService = app(LicenceService::class);
-                $hasValidLicence = $licenceService->hasValidLicence($request->user());
-                $isManager = $request->user()->hasAnyRole([
-                    'responsable-club',
-                    'gestionnaire-raid',
-                    'responsable-course',
-                    'gestionnaire-equipe'
-                ]);
-                
-                $requiresLicenceUpdate = $isManager && !$hasValidLicence;
+                try {
+                    // Load member relationship first
+                    $request->user()->load('member');
+                    
+                    $licenceService = app(LicenceService::class);
+                    $hasValidLicence = $licenceService->hasValidLicence($request->user());
+                    $isManager = $request->user()->hasAnyRole([
+                        'responsable-club',
+                        'gestionnaire-raid',
+                        'responsable-course',
+                        'gestionnaire-equipe'
+                    ]);
+                    
+                    $requiresLicenceUpdate = $isManager && !$hasValidLicence;
+                } catch (\Throwable $e) {
+                    \Log::error('Error checking licence status in HandleInertiaRequests: ' . $e->getMessage());
+                    $requiresLicenceUpdate = false;
+                }
+            }
+
+            $authData = null;
+            if ($request->user()) {
+                try {
+                    $user = $request->user();
+                    $user->load([
+                        'roles',
+                        'member',
+                        'clubs' => function ($query) {
+                            $query->where('club_user.status', 'approved')
+                                ->select('clubs.club_id', 'clubs.club_name');
+                        }
+                    ]);
+                    
+                    $authData = array_merge(
+                        $user->append(['has_completed_profile', 'profile_photo_url'])->toArray(),
+                        [
+                            'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                            'is_club_leader' => $user->isClubLeader(),
+                            'team_leader' => \App\Models\Team::where('user_id', $user->id)->exists(),
+                        ]
+                    );
+                } catch (\Throwable $e) {
+                    \Log::error('Error loading auth data in HandleInertiaRequests: ' . $e->getMessage(), [
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    // Fallback to basic user data
+                    $authData = $request->user()->toArray();
+                }
             }
 
             return [
                 ...$parent,
                 'csrf_token' => csrf_token(),
                 'auth' => [
-                    'user' => $request->user() ? array_merge(
-                        $request->user()->load([
-                            'roles',
-                            'member',
-                            'clubs' => function ($query) {
-                                $query->where('club_user.status', 'approved')
-                                    ->select('clubs.club_id', 'clubs.club_name');
-                            }
-                        ])->append(['has_completed_profile', 'profile_photo_url'])->toArray(),
-                        [
-                            'permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray(),
-                            'is_club_leader' => $request->user()->isClubLeader(),
-                            'team_leader' => \App\Models\Team::where('user_id', $request->user()->id)->exists(),
-                        ]
-                    ) : null,
+                    'user' => $authData,
                 ],
                 'requiresLicenceUpdate' => $requiresLicenceUpdate,
                 'locale' => $locale,

@@ -633,6 +633,50 @@
                 ]
             }
         },
+        "/api/users/adherents": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get all adherents",
+                "description": "Returns all users with adherent role",
+                "operationId": "getAdherents",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "email": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/user/set-password": {
             "put": {
                 "tags": [
@@ -1511,6 +1555,244 @@
                 }
             }
         },
+        "/races/{race}/start-list": {
+            "get": {
+                "tags": [
+                    "Races"
+                ],
+                "summary": "Generate PDF start-list",
+                "description": "Download PDF with all validated race registrations",
+                "operationId": "93dd5b4302cfc36ffd0d4134cd2302a8",
+                "parameters": [
+                    {
+                        "name": "race",
+                        "in": "path",
+                        "description": "Race ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PDF file",
+                        "content": {
+                            "application/pdf": {}
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized - Must be race manager"
+                    },
+                    "404": {
+                        "description": "Race not found"
+                    }
+                }
+            }
+        },
+        "/races/{race}/check-in": {
+            "post": {
+                "tags": [
+                    "Races"
+                ],
+                "summary": "Mark team as present",
+                "description": "Scan QR code and mark team registration as present",
+                "operationId": "be3127c3736163ec3ccf14cef1d8ac7c",
+                "parameters": [
+                    {
+                        "name": "race",
+                        "in": "path",
+                        "description": "Race ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "equ_id",
+                                    "reg_id"
+                                ],
+                                "properties": {
+                                    "equ_id": {
+                                        "description": "Team ID",
+                                        "type": "integer"
+                                    },
+                                    "reg_id": {
+                                        "description": "Registration ID",
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Team marked as present",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "registration": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized - Must be race manager"
+                    },
+                    "404": {
+                        "description": "Registration not found"
+                    }
+                }
+            }
+        },
+        "/races/{race}/toggle-presence": {
+            "post": {
+                "tags": [
+                    "Races"
+                ],
+                "summary": "Toggle participant presence",
+                "description": "Toggle participant presence status",
+                "operationId": "eb6fe4c089772711d85317477d96e9a6",
+                "parameters": [
+                    {
+                        "name": "race",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "reg_id"
+                                ],
+                                "properties": {
+                                    "reg_id": {
+                                        "description": "Registration ID",
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Presence toggled successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "is_present": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized - Must be race manager"
+                    },
+                    "404": {
+                        "description": "Registration not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/races/{race}/team-members/{registration}": {
+            "get": {
+                "tags": [
+                    "Races"
+                ],
+                "summary": "Get team members for registration",
+                "description": "Retrieves all team members with their registration status for a given registration",
+                "operationId": "887c0c06e68ca8d069f04e35d8624dfd",
+                "parameters": [
+                    {
+                        "name": "race",
+                        "in": "path",
+                        "description": "Race ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "registration",
+                        "in": "path",
+                        "description": "Registration ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Team members retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "team": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized - Must be race manager"
+                    },
+                    "404": {
+                        "description": "Registration not found"
+                    }
+                }
+            }
+        },
         "/races/{race}/registration/check": {
             "get": {
                 "tags": [
@@ -1945,10 +2227,135 @@
                 ]
             }
         },
+        "/raids/{raid}/scanner": {
+            "get": {
+                "tags": [
+                    "Raids"
+                ],
+                "summary": "Display QR code scanner page",
+                "description": "Display the QR code scanner page for check-in",
+                "operationId": "7378d7c5dc5853128fbe379d02d1315a",
+                "parameters": [
+                    {
+                        "name": "raid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Scanner page displayed"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/raids/{raid}/check-in": {
+            "post": {
+                "tags": [
+                    "Raids"
+                ],
+                "summary": "Check-in a team",
+                "description": "Check-in a team via QR code scan",
+                "operationId": "6a2fc2ced999e35fce8158f96c6bed70",
+                "parameters": [
+                    {
+                        "name": "raid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "equ_id": {
+                                        "type": "integer"
+                                    },
+                                    "reg_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Team checked in"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Registration not found"
+                    }
+                }
+            }
+        },
+        "/raids/{raid}/start-list": {
+            "get": {
+                "tags": [
+                    "Raids"
+                ],
+                "summary": "Generate start-list PDF",
+                "description": "Generate start-list PDF for the raid",
+                "operationId": "878cf6d2b5f63aa73ec15408bab54a23",
+                "parameters": [
+                    {
+                        "name": "raid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PDF generated"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/team/age-validation": {
+            "get": {
+                "tags": [
+                    "Team Age Validation"
+                ],
+                "summary": "Show age validation page",
+                "description": "Display the team age validation interface with rules and thresholds",
+                "operationId": "13e952fd88f52ba38b7b15ae7e9a8d03",
+                "responses": {
+                    "200": {
+                        "description": "Age validation page"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/api/team/age-thresholds": {
             "get": {
                 "tags": [
-                    "Team"
+                    "Team Age Validation"
                 ],
                 "summary": "Get age thresholds",
                 "description": "Returns the current age thresholds (A, B, C) for team validation",
@@ -1993,7 +2400,7 @@
         "/api/team/validate-ages": {
             "post": {
                 "tags": [
-                    "Team"
+                    "Team Age Validation"
                 ],
                 "summary": "Validate team ages",
                 "description": "Validates a team's age composition against the rules: all >= A, and if any < B then at least one >= C",
@@ -2056,7 +2463,7 @@
         "/api/team/validate-birthdates": {
             "post": {
                 "tags": [
-                    "Team"
+                    "Team Age Validation"
                 ],
                 "summary": "Validate team by birthdates",
                 "description": "Validates a team's composition by calculating ages from birthdates",
@@ -2131,7 +2538,7 @@
         "/api/team/check-participant": {
             "post": {
                 "tags": [
-                    "Team"
+                    "Team Age Validation"
                 ],
                 "summary": "Check participant eligibility",
                 "description": "Checks if a single participant meets the minimum age requirement",
@@ -2195,6 +2602,817 @@
                         }
                     }
                 }
+            }
+        },
+        "/team/create": {
+            "get": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Show team creation form",
+                "description": "Display the team creation page",
+                "operationId": "587499c9e99884679d3f459a2cf35de5",
+                "responses": {
+                    "200": {
+                        "description": "Team creation page"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/team": {
+            "post": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Create a new team",
+                "description": "Create a new team with optional teammates and email invitations",
+                "operationId": "c42bf59bb3cb892539bd61a3a723bb31",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 32,
+                                        "example": "Les Aventuriers"
+                                    },
+                                    "image": {
+                                        "description": "Team logo (max 2MB)",
+                                        "type": "file"
+                                    },
+                                    "teammates": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "emailInvites": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "email",
+                                            "example": "user@example.com"
+                                        }
+                                    },
+                                    "join_team": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "302": {
+                        "description": "Team created successfully, redirect to dashboard"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/teams/{team}": {
+            "get": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Get team details",
+                "description": "Display detailed information about a specific team",
+                "operationId": "0b763464763670633275853b1b3fd216",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Team details page"
+                    },
+                    "404": {
+                        "description": "Team not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Team Management"
+                ],
+                "summary": "Update team",
+                "description": "Update team information including name, image, and members",
+                "operationId": "b7dcc4ba8b69bfd800686642a2d1aab6",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 32
+                                    },
+                                    "image": {
+                                        "type": "file"
+                                    },
+                                    "add_members": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "remove_members": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "302": {
+                        "description": "Team updated successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Team Management"
+                ],
+                "summary": "Delete team",
+                "description": "Delete a team if it has no active registrations",
+                "operationId": "eaeccaba42476922a5cc1dbc308ad662",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Team deleted successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    },
+                    "422": {
+                        "description": "Cannot delete team with active registrations"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/teams/{team}/invite": {
+            "post": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Send team invitation",
+                "description": "Send an invitation to join the team via email",
+                "operationId": "d667456ab22498b12e4366850aa8cb95",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "invitee@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "302": {
+                        "description": "Invitation sent successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized - Only team leader can invite"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/teams/{team}/registration/{registrationId}/ticket": {
+            "get": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Show team registration ticket",
+                "description": "Display the registration ticket with QR code for race check-in",
+                "operationId": "ee6ef7cad15a0571e13b9e0398bdb864",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "registrationId",
+                        "in": "path",
+                        "description": "Registration ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Registration ticket page with QR code"
+                    },
+                    "403": {
+                        "description": "Unauthorized - Must be team member"
+                    },
+                    "404": {
+                        "description": "Registration not found"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/invitations/{token}": {
+            "get": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Show invitation acceptance page",
+                "description": "Display the page to accept a team invitation via token",
+                "operationId": "e83b780b91f9d0623ed34b5fbe72e587",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "description": "Invitation token",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invitation acceptance page"
+                    },
+                    "302": {
+                        "description": "Redirect to login if not authenticated"
+                    },
+                    "404": {
+                        "description": "Invitation not found or expired"
+                    }
+                }
+            }
+        },
+        "/invitations/{token}/accept": {
+            "post": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Accept team invitation",
+                "description": "Accept a team invitation and join the team",
+                "operationId": "00687ded69e035a151d0de9536ca2545",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "description": "Invitation token",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Invitation accepted, redirect to team page"
+                    },
+                    "404": {
+                        "description": "Invitation not found or expired"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/teams/management": {
+            "get": {
+                "tags": [
+                    "Team Management"
+                ],
+                "summary": "Get teams for management",
+                "description": "Returns paginated list of teams based on user role",
+                "operationId": "9f16dd22e53d37addbca7aee4296b709",
+                "responses": {
+                    "200": {
+                        "description": "Team management page with teams list"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/teams/{team}/remove-member": {
+            "post": {
+                "tags": [
+                    "Team Management"
+                ],
+                "summary": "Remove team member",
+                "description": "Remove a specific member from the team",
+                "operationId": "0f31392f09f654a70fdb9e30a55e3e01",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "302": {
+                        "description": "Member removed successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/registrations/{registration}/runners": {
+            "get": {
+                "tags": [
+                    "Race Participants"
+                ],
+                "summary": "Get registration runners",
+                "description": "Returns list of all runners for a specific race registration with PPS information",
+                "operationId": "0fb116ce9241a9b85a823c1de7409173",
+                "parameters": [
+                    {
+                        "name": "registration",
+                        "in": "path",
+                        "description": "Registration ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of runners with PPS status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "runners": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "participant_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "email": {
+                                                        "type": "string"
+                                                    },
+                                                    "has_licence": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "licence_number": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "pps_number": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "pps_expiry": {
+                                                        "type": "string",
+                                                        "format": "date",
+                                                        "nullable": true
+                                                    },
+                                                    "pps_status": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "pending",
+                                                            "verified",
+                                                            "rejected"
+                                                        ]
+                                                    },
+                                                    "has_valid_credentials": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Race Participants"
+                ],
+                "summary": "Add runner to registration",
+                "description": "Add a new runner to a race registration with optional PPS information",
+                "operationId": "823760f0acb2901781fc9559a5d329bc",
+                "parameters": [
+                    {
+                        "name": "registration",
+                        "in": "path",
+                        "description": "Registration ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "pps_number": {
+                                        "type": "string",
+                                        "maxLength": 32,
+                                        "nullable": true
+                                    },
+                                    "pps_expiry": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Runner added successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "participant": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "user_id": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "User already participating"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/participants/{participant}": {
+            "put": {
+                "tags": [
+                    "Race Participants"
+                ],
+                "summary": "Update runner PPS information",
+                "description": "Update PPS number, expiry date, or status for a race participant",
+                "operationId": "a1e6597737835d2f6ec9178050236588",
+                "parameters": [
+                    {
+                        "name": "participant",
+                        "in": "path",
+                        "description": "Race Participant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "pps_number": {
+                                        "type": "string",
+                                        "maxLength": 32,
+                                        "nullable": true
+                                    },
+                                    "pps_expiry": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "pps_status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "verified",
+                                            "rejected"
+                                        ],
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "302": {
+                        "description": "PPS updated successfully"
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Race Participants"
+                ],
+                "summary": "Remove runner from registration",
+                "description": "Remove a participant from a race registration",
+                "operationId": "392c4f2b960d7c462739a5ca160bb56b",
+                "parameters": [
+                    {
+                        "name": "participant",
+                        "in": "path",
+                        "description": "Race Participant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Runner removed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/participants/{participant}/verify-pps": {
+            "post": {
+                "tags": [
+                    "Race Participants"
+                ],
+                "summary": "Verify runner PPS",
+                "description": "Verify or reject a runner's PPS documentation (admin/race manager only)",
+                "operationId": "b2fbde08cd7cfcf2cad0f6834cc4a397",
+                "parameters": [
+                    {
+                        "name": "participant",
+                        "in": "path",
+                        "description": "Race Participant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "status": {
+                                        "description": "Defaults to 'verified' if not provided",
+                                        "type": "string",
+                                        "enum": [
+                                            "verified",
+                                            "rejected"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "302": {
+                        "description": "PPS verification status updated"
+                    },
+                    "403": {
+                        "description": "Unauthorized - Admin or race manager only"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
             }
         }
     },
@@ -2321,7 +3539,7 @@
             },
             "LeaderboardTeam": {
                 "title": "LeaderboardTeam",
-                "description": "Team leaderboard result with average scores",
+                "description": "Team leaderboard result with average scores and points",
                 "properties": {
                     "id": {
                         "type": "integer",
@@ -2353,6 +3571,21 @@
                     "member_count": {
                         "type": "integer",
                         "example": 3
+                    },
+                    "points": {
+                        "description": "Points earned based on ranking",
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "age_category_id": {
+                        "description": "Age category ID for competitive races",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "puce": {
+                        "description": "Chip/puce number",
+                        "type": "string",
+                        "example": "7000586"
                     },
                     "created_at": {
                         "type": "string",
@@ -2390,6 +3623,11 @@
                         "type": "number",
                         "format": "float",
                         "example": 60
+                    },
+                    "points": {
+                        "description": "Points earned based on ranking",
+                        "type": "integer",
+                        "example": 100
                     },
                     "temps_final": {
                         "type": "number",
@@ -2825,6 +4063,22 @@
             "description": "Endpoints for race registration and eligibility checks"
         },
         {
+            "name": "Team Age Validation",
+            "description": "Endpoints for validating team age composition and participant eligibility"
+        },
+        {
+            "name": "Teams",
+            "description": "Team creation, management, and invitation endpoints"
+        },
+        {
+            "name": "Team Management",
+            "description": "Endpoints for team management (admin and team leaders)"
+        },
+        {
+            "name": "Race Participants",
+            "description": "Endpoints for managing runners in race registrations and their PPS information"
+        },
+        {
             "name": "Auth",
             "description": "Auth"
         },
@@ -2837,12 +4091,12 @@
             "description": "Profile"
         },
         {
-            "name": "Raids",
-            "description": "Raids"
+            "name": "Races",
+            "description": "Races"
         },
         {
-            "name": "Team",
-            "description": "Team"
+            "name": "Raids",
+            "description": "Raids"
         }
     ]
 }

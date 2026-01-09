@@ -9,12 +9,18 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Annotations as OA;
 
 /**
  * Controller for managing teams.
  * 
  * Team leaders can manage their own teams.
  * Administrators can manage all teams.
+ * 
+ * @OA\Tag(
+ *     name="Team Management",
+ *     description="Endpoints for team management (admin and team leaders)"
+ * )
  */
 class TeamManagementController extends Controller
 {
@@ -24,6 +30,18 @@ class TeamManagementController extends Controller
      * Shows teams based on user role:
      * - Admin: All teams
      * - Team Leader: Only teams where user is the leader
+     * 
+     * @OA\Get(
+     *     path="/teams/management",
+     *     tags={"Team Management"},
+     *     summary="Get teams for management",
+     *     description="Returns paginated list of teams based on user role",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Team management page with teams list"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      */
     public function index(Request $request): Response
     {
@@ -94,6 +112,50 @@ class TeamManagementController extends Controller
      * Update team information.
      * 
      * Only team leader or admin can update.
+     * 
+     * @OA\Put(
+     *     path="/teams/{team}",
+     *     tags={"Team Management"},
+     *     summary="Update team",
+     *     description="Update team information including name, image, and members",
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         required=true,
+     *         description="Team ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"name"},
+     *                 @OA\Property(property="name", type="string", maxLength=32),
+     *                 @OA\Property(property="image", type="file"),
+     *                 @OA\Property(
+     *                     property="add_members",
+     *                     type="array",
+     *                     @OA\Items(type="integer")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="remove_members",
+     *                     type="array",
+     *                     @OA\Items(type="integer")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Team updated successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      */
     public function update(Request $request, Team $team)
     {
@@ -153,6 +215,33 @@ class TeamManagementController extends Controller
      * 
      * Only team leader or admin can delete.
      * Cannot delete if team has active registrations.
+     * 
+     * @OA\Delete(
+     *     path="/teams/{team}",
+     *     tags={"Team Management"},
+     *     summary="Delete team",
+     *     description="Delete a team if it has no active registrations",
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         required=true,
+     *         description="Team ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Team deleted successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Cannot delete team with active registrations"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      */
     public function destroy(Team $team)
     {
@@ -184,6 +273,36 @@ class TeamManagementController extends Controller
      * Remove a member from the team.
      * 
      * Only team leader or admin can remove members.
+     * 
+     * @OA\Post(
+     *     path="/teams/{team}/remove-member",
+     *     tags={"Team Management"},
+     *     summary="Remove team member",
+     *     description="Remove a specific member from the team",
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         required=true,
+     *         description="Team ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"user_id"},
+     *             @OA\Property(property="user_id", type="integer", example=5)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Member removed successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      */
     public function removeMember(Request $request, Team $team)
     {

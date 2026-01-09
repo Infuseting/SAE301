@@ -20,7 +20,49 @@ use OpenApi\Annotations as OA;
 class TeamRunnerController extends Controller
 {
     /**
-     * Get all runners for a registration with their PPS status
+     * Get all runners for a registration with their PPS status.
+     *
+     * @OA\Get(
+     *     path="/registrations/{registration}/runners",
+     *     tags={"Race Participants"},
+     *     summary="Get registration runners",
+     *     description="Returns list of all runners for a specific race registration with PPS information",
+     *     @OA\Parameter(
+     *         name="registration",
+     *         in="path",
+     *         required=true,
+     *         description="Registration ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of runners with PPS status",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="runners",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="integer"),
+     *                     @OA\Property(property="participant_id", type="integer"),
+     *                     @OA\Property(property="name", type="string"),
+     *                     @OA\Property(property="email", type="string"),
+     *                     @OA\Property(property="has_licence", type="boolean"),
+     *                     @OA\Property(property="licence_number", type="string", nullable=true),
+     *                     @OA\Property(property="pps_number", type="string", nullable=true),
+     *                     @OA\Property(property="pps_expiry", type="string", format="date", nullable=true),
+     *                     @OA\Property(property="pps_status", type="string", enum={"pending", "verified", "rejected"}),
+     *                     @OA\Property(property="has_valid_credentials", type="boolean")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      *
      * @param Registration $registration
      * @return \Illuminate\Http\JsonResponse
@@ -76,7 +118,53 @@ class TeamRunnerController extends Controller
     }
 
     /**
-     * Add a runner to a race registration
+     * Add a runner to a race registration.
+     *
+     * @OA\Post(
+     *     path="/registrations/{registration}/runners",
+     *     tags={"Race Participants"},
+     *     summary="Add runner to registration",
+     *     description="Add a new runner to a race registration with optional PPS information",
+     *     @OA\Parameter(
+     *         name="registration",
+     *         in="path",
+     *         required=true,
+     *         description="Registration ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"user_id"},
+     *             @OA\Property(property="user_id", type="integer", example=5),
+     *             @OA\Property(property="pps_number", type="string", maxLength=32, nullable=true),
+     *             @OA\Property(property="pps_expiry", type="string", format="date", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Runner added successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(
+     *                 property="participant",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="user_id", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="User already participating"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      *
      * @param Request $request
      * @param Registration $registration
@@ -131,11 +219,42 @@ class TeamRunnerController extends Controller
     }
 
     /**
-     * Update a runner's PPS information
+     * Update a runner's PPS information.
+     *
+     * @OA\Put(
+     *     path="/participants/{participant}",
+     *     tags={"Race Participants"},
+     *     summary="Update runner PPS information",
+     *     description="Update PPS number, expiry date, or status for a race participant",
+     *     @OA\Parameter(
+     *         name="participant",
+     *         in="path",
+     *         required=true,
+     *         description="Race Participant ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="pps_number", type="string", maxLength=32, nullable=true),
+     *             @OA\Property(property="pps_expiry", type="string", format="date", nullable=true),
+     *             @OA\Property(property="pps_status", type="string", enum={"pending", "verified", "rejected"}, nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="PPS updated successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      *
      * @param Request $request
      * @param RaceParticipant $participant
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, RaceParticipant $participant)
     {
@@ -186,7 +305,34 @@ class TeamRunnerController extends Controller
     }
 
     /**
-     * Remove a runner from a race registration
+     * Remove a runner from a race registration.
+     *
+     * @OA\Delete(
+     *     path="/participants/{participant}",
+     *     tags={"Race Participants"},
+     *     summary="Remove runner from registration",
+     *     description="Remove a participant from a race registration",
+     *     @OA\Parameter(
+     *         name="participant",
+     *         in="path",
+     *         required=true,
+     *         description="Race Participant ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Runner removed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      *
      * @param RaceParticipant $participant
      * @return \Illuminate\Http\JsonResponse
@@ -212,7 +358,40 @@ class TeamRunnerController extends Controller
     }
 
     /**
-     * Verify a runner's PPS (for race managers)
+     * Verify a runner's PPS (for race managers).
+     *
+     * @OA\Post(
+     *     path="/participants/{participant}/verify-pps",
+     *     tags={"Race Participants"},
+     *     summary="Verify runner PPS",
+     *     description="Verify or reject a runner's PPS documentation (admin/race manager only)",
+     *     @OA\Parameter(
+     *         name="participant",
+     *         in="path",
+     *         required=true,
+     *         description="Race Participant ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 enum={"verified", "rejected"},
+     *                 description="Defaults to 'verified' if not provided"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="PPS verification status updated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Admin or race manager only"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
      *
      * @param Request $request
      * @param RaceParticipant $participant
