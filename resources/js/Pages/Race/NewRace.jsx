@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm, router, Link } from '@inertiajs/react';
+import { Head, useForm, router, Link, usePage } from '@inertiajs/react';
 import UserSelect from '@/Components/UserSelect';
 import Modal from '@/Components/Modal';
 import DangerButton from '@/Components/DangerButton';
@@ -53,6 +53,9 @@ const extractTime = (datetime) => {
  * @param {Object|null} props.race - Race data (null for create, object for edit)
  */
 export default function NewRace({ auth, users = [], types = [], ageCategories = [], raid_id = null, raid = null, race = null }) {
+    // Get translations
+    const messages = usePage().props.translations?.messages || {};
+    
     // Determine if we're in edit mode
     const isEditMode = race !== null;
     
@@ -141,7 +144,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         if (startDate) {
             const start = new Date(startDate);
             if (start < today) {
-                newErrors.startDate = 'La date de début ne peut pas être dans le passé';
+                newErrors.startDate = messages['race.form.date_cannot_be_past'] || 'La date de début ne peut pas être dans le passé';
             } else {
                 delete newErrors.startDate;
             }
@@ -157,7 +160,9 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
             if (startDate) {
                 const start = new Date(startDate);
                 if (start < raidStart || start > raidEnd) {
-                    newErrors.startDate = `La date de début doit être entre le ${raidStart.toLocaleDateString('fr-FR')} et le ${raidEnd.toLocaleDateString('fr-FR')}`;
+                    newErrors.startDate = (messages['race.form.date_must_be_between'] || 'La date de début doit être entre le :start et le :end')
+                        .replace(':start', raidStart.toLocaleDateString('fr-FR'))
+                        .replace(':end', raidEnd.toLocaleDateString('fr-FR'));
                 } else {
                     delete newErrors.startDate;
                 }
@@ -166,7 +171,9 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
             if (endDate) {
                 const end = new Date(endDate);
                 if (end < raidStart || end > raidEnd) {
-                    newErrors.endDate = `La date de fin doit être entre le ${raidStart.toLocaleDateString('fr-FR')} et le ${raidEnd.toLocaleDateString('fr-FR')}`;
+                    newErrors.endDate = (messages['race.form.end_date_must_be_between'] || 'La date de fin doit être entre le :start et le :end')
+                        .replace(':start', raidStart.toLocaleDateString('fr-FR'))
+                        .replace(':end', raidEnd.toLocaleDateString('fr-FR'));
                 } else {
                     delete newErrors.endDate;
                 }
@@ -178,7 +185,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
             const start = new Date(startDate);
             const end = new Date(endDate);
             if (end < start) {
-                newErrors.endDate = 'La date de fin doit être égale ou postérieure à la date de début';
+                newErrors.endDate = messages['race.form.end_date_after_start'] || 'La date de fin doit être égale ou postérieure à la date de début';
             } else {
                 delete newErrors.endDate;
             }
@@ -196,7 +203,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
             }
 
             if (endMinutes < startMinutes + durationMinutes) {
-                newErrors.endTime = 'L\'heure de fin doit être après l\'heure de début + durée de la course';
+                newErrors.endTime = messages['race.form.end_time_after_start'] || 'L\'heure de fin doit être après l\'heure de début + durée de la course';
             } else {
                 delete newErrors.endTime;
             }
@@ -248,7 +255,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         
         // Validation for competitive races: Check if at least one age category is selected
         if (isCompetitive && data.selectedAgeCategories.length === 0) {
-            alert('Veuillez sélectionner au moins une catégorie d\'âge pour cette course compétitive.');
+            alert(messages['race.form.select_age_category'] || 'Veuillez sélectionner au moins une catégorie d\'âge pour cette course compétitive.');
             return;
         }
 
@@ -259,12 +266,12 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
             const c = parseInt(data.leisureAgeSupervisor);
             
             if (isNaN(a) || isNaN(b) || isNaN(c)) {
-                alert('Veuillez renseigner les trois valeurs d\'âge (A, B, C) pour cette course loisir.');
+                alert(messages['race.form.fill_age_values'] || 'Veuillez renseigner les trois valeurs d\'âge (A, B, C) pour cette course loisir.');
                 return;
             }
             
             if (a > b || b > c) {
-                alert('Les valeurs d\'âge doivent respecter la règle : A ≤ B ≤ C');
+                alert(messages['race.form.age_values_rule'] || 'Les valeurs d\'âge doivent respecter la règle : A ≤ B ≤ C');
                 return;
             }
         }
@@ -314,10 +321,12 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
     };
 
     // Page title and button text based on mode
-    const pageTitle = isEditMode ? 'Modifier la Course' : 'Créer une Nouvelle Course';
+    const pageTitle = isEditMode 
+        ? (messages['race.form.edit_title'] || 'Modifier la Course') 
+        : (messages['race.form.create_title'] || 'Créer une Nouvelle Course');
     const submitButtonText = isEditMode 
-        ? (processing ? 'Modification en cours...' : 'Modifier la course')
-        : (processing ? 'Création en cours...' : 'Créer la course');
+        ? (processing ? (messages['race.form.updating'] || 'Modification en cours...') : (messages['race.form.update_button'] || 'Modifier la course'))
+        : (processing ? (messages['race.form.creating'] || 'Création en cours...') : (messages['race.form.create_button'] || 'Créer la course'));
 
     return (
         <AuthenticatedLayout
@@ -340,7 +349,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-white transition-colors uppercase tracking-widest"
                             >
                                 <ChevronRight className="w-4 h-4 rotate-180" />
-                                Retour à la course
+                                {messages['race.form.back_to_race'] || 'Retour à la course'}
                             </Link>
                         ) : raid && raid.raid_id ? (
                             <Link 
@@ -348,7 +357,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-white transition-colors uppercase tracking-widest"
                             >
                                 <ChevronRight className="w-4 h-4 rotate-180" />
-                                Retour au raid
+                                {messages['race.form.back_to_raid'] || 'Retour au raid'}
                             </Link>
                         ) : (
                             <div />
@@ -370,7 +379,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                             {/* Affichage des erreurs */}
                             {Object.keys(errors).length > 0 && (
                                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                    <h3 className="text-sm font-semibold text-red-800 mb-2">Erreurs de validation</h3>
+                                    <h3 className="text-sm font-semibold text-red-800 mb-2">{messages['race.form.validation_errors'] || 'Erreurs de validation'}</h3>
                                     <ul className="text-sm text-red-700 space-y-1">
                                         {Object.entries(errors).map(([field, message]) => (
                                             <li key={field}>• {message}</li>
@@ -383,13 +392,13 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Titre Section - Colonne pleine */}
                                 <div className="col-span-1 lg:col-span-2">
                                     <div className="flex items-center justify-between mb-6">
-                                        <h3 className="text-lg font-semibold text-gray-900">Informations de la course</h3>
+                                        <h3 className="text-lg font-semibold text-gray-900">{messages['race.form.race_information'] || 'Informations de la course'}</h3>
                                         {raid && (
                                             <div className="bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-lg flex items-center gap-2">
                                                 <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                                 </svg>
-                                                <span className="text-sm font-medium text-indigo-700">Raid : {raid.raid_name}</span>
+                                                <span className="text-sm font-medium text-indigo-700">{messages['race.form.raid_label'] || 'Raid'} : {raid.raid_name}</span>
                                             </div>
                                         )}
                                     </div>
@@ -398,7 +407,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Nom et Responsable - Ligne 1 */}
                                 <div>
                                     <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Nom de la course *
+                                        {messages['race.form.race_name'] || 'Nom de la course'} *
                                     </label>
                                     <input
                                         type="text"
@@ -406,23 +415,23 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         name="title"
                                         value={data.title}
                                         onChange={handleInputChange}
-                                        placeholder="Nom de la course"
+                                        placeholder={messages['race.form.race_name'] || 'Nom de la course'}
                                         maxLength={100}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         required
                                     />
-                                    <p className="mt-1 text-xs text-gray-500">{data.title.length}/100 caractères</p>
+                                    <p className="mt-1 text-xs text-gray-500">{data.title.length}/100 {messages['race.form.characters'] || 'caractères'}</p>
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Responsable *
+                                        {messages['race.form.manager'] || 'Responsable'} *
                                     </label>
                                     <UserSelect
                                         users={users}
                                         selectedId={data.responsableId}
                                         onSelect={(user) => setData('responsableId', user.id)}
-                                        label="Responsable"
+                                        label={messages['race.form.manager'] || 'Responsable'}
                                     />
                                     {errors.responsableId && <p className="mt-1 text-sm text-red-600">{errors.responsableId}</p>}
                                 </div>
@@ -430,29 +439,29 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Description - Colonne pleine */}
                                 <div className="col-span-1 lg:col-span-2">
                                     <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Description de la course
+                                        {messages['race.form.description'] || 'Description de la course'}
                                     </label>
                                     <textarea
                                         id="description"
                                         name="description"
                                         value={data.description}
                                         onChange={handleInputChange}
-                                        placeholder="Décrivez la course (parcours, règles, etc.)"
+                                        placeholder={messages['race.form.description_placeholder'] || 'Décrivez la course (parcours, règles, etc.)'}
                                         rows="4"
                                         maxLength={2000}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
-                                    <p className="mt-1 text-xs text-gray-500">{data.description.length}/2000 caractères</p>
+                                    <p className="mt-1 text-xs text-gray-500">{data.description.length}/2000 {messages['race.form.characters'] || 'caractères'}</p>
                                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                                 </div>
 
                                 {/* Dates de Départ - Ligne 2 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Date de départ *
+                                        {messages['race.form.start_date'] || 'Date de départ'} *
                                         {raid && raid.raid_date_start && raid.raid_date_end && (
                                             <span className="text-xs font-normal text-gray-500 ml-2 block">
-                                                (Raid: {new Date(raid.raid_date_start).toLocaleDateString('fr-FR')} au {new Date(raid.raid_date_end).toLocaleDateString('fr-FR')})
+                                                ({messages['race.form.raid_label'] || 'Raid'}: {new Date(raid.raid_date_start).toLocaleDateString('fr-FR')} {messages['race.form.to'] || 'au'} {new Date(raid.raid_date_end).toLocaleDateString('fr-FR')})
                                             </span>
                                         )}
                                     </label>
@@ -480,7 +489,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Heure de départ *
+                                        {messages['race.form.start_time'] || 'Heure de départ'} *
                                     </label>
                                     <input
                                         type="time"
@@ -495,7 +504,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Durée et Difficulté - Ligne 3 */}
                                 <div>
                                     <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Durée (h:mm) *
+                                        {messages['race.form.duration'] || 'Durée (h:mm)'} *
                                     </label>
                                     <input
                                         type="text"
@@ -507,12 +516,12 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         pattern="\d+:\d{2}"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
-                                    <p className="mt-1 text-xs text-gray-500">Format: heures:minutes (ex: 2:30)</p>
+                                    <p className="mt-1 text-xs text-gray-500">{messages['race.form.duration_format'] || 'Format: heures:minutes (ex: 2:30)'}</p>
                                 </div>
 
                                 <div>
                                     <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Difficulté *
+                                        {messages['race.form.difficulty'] || 'Difficulté'} *
                                     </label>
                                     <input
                                         type="text"
@@ -520,7 +529,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         name="difficulty"
                                         value={data.difficulty}
                                         onChange={handleInputChange}
-                                        placeholder="Ex: Facile, Expert, Technique..."
+                                        placeholder={messages['race.form.difficulty_placeholder'] || 'Ex: Facile, Expert, Technique...'}
                                         maxLength={255}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         required
@@ -531,7 +540,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Dates de Fin - Ligne 4 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Date de fin
+                                        {messages['race.form.end_date'] || 'Date de fin'}
                                     </label>
                                     <input
                                         type="date"
@@ -553,7 +562,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Heure de fin
+                                        {messages['race.form.end_time'] || 'Heure de fin'}
                                     </label>
                                     <input
                                         type="time"
@@ -568,7 +577,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Participants - Ligne 5 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Min participants *
+                                        {messages['race.form.min_participants'] || 'Min participants'} *
                                     </label>
                                     <input
                                         type="number"
@@ -584,7 +593,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Max participants *
+                                        {messages['race.form.max_participants'] || 'Max participants'} *
                                     </label>
                                     <input
                                         type="number"
@@ -601,7 +610,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Équipes - Ligne 6 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Min équipes *
+                                        {messages['race.form.min_teams'] || 'Min équipes'} *
                                     </label>
                                     <input
                                         type="number"
@@ -617,7 +626,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Max équipes *
+                                        {messages['race.form.max_teams'] || 'Max équipes'} *
                                     </label>
                                     <input
                                         type="number"
@@ -634,7 +643,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Max par équipe - Ligne 7 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Min par équipe *
+                                        {messages['race.form.min_per_team'] || 'Min par équipe'} *
                                     </label>
                                     <input
                                         type="number"
@@ -650,7 +659,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Max par équipe *
+                                        {messages['race.form.max_per_team'] || 'Max par équipe'} *
                                     </label>
                                     <input
                                         type="number"
@@ -666,7 +675,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Type
+                                        {messages['race.form.type'] || 'Type'}
                                     </label>
                                     <div className="space-y-2">
                                         {types.length > 0 ? (
@@ -684,18 +693,18 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                 </label>
                                             ))
                                         ) : (
-                                            <p className="text-sm text-gray-500 italic">Aucun type</p>
+                                            <p className="text-sm text-gray-500 italic">{messages['race.form.no_type'] || 'Aucun type'}</p>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Tarifs - Ligne 8 - Colonne pleine */}
                                 <div className="col-span-1 lg:col-span-2">
-                                    <h4 className="text-sm font-semibold text-gray-900 mb-4">Tarifs d'inscription</h4>
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-4">{messages['race.form.registration_fees'] || 'Tarifs d\'inscription'}</h4>
                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                         {/* Prix Majeurs */}
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-600 mb-2">Majeurs (18 ans +) *</label>
+                                            <label className="block text-xs font-medium text-gray-600 mb-2">{messages['race.form.price_major'] || 'Majeurs (18 ans +)'} *</label>
                                             <div className="flex items-center">
                                                 <input
                                                     type="number"
@@ -716,7 +725,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         {/* Prix Mineurs */}
                                         <div>
                                             <label className={`block text-xs font-medium mb-2 ${isCompetitive ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                Mineurs (- 18 ans)
+                                                {messages['race.form.price_minor'] || 'Mineurs (- 18 ans)'}
                                             </label>
                                             <div className="flex items-center">
                                                 <input
@@ -741,7 +750,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
                                         {/* Prix Adhérents */}
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-600 mb-2">Adhérents (licenciés)</label>
+                                            <label className="block text-xs font-medium text-gray-600 mb-2">{messages['race.form.price_adherent'] || 'Adhérents (licenciés)'}</label>
                                             <div className="flex items-center">
                                                 <input
                                                     type="number"
@@ -768,7 +777,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             <p className="text-xs text-blue-700">
-                                                <strong>Mode Compétitif activé :</strong> Les courses compétitives requièrent que tous les membres d'une équipe soient dans la même catégorie d'âge parmi celles sélectionnées ci-dessous.
+                                                <strong>{messages['race.form.competitive_mode'] || 'Mode Compétitif activé'} :</strong> {messages['race.form.competitive_warning'] || 'Les courses compétitives requièrent que tous les membres d\'une équipe soient dans la même catégorie d\'âge parmi celles sélectionnées ci-dessous.'}
                                             </p>
                                         </div>
                                     </div>
@@ -782,7 +791,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             <p className="text-xs text-emerald-700">
-                                                <strong>Mode Loisir activé :</strong> Les règles d'âge sont plus souples. Configurez les valeurs A, B, C ci-dessous pour définir les règles de participation.
+                                                <strong>{messages['race.form.leisure_mode'] || 'Mode Loisir activé'} :</strong> {messages['race.form.leisure_warning'] || 'Les règles d\'âge sont plus souples. Configurez les valeurs A, B, C ci-dessous pour définir les règles de participation.'}
                                             </p>
                                         </div>
                                     </div>
@@ -791,22 +800,20 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Règles d'âge Loisir (A, B, C) - Seulement pour type loisir */}
                                 {!isCompetitive && (
                                     <div className="col-span-1 lg:col-span-2">
-                                        <h4 className="text-sm font-semibold text-gray-900 mb-4">Règles d'âge pour courses loisir</h4>
+                                        <h4 className="text-sm font-semibold text-gray-900 mb-4">{messages['race.form.leisure_age_rules_title'] || 'Règles d\'âge pour courses loisir'}</h4>
                                         <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg mb-4">
                                             <p className="text-sm text-gray-600 mb-3">
-                                                <strong>Règles :</strong> Tous les participants doivent avoir au moins <strong>A ans</strong>. 
-                                                Si un participant a moins de <strong>B ans</strong>, l'équipe doit inclure un participant d'au moins <strong>C ans</strong> (accompagnateur). 
-                                                Sinon, tous doivent avoir au moins <strong>B ans</strong>.
+                                                <strong>{messages['race.form.rules'] || 'Règles'} :</strong> {messages['race.form.leisure_age_rules_desc'] || 'Tous les participants doivent avoir au moins A ans. Si un participant a moins de B ans, l\'équipe doit inclure un participant d\'au moins C ans (accompagnateur). Sinon, tous doivent avoir au moins B ans.'}
                                             </p>
                                             <p className="text-xs text-gray-500 italic">
-                                                Exemple : A=12, B=16, C=18 → Tous ont au moins 12 ans, et les équipes avec un - de 16 ans doivent avoir un majeur (18+).
+                                                {messages['race.form.leisure_age_example'] || 'Exemple : A=12, B=16, C=18 → Tous ont au moins 12 ans, et les équipes avec un - de 16 ans doivent avoir un majeur (18+).'}
                                             </p>
                                         </div>
                                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                             {/* Âge minimum (A) */}
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-600 mb-2">
-                                                    Âge minimum (A) *
+                                                    {messages['race.form.age_min_a'] || 'Âge minimum (A)'} *
                                                 </label>
                                                 <input
                                                     type="number"
@@ -819,14 +826,14 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                     required={!isCompetitive}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                                                 />
-                                                <p className="mt-1 text-xs text-gray-500">Âge min. pour tous les participants</p>
+                                                <p className="mt-1 text-xs text-gray-500">{messages['race.form.age_min_help'] || 'Âge min. pour tous les participants'}</p>
                                                 {errors.leisureAgeMin && <p className="mt-1 text-xs text-red-600">{errors.leisureAgeMin}</p>}
                                             </div>
 
                                             {/* Âge intermédiaire (B) */}
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-600 mb-2">
-                                                    Âge intermédiaire (B) *
+                                                    {messages['race.form.age_intermediate_b'] || 'Âge intermédiaire (B)'} *
                                                 </label>
                                                 <input
                                                     type="number"
@@ -839,14 +846,14 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                     required={!isCompetitive}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                                                 />
-                                                <p className="mt-1 text-xs text-gray-500">Seuil sans accompagnateur</p>
+                                                <p className="mt-1 text-xs text-gray-500">{messages['race.form.age_intermediate_help'] || 'Seuil sans accompagnateur'}</p>
                                                 {errors.leisureAgeIntermediate && <p className="mt-1 text-xs text-red-600">{errors.leisureAgeIntermediate}</p>}
                                             </div>
 
                                             {/* Âge accompagnateur (C) */}
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-600 mb-2">
-                                                    Âge accompagnateur (C) *
+                                                    {messages['race.form.age_supervisor_c'] || 'Âge accompagnateur (C)'} *
                                                 </label>
                                                 <input
                                                     type="number"
@@ -858,7 +865,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                     required={!isCompetitive}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                                                 />
-                                                <p className="mt-1 text-xs text-gray-500">Âge requis de l'accompagnateur</p>
+                                                <p className="mt-1 text-xs text-gray-500">{messages['race.form.age_supervisor_help'] || 'Âge requis de l\'accompagnateur'}</p>
                                                 {errors.leisureAgeSupervisor && <p className="mt-1 text-xs text-red-600">{errors.leisureAgeSupervisor}</p>}
                                             </div>
                                         </div>
@@ -870,7 +877,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                                 </svg>
-                                                Les valeurs doivent respecter : A ≤ B ≤ C
+                                                {messages['race.form.age_values_must_respect'] || 'Les valeurs doivent respecter : A ≤ B ≤ C'}
                                             </p>
                                         )}
                                     </div>
@@ -880,20 +887,20 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {isCompetitive && (
                                     <div className="col-span-1 lg:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-3">
-                                            Catégories d'âges acceptées
+                                            {messages['race.form.accepted_age_categories'] || 'Catégories d\'âges acceptées'}
                                             <span className="text-red-500 ml-1">*</span>
-                                            <span className="text-xs text-gray-500 ml-2">({data.selectedAgeCategories.length} sélectionnée{data.selectedAgeCategories.length !== 1 ? 's' : ''})</span>
+                                            <span className="text-xs text-gray-500 ml-2">({data.selectedAgeCategories.length} {messages['race.form.selected'] || 'sélectionnée'}{data.selectedAgeCategories.length !== 1 ? 's' : ''})</span>
                                         </label>
                                         {data.selectedAgeCategories.length === 0 && (
                                             <p className="text-sm text-amber-600 mb-3 flex items-center gap-2">
                                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                                 </svg>
-                                                Veuillez sélectionner au moins une catégorie d'âge
+                                                {messages['race.form.please_select_age_category'] || 'Veuillez sélectionner au moins une catégorie d\'âge'}
                                             </p>
                                         )}
                                         <p className="text-sm text-gray-600 mb-3">
-                                            Tous les membres d'une équipe doivent appartenir à la <strong>même catégorie d'âge</strong> parmi celles sélectionnées.
+                                            {messages['race.form.same_age_category_notice'] || 'Tous les membres d\'une équipe doivent appartenir à la même catégorie d\'âge parmi celles sélectionnées.'}
                                         </p>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                             {ageCategories.length > 0 ? (
@@ -921,14 +928,14 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                                 <span className="font-medium text-gray-900">{category.nom}</span>
                                                                 <span className="text-gray-500 text-xs ml-2">({category.age_min}-{category.age_max || '∞'})</span>
                                                                 {!isAvailable && (
-                                                                    <span className="text-red-600 text-xs ml-2 font-medium block">Non disponible en compétitif</span>
+                                                                    <span className="text-red-600 text-xs ml-2 font-medium block">{messages['race.form.not_available_competitive'] || 'Non disponible en compétitif'}</span>
                                                                 )}
                                                             </span>
                                                         </label>
                                                     );
                                                 })
                                             ) : (
-                                                <p className="text-sm text-gray-500 italic">Aucune catégorie</p>
+                                                <p className="text-sm text-gray-500 italic">{messages['race.form.no_category'] || 'Aucune catégorie'}</p>
                                             )}
                                         </div>
                                         {errors.selectedAgeCategories && <p className="mt-2 text-sm text-red-600">{errors.selectedAgeCategories}</p>}
@@ -938,7 +945,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 {/* Prix du repas et Image - Ligne 9 */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Prix du repas (optionnel)
+                                        {messages['race.form.meal_price'] || 'Prix du repas'} ({messages['optional'] || 'optionnel'})
                                     </label>
                                     <div className="flex items-center">
                                         <input
@@ -956,13 +963,13 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                 </div>
 
                                 <ImageUpload
-                                    label="Image de la course"
+                                    label={messages['race.form.race_image'] || 'Image de la course'}
                                     name="image"
                                     onChange={(file) => setData('image', file)}
                                     error={errors.image}
                                     currentImage={race?.race_image ? `/storage/${race.race_image}` : null}
                                     maxSize={5}
-                                    helperText="Image qui sera affichée sur la page de la course (optionnel)"
+                                    helperText={messages['race.form.race_image_help'] || 'Image qui sera affichée sur la page de la course (optionnel)'}
                                 />
                             </div>
 
@@ -982,13 +989,13 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                             {isEditMode && (
                                 <div className="col-span-1 lg:col-span-2 mt-8 bg-white rounded-lg shadow-md p-6 border-2 border-red-200">
                                     <h2 className="text-lg font-semibold text-red-600 mb-4">
-                                        Zone de danger
+                                        {messages['race.form.danger_zone'] || 'Zone de danger'}
                                     </h2>
                                     <p className="text-sm text-gray-600 mb-4">
-                                        La suppression de la course est irréversible. Toutes les inscriptions associées seront également supprimées.
+                                        {messages['race.form.delete_warning'] || 'La suppression de la course est irréversible. Toutes les inscriptions associées seront également supprimées.'}
                                     </p>
                                     <DangerButton type="button" onClick={() => setShowDeleteModal(true)}>
-                                        Supprimer la course
+                                        {messages['race.form.delete_race'] || 'Supprimer la course'}
                                     </DangerButton>
                                 </div>
                             )}
@@ -1001,20 +1008,20 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
             <Modal show={showDeleteModal} onClose={closeDeleteModal}>
                 <div className="p-6">
                     <h2 className="text-lg font-medium text-gray-900">
-                        Êtes-vous sûr de vouloir supprimer cette course ?
+                        {messages['race.form.confirm_delete_title'] || 'Êtes-vous sûr de vouloir supprimer cette course ?'}
                     </h2>
 
                     <p className="mt-1 text-sm text-gray-600">
-                        La suppression de la course est irréversible. Toutes les inscriptions associées seront également supprimées.
+                        {messages['race.form.delete_warning'] || 'La suppression de la course est irréversible. Toutes les inscriptions associées seront également supprimées.'}
                     </p>
 
                     <div className="mt-6 flex justify-end">
                         <SecondaryButton type="button" onClick={closeDeleteModal}>
-                            Annuler
+                            {messages['cancel'] || 'Annuler'}
                         </SecondaryButton>
 
                         <DangerButton type="button" className="ms-3" onClick={handleDelete}>
-                            Oui, supprimer
+                            {messages['race.form.confirm_delete'] || 'Oui, supprimer'}
                         </DangerButton>
                     </div>
                 </div>

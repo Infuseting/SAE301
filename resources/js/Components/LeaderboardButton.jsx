@@ -36,7 +36,7 @@ export default function LeaderboardButton() {
                 className="inline-flex items-center px-3 py-2 border border-transparent text-md leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
             >
                 <FaTrophy className="h-5 w-5 mr-1" />
-                {messages.leaderboard || "Classements"}
+                {messages['navbar.leaderboard'] || "Classements"}
                 <svg
                     className={`ml-2 h-4 w-4 transition-transform ${
                         isOpen ? "rotate-180" : ""
@@ -62,7 +62,7 @@ export default function LeaderboardButton() {
                             className="block px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
                         >
                             <LuLayoutGrid className="inline mr-2 mb-1" />
-                            {messages.public_leaderboard || "Classement public"}
+                            {messages['navbar.public_leaderboard'] || "Classement public"}
                         </Link>
                         {user && (
                             <Link
@@ -70,7 +70,7 @@ export default function LeaderboardButton() {
                                 className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                             >
                                 <FaMedal className="inline mr-2 mb-1" />
-                                {messages.my_leaderboard || "Mon classement"}
+                                {messages['navbar.my_leaderboard'] || "Mon classement"}
                             </Link>
                         )}
                     </div>

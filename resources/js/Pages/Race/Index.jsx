@@ -8,6 +8,9 @@ import { useState, useMemo } from 'react';
  * Design consistent with Clubs and Raids listing pages
  */
 export default function Index({ auth, races }) {
+    const messages = usePage().props.translations?.messages || {};
+
+
     
     // Extract all races data for client-side filtering
     const allRaces = Array.isArray(races) ? races : [];
@@ -82,14 +85,14 @@ export default function Index({ auth, races }) {
      */
     const getStatusBadge = (race) => {
         if (!race.isOpen) {
-            return { text: 'Fermée', color: 'bg-red-600' };
+            return { text: messages['races.status_closed'] || 'Fermée', color: 'bg-red-600' };
         }
         const now = new Date();
         const startDate = new Date(race.race_date_start);
         if (startDate < now) {
-            return { text: 'Terminée', color: 'bg-gray-600' };
+            return { text: messages['races.status_finished'] || 'Terminée', color: 'bg-gray-600' };
         }
-        return { text: 'Ouverte', color: 'bg-green-600' };
+        return { text: messages['races.status_open'] || 'Ouverte', color: 'bg-green-600' };
     };
 
     /**
@@ -101,7 +104,7 @@ export default function Index({ auth, races }) {
 
     return (
         <PublicLayout user={auth?.user}>
-            <Head title="Calendrier des Courses" />
+            <Head title={messages['races.page_title'] || "Calendrier des Courses"} />
 
             <div className="min-h-screen bg-gray-50 py-12">
                 <div className="max-w-7xl mx-auto px-6">
@@ -110,10 +113,10 @@ export default function Index({ auth, races }) {
                         <div className="flex items-center justify-between mb-4">
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                                    Calendrier des Courses
+                                    {messages['races.page_title'] || "Calendrier des Courses"}
                                 </h1>
                                 <p className="text-gray-600">
-                                    Découvrez les prochaines épreuves d'orientation
+                                    {messages['races.page_subtitle'] || "Découvrez les prochaines épreuves d'orientation"}
                                 </p>
                             </div>
                         </div>
@@ -127,7 +130,7 @@ export default function Index({ auth, races }) {
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Rechercher une course par nom, lieu, raid ou club..."
+                                    placeholder={messages['races.search_placeholder'] || "Rechercher une course par nom, lieu, raid ou club..."}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 />
                             </div>
@@ -137,7 +140,7 @@ export default function Index({ auth, races }) {
                                     onClick={clearSearch}
                                     className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                 >
-                                    Effacer
+                                    {messages['races.clear'] || "Effacer"}
                                 </button>
                             )}
                         </div>
@@ -148,10 +151,10 @@ export default function Index({ auth, races }) {
                                 <p className="text-sm text-gray-600">
                                     {filteredRaces.length > 0 ? (
                                         <>
-                                            <span className="font-semibold text-gray-900">{filteredRaces.length}</span> course{filteredRaces.length > 1 ? 's' : ''} trouvée{filteredRaces.length > 1 ? 's' : ''} pour "<span className="font-medium">{searchQuery}</span>"
+                                            <span className="font-semibold text-gray-900">{filteredRaces.length}</span> {messages['races.results_found'] || `course${filteredRaces.length > 1 ? 's' : ''} trouvée${filteredRaces.length > 1 ? 's' : ''}`} {messages['races.for'] || "pour"} "<span className="font-medium">{searchQuery}</span>"
                                         </>
                                     ) : (
-                                        <>Aucune course trouvée pour "<span className="font-medium">{searchQuery}</span>"</>
+                                        <>{messages['races.no_results'] || "Aucune course trouvée"} {messages['races.for'] || "pour"} "<span className="font-medium">{searchQuery}</span>"</>
                                     )}
                                 </p>
                             </div>
@@ -165,19 +168,19 @@ export default function Index({ auth, races }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
                             </svg>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                {searchQuery ? 'Aucun résultat trouvé' : 'Aucune course disponible'}
+                                {searchQuery ? (messages['races.empty_search_title'] || 'Aucun résultat trouvé') : (messages['races.empty_title'] || 'Aucune course disponible')}
                             </h3>
                             <p className="text-gray-600 mb-6 max-w-md mx-auto">
                                 {searchQuery 
-                                    ? 'Essayez de modifier votre recherche ou effacez les filtres pour voir toutes les courses.'
-                                    : 'Il n\'y a actuellement aucune course prévue. Revenez bientôt pour découvrir de nouvelles épreuves !'}
+                                    ? (messages['races.empty_search_message'] || 'Essayez de modifier votre recherche ou effacez les filtres pour voir toutes les courses.')
+                                    : (messages['races.empty_message'] || 'Il n\'y a actuellement aucune course prévue. Revenez bientôt pour découvrir de nouvelles épreuves !')}
                             </p>
                             {searchQuery && (
                                 <button
                                     onClick={clearSearch}
                                     className="inline-flex items-center px-4 py-2 bg-important border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-opacity-90 focus:bg-opacity-90 active:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
                                 >
-                                    Voir toutes les courses
+                                    {messages['races.view_all'] || "Voir toutes les courses"}
                                 </button>
                             )}
                         </div>
@@ -268,7 +271,7 @@ export default function Index({ auth, races }) {
                                                 {/* CTA Button */}
                                                 <div className="mt-auto">
                                                     <button className="w-full inline-flex justify-center items-center px-4 py-2 bg-important border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-opacity-90 focus:bg-opacity-90 active:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                                        Voir les détails
+                                                        {messages['races.view_details'] || "Voir les détails"}
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 ml-2">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                                                         </svg>

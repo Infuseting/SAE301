@@ -46,7 +46,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                         <div className="space-y-2">
                             <Link href={route('raids.index')} className="text-emerald-100 hover:text-white flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-colors mb-4">
                                 <ChevronRight className="h-4 w-4 rotate-180" />
-                                Retour
+                                {messages['raid_detail.back'] || 'Retour'}
                             </Link>
                             <h1 className="text-4xl font-black text-white italic tracking-tighter">
                                 {raid?.raid_name.toUpperCase()}
@@ -58,12 +58,12 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                 </div>
                                 <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
                                     <Trophy className="h-3.5 w-3.5" />
-                                    {courses.length} Courses
+                                    {courses.length} {messages['raid_detail.courses'] || 'Courses'}
                                 </div>
                                 {isRaidManager && (
                                     <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
                                         <Users className="h-3.5 w-3.5" />
-                                        {registeredMembers.length} Inscrit{registeredMembers.length > 1 ? 's' : ''}
+                                        {registeredMembers.length} {messages['raid_detail.registered'] || 'Inscrit'}{registeredMembers.length > 1 ? 's' : ''}
                                     </div>
                                 )}
                             </div>
@@ -74,7 +74,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                 <a href={`/raids/${raid.raid_id}/start-list`} target="_blank" rel="noopener noreferrer">
                                     <button className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 px-6 py-3 rounded-2xl font-black text-sm transition-all flex items-center gap-2 border border-white/20">
                                         <FileText className="h-4 w-4" />
-                                        START-LIST PDF
+                                        {messages['raid_detail.start_list_pdf'] || 'START-LIST PDF'}
                                     </button>
                                 </a>
                             )}
@@ -82,7 +82,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                 <Link href={route('raids.edit', raid.raid_id)}>
                                     <button className="bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 rounded-2xl font-black text-sm transition-all shadow-xl shadow-emerald-900/20 flex items-center gap-2">
                                         <Settings className="h-4 w-4" />
-                                        PARAMÈTRES
+                                        {messages['raid_detail.settings'] || 'PARAMÈTRES'}
                                     </button>
                                 </Link>
                             )}
@@ -103,23 +103,23 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                 <div className="bg-white rounded-3xl border border-emerald-100 p-6 shadow-sm space-y-4">
                                     <h3 className="text-xs font-black text-emerald-900 flex items-center uppercase tracking-widest">
                                         <Users className="h-4 w-4 mr-2 text-emerald-500" />
-                                        Membres inscrits
+                                        {messages['raid_detail.registered_members'] || 'Membres inscrits'}
                                     </h3>
 
                                     {registeredMembers.length === 0 ? (
                                         <div className="text-center py-6">
                                             <Users className="h-10 w-10 text-gray-300 mx-auto mb-3" />
                                             <p className="text-sm font-semibold text-gray-500">
-                                                Aucun membre inscrit
+                                                {messages['raid_detail.no_members'] || 'Aucun membre inscrit'}
                                             </p>
                                             <p className="text-xs text-gray-400 mt-1">
-                                                Les inscriptions apparaîtront ici
+                                                {messages['raid_detail.registrations_here'] || 'Les inscriptions apparaîtront ici'}
                                             </p>
                                         </div>
                                     ) : (
                                         <>
                                             <p className="text-xs text-emerald-700 font-semibold">
-                                                {registeredMembers.length} participant{registeredMembers.length > 1 ? 's' : ''} inscrit{registeredMembers.length > 1 ? 's' : ''}
+                                                {registeredMembers.length} {messages['raid_detail.participant'] || 'participant'}{registeredMembers.length > 1 ? 's' : ''} {messages['raid_detail.registered'] || 'inscrit'}{registeredMembers.length > 1 ? 's' : ''}
                                             </p>
 
                                             {/* Preview of first 3 members */}
@@ -145,7 +145,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-2xl font-black text-xs transition-all shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 uppercase tracking-widest"
                                             >
                                                 <Users className="h-4 w-4" />
-                                                {hasMoreMembers ? `Voir tous les ${registeredMembers.length} membres` : 'Voir les détails'}
+                                                {hasMoreMembers ? `${messages['raid_detail.view_all'] || 'Voir tous les'} ${registeredMembers.length} ${messages['raid_detail.members'] || 'membres'}` : (messages['raid_detail.view_details'] || 'Voir les détails')}
                                             </button>
                                         </>
                                     )}
@@ -159,7 +159,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                             <div className="bg-white rounded-3xl border border-blue-100 p-8 shadow-sm space-y-6">
                                 <h3 className="text-xs font-black text-blue-900 flex items-center uppercase tracking-widest">
                                     <Info className="h-4 w-4 mr-2 text-blue-500" />
-                                    Description
+                                    {messages['raid_detail.description'] || 'Description'}
                                 </h3>
                                 <p className="text-sm text-blue-800/70 leading-relaxed italic">
                                     "{raid.raid_description}"
@@ -168,7 +168,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                 {raid.raid_site_url && (
                                     <div className="pt-4">
                                         <a href={raid.raid_site_url} target="_blank" className="inline-flex items-center text-xs font-bold text-blue-600 hover:text-blue-700 group">
-                                            Visiter le site officiel
+                                            {messages['raid_detail.visit_official_site'] || 'Visiter le site officiel'}
                                             <ChevronRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
                                         </a>
                                     </div>
@@ -178,17 +178,17 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
                                     <h2 className="text-2xl font-black text-blue-900 flex items-center gap-3 italic">
-                                        COURSES DISPONIBLES
+                                        {messages['raid_detail.available_courses'] || 'COURSES DISPONIBLES'}
                                     </h2>
                                     <p className="text-xs font-bold text-blue-700/40 uppercase tracking-widest">
-                                        {courses.length} COURSE{courses.length > 1 ? 'S' : ''}
+                                        {courses.length} {messages['raid_detail.course'] || 'COURSE'}{courses.length > 1 ? 'S' : ''}
                                     </p>
                                 </div>
                                 {canAddRace && (
                                     <Link href={route('races.create', { raid_id: raid.raid_id })}>
                                         <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-black text-xs transition-all shadow-xl shadow-blue-200 flex items-center gap-2">
                                             <Plus className="h-4 w-4" />
-                                            NOUVELLE COURSE
+                                            {messages['raid_detail.new_course'] || 'NOUVELLE COURSE'}
                                         </button>
                                     </Link>
                                 )}
@@ -216,7 +216,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                                     course.is_open ? 'bg-emerald-500/90 text-white border-emerald-400' :
                                                         'bg-blue-600/90 text-white border-blue-400'
                                                     }`}>
-                                                    {course.is_finished ? 'Terminée' : course.is_open ? 'Ouvert' : 'À venir'}
+                                                    {course.is_finished ? (messages['raid_detail.finished'] || 'Terminée') : course.is_open ? (messages['raid_detail.open'] || 'Ouvert') : (messages['raid_detail.upcoming'] || 'À venir')}
                                                 </span>
                                             </div>
                                         </div>
@@ -228,7 +228,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                                         {course.name}
                                                     </h3>
                                                     <p className="text-[10px] font-black text-blue-800/30 uppercase tracking-[0.2em]">
-                                                        ORGANISÉ PAR {course.organizer_name}
+                                                        {messages['raid_detail.organized_by'] || 'ORGANISÉ PAR'} {course.organizer_name}
                                                     </p>
                                                 </div>
                                                 <div className="bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
@@ -240,7 +240,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
 
                                             <div className="grid grid-cols-2 gap-4 mb-8">
                                                 <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-                                                    <p className="text-[10px] text-blue-900/30 font-black uppercase tracking-widest mb-1">Date & Heure</p>
+                                                    <p className="text-[10px] text-blue-900/30 font-black uppercase tracking-widest mb-1">{messages['raid_detail.date_time'] || 'Date & Heure'}</p>
                                                     <p className="text-xs font-bold text-blue-900">
                                                         {new Date(course.start_date).toLocaleDateString()}
                                                     </p>
@@ -249,7 +249,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                                     </p>
                                                 </div>
                                                 <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-                                                    <p className="text-[10px] text-blue-900/30 font-black uppercase tracking-widest mb-1">Durée</p>
+                                                    <p className="text-[10px] text-blue-900/30 font-black uppercase tracking-widest mb-1">{messages['raid_detail.duration'] || 'Durée'}</p>
                                                     <p className="text-xs font-bold text-blue-900">{course.duration_minutes} MIN</p>
                                                 </div>
                                             </div>
@@ -257,7 +257,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                             {/* Age Categories Details */}
                                             {course.ageCategories.length > 0 && (
                                                 <div className="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 mb-6">
-                                                    <p className="text-[10px] text-emerald-900/50 font-black uppercase tracking-widest mb-2">Catégories acceptées</p>
+                                                    <p className="text-[10px] text-emerald-900/50 font-black uppercase tracking-widest mb-2">{messages['raid_detail.accepted_categories'] || 'Catégories acceptées'}</p>
                                                     <div className="flex flex-wrap gap-2">
                                                         {course.ageCategories.map((cat) => (
                                                             <span key={cat.id} className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-lg">
@@ -277,9 +277,9 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                                         : 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-200'
                                                         }`}>
                                                         {course.is_finished 
-                                                            ? 'Consulter les résultats' 
+                                                            ? (messages['raid_detail.view_results'] || 'Consulter les résultats') 
                                                             : course.is_registered 
-                                                            ? 'Voir mon inscription' 
+                                                            ? (messages['raid_detail.view_my_registration'] || 'Voir mon inscription') 
                                                             : course.is_open 
                                                             ? "S'inscrire" 
                                                             : 'Plus de détails'}
@@ -305,9 +305,9 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                     <div className="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <Trophy className="w-10 h-10 text-blue-200" />
                                     </div>
-                                    <h3 className="text-xl font-black text-blue-900 italic">AUCUNE COURSE</h3>
+                                    <h3 className="text-xl font-black text-blue-900 italic">{messages['raid_detail.no_courses'] || 'AUCUNE COURSE'}</h3>
                                     <p className="text-sm text-blue-700/40 max-w-xs mx-auto font-bold uppercase tracking-widest">
-                                        Aucune course n'est disponible pour ce raid pour le moment.
+                                        {messages['raid_detail.no_courses_message'] || "Aucune course n'est disponible pour ce raid pour le moment."}
                                     </p>
                                 </div>
                             )}
