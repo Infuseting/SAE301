@@ -36,9 +36,9 @@ export default function RegisteredMembersModal({ isOpen, onClose, members = [] }
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-3xl bg-white p-8 text-left align-middle shadow-xl transition-all">
+                            <Dialog.Panel className="w-full max-w-2xl max-h-[90vh] transform overflow-hidden rounded-3xl bg-white text-left align-middle shadow-xl transition-all flex flex-col">
                                 {/* Header */}
-                                <div className="flex items-start justify-between mb-6">
+                                <div className="flex items-start justify-between p-8 pb-4 flex-shrink-0">
                                     <div className="flex items-center gap-3">
                                         <div className="bg-emerald-100 p-3 rounded-2xl">
                                             <Users className="h-6 w-6 text-emerald-600" />
@@ -65,7 +65,7 @@ export default function RegisteredMembersModal({ isOpen, onClose, members = [] }
                                 </div>
 
                                 {/* Members List */}
-                                <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                                <div className="space-y-3 overflow-y-auto px-8 pb-8 flex-1">
                                     {members.length === 0 ? (
                                         <div className="text-center py-12">
                                             <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
