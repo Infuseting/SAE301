@@ -824,7 +824,7 @@ class LeaderboardService
         $query = LeaderboardTeam::with([
                 'team' => function ($q) {
                     $q->select('equ_id', 'equ_name', 'equ_image')
-                      ->with(['users:id,first_name,last_name', 'participants:id,first_name,last_name']);
+                      ->with(['users:id,first_name,last_name']);
                 },
                 'race' => function ($q) {
                     $q->select('race_id', 'race_name', 'race_date_start')->with('ageCategories:id,nom');
@@ -1004,7 +1004,7 @@ class LeaderboardService
         $query = LeaderboardTeam::with([
                 'team' => function ($q) {
                     $q->select('equ_id', 'equ_name', 'equ_image')
-                      ->with(['users:id,first_name,last_name', 'participants:id,first_name,last_name']);
+                      ->with(['users:id,first_name,last_name']);
                 },
                 'race' => function ($q) {
                     $q->select('race_id', 'race_name', 'race_date_start')->with('ageCategories:id,nom');
@@ -1038,27 +1038,15 @@ class LeaderboardService
                 $calculatedPoints = $this->calculateSimplePointsForRank($rank, $totalInRace);
             }
             
-            // Get team members list - try both relations (users via id_users, participants via id)
+            // Get team members list from users relation
             $members = [];
-            if ($item->team) {
-                // Try 'users' relation first (id_users column)
-                if ($item->team->users && $item->team->users->isNotEmpty()) {
-                    $members = $item->team->users->map(function ($user) {
-                        return [
-                            'id' => $user->id,
-                            'name' => $user->first_name . ' ' . $user->last_name,
-                        ];
-                    })->toArray();
-                }
-                // Fallback to 'participants' relation (id column)
-                elseif ($item->team->participants && $item->team->participants->isNotEmpty()) {
-                    $members = $item->team->participants->map(function ($user) {
-                        return [
-                            'id' => $user->id,
-                            'name' => $user->first_name . ' ' . $user->last_name,
-                        ];
-                    })->toArray();
-                }
+            if ($item->team && $item->team->users && $item->team->users->isNotEmpty()) {
+                $members = $item->team->users->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                    ];
+                })->toArray();
             }
 
             // Get age category from race relation

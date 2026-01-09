@@ -3653,10 +3653,10 @@ class LeaderboardServiceTest extends TestCase
         $user1 = User::factory()->create(['first_name' => 'Alice', 'last_name' => 'Smith']);
         $user2 = User::factory()->create(['first_name' => 'Bob', 'last_name' => 'Jones']);
         
-        // Link users to team via has_participate (using id column)
+        // Link users to team via has_participate (using id_users column)
         \DB::table('has_participate')->insert([
-            ['id' => $user1->id, 'equ_id' => $team->equ_id, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => $user2->id, 'equ_id' => $team->equ_id, 'created_at' => now(), 'updated_at' => now()],
+            ['id_users' => $user1->id, 'equ_id' => $team->equ_id, 'created_at' => now(), 'updated_at' => now()],
+            ['id_users' => $user2->id, 'equ_id' => $team->equ_id, 'created_at' => now(), 'updated_at' => now()],
         ]);
 
         LeaderboardTeam::create([
