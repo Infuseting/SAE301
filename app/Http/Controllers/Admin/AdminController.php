@@ -13,7 +13,7 @@ use Spatie\Activitylog\Models\Activity;
 class AdminController extends Controller
 {
     // ... méthode index() inchangée ...
-    public function index()
+    public function index(): \Inertia\Response|\Illuminate\Http\RedirectResponse
 
     {
         try {
@@ -64,7 +64,7 @@ class AdminController extends Controller
     }
     
 
-    public function racemanagement()
+    public function racemanagement(): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
         try {
             $user = Auth::user();
@@ -91,7 +91,7 @@ class AdminController extends Controller
         }
     }
 
-    public function raidmanagement()
+    public function raidmanagement(): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
         try {
             $user = Auth::user();
@@ -120,25 +120,34 @@ class AdminController extends Controller
      * Display the club management page for responsable-club users.
      * Admins can see all clubs, others only clubs where they are leader or manager.
      *
-     * @return \Inertia\Response
+     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
      */
-    public function clubmanagement()
+    public function clubmanagement(): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        // Admins can see all clubs, others only their managed clubs
-        if ($user->hasRole('admin')) {
-            $clubs = Club::with('members:id,first_name,last_name,email')->get();
-        } else {
-            // Get clubs where user is leader or manager
-            $clubs = Club::whereHas('members', function ($query) use ($user) {
-                $query->where('user_id', $user->id)
-                      ->whereIn('role', ['leader', 'manager']);
-            })->with('members:id,first_name,last_name,email')->get();
+            // Admins can see all clubs, others only their managed clubs
+            if ($user->hasRole('admin')) {
+                $clubs = Club::with('members:id,first_name,last_name,email')->get();
+            } else {
+                // Get clubs where user is leader or manager
+                $clubs = Club::whereHas('members', function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                          ->whereIn('role', ['leader', 'manager']);
+                })->with('members:id,first_name,last_name,email')->get();
+            }
+
+            return inertia('Admin/ClubManagement', [
+                'clubs' => $clubs,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Admin club management error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('admin.dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès à la gestion des clubs.']);
         }
-
-        return inertia('Admin/ClubManagement', [
-            'clubs' => $clubs,
-        ]);
     }
 }
