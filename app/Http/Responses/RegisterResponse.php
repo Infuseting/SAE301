@@ -2,10 +2,14 @@
 
 namespace App\Http\Responses;
 
+use Inertia\Inertia;
 use Illuminate\Http\JsonResponse;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Fortify;
 
+/**
+ * Custom register response to handle pending invitations and custom redirects.
+ */
 class RegisterResponse implements RegisterResponseContract
 {
     /**
@@ -16,16 +20,24 @@ class RegisterResponse implements RegisterResponseContract
      */
     public function toResponse($request)
     {
-        $redirectUri = $request->input('redirect_uri');
-
+        // Handle JSON responses
         if ($request->wantsJson()) {
             return new JsonResponse('', 201);
         }
 
-        if ($redirectUri && filter_var($redirectUri, FILTER_VALIDATE_URL) && str_starts_with($redirectUri, url('/'))) {
-             return redirect()->to($redirectUri);
+        // Priority 1: Check for pending invitation token in session
+        $token = session()->pull('pending_invitation_token');
+        if ($token) {
+            return Inertia::location(route('invitations.accept', $token));
         }
 
+        // Priority 2: Check for custom redirect_uri (with security validation)
+        $redirectUri = $request->input('redirect_uri');
+        if ($redirectUri && filter_var($redirectUri, FILTER_VALIDATE_URL) && str_starts_with($redirectUri, url('/'))) {
+            return redirect()->to($redirectUri);
+        }
+
+        // Priority 3: Default redirection
         return redirect()->intended(Fortify::redirects('register'));
     }
 }

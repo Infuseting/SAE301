@@ -58,6 +58,9 @@ Route::get('/leaderboard/export/{raceId}', [LeaderboardController::class, 'expor
 // Clubs public routes (no auth required)
 Route::get('/clubs', [ClubController::class, 'index'])->name('clubs.index');
 Route::get('/clubs/{club}', [ClubController::class, 'show'])->whereNumber('club')->name('clubs.show');
+// Invitation routes
+Route::get('/invitations/accept/{token}', [TeamController::class, 'showAcceptInvitation'])->name('invitations.show');
+Route::post('/invitations/accept/{token}', [TeamController::class, 'acceptInvitation'])->name('invitations.accept')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
     // Profile routes - always accessible (needed to update licence)

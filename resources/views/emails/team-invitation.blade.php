@@ -5,7 +5,11 @@ Bonjour,
 
 {{ $inviterName }} vous invite à rejoindre l'équipe **{{ $teamName }}**.
 
-<x-mail::button :url="url('/')">
+@php
+$inviteUrl = url('/invitations/accept/' . $token);
+@endphp
+
+<x-mail::button :url="$inviteUrl">
 Rejoindre l'équipe
 </x-mail::button>
 
