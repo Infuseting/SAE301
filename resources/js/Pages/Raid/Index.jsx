@@ -272,9 +272,17 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                                 <Link href={route('races.show', course.id)} className="flex-1">
                                                     <button className={`w-full py-4 rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2 tracking-widest uppercase ${course.is_finished
                                                         ? 'bg-blue-900 text-white hover:bg-black shadow-xl shadow-blue-900/20'
+                                                        : course.is_registered
+                                                        ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-200'
                                                         : 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-200'
                                                         }`}>
-                                                        {course.is_finished ? 'Consulter les résultats' : course.is_open ? "S'inscrire" : 'Plus de détails'}
+                                                        {course.is_finished 
+                                                            ? 'Consulter les résultats' 
+                                                            : course.is_registered 
+                                                            ? 'Voir mon inscription' 
+                                                            : course.is_open 
+                                                            ? "S'inscrire" 
+                                                            : 'Plus de détails'}
                                                         <ChevronRight className="h-4 w-4" />
                                                     </button>
                                                 </Link>
