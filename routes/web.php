@@ -111,8 +111,8 @@ Route::middleware(['auth', 'role:adherent|admin', 'manager_licence'])->group(fun
     Route::delete('/clubs/{club}', [ClubController::class, 'destroy'])->name('clubs.destroy');
 });
 
-// Raids routes - require gestionnaire-raid role (or admin) + valid licence
-Route::middleware(['auth', 'role:gestionnaire-raid|admin', 'manager_licence'])->group(function () {
+// Raids routes - require gestionnaire-raid, responsable-club role (or admin) + valid licence
+Route::middleware(['auth', 'role:gestionnaire-raid|responsable-club|admin', 'manager_licence'])->group(function () {
     Route::get('/raids/create', [RaidController::class, 'create'])->name('raids.create');
     Route::post('/raids', [RaidController::class, 'store'])->name('raids.store');
     Route::get('/raids/{raid}/edit', [RaidController::class, 'edit'])->name('raids.edit');
