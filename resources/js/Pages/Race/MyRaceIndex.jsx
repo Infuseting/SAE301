@@ -17,7 +17,7 @@ function formatTime(seconds) {
     return `${minutes}m ${secs}s`;
 }
 
-function MyRaceCard({ race, isRegistered = false }) {
+function MyRaceCard({ race, isRegistered = false, messages = {} }) {
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
         return new Date(dateString).toLocaleDateString("fr-FR", {
@@ -237,6 +237,7 @@ export default function MyRaceIndex({ races = [], registers = [], currentPeriod 
                                         key={race.id}
                                         race={race}
                                         isRegistered={false}
+                                        messages={messages}
                                     />
                                 ))}
                             </div>
@@ -262,6 +263,7 @@ export default function MyRaceIndex({ races = [], registers = [], currentPeriod 
                                         key={register.id}
                                         race={register}
                                         isRegistered={true}
+                                        messages={messages}
                                     />
                                 ))}
                             </div>
