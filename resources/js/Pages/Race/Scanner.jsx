@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { QrCode, Camera, CheckCircle, XCircle, Users, TrendingUp, AlertCircle, Trophy, Loader } from 'lucide-react';
@@ -9,6 +9,7 @@ import { QrCode, Camera, CheckCircle, XCircle, Users, TrendingUp, AlertCircle, T
  * Allows race managers to scan team QR codes and mark them as present
  */
 export default function Scanner({ race, stats }) {
+    const page = usePage();
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
     const [error, setError] = useState(null);
@@ -123,7 +124,7 @@ export default function Scanner({ race, stats }) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-CSRF-TOKEN': page.props.csrf_token || document.querySelector('meta[name="csrf-token"]')?.content || '',
                 },
                 body: JSON.stringify({
                     equ_id: qrData.equ_id,
