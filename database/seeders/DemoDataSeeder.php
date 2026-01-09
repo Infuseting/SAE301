@@ -35,6 +35,9 @@ class DemoDataSeeder extends Seeder
         // 2. Clubs
         $clubIds = $this->createDemoClubs($adminUserId);
         
+        // 2.1. Add members to clubs
+        $this->addClubMembers($clubIds);
+        
         // 3. Raids & Races
         $raceIds = $this->createDemoRaidsAndRaces($clubIds, $registrationPeriodId, $paramRunnerId, $paramTeamId, $paramTypeId);
         
@@ -66,6 +69,10 @@ class DemoDataSeeder extends Seeder
         DB::table('teams')->whereBetween('equ_id', [self::ID_START, self::ID_END])->delete();
         DB::table('races')->whereBetween('race_id', [self::ID_START, self::ID_END])->delete();
         DB::table('raids')->whereBetween('raid_id', [self::ID_START, self::ID_END])->delete();
+        
+        // Delete club_user entries before clubs
+        DB::table('club_user')->whereBetween('club_id', [self::ID_START, self::ID_END])->delete();
+        
         DB::table('clubs')->whereBetween('club_id', [self::ID_START, self::ID_END])->delete();
         DB::table('users')->whereBetween('id', [self::ID_START, self::ID_END])->delete();
         DB::table('members')->whereBetween('adh_id', [self::ID_START, self::ID_END])->delete();
@@ -108,6 +115,32 @@ class DemoDataSeeder extends Seeder
             $clubIds[] = $clubData['club_id'];
         }
         return $clubIds;
+    }
+
+    /**
+     * Add members to clubs using club_user table
+     */
+    private function addClubMembers(array $clubIds): void
+    {
+        // Add Claire DUPONT (635) and Paul DORBEC (645) to CO Azimut 77 (601)
+        $coAzimutId = self::ID_START + 1; // CO Azimut 77
+        $clubMembers = [
+            ['club_id' => $coAzimutId, 'user_id' => self::ID_START + 35, 'role' => 'manager'], // Claire DUPONT
+            ['club_id' => $coAzimutId, 'user_id' => self::ID_START + 45, 'role' => 'member'], // Paul DORBEC
+        ];
+
+        foreach ($clubMembers as $member) {
+            DB::table('club_user')->insertOrIgnore([
+                'club_id' => $member['club_id'],
+                'user_id' => $member['user_id'],
+                'role' => $member['role'],
+                'status' => 'approved',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $this->command->info('Added members to clubs.');
     }
 
     private function createDemoRaidsAndRaces(array $clubIds, int $registrationPeriodId, int $pacId, int $paeId, int $typId): array
@@ -235,29 +268,29 @@ class DemoDataSeeder extends Seeder
     private function createDemoUsers(): array
     {
         $membersData = [
-            ['adh_id' => self::ID_START + 30, 'name' => 'MARTIN', 'firstname' => 'Julien', 'licence' => '77001234', 'email' => 'julien.martin@test.fr'],
-            ['adh_id' => self::ID_START + 31, 'name' => 'DUMONT', 'firstname' => 'Clara', 'licence' => '25004567', 'email' => 'c.dumont@email.fr'],
-            ['adh_id' => self::ID_START + 32, 'name' => 'PETIT', 'firstname' => 'Antoine', 'licence' => '2025-T1L1F3', 'email' => 'antoine.petit@gmail.com'],
-            ['adh_id' => self::ID_START + 33, 'name' => 'MARVELI', 'firstname' => 'Sandra', 'licence' => '64005678', 'email' => 'sandra.m60@wanadoo.fr'],
-            ['adh_id' => self::ID_START + 34, 'name' => 'BERNARD', 'firstname' => 'Lucas', 'licence' => '91002345', 'email' => 'lucas.bernard@test.fr'],
-            ['adh_id' => self::ID_START + 35, 'name' => 'DUPONT', 'firstname' => 'Claire', 'licence' => '1204558', 'email' => 'claire.dupont@test.fr'],
+            ['adh_id' => self::ID_START + 30, 'name' => 'MARTIN', 'firstname' => 'Julien', 'licence' => '770012', 'email' => 'julien.martin@test.fr'],
+            ['adh_id' => self::ID_START + 31, 'name' => 'DUMONT', 'firstname' => 'Clara', 'licence' => '250045', 'email' => 'c.dumont@email.fr'],
+            ['adh_id' => self::ID_START + 32, 'name' => 'PETIT', 'firstname' => 'Antoine', 'licence' => '20251', 'email' => 'antoine.petit@gmail.com'],
+            ['adh_id' => self::ID_START + 33, 'name' => 'MARVELI', 'firstname' => 'Sandra', 'licence' => '64005', 'email' => 'sandra.m60@wanadoo.fr'],
+            ['adh_id' => self::ID_START + 34, 'name' => 'BERNARD', 'firstname' => 'Lucas', 'licence' => '91002', 'email' => 'lucas.bernard@test.fr'],
+            ['adh_id' => self::ID_START + 35, 'name' => 'DUPONT', 'firstname' => 'Claire', 'licence' => '12048', 'email' => 'claire.dupont@test.fr'],
             ['adh_id' => self::ID_START + 36, 'name' => 'LEFEBVRE', 'firstname' => 'Thomas', 'licence' => '2298741', 'email' => 't.lefebvre@orange.fr'],
-            ['adh_id' => self::ID_START + 37, 'name' => 'MOREAU', 'firstname' => 'Sophie', 'licence' => '6003214', 'email' => 'sophie.moreau@test.fr'],
+            ['adh_id' => self::ID_START + 37, 'name' => 'MOREAU', 'firstname' => 'Sophie', 'licence' => '60032', 'email' => 'sophie.moreau@test.fr'],
             ['adh_id' => self::ID_START + 38, 'name' => 'LEROY', 'firstname' => 'Thomas', 'licence' => '', 'email' => 'thomas.leroy@test.fr'],
             
             // CORRECTION: Julie Garnier - Pas de licence (vide)
             ['adh_id' => self::ID_START + 39, 'name' => 'GARNIER', 'firstname' => 'Julie', 'licence' => '', 'email' => 'julie.garnier@outlook.com'],
             
             ['adh_id' => self::ID_START + 40, 'name' => 'ROUSSEAU', 'firstname' => 'Marc', 'licence' => '6700548', 'email' => 'm.rousseau@sfr.fr'],
-            ['adh_id' => self::ID_START + 41, 'name' => 'FONTAINE', 'firstname' => 'Hugo', 'licence' => '91006754', 'email' => 'hugo.fontaine@test.fr'],
+            ['adh_id' => self::ID_START + 41, 'name' => 'FONTAINE', 'firstname' => 'Hugo', 'licence' => '910067', 'email' => 'hugo.fontaine@test.fr'],
             ['adh_id' => self::ID_START + 42, 'name' => 'CARON', 'firstname' => 'Léa', 'licence' => '', 'email' => 'lea.caron@test.fr'],
-            ['adh_id' => self::ID_START + 43, 'name' => 'PETIT', 'firstname' => 'Emma', 'licence' => '77009876', 'email' => 'emma.petit@test.fr'],
-            ['adh_id' => self::ID_START + 45, 'name' => 'DORBEC', 'firstname' => 'Paul', 'licence' => '23456789', 'email' => 'paul.dorbec@unicaen.fr'],
+            ['adh_id' => self::ID_START + 43, 'name' => 'PETIT', 'firstname' => 'Emma', 'licence' => '77009', 'email' => 'emma.petit@test.fr'],
+            ['adh_id' => self::ID_START + 45, 'name' => 'DORBEC', 'firstname' => 'Paul', 'licence' => '234567', 'email' => 'paul.dorbec@unicaen.fr'],
             ['adh_id' => self::ID_START + 46, 'name' => 'JACQUIER', 'firstname' => 'Yohann', 'licence' => '', 'email' => 'yohann.jacquier@unicaen.fr'],
-            ['adh_id' => self::ID_START + 47, 'name' => 'DELHOUMI', 'firstname' => 'Sylvian', 'licence' => '2025-D2S1I3', 'email' => 'sylvian.delhoumi@unicaen.fr'],
+            ['adh_id' => self::ID_START + 47, 'name' => 'DELHOUMI', 'firstname' => 'Sylvian', 'licence' => '202521', 'email' => 'sylvian.delhoumi@unicaen.fr'],
             ['adh_id' => self::ID_START + 48, 'name' => 'ANNE', 'firstname' => 'Jean-François', 'licence' => '56723478', 'email' => 'jeanfrancois.anne@unicaen.fr'],
         ];
-
+        
         $userIds = [];
         
         // IMPORTANT: Create members FIRST (for FK constraints in races.adh_id -> members.adh_id)
