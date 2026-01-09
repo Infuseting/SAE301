@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Invitation;
 use App\Mail\TeamInvitation;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use OpenApi\Annotations as OA;
 
@@ -489,5 +490,79 @@ class TeamController extends Controller
         $invitation->update(['status' => 'accepted', 'invitee_id' => auth()->id()]);
 
         return redirect()->route('teams.show', $team->equ_id)->with('success', 'Vous avez rejoint l\'équipe!');
+    }
+
+    /**
+     * Download QR code image with permission verification
+     * 
+     * Only team members and leaders can download QR codes
+     * 
+     * @OA\Get(
+     *     path="/teams/{team}/registration/{registration}/qr-code",
+     *     summary="Download QR code image",
+     *     tags={"Teams"},
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="registration",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="QR code image"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Must be team member"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="QR code not found"
+     *     ),
+     *     security={{"apiAuth": {}}}
+     * )
+     */
+    public function downloadQrCode(Team $team, int $registrationId)
+    {
+        $user = auth()->user();
+        
+        // Check if user is team leader or member
+        $isTeamLeader = $team->user_id === $user->id;
+        $isTeamMember = $team->users()->where('users.id', $user->id)->exists();
+        
+        if (!$isTeamLeader && !$isTeamMember) {
+            abort(403, 'Unauthorized. You must be a team member to access this QR code.');
+        }
+
+        // Get registration to verify it belongs to this team
+        $registration = \App\Models\Registration::where('reg_id', $registrationId)
+            ->where('equ_id', $team->equ_id)
+            ->firstOrFail();
+
+        // Check if QR code path exists
+        if (empty($registration->qr_code_path)) {
+            abort(404, 'QR code not found');
+        }
+
+        // Verify the file exists on disk
+        if (!Storage::disk('public')->exists($registration->qr_code_path)) {
+            abort(404, 'QR code file not found');
+        }
+
+        // Return the file as a response
+        return response(
+            Storage::disk('public')->get($registration->qr_code_path),
+            200,
+            [
+                'Content-Type' => 'image/svg+xml',
+                'Content-Disposition' => 'inline; filename="qr_code_' . $registration->reg_id . '.svg"'
+            ]
+        );
     }
 }

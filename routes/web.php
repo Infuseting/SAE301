@@ -121,6 +121,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/participants/{participant}/verify-pps', [App\Http\Controllers\Team\TeamRunnerController::class, 'verifyPps'])->name('participants.verifyPps');
     // Show registration ticket with QR code
     Route::get('/teams/{team}/registration/{registration}', [TeamController::class, 'showRegistrationTicket'])->name('teams.registration.ticket');
+    // Download QR code with permission verification
+    Route::get('/teams/{team}/registration/{registration}/qr-code', [TeamController::class, 'downloadQrCode'])->name('teams.registration.qr-code');
 });
 
 // Team management - accessible to team leaders and admins
