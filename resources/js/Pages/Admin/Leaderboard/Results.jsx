@@ -54,7 +54,6 @@ export default function LeaderboardResults({ results, raceId, race, type, search
                 average_temps: result.average_temps_formatted || '',
                 average_malus: result.average_malus_formatted || '',
                 points: result.points || 0,
-                category: result.category || '',
                 puce: result.puce || '',
             });
         } else {
@@ -331,13 +330,9 @@ export default function LeaderboardResults({ results, raceId, race, type, search
                                                 {isTeamView && (
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                            result.age_category ? 'bg-indigo-100 text-indigo-800' :
-                                                            result.category === 'Masculin' ? 'bg-blue-100 text-blue-800' :
-                                                            result.category === 'Féminin' ? 'bg-pink-100 text-pink-800' :
-                                                            result.category === 'Mixte' ? 'bg-purple-100 text-purple-800' :
-                                                            'bg-gray-100 text-gray-800'
+                                                            result.age_category ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'
                                                         }`}>
-                                                            {result.age_category || result.category || '-'}
+                                                            {result.age_category || '-'}
                                                         </span>
                                                     </td>
                                                 )}
@@ -542,21 +537,6 @@ export default function LeaderboardResults({ results, raceId, race, type, search
                                                 min="0"
                                                 className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                             />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                {messages.category || 'Catégorie'}
-                                            </label>
-                                            <select
-                                                value={editForm.category}
-                                                onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                            >
-                                                <option value="">{messages.none || '-'}</option>
-                                                <option value="Masculin">{messages.male || 'Masculin'}</option>
-                                                <option value="Féminin">{messages.female || 'Féminin'}</option>
-                                                <option value="Mixte">{messages.mixed || 'Mixte'}</option>
-                                            </select>
                                         </div>
                                     </div>
 

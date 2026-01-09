@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Race;
 
 use App\Http\Controllers\Controller;
 use App\Models\Race;
+use App\Models\LeaderboardTeam;
 use Inertia\Inertia;
 
 /**
@@ -376,6 +377,12 @@ class VisuRaceController extends Controller
 
         $raceData['alreadyRegistered'] = $alreadyRegistered;
 
+        // Determine race phase for UI display
+        $racePhase = $this->getRacePhase($race);
+        
+        // Check if results have been uploaded
+        $hasResults = LeaderboardTeam::where('race_id', $race->race_id)->exists();
+
         return Inertia::render('Race/VisuRace', [
             'race' => $raceData,
             'isManager' => $isRaceManager,
@@ -383,7 +390,51 @@ class VisuRaceController extends Controller
             'userTeams' => $userTeams,
             'registeredByLeader' => $registeredByLeader,
             'registeredTeam' => $registeredTeam,
+            'racePhase' => $racePhase,
+            'hasResults' => $hasResults,
         ]);
+    }
+
+    /**
+     * Determine the current phase of the race.
+     *
+     * @param Race $race
+     * @return string 'registration' | 'pre_race' | 'racing' | 'post_race'
+     */
+    private function getRacePhase(Race $race): string
+    {
+        $now = now();
+        
+        // Check registration period
+        $regStart = $race->raid?->registrationPeriod?->ins_start_date;
+        $regEnd = $race->raid?->registrationPeriod?->ins_end_date;
+        
+        // Check race dates
+        $raceStart = $race->race_date_start;
+        $raceEnd = $race->race_date_end;
+        
+        // Registration phase: during registration period
+        if ($regStart && $regEnd && $now >= $regStart && $now <= $regEnd) {
+            return 'registration';
+        }
+        
+        // Pre-race phase: after registration ends but before race starts
+        if ($regEnd && $raceStart && $now > $regEnd && $now < $raceStart) {
+            return 'pre_race';
+        }
+        
+        // Racing phase: during the race
+        if ($raceStart && $raceEnd && $now >= $raceStart && $now <= $raceEnd) {
+            return 'racing';
+        }
+        
+        // Post-race phase: after race ends
+        if ($raceEnd && $now > $raceEnd) {
+            return 'post_race';
+        }
+        
+        // Default to registration if dates not set
+        return 'registration';
     }
 
     /**

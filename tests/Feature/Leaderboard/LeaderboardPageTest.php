@@ -309,7 +309,6 @@ class LeaderboardPageTest extends TestCase
             'average_malus' => 0,
             'average_temps_final' => 3600,
             'member_count' => 2,
-            'category' => 'Masculin',
         ]);
         
         LeaderboardTeam::create([
@@ -319,7 +318,6 @@ class LeaderboardPageTest extends TestCase
             'average_malus' => 0,
             'average_temps_final' => 3700,
             'member_count' => 3,
-            'category' => 'Mixte',
         ]);
 
         $response = $this->actingAs($currentUser)

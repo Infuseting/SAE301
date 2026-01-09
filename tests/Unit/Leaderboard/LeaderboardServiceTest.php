@@ -3488,15 +3488,12 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 3600,
             'member_count' => 1,
             'points' => 100,
-            'category' => 'Masculin',
         ]);
 
         $leaderboard = $this->service->getTeamLeaderboard($race->race_id);
 
         $this->assertArrayHasKey('points', $leaderboard['data'][0]);
-        $this->assertArrayHasKey('category', $leaderboard['data'][0]);
         $this->assertEquals(100, $leaderboard['data'][0]['points']);
-        $this->assertEquals('Masculin', $leaderboard['data'][0]['category']);
     }
 
     /**
@@ -3515,7 +3512,6 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 3600,
             'member_count' => 1,
             'points' => 150,
-            'category' => 'Mixte',
         ]);
 
         $csv = $this->service->exportToCsv($race->race_id, 'team');
@@ -3523,18 +3519,6 @@ class LeaderboardServiceTest extends TestCase
         // CSV format: Rang, Equipe, Catégorie, Temps, Points
         $this->assertStringContainsString('Points', $csv);
         $this->assertStringContainsString('150', $csv);
-        $this->assertStringContainsString('Mixte', $csv);
-    }
-
-    /**
-    /**
-     * Test team category constants exist.
-     */
-    public function test_team_category_constants(): void
-    {
-        $this->assertEquals('Masculin', LeaderboardTeam::CATEGORY_MALE);
-        $this->assertEquals('Féminin', LeaderboardTeam::CATEGORY_FEMALE);
-        $this->assertEquals('Mixte', LeaderboardTeam::CATEGORY_MIXED);
     }
 
     /**
@@ -3933,7 +3917,6 @@ class LeaderboardServiceTest extends TestCase
             'average_temps_final' => 3600,
             'member_count' => 1,
             'points' => 100,
-            'category' => 'Masculin',
             'puce' => '123456',
         ]);
 
@@ -3941,7 +3924,6 @@ class LeaderboardServiceTest extends TestCase
             'average_temps' => '02:30:00',
             'average_malus' => '00:05:00',
             'points' => 200,
-            'category' => 'Mixte',
             'puce' => '654321',
         ]);
 
@@ -3949,7 +3931,6 @@ class LeaderboardServiceTest extends TestCase
         $this->assertEquals(9000, $result->average_temps); // 2h30m in seconds
         $this->assertEquals(300, $result->average_malus);  // 5min in seconds
         $this->assertEquals(200, $result->points);
-        $this->assertEquals('Mixte', $result->category);
         $this->assertEquals('654321', $result->puce);
     }
 
