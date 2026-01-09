@@ -305,14 +305,6 @@ export default function LeaderboardIndex({ races, selectedRace, results, type, s
                                                                         {result.status}
                                                                     </span>
                                                                 )}
-                                                                {!isTeamView && result.user_id && (
-                                                                    <Link 
-                                                                        href={route('profile.show', result.user_id)}
-                                                                        className="block text-xs text-emerald-600 hover:underline"
-                                                                    >
-                                                                        {messages.view_profile || 'Voir le profil'}
-                                                                    </Link>
-                                                                )}
                                                             </div>
                                                         </div>
                                                     </td>
