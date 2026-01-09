@@ -1,56 +1,122 @@
-import React from "react";
-import Header from "@/Components/Header";
-import Footer from "@/Components/Footer";
-import ClubCard from "@/Pages/Admin/ClubCard";
+import { Head, Link, usePage } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { FaEdit, FaEye, FaUsersCog } from 'react-icons/fa';
 
 /**
  * ClubManagement page component for admin area.
  * Displays all clubs that the authenticated user manages (as leader or manager).
  * Accessible to users with the responsable-club role.
- *
- * @param {Object} props - Component props
- * @param {Array} props.clubs - Array of club objects managed by the user
- * @returns {JSX.Element} Club management page
  */
 export default function ClubManagement({ clubs }) {
-    return (
-        <div className="min-h-screen">
-            <Header />
-            <div className="container mx-auto px-4 py-8">
-                <h1 className="text-2xl font-bold mb-4">Club Management</h1>
+    const { translations } = usePage().props;
+    const messages = translations?.messages || {};
 
-                {clubs.length === 0 ? (
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-16 h-16 mx-auto text-gray-400 mb-4"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
-                            />
-                        </svg>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            No Clubs Found
-                        </h3>
-                        <p className="text-gray-500">
-                            You don't have any clubs to manage yet.
+    return (
+        <AuthenticatedLayout>
+            <Head title="Gestion des Clubs" />
+
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    {/* Page Header */}
+                    <div className="mb-6">
+                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                            <FaUsersCog className="text-emerald-600" />
+                            {messages.manage_clubs || 'Gestion des Clubs'}
+                        </h1>
+                        <p className="mt-2 text-gray-600">
+                            {clubs.length === 0 
+                                ? "Aucun club à gérer pour le moment"
+                                : `${clubs.length} club${clubs.length > 1 ? 's' : ''} à gérer`
+                            }
                         </p>
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {clubs.map((club) => (
-                            <ClubCard key={club.club_id} club={club} />
-                        ))}
-                    </div>
-                )}
+
+                    {/* Clubs List */}
+                    {clubs.length === 0 ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                            <FaUsersCog className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                {messages.no_clubs || 'Aucun club trouvé'}
+                            </h3>
+                            <p className="text-gray-500 mb-6">
+                                Vous n'avez aucun club à gérer pour le moment.
+                            </p>
+                            <Link
+                                href={route('clubs.create')}
+                                className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+                            >
+                                Créer un club
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {clubs.map((club) => (
+                                <div 
+                                    key={club.club_id} 
+                                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                                >
+                                    <div className="p-6">
+                                        <div className="flex items-start gap-6">
+                                            {/* Club Image */}
+                                            {club.club_image && (
+                                                <div className="flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden bg-gray-100">
+                                                    <img
+                                                        src={club.club_image.startsWith('/storage/') ? club.club_image : `/storage/${club.club_image}`}
+                                                        alt={club.club_name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* Club Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                                    {club.club_name}
+                                                </h3>
+                                                {club.club_description && (
+                                                    <p className="text-gray-600 mb-4 line-clamp-2">
+                                                        {club.club_description}
+                                                    </p>
+                                                )}
+                                                <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                                                    {club.club_address && (
+                                                        <span className="flex items-center gap-1">
+                                                            📍 {club.club_address}
+                                                        </span>
+                                                    )}
+                                                    {club.members_count !== undefined && (
+                                                        <span className="flex items-center gap-1">
+                                                            👥 {club.members_count} membre{club.members_count > 1 ? 's' : ''}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="flex-shrink-0 flex items-center gap-2">
+                                                <Link
+                                                    href={route('clubs.show', club.club_id)}
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition"
+                                                    title="Voir"
+                                                >
+                                                    <FaEye className="w-5 h-5" />
+                                                </Link>
+                                                <Link
+                                                    href={route('clubs.edit', club.club_id)}
+                                                    className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full transition"
+                                                    title="Modifier"
+                                                >
+                                                    <FaEdit className="w-5 h-5" />
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
-            <Footer />
-        </div>
+        </AuthenticatedLayout>
     );
 }
