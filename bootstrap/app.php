@@ -33,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function ($response, \Throwable $exception, \Illuminate\Http\Request $request) {
-            
+
             // Return original response (Ignition) if debug mode is on
             if (app()->hasDebugModeEnabled() && app()->isLocal() && $response->getStatusCode() === 500) {
                 return $response;
@@ -44,6 +44,14 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             $status = $response->getStatusCode();
+
+            // Return JSON for API requests
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'message' => $exception->getMessage() ?: 'Error ' . $status,
+                    'status' => $status,
+                ], $status);
+            }
 
             return \Inertia\Inertia::render('Error', [
                 'status' => $status,
