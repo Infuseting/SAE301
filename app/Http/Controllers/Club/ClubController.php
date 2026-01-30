@@ -50,7 +50,7 @@ class ClubController extends Controller
      *     )
      * )
      */
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         $user = auth()->user();
         $query = Club::query()
@@ -84,6 +84,10 @@ class ClubController extends Controller
                 $club->user_membership_status = $membership ? $membership->status : null;
                 return $club;
             });
+        }
+
+        if ($request->wantsJson() && !$request->hasHeader('X-Inertia')) {
+            return response()->json($clubs);
         }
 
         return Inertia::render('Clubs/Index', [
@@ -232,7 +236,7 @@ class ClubController extends Controller
      *     @OA\Response(response=404, description="Club not found")
      * )
      */
-    public function show(Club $club): Response
+    public function show(Request $request, Club $club)
     {
         // If club is not approved, only creator can view it
         if (!$club->is_approved && auth()->id() !== $club->created_by) {
@@ -289,6 +293,15 @@ class ClubController extends Controller
                 $race->registration_upcoming = $race->isRegistrationUpcoming();
             });
         });
+
+        if ($request->wantsJson() && !$request->hasHeader('X-Inertia')) {
+            return response()->json([
+                'club' => $club,
+                'isMember' => $isMember,
+                'isManager' => $isManager,
+                'membershipStatus' => $membershipStatus,
+            ]);
+        }
 
         return Inertia::render('Clubs/Show', [
             'club' => $club,

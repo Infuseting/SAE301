@@ -43,14 +43,18 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Public Club API Routes
+Route::get('/clubs', [\App\Http\Controllers\Club\ClubController::class, 'index']);
+Route::get('/clubs/{club}', [\App\Http\Controllers\Club\ClubController::class, 'show']);
+
 Route::middleware('auth:sanctum')->as('api.')->group(function () {
     // Current user
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
-    // Club CRUD
-    Route::apiResource('clubs', \App\Http\Controllers\Club\ClubController::class);
+    // Club CRUD - Store, Update, Destroy remain protected
+    Route::apiResource('clubs', \App\Http\Controllers\Club\ClubController::class)->except(['index', 'show']);
 
     // Club member management
     Route::post('/clubs/{club}/join', [\App\Http\Controllers\Club\ClubMemberController::class, 'requestJoin']);
