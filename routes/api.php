@@ -66,6 +66,9 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
         Route::post('/clubs/{club}/reject', [\App\Http\Controllers\Admin\ClubApprovalController::class, 'reject']);
     });
 
+    // Managed clubs
+    Route::get('/me/managed-clubs', [\App\Http\Controllers\Club\ClubController::class, 'managed']);
+
     // Race management API
     Route::get('/me/managed-races', [\App\Http\Controllers\Api\RaceManagementController::class, 'index']);
     Route::get('/races/{race}/participants', [\App\Http\Controllers\Api\RaceManagementController::class, 'participants']);

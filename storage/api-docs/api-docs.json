@@ -541,6 +541,177 @@
                 }
             }
         },
+        "/api/me/managed-races": {
+            "get": {
+                "tags": [
+                    "Race Management"
+                ],
+                "summary": "Get races managed by the authenticated user",
+                "description": "Returns a list of races where the user is an organizer, raid manager, or admin",
+                "operationId": "getManagedRaces",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Race"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/races/{race}/participants": {
+            "get": {
+                "tags": [
+                    "Race Management"
+                ],
+                "summary": "Get participants for a specific race",
+                "description": "Returns a detailed list of participants and their registration status for a race managed by the user",
+                "operationId": "getRaceParticipants",
+                "parameters": [
+                    {
+                        "name": "race",
+                        "in": "path",
+                        "description": "ID of the race",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "registration_id": {
+                                                "type": "integer"
+                                            },
+                                            "user_id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "first_name": {
+                                                "type": "string"
+                                            },
+                                            "last_name": {
+                                                "type": "string"
+                                            },
+                                            "email": {
+                                                "type": "string"
+                                            },
+                                            "team_name": {
+                                                "type": "string"
+                                            },
+                                            "status": {
+                                                "type": "string"
+                                            },
+                                            "is_leader": {
+                                                "type": "boolean"
+                                            },
+                                            "has_license": {
+                                                "type": "boolean"
+                                            },
+                                            "has_pps": {
+                                                "type": "boolean"
+                                            },
+                                            "docs_validated": {
+                                                "type": "boolean"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - User does not manage this race"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/registrations/{registration}/validate-docs": {
+            "patch": {
+                "tags": [
+                    "Race Management"
+                ],
+                "summary": "Validate or flag documents for a registration",
+                "description": "Allows a manager to manually validate registration documents or flag them as invalid",
+                "operationId": "validateRegistrationDocs",
+                "parameters": [
+                    {
+                        "name": "registration",
+                        "in": "path",
+                        "description": "ID of the registration",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "confirmed",
+                                            "missing_credentials"
+                                        ],
+                                        "example": "confirmed"
+                                    },
+                                    "admin_notes": {
+                                        "type": "string",
+                                        "example": "Document illisible, merci de renvoyer."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/api/user": {
             "get": {
                 "tags": [
@@ -907,6 +1078,39 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/me/managed-clubs": {
+            "get": {
+                "tags": [
+                    "Clubs"
+                ],
+                "summary": "Get clubs managed by the user",
+                "description": "Returns a list of clubs where the user is an owner (creator) or manager",
+                "operationId": "ef7439aaf1c4a5776720c208d86ac232",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Club"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -2991,6 +3195,50 @@
                 ]
             }
         },
+        "/teams/{team}/registration/{registration}/qr-code": {
+            "get": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Download QR code image",
+                "description": "Download QR code image with permission verification\n\nOnly team members and leaders can download QR codes",
+                "operationId": "ac6577ccff22586a45087bbcc1db4b59",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "registration",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "QR code image"
+                    },
+                    "403": {
+                        "description": "Unauthorized - Must be team member"
+                    },
+                    "404": {
+                        "description": "QR code not found"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/teams/management": {
             "get": {
                 "tags": [
@@ -4081,6 +4329,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Race Management",
+            "description": "Race Management"
         },
         {
             "name": "User",

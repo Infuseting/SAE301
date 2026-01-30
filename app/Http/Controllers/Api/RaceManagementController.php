@@ -4,14 +4,16 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Race;
-use App\Models\RaceRegistration;
+use App\Models\Registration as RaceRegistration;
 use App\Models\User;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class RaceManagementController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * @OA\Get(
      *      path="/api/me/managed-races",
@@ -47,7 +49,7 @@ class RaceManagementController extends Controller
                     $query->where('adh_id', $user->adh_id);
                 })
                 ->orWhereHas('raid.club', function ($query) use ($user) {
-                    $query->whereHas('users', function ($q) use ($user) {
+                    $query->whereHas('allMembers', function ($q) use ($user) {
                         $q->where('users.id', $user->id)
                             ->where('club_user.role', 'manager')
                             ->where('club_user.status', 'approved');
@@ -106,56 +108,32 @@ class RaceManagementController extends Controller
         $this->authorize('update', $race);
 
         $registrations = RaceRegistration::where('race_id', $race->race_id)
-            ->where('status', '!=', 'cancelled')
-            ->with(['user.member', 'user.medicalDoc', 'team.users'])
+            ->with(['team', 'participants.user.member'])
             ->get();
 
         $participants = [];
-        $tempTeamCounter = 1;
 
         foreach ($registrations as $registration) {
-            $teamName = $registration->is_temporary_team
-                ? "ÉQUIPE TEMPORAIRE " . $tempTeamCounter++
-                : ($registration->team->equ_name ?? 'Équipe permanente');
+            $teamName = $registration->team->equ_name ?? 'Sans équipe';
 
-            if ($registration->is_temporary_team) {
-                // Add creator
-                if ($registration->is_creator_participating && $registration->user) {
-                    $participants[] = $this->formatParticipantForApi($registration->user, $registration, true, $teamName);
-                }
+            foreach ($registration->participants as $participant) {
+                $user = $participant->user;
+                if (!$user)
+                    continue;
 
-                // Add members from temp data
-                $teamData = $registration->temporary_team_data ?? [];
-                foreach ($teamData as $member) {
-                    if (isset($member['user_id'])) {
-                        $memberUser = User::find($member['user_id']);
-                        if ($memberUser) {
-                            $participants[] = $this->formatParticipantForApi($memberUser, $registration, false, $teamName);
-                        }
-                    } else {
-                        $participants[] = [
-                            'registration_id' => $registration->reg_id,
-                            'user_id' => null,
-                            'first_name' => $member['name'] ?? explode('@', $member['email'])[0],
-                            'last_name' => '',
-                            'email' => $member['email'],
-                            'team_name' => $teamName,
-                            'status' => 'invitation_pending',
-                            'is_leader' => false,
-                            'has_license' => false,
-                            'has_pps' => false,
-                            'docs_validated' => false,
-                        ];
-                    }
-                }
-            } else {
-                // Permanent team
-                if ($registration->team) {
-                    foreach ($registration->team->users as $teamUser) {
-                        $isLeader = (int) $teamUser->id === (int) $registration->user_id;
-                        $participants[] = $this->formatParticipantForApi($teamUser, $registration, $isLeader, $teamName);
-                    }
-                }
+                $participants[] = [
+                    'registration_id' => $registration->reg_id,
+                    'user_id' => $user->id,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'team_name' => $teamName,
+                    'status' => $registration->reg_validated ? 'confirmed' : 'pending',
+                    'is_leader' => false, // Could be determined by team owner or first participant
+                    'has_license' => $user->member && $user->member->adh_license ? true : false,
+                    'has_pps' => $participant->pps_number ? true : false,
+                    'docs_validated' => (bool) $registration->reg_validated,
+                ];
             }
         }
 
@@ -204,14 +182,8 @@ class RaceManagementController extends Controller
         ]);
 
         $registration->update([
-            'status' => $validated['status'],
-            // Assuming there's an admin_notes or similar field, or we use activity log
-            // For now, let's assume status is enough or we use metadata
-            'metadata' => array_merge($registration->metadata ?? [], [
-                'validation_notes' => $validated['admin_notes'] ?? '',
-                'validated_at' => now()->toDateTimeString(),
-                'validated_by' => Auth::id(),
-            ])
+            'reg_validated' => $validated['status'] === 'confirmed',
+            // We can store notes if there's a field, or just skip if not available
         ]);
 
         return response()->json([

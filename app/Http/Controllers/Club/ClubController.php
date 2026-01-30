@@ -72,7 +72,7 @@ class ClubController extends Controller
         }
 
         $clubs = $query->paginate(12);
-        
+
         // Add user membership status to each club
         if ($user) {
             $clubs->getCollection()->transform(function ($club) use ($user) {
@@ -80,7 +80,7 @@ class ClubController extends Controller
                     ->where('club_id', $club->club_id)
                     ->where('user_id', $user->id)
                     ->first();
-                    
+
                 $club->user_membership_status = $membership ? $membership->status : null;
                 return $club;
             });
@@ -90,6 +90,46 @@ class ClubController extends Controller
             'clubs' => $clubs,
             'filters' => $request->only(['search', 'city']),
         ]);
+    }
+
+    /**
+     * Display a listing of clubs managed by the authenticated user.
+     *
+     * @OA\Get(
+     *     path="/api/me/managed-clubs",
+     *     tags={"Clubs"},
+     *     summary="Get clubs managed by the user",
+     *     description="Returns a list of clubs where the user is an owner (creator) or manager",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Club")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function managed(Request $request)
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
+            $clubs = Club::with(['creator', 'members'])->get();
+        } else {
+            $clubs = Club::where('created_by', $user->id)
+                ->orWhereHas('allMembers', function ($query) use ($user) {
+                    $query->where('users.id', $user->id)
+                        ->where('club_user.role', 'manager')
+                        ->where('club_user.status', 'approved');
+                })
+                ->with(['creator', 'members'])
+                ->get();
+        }
+
+        return response()->json($clubs);
     }
 
     /**
@@ -202,17 +242,22 @@ class ClubController extends Controller
         $club->load(['creator', 'approver']);
 
         // Load raids with their registration periods and races
-        $club->load(['raids' => function($query) {
-            $query->with(['registrationPeriod', 'races' => function($q) {
-                $q->with(['type']);
-            }]);
-        }]);
+        $club->load([
+            'raids' => function ($query) {
+                $query->with([
+                    'registrationPeriod',
+                    'races' => function ($q) {
+                        $q->with(['type']);
+                    }
+                ]);
+            }
+        ]);
 
         $user = auth()->user();
         $isMember = $user && $club->hasMember($user);
         // Admin can manage all clubs, otherwise check if user is club manager
         $isManager = $user && ($user->hasRole('admin') || $club->hasManager($user));
-        
+
         // Check if user has a pending request
         $membershipStatus = null;
         if ($user) {
@@ -234,12 +279,12 @@ class ClubController extends Controller
         }
 
         // Add status helpers to raids for frontend
-        $club->raids->each(function($raid) {
+        $club->raids->each(function ($raid) {
             $raid->is_open = $raid->isOpen();
             $raid->is_upcoming = $raid->isUpcoming();
             $raid->is_finished = $raid->isFinished();
-            
-            $raid->races->each(function($race) {
+
+            $raid->races->each(function ($race) {
                 $race->is_open = $race->isOpen();
                 $race->registration_upcoming = $race->isRegistrationUpcoming();
             });
@@ -258,7 +303,7 @@ class ClubController extends Controller
      */
     public function edit(Club $club): Response
     {
-        
+
         $this->authorize('update', $club);
 
 

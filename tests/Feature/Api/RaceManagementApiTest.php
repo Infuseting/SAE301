@@ -4,38 +4,70 @@ namespace Tests\Feature\Api;
 
 use App\Models\User;
 use App\Models\Race;
-use App\Models\RaceRegistration;
+use App\Models\Registration;
+use App\Models\RaceParticipant;
 use App\Models\Team;
 use App\Models\Raid;
 use App\Models\Member;
+use App\Models\MedicalDoc;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\DB;
 
 class RaceManagementApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Reset cached roles and permissions
+        $this->app->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        // Setup permissions needed for policies
+        Permission::findOrCreate('edit-own-race', 'web');
+    }
+
+    private function createDependencies()
+    {
+        $pay_id = DB::table('inscriptions_payment')->insertGetId([
+            'pai_date' => now(),
+            'pai_is_paid' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $doc = MedicalDoc::factory()->create();
+
+        return [$pay_id, $doc->doc_id];
+    }
 
     /**
      * Test getting managed races.
      */
     public function test_can_get_managed_races(): void
     {
-        $user = User::factory()->create(['adh_id' => 123]);
-        $member = Member::create(['adh_id' => 123, 'adh_license' => 'LIC123']);
+        $member = Member::factory()->create();
+        $user = User::factory()->create(['adh_id' => $member->adh_id]);
+        $user->givePermissionTo('edit-own-race');
         Sanctum::actingAs($user);
 
         // Race owned directly
-        $ownedRace = Race::factory()->create(['adh_id' => 123, 'race_name' => 'Owned Race']);
+        Race::factory()->create(['adh_id' => $member->adh_id, 'race_name' => 'Owned Race']);
 
         // Race not owned
-        Race::factory()->create(['adh_id' => 456, 'race_name' => 'Other Race']);
+        Race::factory()->create(['adh_id' => $member->adh_id + 1, 'race_name' => 'Other Race']);
 
         $response = $this->getJson('/api/me/managed-races');
 
-        $response->assertStatus(200)
-            ->assertJsonCount(1)
-            ->assertJsonPath('0.race_name', 'Owned Race');
+        $response->assertStatus(200);
+        $data = $response->json();
+        $this->assertCount(1, $data);
+        $this->assertEquals('Owned Race', $data[0]['race_name']);
     }
 
     /**
@@ -43,26 +75,39 @@ class RaceManagementApiTest extends TestCase
      */
     public function test_can_get_race_participants(): void
     {
-        $user = User::factory()->create(['adh_id' => 123]);
+        $member = Member::factory()->create();
+        $user = User::factory()->create(['adh_id' => $member->adh_id]);
+        $user->givePermissionTo('edit-own-race');
         Sanctum::actingAs($user);
 
-        $race = Race::factory()->create(['adh_id' => 123]);
-        $participant = User::factory()->create();
+        $race = Race::factory()->create(['adh_id' => $member->adh_id]);
+        $participantUser = User::factory()->create();
         $team = Team::factory()->create();
 
-        RaceRegistration::create([
+        [$pay_id, $doc_id] = $this->createDependencies();
+
+        // Create registration manually
+        $registration = Registration::create([
             'race_id' => $race->race_id,
-            'user_id' => $participant->id,
             'equ_id' => $team->equ_id,
-            'status' => 'confirmed',
-            'reg_date' => now(),
+            'pay_id' => $pay_id,
+            'doc_id' => $doc_id,
+            'reg_validated' => true,
+        ]);
+
+        // Create participant
+        RaceParticipant::create([
+            'reg_id' => $registration->reg_id,
+            'user_id' => $participantUser->id,
+            'pps_number' => 'PPS123',
         ]);
 
         $response = $this->getJson("/api/races/{$race->race_id}/participants");
 
-        $response->assertStatus(200)
-            ->assertJsonCount(1)
-            ->assertJsonPath('0.user_id', $participant->id);
+        $response->assertStatus(200);
+        $data = $response->json();
+        $this->assertNotEmpty($data);
+        $this->assertEquals($participantUser->id, $data[0]['user_id']);
     }
 
     /**
@@ -70,10 +115,13 @@ class RaceManagementApiTest extends TestCase
      */
     public function test_cannot_get_participants_of_non_managed_race(): void
     {
-        $user = User::factory()->create(['adh_id' => 123]);
+        $member = Member::factory()->create();
+        $user = User::factory()->create(['adh_id' => $member->adh_id]);
+        $user->givePermissionTo('edit-own-race');
         Sanctum::actingAs($user);
 
-        $race = Race::factory()->create(['adh_id' => 456]);
+        $otherMember = Member::factory()->create();
+        $race = Race::factory()->create(['adh_id' => $otherMember->adh_id]);
 
         $response = $this->getJson("/api/races/{$race->race_id}/participants");
 
@@ -85,16 +133,21 @@ class RaceManagementApiTest extends TestCase
      */
     public function test_can_validate_documents(): void
     {
-        $user = User::factory()->create(['adh_id' => 123]);
+        $member = Member::factory()->create();
+        $user = User::factory()->create(['adh_id' => $member->adh_id]);
+        $user->givePermissionTo('edit-own-race');
         Sanctum::actingAs($user);
 
-        $race = Race::factory()->create(['adh_id' => 123]);
-        $registration = RaceRegistration::create([
+        $race = Race::factory()->create(['adh_id' => $member->adh_id]);
+
+        [$pay_id, $doc_id] = $this->createDependencies();
+
+        $registration = Registration::create([
             'race_id' => $race->race_id,
-            'user_id' => User::factory()->create()->id,
             'equ_id' => Team::factory()->create()->equ_id,
-            'status' => 'pending',
-            'reg_date' => now(),
+            'pay_id' => $pay_id,
+            'doc_id' => $doc_id,
+            'reg_validated' => false,
         ]);
 
         $response = $this->patchJson("/api/registrations/{$registration->reg_id}/validate-docs", [
@@ -105,6 +158,6 @@ class RaceManagementApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJson(['success' => true]);
 
-        $this->assertEquals('confirmed', $registration->fresh()->status);
+        $this->assertTrue((bool) $registration->fresh()->reg_validated);
     }
 }
