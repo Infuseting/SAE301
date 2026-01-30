@@ -48,7 +48,7 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    
+
     // Club CRUD
     Route::apiResource('clubs', \App\Http\Controllers\Club\ClubController::class);
 
@@ -65,4 +65,9 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
         Route::post('/clubs/{club}/approve', [\App\Http\Controllers\Admin\ClubApprovalController::class, 'approve']);
         Route::post('/clubs/{club}/reject', [\App\Http\Controllers\Admin\ClubApprovalController::class, 'reject']);
     });
+
+    // Race management API
+    Route::get('/me/managed-races', [\App\Http\Controllers\Api\RaceManagementController::class, 'index']);
+    Route::get('/races/{race}/participants', [\App\Http\Controllers\Api\RaceManagementController::class, 'participants']);
+    Route::patch('/registrations/{registration}/validate-docs', [\App\Http\Controllers\Api\RaceManagementController::class, 'validateDocuments']);
 });
