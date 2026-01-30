@@ -86,7 +86,7 @@ class ClubController extends Controller
             });
         }
 
-        if ($request->wantsJson() && !$request->hasHeader('X-Inertia')) {
+        if ($request->is('api/*') || ($request->wantsJson() && !$request->hasHeader('X-Inertia'))) {
             return response()->json($clubs);
         }
 
@@ -294,7 +294,7 @@ class ClubController extends Controller
             });
         });
 
-        if ($request->wantsJson() && !$request->hasHeader('X-Inertia')) {
+        if ($request->is('api/*') || ($request->wantsJson() && !$request->hasHeader('X-Inertia'))) {
             return response()->json([
                 'club' => $club,
                 'isMember' => $isMember,

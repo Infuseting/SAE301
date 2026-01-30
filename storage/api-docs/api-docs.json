@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000",
+            "url": "https://sae301.infuseting.fr/:8000",
             "description": "Production API Server"
         }
     ],
