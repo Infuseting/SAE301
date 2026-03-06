@@ -14,7 +14,7 @@ class SetPasswordController extends Controller
      * Set the user's password.
      *
      * @OA\Put(
-     *     path="/user/set-password",
+     *     path="/api/user/set-password",
      *     tags={"Profile"},
      *     summary="Set user password",
      *     description="Sets the password for the authenticated user (typically for social login users)",

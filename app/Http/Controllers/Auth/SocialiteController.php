@@ -17,7 +17,7 @@ class SocialiteController extends Controller
      * Redirect the user to the provider authentication page.
      *
      * @OA\Get(
-     *     path="/auth/{provider}/redirect",
+     *     path="/api/auth/{provider}/redirect",
      *     tags={"Auth"},
      *     summary="Social Login Redirect",
      *     description="Redirects the user to the OAuth provider (google, strava)",
@@ -50,7 +50,7 @@ class SocialiteController extends Controller
      * Obtain the user information from the provider.
      *
      * @OA\Get(
-     *     path="/auth/{provider}/callback",
+     *     path="/api/auth/{provider}/callback",
      *     tags={"Auth"},
      *     summary="Social Login Callback",
      *     description="Handle the callback from the OAuth provider",

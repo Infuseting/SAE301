@@ -656,7 +656,7 @@ class RaceController extends Controller
      * Generate PDF start-list for race
      * 
      * @OA\Get(
-     *     path="/races/{race}/start-list",
+     *     path="/api/races/{race}/start-list",
      *     tags={"Races"},
      *     summary="Generate PDF start-list",
      *     description="Download PDF with all validated race registrations",
@@ -727,7 +727,7 @@ class RaceController extends Controller
      * Mark team as present by scanning QR code
      * 
      * @OA\Post(
-     *     path="/races/{race}/check-in",
+     *     path="/api/races/{race}/check-in",
      *     tags={"Races"},
      *     summary="Mark team as present",
      *     description="Scan QR code and mark team registration as present",
@@ -853,7 +853,7 @@ class RaceController extends Controller
      * Toggle participant presence status
      * 
      * @OA\Post(
-     *     path="/races/{race}/toggle-presence",
+     *     path="/api/races/{race}/toggle-presence",
      *     summary="Toggle participant presence",
      *     tags={"Races"},
      *     security={{"sanctum": {}}},
@@ -980,7 +980,7 @@ class RaceController extends Controller
      * Get team members for a registration (used after QR scan)
      * 
      * @OA\Get(
-     *     path="/races/{race}/team-members/{registration}",
+     *     path="/api/races/{race}/team-members/{registration}",
      *     tags={"Races"},
      *     summary="Get team members for registration",
      *     description="Retrieves all team members with their registration status for a given registration",

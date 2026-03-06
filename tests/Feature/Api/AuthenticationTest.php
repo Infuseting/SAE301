@@ -24,8 +24,11 @@ class AuthenticationTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
+                'status',
                 'message',
-                'token',
+                'data' => [
+                    'token',
+                ],
             ]);
     }
 
@@ -43,7 +46,7 @@ class AuthenticationTest extends TestCase
 
         $response->assertStatus(401)
             ->assertJson([
-                'message' => 'Invalid login credentials',
+                'status' => 'error',
             ]);
     }
 
@@ -59,9 +62,12 @@ class AuthenticationTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonStructure([
+                'status',
                 'message',
-                'user',
-                'token',
+                'data' => [
+                    'user',
+                    'token',
+                ],
             ]);
 
         $this->assertDatabaseHas('users', [
@@ -81,10 +87,8 @@ class AuthenticationTest extends TestCase
         ])->getJson('/api/user');
 
         $response->assertStatus(200)
-            ->assertJson([
-                'id' => $user->id,
-                'email' => $user->email,
-            ]);
+            ->assertJsonPath('data.id', $user->id)
+            ->assertJsonPath('data.email', $user->email);
     }
 
     public function test_access_protected_route_without_token(): void

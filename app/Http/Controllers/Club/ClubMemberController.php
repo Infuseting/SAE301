@@ -8,12 +8,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 
-/**
- * @OA\Tag(
- *     name="Club Members",
- *     description="Club member management endpoints"
- * )
- */
 class ClubMemberController extends Controller
 {
     /**

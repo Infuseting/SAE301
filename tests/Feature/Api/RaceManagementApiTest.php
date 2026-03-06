@@ -65,7 +65,7 @@ class RaceManagementApiTest extends TestCase
         $response = $this->getJson('/api/me/managed-races');
 
         $response->assertStatus(200);
-        $data = $response->json();
+        $data = $response->json('data');
         $this->assertCount(1, $data);
         $this->assertEquals('Owned Race', $data[0]['race_name']);
     }
@@ -105,7 +105,7 @@ class RaceManagementApiTest extends TestCase
         $response = $this->getJson("/api/races/{$race->race_id}/participants");
 
         $response->assertStatus(200);
-        $data = $response->json();
+        $data = $response->json('data');
         $this->assertNotEmpty($data);
         $this->assertEquals($participantUser->id, $data[0]['user_id']);
     }
@@ -156,7 +156,7 @@ class RaceManagementApiTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-            ->assertJson(['success' => true]);
+            ->assertJson(['status' => 'success']);
 
         $this->assertTrue((bool) $registration->fresh()->reg_validated);
     }

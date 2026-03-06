@@ -9,16 +9,11 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Http\Controllers\Api\ApiResponseTrait;
 
-/**
- * @OA\Tag(
- *     name="Clubs",
- *     description="Club management endpoints"
- * )
- */
 class ClubController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ApiResponseTrait;
     /**
      * Display a listing of approved clubs.
      *
@@ -87,7 +82,7 @@ class ClubController extends Controller
         }
 
         if ($request->is('api/*') || ($request->wantsJson() && !$request->hasHeader('X-Inertia'))) {
-            return response()->json($clubs);
+            return $this->successResponse($clubs, 'Clubs retrieved successfully');
         }
 
         return Inertia::render('Clubs/Index', [
@@ -133,7 +128,7 @@ class ClubController extends Controller
                 ->get();
         }
 
-        return response()->json($clubs);
+        return $this->successResponse($clubs, 'Managed clubs retrieved successfully');
     }
 
     /**
@@ -295,12 +290,12 @@ class ClubController extends Controller
         });
 
         if ($request->is('api/*') || ($request->wantsJson() && !$request->hasHeader('X-Inertia'))) {
-            return response()->json([
+            return $this->successResponse([
                 'club' => $club,
                 'isMember' => $isMember,
                 'isManager' => $isManager,
                 'membershipStatus' => $membershipStatus,
-            ]);
+            ], 'Club retrieved successfully');
         }
 
         return Inertia::render('Clubs/Show', [

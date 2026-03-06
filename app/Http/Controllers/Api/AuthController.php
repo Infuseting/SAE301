@@ -12,6 +12,7 @@ use OpenApi\Annotations as OA;
 
 class AuthController extends Controller
 {
+    use ApiResponseTrait;
     /**
      * Handle an incoming login request.
      *
@@ -50,18 +51,15 @@ class AuthController extends Controller
         ]);
 
         if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'message' => __('messages.invalid_credentials')
-            ], 401);
+            return $this->errorResponse(__('messages.invalid_credentials'), 401);
         }
 
         $user = User::where('email', $request->email)->firstOrFail();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'message' => __('messages.login_successful'),
+        return $this->successResponse([
             'token' => $token,
-        ]);
+        ], __('messages.login_successful'));
     }
 
     /**
@@ -122,10 +120,9 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'message' => __('messages.user_registered'),
+        return $this->successResponse([
             'user' => $user,
             'token' => $token,
-        ], 201);
+        ], __('messages.user_registered'), 201);
     }
 }

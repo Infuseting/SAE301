@@ -48,8 +48,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // Return JSON for API requests
             if ($request->is('api/*') || $request->expectsJson()) {
                 return response()->json([
+                    'status' => 'error',
                     'message' => $exception->getMessage() ?: 'Error ' . $status,
-                    'status' => $status,
+                    'data' => [],
                 ], $status);
             }
 

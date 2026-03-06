@@ -32,7 +32,7 @@ class ProfileController extends Controller
      * Display the user's profile form.
      *
      * @OA\Get(
-     *      path="/profile",
+     *      path="/api/profile",
      *      operationId="getProfile",
      *      tags={"Profile"},
      *      summary="Get user profile",
@@ -64,7 +64,7 @@ class ProfileController extends Controller
      * Update the user's profile information.
      *
      * @OA\Patch(
-     *      path="/profile",
+     *      path="/api/profile",
      *      operationId="updateProfile",
      *      tags={"Profile"},
      *      summary="Update user profile",
@@ -173,7 +173,7 @@ class ProfileController extends Controller
      * Complete the user's required profile information.
      *
      * @OA\Post(
-     *      path="/profile/complete",
+     *      path="/api/profile/complete",
      *      operationId="completeProfile",
      *      tags={"Profile"},
      *      summary="Complete user profile",
@@ -246,7 +246,7 @@ class ProfileController extends Controller
      * Delete the user's account.
      *
      * @OA\Delete(
-     *      path="/profile",
+     *      path="/api/profile",
      *      operationId="deleteProfile",
      *      tags={"Profile"},
      *      summary="Delete user account",

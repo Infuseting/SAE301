@@ -262,6 +262,12 @@ return [
          * Default is the order returned by the server unchanged.
          */
         'operations_sort' => env('L5_SWAGGER_OPERATIONS_SORT', null),
+        
+        /*
+         * Apply a sort to the tags. It can be 'alpha' (sort by name alphanumerically).
+         * Default is the order returned by the server unchanged.
+         */
+        'tags_sort' => env('L5_SWAGGER_TAGS_SORT', null),
 
         /*
          * Pass the validatorUrl parameter to SwaggerUi init on the JS side.

@@ -16,11 +16,6 @@ use OpenApi\Annotations as OA;
 
 /**
  * Controller for managing teams.
- * 
- * @OA\Tag(
- *     name="Teams",
- *     description="Team creation, management, and invitation endpoints"
- * )
  */
 class TeamController extends Controller
 {
@@ -28,7 +23,7 @@ class TeamController extends Controller
      * Show the form for creating a new team.
      * 
      * @OA\Get(
-     *     path="/team/create",
+     *     path="/api/team/create",
      *     tags={"Teams"},
      *     summary="Show team creation form",
      *     description="Display the team creation page",
@@ -52,7 +47,7 @@ class TeamController extends Controller
      * Prevents duplicate entries and ensures the creator is not added multiple times.
      * 
      * @OA\Post(
-     *     path="/team",
+     *     path="/api/team",
      *     tags={"Teams"},
      *     summary="Create a new team",
      *     description="Create a new team with optional teammates and email invitations",
@@ -171,7 +166,7 @@ class TeamController extends Controller
      * Display team details.
      * 
      * @OA\Get(
-     *     path="/teams/{team}",
+     *     path="/api/teams/{team}",
      *     tags={"Teams"},
      *     summary="Get team details",
      *     description="Display detailed information about a specific team",
@@ -226,7 +221,7 @@ class TeamController extends Controller
      * Send invitation email to a user.
      * 
      * @OA\Post(
-     *     path="/teams/{team}/invite",
+     *     path="/api/teams/{team}/invite",
      *     tags={"Teams"},
      *     summary="Send team invitation",
      *     description="Send an invitation to join the team via email",
@@ -281,7 +276,7 @@ class TeamController extends Controller
      * Shows the QR code for a validated team registration.
      * 
      * @OA\Get(
-     *     path="/teams/{team}/registration/{registrationId}/ticket",
+     *     path="/api/teams/{team}/registration/{registrationId}/ticket",
      *     tags={"Teams"},
      *     summary="Show team registration ticket",
      *     description="Display the registration ticket with QR code for race check-in",
@@ -394,7 +389,7 @@ class TeamController extends Controller
      * Show the invitation acceptance page.
      * 
      * @OA\Get(
-     *     path="/invitations/{token}",
+     *     path="/api/invitations/{token}",
      *     tags={"Teams"},
      *     summary="Show invitation acceptance page",
      *     description="Display the page to accept a team invitation via token",
@@ -450,7 +445,7 @@ class TeamController extends Controller
      * Accept an invitation via token.
      * 
      * @OA\Post(
-     *     path="/invitations/{token}/accept",
+     *     path="/api/invitations/{token}/accept",
      *     tags={"Teams"},
      *     summary="Accept team invitation",
      *     description="Accept a team invitation and join the team",
@@ -498,7 +493,7 @@ class TeamController extends Controller
      * Only team members and leaders can download QR codes
      * 
      * @OA\Get(
-     *     path="/teams/{team}/registration/{registration}/qr-code",
+     *     path="/api/teams/{team}/registration/{registration}/qr-code",
      *     summary="Download QR code image",
      *     tags={"Teams"},
      *     @OA\Parameter(

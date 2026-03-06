@@ -16,11 +16,6 @@ use OpenApi\Annotations as OA;
  * 
  * Team leaders can manage their own teams.
  * Administrators can manage all teams.
- * 
- * @OA\Tag(
- *     name="Team Management",
- *     description="Endpoints for team management (admin and team leaders)"
- * )
  */
 class TeamManagementController extends Controller
 {
@@ -32,7 +27,7 @@ class TeamManagementController extends Controller
      * - Team Leader: Only teams where user is the leader
      * 
      * @OA\Get(
-     *     path="/teams/management",
+     *     path="/api/teams/management",
      *     tags={"Team Management"},
      *     summary="Get teams for management",
      *     description="Returns paginated list of teams based on user role",
@@ -114,7 +109,7 @@ class TeamManagementController extends Controller
      * Only team leader or admin can update.
      * 
      * @OA\Put(
-     *     path="/teams/{team}",
+     *     path="/api/teams/{team}",
      *     tags={"Team Management"},
      *     summary="Update team",
      *     description="Update team information including name, image, and members",
@@ -217,7 +212,7 @@ class TeamManagementController extends Controller
      * Cannot delete if team has active registrations.
      * 
      * @OA\Delete(
-     *     path="/teams/{team}",
+     *     path="/api/teams/{team}",
      *     tags={"Team Management"},
      *     summary="Delete team",
      *     description="Delete a team if it has no active registrations",
@@ -275,7 +270,7 @@ class TeamManagementController extends Controller
      * Only team leader or admin can remove members.
      * 
      * @OA\Post(
-     *     path="/teams/{team}/remove-member",
+     *     path="/api/teams/{team}/remove-member",
      *     tags={"Team Management"},
      *     summary="Remove team member",
      *     description="Remove a specific member from the team",
