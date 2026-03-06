@@ -12,11 +12,6 @@ use OpenApi\Annotations as OA;
 
 /**
  * Controller for managing race registrations
- * 
- * @OA\Tag(
- *     name="Race Registration",
- *     description="Endpoints for race registration and eligibility checks"
- * )
  */
 class RaceRegistrationController extends Controller
 {
@@ -31,8 +26,8 @@ class RaceRegistrationController extends Controller
      * Check if user can register for a race
      *
      * @OA\Get(
-     *     path="/races/{race}/registration/check",
-     *     tags={"Race Registration"},
+     *     path="/api/races/{race}/registration/check",
+     *     tags={"Races"},
      *     summary="Check registration eligibility",
      *     description="Checks if the authenticated user is eligible to register for a specific race",
      *     security={{"sanctum":{}}},
@@ -92,8 +87,8 @@ class RaceRegistrationController extends Controller
      * Register a user for a race
      *
      * @OA\Post(
-     *     path="/races/{race}/register",
-     *     tags={"Race Registration"},
+     *     path="/api/races/{race}/register",
+     *     tags={"Races"},
      *     summary="Register for a race",
      *     description="Registers the authenticated user for a specific race",
      *     security={{"sanctum":{}}},

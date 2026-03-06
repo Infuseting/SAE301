@@ -11,11 +11,6 @@ use OpenApi\Annotations as OA;
 
 /**
  * Controller for managing race participants (runners) for specific race registrations
- * 
- * @OA\Tag(
- *     name="Race Participants",
- *     description="Endpoints for managing runners in race registrations and their PPS information"
- * )
  */
 class TeamRunnerController extends Controller
 {
@@ -23,7 +18,7 @@ class TeamRunnerController extends Controller
      * Get all runners for a registration with their PPS status.
      *
      * @OA\Get(
-     *     path="/registrations/{registration}/runners",
+     *     path="/api/registrations/{registration}/runners",
      *     tags={"Race Participants"},
      *     summary="Get registration runners",
      *     description="Returns list of all runners for a specific race registration with PPS information",
@@ -121,7 +116,7 @@ class TeamRunnerController extends Controller
      * Add a runner to a race registration.
      *
      * @OA\Post(
-     *     path="/registrations/{registration}/runners",
+     *     path="/api/registrations/{registration}/runners",
      *     tags={"Race Participants"},
      *     summary="Add runner to registration",
      *     description="Add a new runner to a race registration with optional PPS information",
@@ -222,7 +217,7 @@ class TeamRunnerController extends Controller
      * Update a runner's PPS information.
      *
      * @OA\Put(
-     *     path="/participants/{participant}",
+     *     path="/api/participants/{participant}",
      *     tags={"Race Participants"},
      *     summary="Update runner PPS information",
      *     description="Update PPS number, expiry date, or status for a race participant",
@@ -308,7 +303,7 @@ class TeamRunnerController extends Controller
      * Remove a runner from a race registration.
      *
      * @OA\Delete(
-     *     path="/participants/{participant}",
+     *     path="/api/participants/{participant}",
      *     tags={"Race Participants"},
      *     summary="Remove runner from registration",
      *     description="Remove a participant from a race registration",
@@ -361,7 +356,7 @@ class TeamRunnerController extends Controller
      * Verify a runner's PPS (for race managers).
      *
      * @OA\Post(
-     *     path="/participants/{participant}/verify-pps",
+     *     path="/api/participants/{participant}/verify-pps",
      *     tags={"Race Participants"},
      *     summary="Verify runner PPS",
      *     description="Verify or reject a runner's PPS documentation (admin/race manager only)",

@@ -22,7 +22,7 @@ class ClubApiTest extends TestCase
 
         // This should now PASS
         $response->assertStatus(200)
-            ->assertJsonPath('club.club_name', 'API Test Club');
+            ->assertJsonPath('data.club.club_name', 'API Test Club');
     }
 
     public function test_public_can_access_club_list_via_api()

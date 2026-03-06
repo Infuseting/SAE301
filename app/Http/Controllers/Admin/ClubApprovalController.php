@@ -9,12 +9,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
 
-/**
- * @OA\Tag(
- *     name="Admin - Club Approval",
- *     description="Admin endpoints for club approval management"
- * )
- */
 class ClubApprovalController extends Controller
 {
     /**

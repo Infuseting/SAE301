@@ -6,32 +6,6 @@ namespace App\Http\Controllers;
 use OpenApi\Annotations as OA;
 use Inertia\Inertia;
 
-/**
- * @OA\Info(
- *      version="1.0.0",
- *      title="SAER301 API Documentation",
- *      description="Auto-generated API documentation for SAE301 project",
- *      @OA\Contact(
- *          email="admin@example.com"
- *      )
- * )
- *
- * @OA\Server(
- *      url=L5_SWAGGER_CONST_HOST,
- *      description="Production API Server"
- * 
- * )
- *
- * @OA\SecurityScheme(
- *     type="http",
- *     description="Login with email and password to get the authentication token",
- *     name="Token based Based",
- *     in="header",
- *     scheme="bearer",
- *     bearerFormat="JWT",
- *     securityScheme="apiAuth",
- * )
- */
 abstract class Controller
 {
     /**

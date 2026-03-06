@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "https://sae301.infuseting.fr/:8000",
+            "url": "http://localhost",
             "description": "Production API Server"
         }
     ],
@@ -541,6 +541,124 @@
                 }
             }
         },
+        "/api/races": {
+            "get": {
+                "tags": [
+                    "Races"
+                ],
+                "summary": "Get list of races",
+                "description": "Returns all races with related data",
+                "operationId": "bfdc03dc2b3018ad3edf09cd8632ba2b",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by race name",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Races retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Race"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/races/{id}": {
+            "get": {
+                "tags": [
+                    "Races"
+                ],
+                "summary": "Get race by ID",
+                "description": "Returns a single race with details",
+                "operationId": "d40755471be0f0df220253254e69896c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Race retrieved successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Race"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Race not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Race not found"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/me/managed-races": {
             "get": {
                 "tags": [
@@ -848,14 +966,14 @@
                 ]
             }
         },
-        "/user/set-password": {
+        "/api/user/set-password": {
             "put": {
                 "tags": [
                     "Profile"
                 ],
                 "summary": "Set user password",
                 "description": "Sets the password for the authenticated user (typically for social login users)",
-                "operationId": "d2c0f0aaa3f34b36378e84042b60d602",
+                "operationId": "8bc6eae6cab18df559bba52d6f0ddaf3",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -905,14 +1023,14 @@
                 }
             }
         },
-        "/auth/{provider}/redirect": {
+        "/api/auth/{provider}/redirect": {
             "get": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Social Login Redirect",
                 "description": "Redirects the user to the OAuth provider (google, strava)",
-                "operationId": "9092f286b6771e3c94836b77bde93711",
+                "operationId": "dc1b6767eb6b19741a8cf835898783db",
                 "parameters": [
                     {
                         "name": "provider",
@@ -934,14 +1052,14 @@
                 }
             }
         },
-        "/auth/{provider}/callback": {
+        "/api/auth/{provider}/callback": {
             "get": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Social Login Callback",
                 "description": "Handle the callback from the OAuth provider",
-                "operationId": "bbb1507d0929f5cb8af8b8cc694b16f4",
+                "operationId": "da852b8ec9f02fb60706f8c799077807",
                 "parameters": [
                     {
                         "name": "provider",
@@ -1574,7 +1692,7 @@
                 ]
             }
         },
-        "/profile": {
+        "/api/profile": {
             "get": {
                 "tags": [
                     "Profile"
@@ -1694,7 +1812,7 @@
                 }
             }
         },
-        "/profile/complete": {
+        "/api/profile/complete": {
             "post": {
                 "tags": [
                     "Profile"
@@ -1759,14 +1877,14 @@
                 }
             }
         },
-        "/races/{race}/start-list": {
+        "/api/races/{race}/start-list": {
             "get": {
                 "tags": [
                     "Races"
                 ],
                 "summary": "Generate PDF start-list",
                 "description": "Download PDF with all validated race registrations",
-                "operationId": "93dd5b4302cfc36ffd0d4134cd2302a8",
+                "operationId": "5b145d926eb607e98440f3d3ba4225b5",
                 "parameters": [
                     {
                         "name": "race",
@@ -1794,14 +1912,14 @@
                 }
             }
         },
-        "/races/{race}/check-in": {
+        "/api/races/{race}/check-in": {
             "post": {
                 "tags": [
                     "Races"
                 ],
                 "summary": "Mark team as present",
                 "description": "Scan QR code and mark team registration as present",
-                "operationId": "be3127c3736163ec3ccf14cef1d8ac7c",
+                "operationId": "423e93e0c9ee68424526687a776f334f",
                 "parameters": [
                     {
                         "name": "race",
@@ -1868,14 +1986,14 @@
                 }
             }
         },
-        "/races/{race}/toggle-presence": {
+        "/api/races/{race}/toggle-presence": {
             "post": {
                 "tags": [
                     "Races"
                 ],
                 "summary": "Toggle participant presence",
                 "description": "Toggle participant presence status",
-                "operationId": "eb6fe4c089772711d85317477d96e9a6",
+                "operationId": "27551db9f2114d0db05fabcff6ac465a",
                 "parameters": [
                     {
                         "name": "race",
@@ -1941,14 +2059,14 @@
                 ]
             }
         },
-        "/races/{race}/team-members/{registration}": {
+        "/api/races/{race}/team-members/{registration}": {
             "get": {
                 "tags": [
                     "Races"
                 ],
                 "summary": "Get team members for registration",
                 "description": "Retrieves all team members with their registration status for a given registration",
-                "operationId": "887c0c06e68ca8d069f04e35d8624dfd",
+                "operationId": "ab1712ea8387c2efb0a5ff66b22ad90e",
                 "parameters": [
                     {
                         "name": "race",
@@ -1997,14 +2115,14 @@
                 }
             }
         },
-        "/races/{race}/registration/check": {
+        "/api/races/{race}/registration/check": {
             "get": {
                 "tags": [
-                    "Race Registration"
+                    "Races"
                 ],
                 "summary": "Check registration eligibility",
                 "description": "Checks if the authenticated user is eligible to register for a specific race",
-                "operationId": "ff000b341856cfeba72dec51c8cebbd5",
+                "operationId": "17a2d550dcdf3c5e2512618edfc8441f",
                 "parameters": [
                     {
                         "name": "race",
@@ -2069,14 +2187,14 @@
                 ]
             }
         },
-        "/races/{race}/register": {
+        "/api/races/{race}/register": {
             "post": {
                 "tags": [
-                    "Race Registration"
+                    "Races"
                 ],
                 "summary": "Register for a race",
                 "description": "Registers the authenticated user for a specific race",
-                "operationId": "1ba54c3ca329557c6700fe3a1acfad2f",
+                "operationId": "d117967c114e76cf72719e25ca8a1b6f",
                 "parameters": [
                     {
                         "name": "race",
@@ -2150,14 +2268,14 @@
                 ]
             }
         },
-        "/raids": {
+        "/api/raids": {
             "get": {
                 "tags": [
                     "Raids"
                 ],
                 "summary": "Get list of raids",
                 "description": "Returns all raids with related data for client-side filtering",
-                "operationId": "e98fa53564fcc9dc859d64ae5d5b94d7",
+                "operationId": "1d84934c45607e249c0723110ea7655a",
                 "responses": {
                     "200": {
                         "description": "Successful operation",
@@ -2165,7 +2283,15 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "raids": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OK"
+                                        },
+                                        "data": {
                                             "type": "array",
                                             "items": {
                                                 "$ref": "#/components/schemas/Raid"
@@ -2185,7 +2311,7 @@
                 ],
                 "summary": "Create a new raid",
                 "description": "Creates a new raid event. Only responsable-club can create raids.",
-                "operationId": "341d65a05c602741f0b9c8a18f9d1b99",
+                "operationId": "fb5e1a62904159fa6ab9483f6c58b4ed",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -2308,14 +2434,14 @@
                 ]
             }
         },
-        "/raids/{id}": {
+        "/api/raids/{id}": {
             "get": {
                 "tags": [
                     "Raids"
                 ],
                 "summary": "Get raid by ID",
-                "description": "Returns a single raid",
-                "operationId": "d413a012728d0473397a134f277d5902",
+                "description": "Returns a single raid with its races",
+                "operationId": "93504da1d3257d87dd87281aa0c93d86",
                 "parameters": [
                     {
                         "name": "id",
@@ -2332,7 +2458,20 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Raid"
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OK"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Raid"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -2348,7 +2487,7 @@
                 ],
                 "summary": "Update raid",
                 "description": "Updates an existing raid",
-                "operationId": "992240f4a74a2e2176f21b7b11726080",
+                "operationId": "041dcfd41366d3ce0bf3d851adaff626",
                 "parameters": [
                     {
                         "name": "id",
@@ -2402,7 +2541,7 @@
                 ],
                 "summary": "Delete raid",
                 "description": "Deletes a raid",
-                "operationId": "7070b42480e1f4cc12835d4a83300f58",
+                "operationId": "07c926c3311ce731a10ded78d9635925",
                 "parameters": [
                     {
                         "name": "id",
@@ -2431,14 +2570,14 @@
                 ]
             }
         },
-        "/raids/{raid}/scanner": {
+        "/api/raids/{raid}/scanner": {
             "get": {
                 "tags": [
                     "Raids"
                 ],
                 "summary": "Display QR code scanner page",
                 "description": "Display the QR code scanner page for check-in",
-                "operationId": "7378d7c5dc5853128fbe379d02d1315a",
+                "operationId": "a010b2f2b8f0ba417a6f3af8322b1a1b",
                 "parameters": [
                     {
                         "name": "raid",
@@ -2459,14 +2598,14 @@
                 }
             }
         },
-        "/raids/{raid}/check-in": {
+        "/api/raids/{raid}/check-in": {
             "post": {
                 "tags": [
                     "Raids"
                 ],
                 "summary": "Check-in a team",
                 "description": "Check-in a team via QR code scan",
-                "operationId": "6a2fc2ced999e35fce8158f96c6bed70",
+                "operationId": "0f783ac5840534f62e7f10f372654393",
                 "parameters": [
                     {
                         "name": "raid",
@@ -2508,14 +2647,14 @@
                 }
             }
         },
-        "/raids/{raid}/start-list": {
+        "/api/raids/{raid}/start-list": {
             "get": {
                 "tags": [
                     "Raids"
                 ],
                 "summary": "Generate start-list PDF",
                 "description": "Generate start-list PDF for the raid",
-                "operationId": "878cf6d2b5f63aa73ec15408bab54a23",
+                "operationId": "29359c75293ea02db7041f9c978d6595",
                 "parameters": [
                     {
                         "name": "raid",
@@ -2536,14 +2675,14 @@
                 }
             }
         },
-        "/team/age-validation": {
+        "/api/team/age-validation": {
             "get": {
                 "tags": [
                     "Team Age Validation"
                 ],
                 "summary": "Show age validation page",
                 "description": "Display the team age validation interface with rules and thresholds",
-                "operationId": "13e952fd88f52ba38b7b15ae7e9a8d03",
+                "operationId": "3928e84999236d41d831270ac8c1c761",
                 "responses": {
                     "200": {
                         "description": "Age validation page"
@@ -2808,14 +2947,14 @@
                 }
             }
         },
-        "/team/create": {
+        "/api/team/create": {
             "get": {
                 "tags": [
                     "Teams"
                 ],
                 "summary": "Show team creation form",
                 "description": "Display the team creation page",
-                "operationId": "587499c9e99884679d3f459a2cf35de5",
+                "operationId": "2ac045905e0edf7baca9371e9c757ad0",
                 "responses": {
                     "200": {
                         "description": "Team creation page"
@@ -2828,14 +2967,14 @@
                 ]
             }
         },
-        "/team": {
+        "/api/team": {
             "post": {
                 "tags": [
                     "Teams"
                 ],
                 "summary": "Create a new team",
                 "description": "Create a new team with optional teammates and email invitations",
-                "operationId": "c42bf59bb3cb892539bd61a3a723bb31",
+                "operationId": "ae6c415b64776bc704e8525debb51576",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -2899,14 +3038,14 @@
                 ]
             }
         },
-        "/teams/{team}": {
+        "/api/teams/{team}": {
             "get": {
                 "tags": [
                     "Teams"
                 ],
                 "summary": "Get team details",
                 "description": "Display detailed information about a specific team",
-                "operationId": "0b763464763670633275853b1b3fd216",
+                "operationId": "f3af8af2792824b579dc06d24927132e",
                 "parameters": [
                     {
                         "name": "team",
@@ -2933,7 +3072,7 @@
                 ],
                 "summary": "Update team",
                 "description": "Update team information including name, image, and members",
-                "operationId": "b7dcc4ba8b69bfd800686642a2d1aab6",
+                "operationId": "eeb4b4755de2d2f42bdc71e9b6a47391",
                 "parameters": [
                     {
                         "name": "team",
@@ -2999,7 +3138,7 @@
                 ],
                 "summary": "Delete team",
                 "description": "Delete a team if it has no active registrations",
-                "operationId": "eaeccaba42476922a5cc1dbc308ad662",
+                "operationId": "9d916d515fc27bac2f5c9441d8c64355",
                 "parameters": [
                     {
                         "name": "team",
@@ -3029,14 +3168,14 @@
                 ]
             }
         },
-        "/teams/{team}/invite": {
+        "/api/teams/{team}/invite": {
             "post": {
                 "tags": [
                     "Teams"
                 ],
                 "summary": "Send team invitation",
                 "description": "Send an invitation to join the team via email",
-                "operationId": "d667456ab22498b12e4366850aa8cb95",
+                "operationId": "60d8958d93461ff52b8fafa57ec096f2",
                 "parameters": [
                     {
                         "name": "team",
@@ -3083,14 +3222,14 @@
                 ]
             }
         },
-        "/teams/{team}/registration/{registrationId}/ticket": {
+        "/api/teams/{team}/registration/{registrationId}/ticket": {
             "get": {
                 "tags": [
                     "Teams"
                 ],
                 "summary": "Show team registration ticket",
                 "description": "Display the registration ticket with QR code for race check-in",
-                "operationId": "ee6ef7cad15a0571e13b9e0398bdb864",
+                "operationId": "36ff3a7585edbc0c81ce0defbb7478cc",
                 "parameters": [
                     {
                         "name": "team",
@@ -3129,14 +3268,14 @@
                 ]
             }
         },
-        "/invitations/{token}": {
+        "/api/invitations/{token}": {
             "get": {
                 "tags": [
                     "Teams"
                 ],
                 "summary": "Show invitation acceptance page",
                 "description": "Display the page to accept a team invitation via token",
-                "operationId": "e83b780b91f9d0623ed34b5fbe72e587",
+                "operationId": "6dc85a9e92ef4567698805a06c852c37",
                 "parameters": [
                     {
                         "name": "token",
@@ -3161,14 +3300,14 @@
                 }
             }
         },
-        "/invitations/{token}/accept": {
+        "/api/invitations/{token}/accept": {
             "post": {
                 "tags": [
                     "Teams"
                 ],
                 "summary": "Accept team invitation",
                 "description": "Accept a team invitation and join the team",
-                "operationId": "00687ded69e035a151d0de9536ca2545",
+                "operationId": "1cc37c80742bd5a4628967ad9fc4be04",
                 "parameters": [
                     {
                         "name": "token",
@@ -3195,14 +3334,14 @@
                 ]
             }
         },
-        "/teams/{team}/registration/{registration}/qr-code": {
+        "/api/teams/{team}/registration/{registration}/qr-code": {
             "get": {
                 "tags": [
                     "Teams"
                 ],
                 "summary": "Download QR code image",
                 "description": "Download QR code image with permission verification\n\nOnly team members and leaders can download QR codes",
-                "operationId": "ac6577ccff22586a45087bbcc1db4b59",
+                "operationId": "bc084fe1eaf98c252bc1299886cfc8d6",
                 "parameters": [
                     {
                         "name": "team",
@@ -3239,14 +3378,14 @@
                 ]
             }
         },
-        "/teams/management": {
+        "/api/teams/management": {
             "get": {
                 "tags": [
                     "Team Management"
                 ],
                 "summary": "Get teams for management",
                 "description": "Returns paginated list of teams based on user role",
-                "operationId": "9f16dd22e53d37addbca7aee4296b709",
+                "operationId": "6e249165f73b3268103fe3e828a52688",
                 "responses": {
                     "200": {
                         "description": "Team management page with teams list"
@@ -3259,14 +3398,14 @@
                 ]
             }
         },
-        "/teams/{team}/remove-member": {
+        "/api/teams/{team}/remove-member": {
             "post": {
                 "tags": [
                     "Team Management"
                 ],
                 "summary": "Remove team member",
                 "description": "Remove a specific member from the team",
-                "operationId": "0f31392f09f654a70fdb9e30a55e3e01",
+                "operationId": "e50195eee0d3662d45a1ac010f29ee99",
                 "parameters": [
                     {
                         "name": "team",
@@ -3312,14 +3451,14 @@
                 ]
             }
         },
-        "/registrations/{registration}/runners": {
+        "/api/registrations/{registration}/runners": {
             "get": {
                 "tags": [
                     "Race Participants"
                 ],
                 "summary": "Get registration runners",
                 "description": "Returns list of all runners for a specific race registration with PPS information",
-                "operationId": "0fb116ce9241a9b85a823c1de7409173",
+                "operationId": "242bc7cf7ff8483946b9c1d3d68738fe",
                 "parameters": [
                     {
                         "name": "registration",
@@ -3411,7 +3550,7 @@
                 ],
                 "summary": "Add runner to registration",
                 "description": "Add a new runner to a race registration with optional PPS information",
-                "operationId": "823760f0acb2901781fc9559a5d329bc",
+                "operationId": "39f38599989937d5afdced2714506179",
                 "parameters": [
                     {
                         "name": "registration",
@@ -3497,14 +3636,14 @@
                 ]
             }
         },
-        "/participants/{participant}": {
+        "/api/participants/{participant}": {
             "put": {
                 "tags": [
                     "Race Participants"
                 ],
                 "summary": "Update runner PPS information",
                 "description": "Update PPS number, expiry date, or status for a race participant",
-                "operationId": "a1e6597737835d2f6ec9178050236588",
+                "operationId": "fdcc3a95fbd04afad8f27a33d22ad9d0",
                 "parameters": [
                     {
                         "name": "participant",
@@ -3567,7 +3706,7 @@
                 ],
                 "summary": "Remove runner from registration",
                 "description": "Remove a participant from a race registration",
-                "operationId": "392c4f2b960d7c462739a5ca160bb56b",
+                "operationId": "ef9c64faecce62c102403cfcf73f635b",
                 "parameters": [
                     {
                         "name": "participant",
@@ -3610,14 +3749,14 @@
                 ]
             }
         },
-        "/participants/{participant}/verify-pps": {
+        "/api/participants/{participant}/verify-pps": {
             "post": {
                 "tags": [
                     "Race Participants"
                 ],
                 "summary": "Verify runner PPS",
                 "description": "Verify or reject a runner's PPS documentation (admin/race manager only)",
-                "operationId": "b2fbde08cd7cfcf2cad0f6834cc4a397",
+                "operationId": "568152104bf2d53c852c9d799bdd5161",
                 "parameters": [
                     {
                         "name": "participant",
@@ -4295,8 +4434,8 @@
             "description": "Admin endpoints for club approval management"
         },
         {
-            "name": "Leaderboard",
-            "description": "API endpoints for leaderboard management"
+            "name": "Auth",
+            "description": "Authentication endpoints for login and registration"
         },
         {
             "name": "Clubs",
@@ -4307,48 +4446,44 @@
             "description": "Club member management endpoints"
         },
         {
-            "name": "Race Registration",
-            "description": "Endpoints for race registration and eligibility checks"
+            "name": "Leaderboard",
+            "description": "API endpoints for leaderboard management"
         },
         {
-            "name": "Team Age Validation",
-            "description": "Endpoints for validating team age composition and participant eligibility"
+            "name": "Profile",
+            "description": "User profile management endpoints"
         },
         {
-            "name": "Teams",
-            "description": "Team creation, management, and invitation endpoints"
+            "name": "Races",
+            "description": "Public race API endpoints"
         },
         {
-            "name": "Team Management",
-            "description": "Endpoints for team management (admin and team leaders)"
+            "name": "Race Management",
+            "description": "Endpoints for managing races"
         },
         {
             "name": "Race Participants",
             "description": "Endpoints for managing runners in race registrations and their PPS information"
         },
         {
-            "name": "Auth",
-            "description": "Auth"
+            "name": "Raids",
+            "description": "Public raids API endpoints"
         },
         {
-            "name": "Race Management",
-            "description": "Race Management"
+            "name": "Teams",
+            "description": "Team creation, management, and invitation endpoints"
+        },
+        {
+            "name": "Team Age Validation",
+            "description": "Endpoints for validating team age composition and participant eligibility"
+        },
+        {
+            "name": "Team Management",
+            "description": "Endpoints for team management (admin and team leaders)"
         },
         {
             "name": "User",
-            "description": "User"
-        },
-        {
-            "name": "Profile",
-            "description": "Profile"
-        },
-        {
-            "name": "Races",
-            "description": "Races"
-        },
-        {
-            "name": "Raids",
-            "description": "Raids"
+            "description": "User profile and account management endpoints"
         }
     ]
 }

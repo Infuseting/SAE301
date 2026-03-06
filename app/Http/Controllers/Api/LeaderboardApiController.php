@@ -8,14 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use OpenApi\Annotations as OA;
 
-/**
- * @OA\Tag(
- *     name="Leaderboard",
- *     description="API endpoints for leaderboard management"
- * )
- */
 class LeaderboardApiController extends Controller
 {
+    use ApiResponseTrait;
+
     public function __construct(
         private LeaderboardService $leaderboardService
     ) {}
@@ -49,10 +45,7 @@ class LeaderboardApiController extends Controller
     {
         $races = $this->leaderboardService->getRaces();
 
-        return response()->json([
-            'success' => true,
-            'data' => $races,
-        ]);
+        return $this->successResponse($races, 'Races retrieved successfully');
     }
 
     /**
@@ -105,10 +98,7 @@ class LeaderboardApiController extends Controller
 
         $results = $this->leaderboardService->getIndividualLeaderboard($raceId, $search, $perPage);
 
-        return response()->json([
-            'success' => true,
-            ...$results,
-        ]);
+        return $this->paginatedResponse($results, 'Individual leaderboard retrieved successfully');
     }
 
     /**
@@ -161,10 +151,7 @@ class LeaderboardApiController extends Controller
 
         $results = $this->leaderboardService->getTeamLeaderboard($raceId, $search, $perPage);
 
-        return response()->json([
-            'success' => true,
-            ...$results,
-        ]);
+        return $this->paginatedResponse($results, 'Team leaderboard retrieved successfully');
     }
 
     /**
@@ -207,30 +194,24 @@ class LeaderboardApiController extends Controller
             ->first();
 
         if (!$result) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Result not found',
-            ], 404);
+            return $this->notFoundResponse('Result not found');
         }
 
         $rank = \App\Models\LeaderboardUser::where('race_id', $raceId)
             ->where('temps_final', '<', $result->temps_final)
             ->count() + 1;
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'rank' => $rank,
-                'id' => $result->id,
-                'user_id' => $result->user_id,
-                'user_name' => $result->user ? $result->user->first_name . ' ' . $result->user->last_name : 'Unknown',
-                'temps' => $result->temps,
-                'temps_formatted' => $result->formatted_temps,
-                'malus' => $result->malus,
-                'malus_formatted' => $result->formatted_malus,
-                'temps_final' => $result->temps_final,
-                'temps_final_formatted' => $result->formatted_temps_final,
-            ],
-        ]);
+        return $this->successResponse([
+            'rank' => $rank,
+            'id' => $result->id,
+            'user_id' => $result->user_id,
+            'user_name' => $result->user ? $result->user->first_name . ' ' . $result->user->last_name : 'Unknown',
+            'temps' => $result->temps,
+            'temps_formatted' => $result->formatted_temps,
+            'malus' => $result->malus,
+            'malus_formatted' => $result->formatted_malus,
+            'temps_final' => $result->temps_final,
+            'temps_final_formatted' => $result->formatted_temps_final,
+        ], 'User result retrieved successfully');
     }
 }

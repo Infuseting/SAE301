@@ -16,18 +16,20 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Http\Controllers\Api\ApiResponseTrait;
 use OpenApi\Annotations as OA;
 
 class RaidController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ApiResponseTrait;
     /**
      * Display a listing of the resource.
      * Returns all raids for client-side filtering and search.
      * 
      * @OA\Get(
-     *     path="/raids",
+     *     path="/api/raids",
      *     tags={"Raids"},
      *     summary="Get list of raids",
      *     description="Returns all raids with related data for client-side filtering",
@@ -36,8 +38,10 @@ class RaidController extends Controller
      *         description="Successful operation",
      *         @OA\JsonContent(
      *             type="object",
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="OK"),
      *             @OA\Property(
-     *                 property="raids",
+     *                 property="data",
      *                 type="array",
      *                 @OA\Items(ref="#/components/schemas/Raid")
      *             )
@@ -45,7 +49,7 @@ class RaidController extends Controller
      *     )
      * )
      */
-    public function index(Request $request): Response
+    public function index(Request $request): Response|JsonResponse
     {
         // Build query for raids
         $query = Raid::query()
@@ -137,6 +141,11 @@ class RaidController extends Controller
         // Get all age categories for the filter
         $ageCategories = AgeCategory::all();
 
+        // Return JSON for API requests
+        if ($request->is('api/*') || ($request->wantsJson() && !$request->hasHeader('X-Inertia'))) {
+            return $this->successResponse($raids, 'Raids retrieved successfully');
+        }
+
         return Inertia::render('Raid/List', [
             'raids' => $raids,
             'ageCategories' => $ageCategories,
@@ -214,7 +223,7 @@ class RaidController extends Controller
      * Only responsable-club can create raids.
      * 
      * @OA\Post(
-     *     path="/raids",
+     *     path="/api/raids",
      *     tags={"Raids"},
      *     summary="Create a new raid",
      *     description="Creates a new raid event. Only responsable-club can create raids.",
@@ -366,10 +375,10 @@ class RaidController extends Controller
      * Display the specified resource.
      * 
      * @OA\Get(
-     *     path="/raids/{id}",
+     *     path="/api/raids/{id}",
      *     tags={"Raids"},
      *     summary="Get raid by ID",
-     *     description="Returns a single raid",
+     *     description="Returns a single raid with its races",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -379,7 +388,12 @@ class RaidController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Raid")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="OK"),
+     *             @OA\Property(property="data", ref="#/components/schemas/Raid")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
@@ -387,7 +401,7 @@ class RaidController extends Controller
      *     )
      * )
      */
-    public function show(Raid $raid): Response
+    public function show(Raid $raid): Response|JsonResponse
     {
         $raid->load(['club', 'races.organizer.user', 'races.categorieAges.ageCategory', 'registrationPeriod']);
 
@@ -461,6 +475,14 @@ class RaidController extends Controller
                         'email' => $user->email,
                     ];
                 });
+        }
+
+        // Return JSON for API requests
+        if (request()->is('api/*') || (request()->wantsJson() && !request()->hasHeader('X-Inertia'))) {
+            return $this->successResponse([
+                'raid' => $raid,
+                'courses' => $courses,
+            ], 'Raid retrieved successfully');
         }
 
         return Inertia::render('Raid/Index', [
@@ -543,7 +565,7 @@ class RaidController extends Controller
      * Update the specified resource in storage.
      * 
      * @OA\Put(
-     *     path="/raids/{id}",
+     *     path="/api/raids/{id}",
      *     tags={"Raids"},
      *     summary="Update raid",
      *     description="Updates an existing raid",
@@ -638,7 +660,7 @@ class RaidController extends Controller
      * Remove the specified resource from storage.
      * 
      * @OA\Delete(
-     *     path="/raids/{id}",
+     *     path="/api/raids/{id}",
      *     tags={"Raids"},
      *     summary="Delete raid",
      *     description="Deletes a raid",
@@ -677,7 +699,7 @@ class RaidController extends Controller
      * Display the QR code scanner page for check-in
      *
      * @OA\Get(
-     *     path="/raids/{raid}/scanner",
+     *     path="/api/raids/{raid}/scanner",
      *     summary="Display QR code scanner page",
      *     tags={"Raids"},
      *     @OA\Parameter(
@@ -739,7 +761,7 @@ class RaidController extends Controller
      * Check-in a team via QR code scan
      *
      * @OA\Post(
-     *     path="/raids/{raid}/check-in",
+     *     path="/api/raids/{raid}/check-in",
      *     summary="Check-in a team",
      *     tags={"Raids"},
      *     @OA\Parameter(
@@ -841,7 +863,7 @@ class RaidController extends Controller
      * Generate start-list PDF for the raid
      *
      * @OA\Get(
-     *     path="/raids/{raid}/start-list",
+     *     path="/api/raids/{raid}/start-list",
      *     summary="Generate start-list PDF",
      *     tags={"Raids"},
      *     @OA\Parameter(

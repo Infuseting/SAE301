@@ -28,7 +28,7 @@ class LeaderboardApiTest extends TestCase
         $response = $this->getJson('/api/leaderboard/races');
 
         $response->assertStatus(200)
-            ->assertJson(['success' => true])
+            ->assertJson(['status' => 'success'])
             ->assertJsonCount(3, 'data');
     }
 
@@ -42,7 +42,7 @@ class LeaderboardApiTest extends TestCase
         $response = $this->getJson('/api/leaderboard/races');
 
         $response->assertStatus(200)
-            ->assertJson(['success' => true])
+            ->assertJson(['status' => 'success'])
             ->assertJsonCount(3, 'data');
     }
 
@@ -67,7 +67,7 @@ class LeaderboardApiTest extends TestCase
         $response = $this->getJson("/api/leaderboard/{$race->race_id}/individual");
 
         $response->assertStatus(200)
-            ->assertJson(['success' => true])
+            ->assertJson(['status' => 'success'])
             ->assertJsonPath('total', 1);
     }
 
@@ -160,7 +160,7 @@ class LeaderboardApiTest extends TestCase
         $response = $this->getJson("/api/leaderboard/{$race->race_id}/teams");
 
         $response->assertStatus(200)
-            ->assertJson(['success' => true])
+            ->assertJson(['status' => 'success'])
             ->assertJsonPath('total', 1);
     }
 
@@ -223,7 +223,7 @@ class LeaderboardApiTest extends TestCase
         $response = $this->getJson("/api/leaderboard/{$race->race_id}/user/{$participant->id}");
 
         $response->assertStatus(200)
-            ->assertJson(['success' => true])
+            ->assertJson(['status' => 'success'])
             ->assertJsonPath('data.user_id', $participant->id)
             ->assertJsonPath('data.rank', 1)
             ->assertJsonPath('data.user_name', 'John Doe');
@@ -243,7 +243,7 @@ class LeaderboardApiTest extends TestCase
 
         $response->assertStatus(404)
             ->assertJson([
-                'success' => false,
+                'status' => 'error',
                 'message' => 'Result not found',
             ]);
     }
@@ -322,7 +322,7 @@ class LeaderboardApiTest extends TestCase
         $response = $this->getJson("/api/leaderboard/{$race->race_id}/individual");
 
         $response->assertStatus(200)
-            ->assertJson(['success' => true])
+            ->assertJson(['status' => 'success'])
             ->assertJsonPath('total', 0)
             ->assertJsonCount(0, 'data');
     }

@@ -36,7 +36,7 @@ class ManagedClubsApiTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/me/managed-clubs');
 
         $response->assertStatus(200)
-            ->assertJsonCount(1)
+            ->assertJsonCount(1, 'data')
             ->assertJsonFragment(['club_name' => 'My Owned Club'])
             ->assertJsonMissing(['club_name' => 'Other Club']);
     }
@@ -57,7 +57,7 @@ class ManagedClubsApiTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/me/managed-clubs');
 
         $response->assertStatus(200)
-            ->assertJsonCount(1)
+            ->assertJsonCount(1, 'data')
             ->assertJsonFragment(['club_name' => 'Managed Club']);
     }
 
@@ -71,6 +71,6 @@ class ManagedClubsApiTest extends TestCase
         $response = $this->actingAs($admin, 'sanctum')->getJson('/api/me/managed-clubs');
 
         $response->assertStatus(200)
-            ->assertJsonCount(3);
+            ->assertJsonCount(3, 'data');
     }
 }

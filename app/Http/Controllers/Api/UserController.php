@@ -9,6 +9,7 @@ use App\Models\User;
 
 class UserController extends Controller
 {
+    use ApiResponseTrait;
     /**
      * Get the authenticated user.
      *
@@ -32,7 +33,7 @@ class UserController extends Controller
      */
     public function __invoke(Request $request)
     {
-        return $request->user();
+        return $this->successResponse($request->user(), 'User retrieved successfully');
     }
 
     /**
@@ -105,7 +106,7 @@ class UserController extends Controller
                 ];
             });
 
-        return response()->json($users);
+        return $this->successResponse($users, 'Users found');
     }
 
     /**
@@ -151,6 +152,6 @@ class UserController extends Controller
                 ];
             });
 
-        return response()->json($users);
+        return $this->successResponse($users, 'Adherents retrieved successfully');
     }
 }

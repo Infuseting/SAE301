@@ -13,7 +13,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class RaceManagementController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ApiResponseTrait;
     /**
      * @OA\Get(
      *      path="/api/me/managed-races",
@@ -59,7 +59,7 @@ class RaceManagementController extends Controller
                 ->get();
         }
 
-        return response()->json($races);
+        return $this->successResponse($races, 'Managed races retrieved successfully');
     }
 
     /**
@@ -137,7 +137,7 @@ class RaceManagementController extends Controller
             }
         }
 
-        return response()->json($participants);
+        return $this->successResponse($participants, 'Participants retrieved successfully');
     }
 
     /**
@@ -183,14 +183,9 @@ class RaceManagementController extends Controller
 
         $registration->update([
             'reg_validated' => $validated['status'] === 'confirmed',
-            // We can store notes if there's a field, or just skip if not available
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Le statut de l\'inscription a été mis à jour.',
-            'registration' => $registration
-        ]);
+        return $this->successResponse($registration, 'Registration status updated successfully');
     }
 
     private function formatParticipantForApi(User $user, RaceRegistration $registration, bool $isLeader, string $teamName): array

@@ -15,11 +15,6 @@ use OpenApi\Annotations as OA;
  * Controller for team age validation.
  * 
  * Handles validation of team compositions based on age requirements.
- * 
- * @OA\Tag(
- *     name="Team Age Validation",
- *     description="Endpoints for validating team age composition and participant eligibility"
- * )
  */
 class TeamAgeController extends Controller
 {
@@ -42,7 +37,7 @@ class TeamAgeController extends Controller
      * Display the team age validation page.
      * 
      * @OA\Get(
-     *     path="/team/age-validation",
+     *     path="/api/team/age-validation",
      *     tags={"Team Age Validation"},
      *     summary="Show age validation page",
      *     description="Display the team age validation interface with rules and thresholds",
