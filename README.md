@@ -8,13 +8,23 @@ The project is actually available on [SAE301](https://sae301.infuseting.fr)
 
 ## How Run (Fastest Way)
 
-```bash
+_**(Linux):**_
+```shell
 cp .env.example .env 
 nano .env # Configure your database access
 docker compose --env-file .env up -d --build
 ```
 
+_**(Windows):**_
+```bash
+copy .env.example .env
+notepad .env # Configure your database access
+docker compose --env-file .env up -d --build
+```
+
 #### Next, you can access to project on **[http://localhost:8080/](http://localhost:8080/)**
+
+## Development
 
 > If you want to develop on projet, you can see the section ["How Run (Development)"](./docs/wiki/How_Run_For_Development.md).
 
