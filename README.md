@@ -22,7 +22,9 @@ notepad .env # Configure your database access
 docker compose --env-file .env up -d --build
 ```
 
-#### Next, you can access to project on **[http://localhost:8080/](http://localhost:8080/)**
+> [!TIP]
+> Default admin account is ```admin@test.fr / password```, please consider to change it after your first login for security reason.
+> Next, you can access to project on **[http://localhost:8080/](http://localhost:8080/)**
 
 ## Development
 
