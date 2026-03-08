@@ -1,0 +1,44 @@
+services:
+  app:
+    build: .
+    container_name: sae301
+    ports:
+      - "8080:80"
+    environment:
+      - APP_NAME=${APP_NAME}
+      - APP_ENV=${APP_ENV}
+      - APP_DEBUG=${APP_DEBUG}
+      - APP_URL=${APP_URL}
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=${DB_CONNECTION}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    command: >
+      sh -c "
+      php artisan migrate --force &&
+      php artisan storage:link &&
+      php artisan config:cache &&
+      php artisan cache:clear &&
+      php artisan view:clear &&
+      apache2-foreground
+      "
+    depends_on:
+      - db
+    
+  db:
+    image: mysql:8
+    container_name: sae301_db
+    restart: always
+    environment:
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    ports:
+     - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+volumes:
+  dbdata:

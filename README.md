@@ -6,35 +6,29 @@ This project is a school project build with Laravel / React / TailwindCSS
 
 The project is actually available on [SAE301](https://sae301.infuseting.fr)
 
-## How Run
+## How Run (Fastest Way)
 
-```bash
-composer install
-```
-```bash
-npm install
-```
-</br>
-
-> [!NOTE]
-> Then copy the .env.example to .env and configure your database access.
-
-</br>
-
-```bash
-php artisan migrate
-```
-```bash
-php artisan key:generate
-```
-```bash
-php artisan run
+_**(Linux):**_
+```shell
+cp .env.example .env 
+nano .env # Configure your database access
+docker compose --env-file .env up -d --build
 ```
 
-</br>
+_**(Windows):**_
+```bash
+copy .env.example .env
+notepad .env # Configure your database access
+docker compose --env-file .env up -d --build
+```
 
 > [!TIP]
-> ```php artisan run``` is a homemade custom command that launch both Laravel server and React dev server.
+> Default admin account is ```admin@test.fr / password```, please consider to change it after your first login for security reason.
+> Next, you can access to project on **[http://localhost:8080/](http://localhost:8080/)**
+
+## Development
+
+> If you want to develop on projet, you can see the section ["How Run (Development)"](./docs/wiki/How_Run_For_Development.md).
 
 ## How Contribute
 

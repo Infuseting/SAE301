@@ -24,7 +24,7 @@ return new class extends Migration
                 'name' => 'Admin Test',
                 'last_name' => 'Test',
                 'first_name' => 'Admin',
-                'password' => bcrypt('password'),
+                'password' => bcrypt('password'), # replace bcrypt with a hashed password for security if needed
                 'email_verified_at' => now(),
             ]
         );
