@@ -101,6 +101,9 @@ class RaidCreationTest extends TestCase
                 'updated_at' => now(),
             ],
         ]);
+
+        // Assign responsable-club role so route middleware allows access
+        $this->clubLeader->assignRole('responsable-club');
     }
 
     /**

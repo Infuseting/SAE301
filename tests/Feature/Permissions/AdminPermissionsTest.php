@@ -245,14 +245,29 @@ class AdminPermissionsTest extends TestCase
     /** @test */
     public function admin_can_update_any_raid(): void
     {
-        $otherUser = User::factory()->create();
-        $raid = Raid::factory()->create();
+        $member = Member::factory()->create();
+        $club = Club::factory()->create();
+        $memberUser = User::factory()->create(['adh_id' => $member->adh_id]);
+
+        // Link member's user to club (required by UpdateRaidRequest validation)
+        \DB::table('club_user')->insert([
+            'club_id' => $club->club_id,
+            'user_id' => $memberUser->id,
+            'status' => 'approved',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $raid = Raid::factory()->create([
+            'adh_id' => $member->adh_id,
+            'clu_id' => $club->club_id,
+        ]);
 
         $response = $this->actingAs($this->admin)
             ->put(route('raids.update', $raid), [
                 'raid_name' => 'Admin Updated Raid',
                 'raid_description' => $raid->raid_description,
-                'clu_id' => $raid->clu_id,
+                'clu_id' => $club->club_id,
                 'raid_date_start' => $raid->raid_date_start->format('Y-m-d'),
                 'raid_date_end' => $raid->raid_date_end->format('Y-m-d'),
                 'ins_start_date' => $raid->registrationPeriod->ins_start_date->format('Y-m-d'),
@@ -261,7 +276,7 @@ class AdminPermissionsTest extends TestCase
                 'raid_street' => $raid->raid_street,
                 'raid_postal_code' => $raid->raid_postal_code,
                 'raid_contact' => $raid->raid_contact,
-                'adh_id' => $raid->adh_id,
+                'adh_id' => $member->adh_id,
                 'raid_number' => $raid->raid_number,
             ]);
 
@@ -288,8 +303,8 @@ class AdminPermissionsTest extends TestCase
     public function admin_can_create_race(): void
     {
         $raid = Raid::factory()->create();
-        $type = \App\Models\ParamType::first();
-        $difficulty = \App\Models\ParamDifficulty::first();
+        $type = \App\Models\ParamType::where('typ_name', 'loisir')->first()
+            ?? \App\Models\ParamType::factory()->create(['typ_name' => 'loisir']);
         $user = \App\Models\User::factory()->create();
 
         $raceData = [
@@ -301,8 +316,9 @@ class AdminPermissionsTest extends TestCase
             'endTime' => '12:00',
             'minParticipants' => 10,
             'maxParticipants' => 100,
+            'minPerTeam' => 2,
             'maxPerTeam' => 5,
-            'difficulty' => $difficulty->dif_id,
+            'difficulty' => 'moyenne',
             'type' => $type->typ_id,
             'minTeams' => 2,
             'maxTeams' => 20,
@@ -333,27 +349,34 @@ class AdminPermissionsTest extends TestCase
     /** @test */
     public function admin_can_update_any_race(): void
     {
-        $otherUser = User::factory()->create();
-        $race = Race::factory()->create();
+        $raid = Raid::factory()->create();
+        $type = \App\Models\ParamType::where('typ_name', 'loisir')->first()
+            ?? \App\Models\ParamType::factory()->create(['typ_name' => 'loisir']);
+        $responsable = User::factory()->create();
+        $race = Race::factory()->create([
+            'raid_id' => $raid->raid_id,
+            'typ_id' => $type->typ_id,
+        ]);
 
         $response = $this->actingAs($this->admin)
-            ->put(route('races.update', $race), [
+            ->put(route('races.update', $race->race_id), [
                 'title' => 'Admin Updated Race',
-                'raid_id' => $race->raid_id,
-                'startDate' => $race->race_date_start->format('Y-m-d'),
-                'startTime' => $race->race_date_start->format('H:i'),
-                'endDate' => $race->race_date_end->format('Y-m-d'),
-                'endTime' => $race->race_date_end->format('H:i'),
-                'minParticipants' => $race->race_min_participants,
-                'maxParticipants' => $race->race_max_participants,
-                'maxPerTeam' => $race->race_max_per_team,
-                'difficulty' => $race->dif_id,
-                'type' => $race->typ_id,
-                'minTeams' => $race->race_min_teams,
-                'maxTeams' => $race->race_max_teams,
-                'priceMajor' => $race->race_price_adult,
-                'priceMinor' => 0,
-                'responsableId' => $race->res_adh_id,
+                'raid_id' => $raid->raid_id,
+                'startDate' => $raid->raid_date_start->format('Y-m-d'),
+                'startTime' => '09:00',
+                'endDate' => $raid->raid_date_start->format('Y-m-d'),
+                'endTime' => '12:00',
+                'minParticipants' => 10,
+                'maxParticipants' => 100,
+                'minPerTeam' => 2,
+                'maxPerTeam' => 5,
+                'difficulty' => 'moyenne',
+                'type' => $type->typ_id,
+                'minTeams' => 2,
+                'maxTeams' => 20,
+                'priceMajor' => 25.00,
+                'priceMinor' => 15.00,
+                'responsableId' => $responsable->id,
             ]);
 
         $response->assertRedirect();
@@ -426,7 +449,7 @@ class AdminPermissionsTest extends TestCase
         $response = $this->actingAs($this->admin)->delete(route('admin.users.destroy', $user));
 
         $response->assertRedirect();
-        $this->assertSoftDeleted('users', ['id' => $user->id]);
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
 
     /** @test */
@@ -469,6 +492,7 @@ class AdminPermissionsTest extends TestCase
     public function admin_can_register_to_races_without_licence(): void
     {
         // Admin should be able to do everything, even without licence
+        // The register endpoint returns JSON responses, not redirects
         $race = Race::factory()->create();
 
         $response = $this->actingAs($this->admin)
@@ -478,7 +502,8 @@ class AdminPermissionsTest extends TestCase
                 'runner_birthdate' => '1990-01-01',
             ]);
 
-        $response->assertRedirect();
+        $response->assertOk();
+        $response->assertJson(['success' => true]);
     }
 
     /** @test */
@@ -486,12 +511,12 @@ class AdminPermissionsTest extends TestCase
     {
         // Admin should bypass licence requirements
         $clubData = [
-            'name' => 'No Licence Club',
+            'club_name' => 'No Licence Club',
             'description' => 'Test',
-            'city' => 'Paris',
-            'department' => '75',
-            'postal_code' => '75001',
-            'address' => 'Test',
+            'club_city' => 'Paris',
+            'club_postal_code' => '75001',
+            'club_street' => '1 Rue de Test',
+            'ffso_id' => 'FFCO-9999',
         ];
 
         $response = $this->actingAs($this->admin)->post(route('clubs.store'), $clubData);

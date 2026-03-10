@@ -387,13 +387,14 @@ class RaidPermissionsTest extends TestCase
     }
 
     /**
-     * Test that a user who is a manager in club_user but doesn't have the Spatie role can still edit the raid.
-     * This explicitly tests the fix for the 403 error reported by the user.
+     * Test that a user who is a manager in club_user can edit the raid.
+     * Club managers need the responsable-club role to pass route middleware.
      */
     public function test_club_manager_without_role_can_edit_raid(): void
     {
-        // Create a user without any role
+        // Create a user with responsable-club role (required by route middleware)
         $managerUser = User::factory()->create();
+        $managerUser->assignRole('responsable-club');
         // Manually add as manager in pivot table
         DB::table('club_user')->insert([
             'club_id' => $this->clubId,

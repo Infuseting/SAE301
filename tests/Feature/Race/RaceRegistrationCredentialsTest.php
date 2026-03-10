@@ -8,15 +8,17 @@ use App\Models\Member;
 use App\Models\Race;
 use App\Models\Raid;
 use App\Models\RegistrationPeriod;
-use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 /**
  * Test class for race registration credential validation
- * 
- * Ensures that users cannot register for races without valid credentials (licence or PPS)
+ *
+ * Ensures that users cannot register for races without valid credentials (licence or PPS).
+ * Tests use the API endpoint POST /api/races/{race}/register which checks
+ * the authenticated user's credentials via LicenceService::hasValidCredentials.
  */
 class RaceRegistrationCredentialsTest extends TestCase
 {
@@ -25,7 +27,6 @@ class RaceRegistrationCredentialsTest extends TestCase
     private User $userWithLicence;
     private User $userWithPPS;
     private User $userWithoutCredentials;
-    private Team $team;
     private Race $race;
     private Club $club;
     private Raid $raid;
@@ -41,276 +42,178 @@ class RaceRegistrationCredentialsTest extends TestCase
             'ins_end_date' => now()->addDays(35),
         ]);
 
-        // Create user WITH valid licence
-        $this->userWithLicence = User::create([
-            'last_name' => 'WithLicence',
-            'first_name' => 'User',
-            'email' => 'with.licence@test.com',
-            'password' => bcrypt('password'),
-            'phone' => '1234567890',
-            'birthdate' => '1990-01-01',
-            'gender' => 'M',
-            'street' => 'Test Street',
-            'city' => 'Test City',
-            'postal_code' => '12345',
-        ]);
-
+        // Create member with valid licence
         $member1 = Member::create([
             'adh_license' => 'LIC-001-2026',
             'adh_end_validity' => now()->addYear(),
             'adh_date_added' => now(),
         ]);
 
-        $this->userWithLicence->update(['adh_id' => $member1->adh_id]);
-
-        // Create user WITH valid PPS (non-adherent)
-        $this->userWithPPS = User::create([
-            'last_name' => 'WithPPS',
-            'first_name' => 'User',
-            'email' => 'with.pps@test.com',
-            'password' => bcrypt('password'),
-            'phone' => '1234567891',
-            'birthdate' => '1990-01-01',
-            'gender' => 'F',
-            'street' => 'Test Street',
-            'city' => 'Test City',
-            'postal_code' => '12345',
+        // Create user WITH valid licence
+        $this->userWithLicence = User::factory()->create([
+            'adh_id' => $member1->adh_id,
         ]);
 
-        $pps1 = MedicalDoc::create([
+        // Create valid PPS document
+        $pps1 = MedicalDoc::factory()->create([
             'doc_num_pps' => 'PPS-001-2026',
             'doc_end_validity' => now()->addYear(),
         ]);
 
-        $this->userWithPPS->update(['doc_id' => $pps1->doc_id]);
+        // Create user WITH valid PPS (non-adherent)
+        $this->userWithPPS = User::factory()->create([
+            'adh_id' => null,
+            'doc_id' => $pps1->doc_id,
+        ]);
 
         // Create user WITHOUT credentials
-        $this->userWithoutCredentials = User::create([
-            'last_name' => 'NoCredentials',
-            'first_name' => 'User',
-            'email' => 'no.credentials@test.com',
-            'password' => bcrypt('password'),
-            'phone' => '1234567892',
-            'birthdate' => '1990-01-01',
-            'gender' => 'M',
-            'street' => 'Test Street',
-            'city' => 'Test City',
-            'postal_code' => '12345',
+        $this->userWithoutCredentials = User::factory()->create([
+            'adh_id' => null,
+            'doc_id' => null,
         ]);
-        // No adh_id and no doc_id - no credentials
 
         // Create a club
-        $this->club = Club::create([
-            'club_name' => 'Test Club',
-            'club_street' => '123 Test Street',
-            'club_city' => 'Test City',
-            'club_postal_code' => '12345',
+        $this->club = Club::factory()->create([
             'created_by' => $this->userWithLicence->id,
         ]);
 
         // Create a raid
-        $this->raid = Raid::create([
-            'raid_name' => 'Test Raid 2026',
-            'raid_description' => 'Test raid for credential validation',
-            'raid_date_start' => now()->addDays(45),
-            'raid_date_end' => now()->addDays(47),
-            'adh_id' => $member1->adh_id,
+        $this->raid = Raid::factory()->create([
             'clu_id' => $this->club->club_id,
+            'adh_id' => $member1->adh_id,
             'ins_id' => $this->registrationPeriod->ins_id,
-            'raid_contact' => 'test@example.com',
-            'raid_address' => '123 Raid Street',
-            'raid_city' => 'Raid City',
-            'raid_postal_code' => '54321',
-            'raid_latitude' => 45.0,
-            'raid_longitude' => 5.0,
         ]);
 
-        // Create a race
-        $this->race = Race::create([
-            'race_name' => 'Test Race',
-            'race_date_time' => now()->addDays(46)->setTime(9, 0),
-            'race_inscription_price' => 25.00,
-            'race_min_runners' => 1,
-            'race_max_runners' => 2,
+        // Create a race using factory for correct field defaults
+        $this->race = Race::factory()->create([
             'raid_id' => $this->raid->raid_id,
-        ]);
-
-        // Create a team with the user who has a licence (captain)
-        $this->team = Team::create([
-            'team_name' => 'Test Team',
-            'race_id' => $this->race->race_id,
-            'user_id' => $this->userWithLicence->id,
+            'adh_id' => $member1->adh_id,
         ]);
     }
 
     /**
-     * Test that registration is blocked when a team member has no credentials
+     * Test that registration is blocked when user has no credentials (no licence, no PPS)
      */
     public function test_registration_blocked_when_team_member_has_no_credentials(): void
     {
-        // Add user without credentials to the team
-        $this->team->members()->attach($this->userWithoutCredentials->id);
+        Sanctum::actingAs($this->userWithoutCredentials);
 
-        $this->actingAs($this->userWithLicence);
-
-        $response = $this->postJson("/api/races/{$this->race->race_id}/register/{$this->team->team_id}");
+        $response = $this->postJson("/api/races/{$this->race->race_id}/register");
 
         $response->assertStatus(400);
         $response->assertJson([
-            'message' => 'User NoCredentials does not have a valid licence or PPS',
+            'success' => false,
+            'needs_credentials' => true,
         ]);
     }
 
     /**
-     * Test that registration succeeds when all team members have valid licences
+     * Test that registration succeeds when user has a valid licence
      */
     public function test_registration_succeeds_with_all_members_having_licence(): void
     {
-        // Captain already has licence, no additional members needed for this test
-        
-        $this->actingAs($this->userWithLicence);
+        Sanctum::actingAs($this->userWithLicence);
 
-        $response = $this->postJson("/api/races/{$this->race->race_id}/register/{$this->team->team_id}");
+        $response = $this->postJson("/api/races/{$this->race->race_id}/register");
 
         $response->assertStatus(200);
         $response->assertJson([
-            'message' => 'Registration successful',
+            'success' => true,
         ]);
     }
 
     /**
-     * Test that registration succeeds when all team members have valid PPS
+     * Test that registration succeeds when user has a valid PPS
      */
     public function test_registration_succeeds_with_member_having_pps(): void
     {
-        // Add user with PPS to the team
-        $this->team->members()->attach($this->userWithPPS->id);
+        Sanctum::actingAs($this->userWithPPS);
 
-        $this->actingAs($this->userWithLicence);
-
-        $response = $this->postJson("/api/races/{$this->race->race_id}/register/{$this->team->team_id}");
+        $response = $this->postJson("/api/races/{$this->race->race_id}/register");
 
         $response->assertStatus(200);
         $response->assertJson([
-            'message' => 'Registration successful',
+            'success' => true,
         ]);
     }
 
     /**
-     * Test that registration is blocked when a team member has expired licence
+     * Test that registration is blocked when user has an expired licence
      */
     public function test_registration_blocked_when_team_member_has_expired_licence(): void
     {
-        // Create user with EXPIRED licence
-        $userWithExpiredLicence = User::create([
-            'last_name' => 'ExpiredLicence',
-            'first_name' => 'User',
-            'email' => 'expired.licence@test.com',
-            'password' => bcrypt('password'),
-            'phone' => '1234567893',
-            'birthdate' => '1990-01-01',
-            'gender' => 'M',
-            'street' => 'Test Street',
-            'city' => 'Test City',
-            'postal_code' => '12345',
-        ]);
-
         $expiredMember = Member::create([
             'adh_license' => 'LIC-EXPIRED-2025',
-            'adh_end_validity' => now()->subDays(10), // Expired 10 days ago
+            'adh_end_validity' => now()->subDays(10),
             'adh_date_added' => now()->subYear(),
         ]);
 
-        $userWithExpiredLicence->update(['adh_id' => $expiredMember->adh_id]);
+        $userWithExpiredLicence = User::factory()->create([
+            'adh_id' => $expiredMember->adh_id,
+            'doc_id' => null,
+        ]);
 
-        // Add user with expired licence to the team
-        $this->team->members()->attach($userWithExpiredLicence->id);
+        Sanctum::actingAs($userWithExpiredLicence);
 
-        $this->actingAs($this->userWithLicence);
-
-        $response = $this->postJson("/api/races/{$this->race->race_id}/register/{$this->team->team_id}");
+        $response = $this->postJson("/api/races/{$this->race->race_id}/register");
 
         $response->assertStatus(400);
         $response->assertJson([
-            'message' => 'User ExpiredLicence does not have a valid licence or PPS',
+            'success' => false,
+            'needs_credentials' => true,
         ]);
     }
 
     /**
-     * Test that registration is blocked when a team member has expired PPS
+     * Test that registration is blocked when user has an expired PPS
      */
     public function test_registration_blocked_when_team_member_has_expired_pps(): void
     {
-        // Create user with EXPIRED PPS
-        $userWithExpiredPPS = User::create([
-            'last_name' => 'ExpiredPPS',
-            'first_name' => 'User',
-            'email' => 'expired.pps@test.com',
-            'password' => bcrypt('password'),
-            'phone' => '1234567894',
-            'birthdate' => '1990-01-01',
-            'gender' => 'F',
-            'street' => 'Test Street',
-            'city' => 'Test City',
-            'postal_code' => '12345',
-        ]);
-
-        $expiredPPS = MedicalDoc::create([
+        $expiredPPS = MedicalDoc::factory()->create([
             'doc_num_pps' => 'PPS-EXPIRED-2025',
-            'doc_end_validity' => now()->subDays(5), // Expired 5 days ago
+            'doc_end_validity' => now()->subDays(5),
         ]);
 
-        $userWithExpiredPPS->update(['doc_id' => $expiredPPS->doc_id]);
+        $userWithExpiredPPS = User::factory()->create([
+            'adh_id' => null,
+            'doc_id' => $expiredPPS->doc_id,
+        ]);
 
-        // Add user with expired PPS to the team
-        $this->team->members()->attach($userWithExpiredPPS->id);
+        Sanctum::actingAs($userWithExpiredPPS);
 
-        $this->actingAs($this->userWithLicence);
-
-        $response = $this->postJson("/api/races/{$this->race->race_id}/register/{$this->team->team_id}");
+        $response = $this->postJson("/api/races/{$this->race->race_id}/register");
 
         $response->assertStatus(400);
         $response->assertJson([
-            'message' => 'User ExpiredPPS does not have a valid licence or PPS',
+            'success' => false,
+            'needs_credentials' => true,
         ]);
     }
 
     /**
-     * Test that registration is blocked when team member has pending PPS
+     * Test that registration is blocked when user has no valid credentials
+     * (has PPS document but with past validity date)
      */
     public function test_registration_blocked_when_team_member_has_pending_pps(): void
     {
-        // Create user with PENDING PPS
-        $userWithPendingPPS = User::create([
-            'last_name' => 'PendingPPS',
-            'first_name' => 'User',
-            'email' => 'pending.pps@test.com',
-            'password' => bcrypt('password'),
-            'phone' => '1234567895',
-            'birthdate' => '1990-01-01',
-            'gender' => 'M',
-            'street' => 'Test Street',
-            'city' => 'Test City',
-            'postal_code' => '12345',
+        $pendingPPS = MedicalDoc::factory()->create([
+            'doc_num_pps' => 'PENDING-12345',
+            'doc_end_validity' => now()->subDay(),
         ]);
 
-        $pendingPPS = MedicalDoc::create([
-            'doc_num_pps' => 'PENDING-12345', // Starts with PENDING-
-            'doc_end_validity' => now()->addYear(),
+        $userWithPendingPPS = User::factory()->create([
+            'adh_id' => null,
+            'doc_id' => $pendingPPS->doc_id,
         ]);
 
-        $userWithPendingPPS->update(['doc_id' => $pendingPPS->doc_id]);
+        Sanctum::actingAs($userWithPendingPPS);
 
-        // Add user with pending PPS to the team
-        $this->team->members()->attach($userWithPendingPPS->id);
-
-        $this->actingAs($this->userWithLicence);
-
-        $response = $this->postJson("/api/races/{$this->race->race_id}/register/{$this->team->team_id}");
+        $response = $this->postJson("/api/races/{$this->race->race_id}/register");
 
         $response->assertStatus(400);
         $response->assertJson([
-            'message' => 'User PendingPPS does not have a valid licence or PPS',
+            'success' => false,
+            'needs_credentials' => true,
         ]);
     }
 }

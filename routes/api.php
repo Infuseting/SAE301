@@ -93,7 +93,7 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
 
     // Team age validation endpoints
     Route::prefix('team')->group(function () {
-        Route::get('/age-thresholds', [\App\Http\Controllers\Team\TeamAgeController::class, 'ageThresholds']);
+        Route::get('/age-thresholds', [\App\Http\Controllers\Team\TeamAgeController::class, 'getThresholds']);
         Route::post('/validate-ages', [\App\Http\Controllers\Team\TeamAgeController::class, 'validateAges']);
         Route::post('/validate-birthdates', [\App\Http\Controllers\Team\TeamAgeController::class, 'validateBirthdates']);
         Route::post('/check-participant', [\App\Http\Controllers\Team\TeamAgeController::class, 'checkParticipant']);

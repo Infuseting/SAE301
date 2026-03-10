@@ -363,16 +363,49 @@ class RacePermissionsTest extends TestCase
 
     /**
      * Test that a responsable-club without responsable-course role cannot create races 
-     * if they are NOT the raid responsible
+     * if they are NOT the raid responsible and the raid belongs to another club
      */
     public function test_responsable_club_cannot_create_race_if_not_raid_responsible(): void
     {
-        // Set someone else as raid responsible
-        $someoneElse = Member::factory()->create();
-        $this->raid->update(['adh_id' => $someoneElse->adh_id]);
+        // Create a different club owned by someone else
+        $otherClubId = DB::table('clubs')->insertGetId([
+            'club_name' => 'Other Club',
+            'club_street' => '456 Other Street',
+            'club_city' => 'Other City',
+            'club_postal_code' => '54321',
+            'ffso_id' => 'FFCO888',
+            'description' => 'Other Club Description',
+            'is_approved' => true,
+            'created_by' => $this->adminUser->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Create a raid belonging to the other club
+        $registrationPeriod = RegistrationPeriod::create([
+            'ins_start_date' => now()->addDays(7),
+            'ins_end_date' => now()->addDays(21),
+        ]);
+        $otherRaid = Raid::create([
+            'raid_name' => 'Other Raid',
+            'raid_description' => 'Description',
+            'clu_id' => $otherClubId,
+            'adh_id' => Member::factory()->create()->adh_id,
+            'raid_date_start' => now()->addMonth(),
+            'raid_date_end' => now()->addMonth()->addDays(2),
+            'ins_id' => $registrationPeriod->ins_id,
+            'raid_contact' => 'other@test.com',
+            'raid_street' => '456 Other Street',
+            'raid_city' => 'Other City',
+            'raid_postal_code' => '54321',
+            'raid_number' => 2,
+        ]);
+
+        $raceData = $this->getValidRaceData();
+        $raceData['raid_id'] = $otherRaid->raid_id;
 
         $response = $this->actingAs($this->responsableClubUser)
-            ->post(route('races.store'), $this->getValidRaceData());
+            ->post(route('races.store'), $raceData);
         
         $response->assertStatus(403);
     }

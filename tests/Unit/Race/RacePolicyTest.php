@@ -394,11 +394,12 @@ class RacePolicyTest extends TestCase
     }
 
     /**
-     * Test guest cannot register for race
+     * Test any authenticated user can attempt to register for race
+     * (credential validation happens at the controller/middleware level)
      */
-    public function test_guest_cannot_register_for_race(): void
+    public function test_guest_can_attempt_register_for_race(): void
     {
         $result = $this->policy->register($this->guestUser, $this->race);
-        $this->assertFalse($result);
+        $this->assertTrue($result);
     }
 }

@@ -23,6 +23,7 @@ class ClubTest extends TestCase
         // Create permissions if they don't exist (using firstOrCreate avoids collisions if seeder runs)
         Permission::firstOrCreate(['name' => 'create-club', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'accept-club', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'access-admin', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'club-manager', 'guard_name' => 'web']);
     }
 
@@ -67,7 +68,7 @@ class ClubTest extends TestCase
     public function test_admin_can_approve_club()
     {
         $admin = User::factory()->create();
-        $admin->givePermissionTo('accept-club');
+        $admin->givePermissionTo(['accept-club', 'access-admin']);
 
         $creator = User::factory()->create();
         $club = Club::factory()->create([
@@ -92,7 +93,7 @@ class ClubTest extends TestCase
     public function test_approval_handles_duplicate_entry_gracefully()
     {
         $admin = User::factory()->create();
-        $admin->givePermissionTo('accept-club');
+        $admin->givePermissionTo(['accept-club', 'access-admin']);
 
         $creator = User::factory()->create();
         $club = Club::factory()->create([

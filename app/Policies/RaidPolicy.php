@@ -32,7 +32,7 @@ class RaidPolicy
 
     /**
      * Determine whether the user can create models.
-     * Only responsable-club can create raids for their club
+     * Admins, responsable-club, gestionnaire-raid, and club managers can create raids.
      */
     public function create(User $user): bool
     {
@@ -41,13 +41,22 @@ class RaidPolicy
             return true;
         }
 
-        // Only responsable-club can create raids
-        // They must have at least one approved club they are responsible for
+        // Responsable-club can create raids for their approved clubs
         if ($user->hasRole('responsable-club')) {
             return $user->clubs()->where('is_approved', true)->exists();
         }
 
-        return false;
+        // Gestionnaire-raid can create raids
+        if ($user->hasRole('gestionnaire-raid')) {
+            return true;
+        }
+
+        // Club managers can create raids for their approved clubs
+        return $user->clubs()
+            ->where('is_approved', true)
+            ->wherePivot('role', 'manager')
+            ->wherePivot('status', 'approved')
+            ->exists();
     }
 
     /**
@@ -94,8 +103,6 @@ class RaidPolicy
                 ->wherePivot('role', 'manager')
                 ->wherePivot('status', 'approved')
                 ->exists();
-
-            file_put_contents('debug.log', "Policy Update: User " . $user->id . " Raid Club " . $raid->clu_id . " IsRel: " . ($isRel ? 1 : 0) . " IsManager: " . ($isManager ? 1 : 0) . "\n", FILE_APPEND);
 
             return $isRel || $isManager;
         }

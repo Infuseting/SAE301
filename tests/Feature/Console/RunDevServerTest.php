@@ -57,7 +57,7 @@ class RunDevServerTest extends TestCase
 
         // 3. Execute the command
         $this->artisan('run')
-            ->expectsOutput('Starting npm run dev and php artisan serve...')
+            ->expectsOutput('Starting development servers in 2 seconds...')
             ->expectsOutput('Both processes have stopped.')
             ->assertExitCode(0);
     }

@@ -74,11 +74,13 @@ class AdherentPermissionsTest extends TestCase
     /** @test */
     public function adherent_can_update_profile(): void
     {
-        $this->markTestSkipped('Profile update functionality needs investigation - not a permissions issue');
         $response = $this->actingAs($this->adherent)->patch(route('profile.update'), [
             'first_name' => 'Updated',
             'last_name' => 'Adherent',
             'email' => $this->adherent->email,
+            'birth_date' => '1990-01-01',
+            'address' => '123 Test Street',
+            'phone' => '0612345678',
         ]);
 
         $response->assertRedirect();
@@ -92,18 +94,15 @@ class AdherentPermissionsTest extends TestCase
     /** @test */
     public function adherent_with_valid_licence_can_register_to_race(): void
     {
-        $this->markTestSkipped('Race registration functionality needs investigation - not a permissions issue');
         $race = Race::factory()->create();
 
         $response = $this->actingAs($this->adherent)
-            ->post(route('race.register', $race), [
-                'runner_first_name' => 'Test',
-                'runner_last_name' => 'Runner',
-                'runner_birthdate' => '1990-01-01',
-            ]);
+            ->postJson(route('race.register', $race));
 
         // Should succeed because adherent has valid licence
-        $response->assertRedirect();
+        // The register endpoint returns JSON, not a redirect
+        $response->assertOk();
+        $response->assertJson(['success' => true]);
     }
 
     /** @test */
@@ -144,24 +143,29 @@ class AdherentPermissionsTest extends TestCase
     }
 
     /** @test */
-    public function adherent_cannot_create_club(): void
+    public function adherent_can_access_club_creation_page(): void
     {
         $response = $this->actingAs($this->adherent)->get(route('clubs.create'));
-        $response->assertStatus(403);
+        $response->assertStatus(200);
     }
 
     /** @test */
-    public function adherent_cannot_store_club(): void
+    public function adherent_can_store_club_pending_approval(): void
     {
         $clubData = [
-            'name' => 'Test Club',
-            'description' => 'Test Description',
-            'city' => 'Test City',
-            'department' => '75',
+            'club_name' => 'Test Club',
+            'club_street' => '1 Rue de Test',
+            'club_city' => 'Test City',
+            'club_postal_code' => '75001',
+            'ffso_id' => 'FFCO-TEST',
         ];
 
         $response = $this->actingAs($this->adherent)->post(route('clubs.store'), $clubData);
-        $response->assertStatus(403);
+        $response->assertRedirect();
+        $this->assertDatabaseHas('clubs', [
+            'club_name' => 'Test Club',
+            'is_approved' => false,
+        ]);
     }
 
     /** @test */

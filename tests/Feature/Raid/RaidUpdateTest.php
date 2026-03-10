@@ -122,6 +122,9 @@ class RaidUpdateTest extends TestCase
             ['club_id' => $this->otherClubId, 'user_id' => $this->otherClubLeader->id, 'status' => 'approved', 'role' => 'manager', 'created_at' => now(), 'updated_at' => now()],
         ]);
 
+        // Assign role so user passes route middleware (role:gestionnaire-raid|responsable-club|admin)
+        $this->clubLeader->assignRole('responsable-club');
+
         // Create registration period
         $this->registrationPeriod = RegistrationPeriod::create([
             'ins_start_date' => now()->addDays(5),

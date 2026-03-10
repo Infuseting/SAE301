@@ -2114,7 +2114,6 @@ class LeaderboardService
                     'average_temps_final' => $temps,
                     'member_count' => 1, // Will be updated later if team members are imported
                     'points' => $points,
-                    'category' => $data['category'],
                     'puce' => $data['puce'],
                 ]
             );

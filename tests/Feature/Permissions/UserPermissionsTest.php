@@ -32,8 +32,11 @@ class UserPermissionsTest extends TestCase
         parent::setUp();
         $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
 
-        // Create a user without licence
-        $this->user = User::factory()->create();
+        // Create a user without licence (no adh_id, no doc_id)
+        $this->user = User::factory()->create([
+            'adh_id' => null,
+            'doc_id' => null,
+        ]);
         // Remove all roles (including unwanted admin role) before assigning the correct one
         $this->user->syncRoles([]);
         $this->user->assignRole('user');
@@ -123,11 +126,13 @@ class UserPermissionsTest extends TestCase
     /** @test */
     public function user_can_update_profile(): void
     {
-        $this->markTestSkipped('Profile update functionality needs investigation - not a permissions issue');
         $response = $this->actingAs($this->user)->patch(route('profile.update'), [
             'first_name' => 'Updated',
             'last_name' => 'Name',
             'email' => $this->user->email,
+            'birth_date' => '1990-01-01',
+            'address' => '123 Test Street',
+            'phone' => '0612345678',
         ]);
 
         $response->assertRedirect();
@@ -141,24 +146,25 @@ class UserPermissionsTest extends TestCase
     /** @test */
     public function user_can_add_licence(): void
     {
-        $this->markTestSkipped('Licence store functionality needs investigation - not a permissions issue');
-        $response = $this->actingAs($this->user)->post(route('licence.store'), [
+        $response = $this->actingAs($this->user)->postJson(route('licence.store'), [
             'licence_number' => '123456',
-            'expiry_date' => now()->addYear()->format('Y-m-d'),
         ]);
 
-        $response->assertRedirect();
+        // Licence store returns JSON response
+        $response->assertOk();
+        $response->assertJson(['success' => true]);
     }
 
     /** @test */
     public function user_can_add_pps_code(): void
     {
-        $this->markTestSkipped('PPS store functionality needs investigation - not a permissions issue');
-        $response = $this->actingAs($this->user)->post(route('pps.store'), [
+        $response = $this->actingAs($this->user)->postJson(route('pps.store'), [
             'pps_code' => 'ABC123',
         ]);
 
-        $response->assertRedirect();
+        // PPS store returns JSON response
+        $response->assertOk();
+        $response->assertJson(['success' => true]);
     }
 
     /** @test */
@@ -215,16 +221,15 @@ class UserPermissionsTest extends TestCase
     /** @test */
     public function user_without_licence_cannot_register_to_race(): void
     {
-        $this->markTestSkipped('Race registration validation needs investigation - functional bug');
         $race = Race::factory()->create();
         
         $response = $this->actingAs($this->user)
-            ->post(route('race.register', $race), [
-                'category' => 'solo',
-            ]);
+            ->postJson(route('race.register', $race));
 
-        // Should fail because user doesn't have valid licence
-        $response->assertStatus(403);
+        // Should fail because user doesn't have valid licence or PPS
+        // The register endpoint returns 400 with needs_credentials flag
+        $response->assertStatus(400);
+        $response->assertJson(['success' => false, 'needs_credentials' => true]);
     }
 
     /** @test */
