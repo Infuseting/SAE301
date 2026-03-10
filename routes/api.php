@@ -34,7 +34,7 @@ Route::prefix('leaderboard')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::get('/raids', [\App\Http\Controllers\Raid\RaidController::class, 'index']);
-Route::get('/raids/{raid}', [\App\Http\Controllers\Raid\RaidController::class, 'show']);
+Route::get('/raids/{raid:raid_id}', [\App\Http\Controllers\Raid\RaidController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------
@@ -155,7 +155,6 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
     Route::middleware('role:gestionnaire-raid|responsable-club|admin')->group(function () {
         Route::prefix('raids')->group(function () {
             Route::post('/', [\App\Http\Controllers\Raid\RaidController::class, 'store']);
-            Route::get('/{raid}', [\App\Http\Controllers\Raid\RaidController::class, 'show']);
             Route::put('/{raid}', [\App\Http\Controllers\Raid\RaidController::class, 'update']);
             Route::delete('/{raid}', [\App\Http\Controllers\Raid\RaidController::class, 'destroy']);
             Route::get('/{raid}/start-list', [\App\Http\Controllers\Raid\RaidController::class, 'generateStartList']);
