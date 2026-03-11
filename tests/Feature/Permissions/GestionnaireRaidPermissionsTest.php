@@ -64,14 +64,12 @@ class GestionnaireRaidPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_view_raids_create_page(): void
     {
         $response = $this->actingAs($this->gestionnaireRaid)->get(route('raids.create'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_create_raid(): void
     {
         $startDate = now()->addMonth();
@@ -101,7 +99,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_edit_own_raid(): void
     {
         $raid = Raid::factory()->create([
@@ -113,7 +110,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_update_own_raid(): void
     {
         $raid = Raid::factory()->create([
@@ -145,7 +141,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_delete_own_raid(): void
     {
         $raid = Raid::factory()->create([
@@ -159,7 +154,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $this->assertDatabaseMissing('raids', ['raid_id' => $raid->raid_id]);
     }
 
-    /** @test */
     public function gestionnaire_raid_cannot_edit_other_users_raid(): void
     {
         // Raid belongs to a different club the user is NOT linked to
@@ -172,7 +166,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function gestionnaire_raid_cannot_update_other_users_raid(): void
     {
         // Raid belongs to a different club the user is NOT linked to
@@ -212,7 +205,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function gestionnaire_raid_cannot_delete_other_users_raid(): void
     {
         // Raid belongs to a different club the user is NOT linked to
@@ -225,14 +217,12 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_view_races_create_page(): void
     {
         $response = $this->actingAs($this->gestionnaireRaid)->get(route('races.create'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_create_race(): void
     {
         $raid = Raid::factory()->create([
@@ -273,7 +263,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_access_club_creation_page(): void
     {
         // Gestionnaire-raid with valid licence also gets adherent role,
@@ -282,7 +271,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_store_club(): void
     {
         // Gestionnaire-raid with valid licence also gets adherent role via AssignDefaultRole
@@ -300,7 +288,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $this->assertDatabaseHas('clubs', ['club_name' => 'Test Club']);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_register_to_races(): void
     {
         // The register endpoint returns JSON responses
@@ -317,14 +304,12 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $response->assertJson(['success' => true]);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_view_my_raids(): void
     {
         $response = $this->actingAs($this->gestionnaireRaid)->get(route('myraid.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function gestionnaire_raid_can_access_admin_dashboard(): void
     {
         // Gestionnaire-raid has access-admin permission
@@ -332,14 +317,12 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function gestionnaire_raid_cannot_access_admin_users(): void
     {
         $response = $this->actingAs($this->gestionnaireRaid)->get(route('admin.users.index'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function gestionnaire_raid_cannot_approve_clubs(): void
     {
         $club = Club::factory()->pending()->create();
@@ -347,7 +330,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function gestionnaire_raid_without_licence_cannot_create_raid(): void
     {
         // Remove licence by deleting member
@@ -374,7 +356,6 @@ class GestionnaireRaidPermissionsTest extends TestCase
         $response->assertRedirect();
     }
 
-    /** @test */
     public function gestionnaire_raid_can_access_admin_raids_page(): void
     {
         // Gestionnaire raid should have access to /admin/raids to manage their raids

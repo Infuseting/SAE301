@@ -42,21 +42,18 @@ class UserPermissionsTest extends TestCase
         $this->user->assignRole('user');
     }
 
-    /** @test */
     public function user_can_view_home_page(): void
     {
         $response = $this->actingAs($this->user)->get(route('home'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_view_clubs_index(): void
     {
         $response = $this->actingAs($this->user)->get(route('clubs.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_view_club_details(): void
     {
         $club = Club::factory()->approved()->create();
@@ -64,14 +61,12 @@ class UserPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_view_raids_index(): void
     {
         $response = $this->actingAs($this->user)->get(route('raids.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_view_raid_details(): void
     {
         $raid = Raid::factory()->create();
@@ -79,14 +74,12 @@ class UserPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_view_races_index(): void
     {
         $response = $this->actingAs($this->user)->get(route('races.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_view_race_details(): void
     {
         $race = Race::factory()->create();
@@ -94,28 +87,24 @@ class UserPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_view_leaderboard(): void
     {
         $response = $this->actingAs($this->user)->get(route('leaderboard.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_access_profile(): void
     {
         $response = $this->actingAs($this->user)->get(route('profile.edit'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_view_own_profile(): void
     {
         $response = $this->actingAs($this->user)->get(route('profile.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_view_other_profiles(): void
     {
         $otherUser = User::factory()->create();
@@ -123,7 +112,6 @@ class UserPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function user_can_update_profile(): void
     {
         $response = $this->actingAs($this->user)->patch(route('profile.update'), [
@@ -143,7 +131,6 @@ class UserPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function user_can_add_licence(): void
     {
         $response = $this->actingAs($this->user)->postJson(route('licence.store'), [
@@ -155,7 +142,6 @@ class UserPermissionsTest extends TestCase
         $response->assertJson(['success' => true]);
     }
 
-    /** @test */
     public function user_can_add_pps_code(): void
     {
         $response = $this->actingAs($this->user)->postJson(route('pps.store'), [
@@ -167,14 +153,12 @@ class UserPermissionsTest extends TestCase
         $response->assertJson(['success' => true]);
     }
 
-    /** @test */
     public function user_cannot_create_club(): void
     {
         $response = $this->actingAs($this->user)->get(route('clubs.create'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function user_cannot_store_club(): void
     {
         $clubData = [
@@ -188,7 +172,6 @@ class UserPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function user_cannot_edit_club(): void
     {
         $club = Club::factory()->create();
@@ -196,7 +179,6 @@ class UserPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function user_cannot_delete_club(): void
     {
         $club = Club::factory()->create();
@@ -204,21 +186,18 @@ class UserPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function user_cannot_create_raid(): void
     {
         $response = $this->actingAs($this->user)->get(route('raids.create'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function user_cannot_create_race(): void
     {
         $response = $this->actingAs($this->user)->get(route('races.create'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function user_without_licence_cannot_register_to_race(): void
     {
         $race = Race::factory()->create();
@@ -232,28 +211,24 @@ class UserPermissionsTest extends TestCase
         $response->assertJson(['success' => false, 'needs_credentials' => true]);
     }
 
-    /** @test */
     public function user_cannot_access_admin_dashboard(): void
     {
         $response = $this->actingAs($this->user)->get(route('admin.dashboard'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function user_cannot_access_admin_users(): void
     {
         $response = $this->actingAs($this->user)->get(route('admin.users.index'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function user_cannot_access_admin_logs(): void
     {
         $response = $this->actingAs($this->user)->get(route('admin.logs.index'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function user_can_join_club(): void
     {
         $club = Club::factory()->approved()->create();
@@ -268,7 +243,6 @@ class UserPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function user_can_leave_club(): void
     {
         $club = Club::factory()->approved()->create();
@@ -283,7 +257,6 @@ class UserPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function user_cannot_approve_club_members(): void
     {
         $club = Club::factory()->approved()->create();
@@ -296,7 +269,6 @@ class UserPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function user_cannot_remove_club_members(): void
     {
         $club = Club::factory()->approved()->create();

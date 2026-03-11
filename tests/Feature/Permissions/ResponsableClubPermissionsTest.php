@@ -49,14 +49,12 @@ class ResponsableClubPermissionsTest extends TestCase
         $this->responsableClub->assignRole('responsable-club');
     }
 
-    /** @test */
     public function responsable_club_can_create_club(): void
     {
         $response = $this->actingAs($this->responsableClub)->get(route('clubs.create'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function responsable_club_can_store_club(): void
     {
         $clubData = [
@@ -77,7 +75,6 @@ class ResponsableClubPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function responsable_club_can_edit_own_club(): void
     {
         $club = Club::factory()->approved()->create([
@@ -88,7 +85,6 @@ class ResponsableClubPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function responsable_club_can_update_own_club(): void
     {
         $club = Club::factory()->approved()->create([
@@ -112,7 +108,6 @@ class ResponsableClubPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function responsable_club_can_delete_own_club(): void
     {
         $club = Club::factory()->create([
@@ -127,7 +122,6 @@ class ResponsableClubPermissionsTest extends TestCase
         $this->assertDatabaseMissing('clubs', ['club_id' => $club->club_id]);
     }
 
-    /** @test */
     public function responsable_club_cannot_edit_other_users_club(): void
     {
         $otherUser = User::factory()->create();
@@ -137,7 +131,6 @@ class ResponsableClubPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function responsable_club_cannot_update_other_users_club(): void
     {
         $otherUser = User::factory()->create();
@@ -154,7 +147,6 @@ class ResponsableClubPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function responsable_club_cannot_delete_other_users_club(): void
     {
         $otherUser = User::factory()->create();
@@ -164,7 +156,6 @@ class ResponsableClubPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function responsable_club_can_approve_join_requests_for_own_club(): void
     {
         $club = Club::factory()->approved()->create([
@@ -187,7 +178,6 @@ class ResponsableClubPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function responsable_club_can_reject_join_requests_for_own_club(): void
     {
         $club = Club::factory()->approved()->create([
@@ -208,7 +198,6 @@ class ResponsableClubPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function responsable_club_can_remove_members_from_own_club(): void
     {
         $club = Club::factory()->approved()->create([
@@ -229,7 +218,6 @@ class ResponsableClubPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function responsable_club_can_promote_member_to_manager(): void
     {
         $club = Club::factory()->approved()->create([
@@ -251,7 +239,6 @@ class ResponsableClubPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function responsable_club_can_demote_manager_to_member(): void
     {
         $club = Club::factory()->approved()->create([
@@ -273,7 +260,6 @@ class ResponsableClubPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function responsable_club_cannot_manage_members_of_other_clubs(): void
     {
         $otherUser = User::factory()->create();
@@ -288,7 +274,6 @@ class ResponsableClubPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function responsable_club_can_access_raid_creation_page(): void
     {
         // Responsable-club role is included in raids route middleware
@@ -296,7 +281,6 @@ class ResponsableClubPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function responsable_club_can_access_race_creation_page(): void
     {
         // Responsable-club role is included in races route middleware
@@ -304,7 +288,6 @@ class ResponsableClubPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function responsable_club_can_register_to_races(): void
     {
         // The register endpoint returns JSON responses
@@ -321,7 +304,6 @@ class ResponsableClubPermissionsTest extends TestCase
         $response->assertJson(['success' => true]);
     }
 
-    /** @test */
     public function responsable_club_can_access_admin_dashboard(): void
     {
         // Responsable-club has access-admin permission
@@ -329,7 +311,6 @@ class ResponsableClubPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function responsable_club_without_licence_cannot_create_club(): void
     {
         // Remove licence

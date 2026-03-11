@@ -13,7 +13,6 @@ class PolicyDebugTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
     public function debug_club_policy_authorization()
     {
         $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);

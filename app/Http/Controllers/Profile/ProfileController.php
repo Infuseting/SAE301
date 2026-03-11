@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Profile;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProfileCompletionRequest;
-use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\Profile\ProfileCompletionRequest;
+use App\Http\Requests\Profile\ProfileUpdateRequest;
 use App\Services\ProfileService;
 use App\Services\LicenceService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;

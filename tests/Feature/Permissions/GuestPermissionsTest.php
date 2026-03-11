@@ -28,21 +28,18 @@ class GuestPermissionsTest extends TestCase
         $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
     }
 
-    /** @test */
     public function guest_can_view_home_page(): void
     {
         $response = $this->get(route('home'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function guest_can_view_clubs_index(): void
     {
         $response = $this->get(route('clubs.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function guest_can_view_club_details(): void
     {
         $club = Club::factory()->approved()->create();
@@ -50,14 +47,12 @@ class GuestPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function guest_can_view_raids_index(): void
     {
         $response = $this->get(route('raids.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function guest_can_view_raid_details(): void
     {
         $raid = Raid::factory()->create();
@@ -65,14 +60,12 @@ class GuestPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function guest_can_view_races_index(): void
     {
         $response = $this->get(route('races.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function guest_can_view_race_details(): void
     {
         $race = Race::factory()->create();
@@ -80,28 +73,24 @@ class GuestPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function guest_can_view_leaderboard(): void
     {
         $response = $this->get(route('leaderboard.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function guest_can_view_map(): void
     {
         $response = $this->get(route('map.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function guest_cannot_create_club(): void
     {
         $response = $this->get(route('clubs.create'));
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_store_club(): void
     {
         $clubData = [
@@ -115,7 +104,6 @@ class GuestPermissionsTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_edit_club(): void
     {
         $club = Club::factory()->create();
@@ -123,7 +111,6 @@ class GuestPermissionsTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_delete_club(): void
     {
         $club = Club::factory()->create();
@@ -131,21 +118,18 @@ class GuestPermissionsTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_create_raid(): void
     {
         $response = $this->get(route('raids.create'));
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_create_race(): void
     {
         $response = $this->get(route('races.create'));
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_register_to_race(): void
     {
         $race = Race::factory()->create();
@@ -153,35 +137,30 @@ class GuestPermissionsTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_access_profile(): void
     {
         $response = $this->get(route('profile.edit'));
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_access_admin_dashboard(): void
     {
         $response = $this->get(route('admin.dashboard'));
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_access_my_race(): void
     {
         $response = $this->get(route('myrace.index'));
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_access_my_raid(): void
     {
         $response = $this->get(route('myraid.index'));
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
     public function guest_cannot_join_club(): void
     {
         $club = Club::factory()->create();
