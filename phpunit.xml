@@ -10,6 +10,10 @@
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <exclude>tests/Feature/FormValidation</exclude>
+        </testsuite>
+        <testsuite name="FormValidation">
+            <directory>tests/Feature/FormValidation</directory>
         </testsuite>
     </testsuites>
     <source>
