@@ -47,7 +47,6 @@ class AdherentPermissionsTest extends TestCase
         $this->adherent->assignRole('adherent');
     }
 
-    /** @test */
     public function adherent_can_view_all_public_pages(): void
     {
         $club = Club::factory()->approved()->create();
@@ -64,14 +63,12 @@ class AdherentPermissionsTest extends TestCase
         $this->actingAs($this->adherent)->get(route('leaderboard.index'))->assertStatus(200);
     }
 
-    /** @test */
     public function adherent_can_access_profile_pages(): void
     {
         $this->actingAs($this->adherent)->get(route('profile.edit'))->assertStatus(200);
         $this->actingAs($this->adherent)->get(route('profile.index'))->assertStatus(200);
     }
 
-    /** @test */
     public function adherent_can_update_profile(): void
     {
         $response = $this->actingAs($this->adherent)->patch(route('profile.update'), [
@@ -91,7 +88,6 @@ class AdherentPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function adherent_with_valid_licence_can_register_to_race(): void
     {
         $race = Race::factory()->create();
@@ -105,14 +101,12 @@ class AdherentPermissionsTest extends TestCase
         $response->assertJson(['success' => true]);
     }
 
-    /** @test */
     public function adherent_can_view_my_races(): void
     {
         $response = $this->actingAs($this->adherent)->get(route('myrace.index'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function adherent_can_join_club(): void
     {
         $club = Club::factory()->approved()->create();
@@ -127,7 +121,6 @@ class AdherentPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function adherent_can_leave_club(): void
     {
         $club = Club::factory()->approved()->create();
@@ -142,14 +135,12 @@ class AdherentPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function adherent_can_access_club_creation_page(): void
     {
         $response = $this->actingAs($this->adherent)->get(route('clubs.create'));
         $response->assertStatus(200);
     }
 
-    /** @test */
     public function adherent_can_store_club_pending_approval(): void
     {
         $clubData = [
@@ -168,7 +159,6 @@ class AdherentPermissionsTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function adherent_cannot_edit_club(): void
     {
         $club = Club::factory()->create();
@@ -176,7 +166,6 @@ class AdherentPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_delete_club(): void
     {
         $club = Club::factory()->create();
@@ -184,14 +173,12 @@ class AdherentPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_create_raid(): void
     {
         $response = $this->actingAs($this->adherent)->get(route('raids.create'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_store_raid(): void
     {
         $club = Club::factory()->create();
@@ -208,7 +195,6 @@ class AdherentPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_edit_raid(): void
     {
         $raid = Raid::factory()->create();
@@ -216,7 +202,6 @@ class AdherentPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_delete_raid(): void
     {
         $raid = Raid::factory()->create();
@@ -224,14 +209,12 @@ class AdherentPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_create_race(): void
     {
         $response = $this->actingAs($this->adherent)->get(route('races.create'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_store_race(): void
     {
         $raid = Raid::factory()->create();
@@ -246,7 +229,6 @@ class AdherentPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_edit_race(): void
     {
         $race = Race::factory()->create();
@@ -254,7 +236,6 @@ class AdherentPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_delete_race(): void
     {
         $race = Race::factory()->create();
@@ -262,28 +243,24 @@ class AdherentPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_access_admin_dashboard(): void
     {
         $response = $this->actingAs($this->adherent)->get(route('admin.dashboard'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_access_admin_users(): void
     {
         $response = $this->actingAs($this->adherent)->get(route('admin.users.index'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_access_admin_logs(): void
     {
         $response = $this->actingAs($this->adherent)->get(route('admin.logs.index'));
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_approve_clubs(): void
     {
         $club = Club::factory()->pending()->create();
@@ -291,7 +268,6 @@ class AdherentPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_manage_other_users(): void
     {
         $otherUser = User::factory()->create();
@@ -302,7 +278,6 @@ class AdherentPermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
     public function adherent_cannot_assign_roles(): void
     {
         $otherUser = User::factory()->create();

@@ -1,26 +1,20 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Profile;
 
+use App\Models\User;
 use App\Rules\FfcoLicenseNumber;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
- * Form Request for completing user profile during onboarding.
+ * Form Request for updating user profile information.
  *
- * Handles validation of required profile fields including personal information,
+ * Handles validation of profile update data including personal information,
  * contact details, and optional license number with FFCO format validation.
  */
-class ProfileCompletionRequest extends FormRequest
+class ProfileUpdateRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     /**
      * Prepare the data for validation.
      *
@@ -43,10 +37,23 @@ class ProfileCompletionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique(User::class)->ignore($this->user()->id),
+            ],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'is_public' => ['sometimes', 'boolean'],
             'birth_date' => ['required', 'date', 'before:today'],
             'address' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
-            'license_number' => ['nullable', new FfcoLicenseNumber()],
+            'license_number' => ['sometimes', 'nullable', new FfcoLicenseNumber()],
+            'photo' => ['nullable', 'file', 'max:2048', 'mimes:jpeg,jpg,png,webp'], // 2MB Max (Client compresses 8MB -> 2MB)
         ];
     }
 }
