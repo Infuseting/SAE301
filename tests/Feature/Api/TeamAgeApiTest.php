@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -9,11 +11,21 @@ class TeamAgeApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+    }
+
     /**
      * Test getting age thresholds.
      */
     public function test_can_get_age_thresholds()
     {
+        Sanctum::actingAs($this->user);
+
         $response = $this->getJson('/api/team/age-thresholds');
 
         $response->assertStatus(200)
@@ -32,6 +44,8 @@ class TeamAgeApiTest extends TestCase
      */
     public function test_validates_valid_team()
     {
+        Sanctum::actingAs($this->user);
+
         // 14 (minor) + 20 (adult) should be valid
         $response = $this->postJson('/api/team/validate-ages', [
             'ages' => [14, 20],
@@ -49,6 +63,8 @@ class TeamAgeApiTest extends TestCase
      */
     public function test_rejects_invalid_team_minors_only()
     {
+        Sanctum::actingAs($this->user);
+
         // 14 (minor) + 15 (minor) should be invalid (no adult)
         $response = $this->postJson('/api/team/validate-ages', [
             'ages' => [14, 15],
@@ -67,6 +83,8 @@ class TeamAgeApiTest extends TestCase
      */
     public function test_check_participant_eligibility()
     {
+        Sanctum::actingAs($this->user);
+
         // 10 years old -> too young (min 12)
         $response = $this->postJson('/api/team/check-participant', [
             'age' => 10,
@@ -107,6 +125,8 @@ class TeamAgeApiTest extends TestCase
      */
     public function test_handles_validation_errors()
     {
+        Sanctum::actingAs($this->user);
+
         // Missing 'ages' field
         $response = $this->postJson('/api/team/validate-ages', []);
 

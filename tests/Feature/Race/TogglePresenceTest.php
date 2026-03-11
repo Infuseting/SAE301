@@ -41,10 +41,6 @@ class TogglePresenceTest extends TestCase
         // Create a user with race manager role
         $manager = User::factory()->create();
         $manager->assignRole('responsable-course');
-        
-        $member = Member::factory()->create([
-            'adh_id' => $manager->adh_id,
-        ]);
 
         // Create a club
         $club = Club::factory()->create([
@@ -53,7 +49,7 @@ class TogglePresenceTest extends TestCase
 
         // Create a raid
         $raid = Raid::factory()->create([
-            'club_id' => $club->club_id,
+            'clu_id' => $club->club_id,
         ]);
 
         // Create a race

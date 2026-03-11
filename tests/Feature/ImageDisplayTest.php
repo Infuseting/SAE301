@@ -143,6 +143,20 @@ class ImageDisplayTest extends TestCase
     }
 
     /**
+     * Helper: Create a leaderboard entry for a race and user (used by MyRaceController)
+     */
+    private function createLeaderboardEntry(Race $race, User $user): void
+    {
+        \App\Models\LeaderboardUser::create([
+            'race_id' => $race->race_id,
+            'user_id' => $user->id,
+            'temps' => 5445.00,
+            'malus' => 0.00,
+            'points' => 100,
+        ]);
+    }
+
+    /**
      * Helper: Get Inertia props from response
      */
     private function getInertiaProps($response): array
@@ -231,7 +245,7 @@ class ImageDisplayTest extends TestCase
             'adh_id' => $this->member->adh_id,
         ]);
         $race = $this->createRaceWithImage($raid->raid_id);
-        $this->createTimeRecord($race, $this->regularUser);
+        $this->createLeaderboardEntry($race, $this->regularUser);
 
         $response = $this->actingAs($this->regularUser)->get(route('myrace.index'));
         $response->assertStatus(200);
@@ -256,7 +270,7 @@ class ImageDisplayTest extends TestCase
             'raid_id' => $raid->raid_id,
             'image_url' => null,
         ]);
-        $this->createTimeRecord($race, $this->regularUser);
+        $this->createLeaderboardEntry($race, $this->regularUser);
 
         $response = $this->actingAs($this->regularUser)->get(route('myrace.index'));
         $response->assertStatus(200);

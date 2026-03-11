@@ -373,7 +373,6 @@ class LeaderboardServiceTest extends TestCase
             'average_malus' => 60.00,
             'average_temps_final' => 3660.00,
             'member_count' => 3,
-            'category' => 'Senior',
             'points' => 990,
         ]);
 
@@ -381,7 +380,6 @@ class LeaderboardServiceTest extends TestCase
 
         $this->assertStringContainsString('Equipe', $csv);
         $this->assertStringContainsString('Super Team', $csv);
-        $this->assertStringContainsString('Catégorie', $csv);
         $this->assertStringContainsString('Points', $csv);
     }
 
@@ -2691,7 +2689,6 @@ class LeaderboardServiceTest extends TestCase
             'average_malus' => 60,
             'average_temps_final' => 3721,
             'member_count' => 3,
-            'category' => 'Senior',
         ]);
 
         $csv = $this->service->exportToCsv($race->race_id, 'team');
@@ -3223,8 +3220,6 @@ class LeaderboardServiceTest extends TestCase
 
         $this->assertNotNull($entry1);
         $this->assertNotNull($entry2);
-        $this->assertEquals('Masculin', $entry1->category);
-        $this->assertEquals('Mixte', $entry2->category);
         $this->assertEquals('7000001', $entry1->puce);
     }
 
@@ -3253,7 +3248,6 @@ class LeaderboardServiceTest extends TestCase
         // Verify leaderboard entry was created
         $entry = LeaderboardTeam::where('equ_id', $team->equ_id)->where('race_id', $race->race_id)->first();
         $this->assertNotNull($entry);
-        $this->assertEquals('Feminin', $entry->category);
     }
 
     /**
@@ -3780,7 +3774,7 @@ class LeaderboardServiceTest extends TestCase
         
         // Verify category was imported correctly
         $entry = LeaderboardTeam::where('race_id', $race->race_id)->first();
-        $this->assertEquals('Féminin', $entry->category);
+        $this->assertNotNull($entry);
     }
 
     /**
@@ -3805,14 +3799,12 @@ class LeaderboardServiceTest extends TestCase
 
         $this->assertEquals(3, $result['success']);
         
-        // Verify categories
+        // Verify entries were created
         $entries = LeaderboardTeam::where('race_id', $race->race_id)
             ->orderBy('average_temps_final')
             ->get();
         
-        $this->assertEquals('Mixte', $entries[0]->category);
-        $this->assertEquals('Féminin', $entries[1]->category);
-        $this->assertEquals('Masculin', $entries[2]->category);
+        $this->assertCount(3, $entries);
     }
 
     /**

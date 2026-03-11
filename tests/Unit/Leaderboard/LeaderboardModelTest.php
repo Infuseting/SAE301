@@ -230,12 +230,17 @@ class LeaderboardModelTest extends TestCase
     }
 
     /**
-     * Test LeaderboardTeam unique constraint.
+     * Test LeaderboardTeam unique constraint on (equ_id, race_id, age_category_id).
      */
     public function test_leaderboard_team_unique_constraint(): void
     {
         $team = Team::factory()->create();
         $race = Race::factory()->create();
+        $ageCategory = \App\Models\AgeCategory::create([
+            'nom' => 'Test Category',
+            'age_min' => 18,
+            'age_max' => 30,
+        ]);
 
         LeaderboardTeam::create([
             'equ_id' => $team->equ_id,
@@ -244,18 +249,25 @@ class LeaderboardModelTest extends TestCase
             'average_malus' => 0,
             'average_temps_final' => 3600.00,
             'member_count' => 2,
+            'age_category_id' => $ageCategory->id,
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $exceptionThrown = false;
+        try {
+            LeaderboardTeam::create([
+                'equ_id' => $team->equ_id,
+                'race_id' => $race->race_id,
+                'average_temps' => 3700.00,
+                'average_malus' => 0,
+                'average_temps_final' => 3700.00,
+                'member_count' => 2,
+                'age_category_id' => $ageCategory->id,
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            $exceptionThrown = true;
+        }
 
-        LeaderboardTeam::create([
-            'equ_id' => $team->equ_id,
-            'race_id' => $race->race_id,
-            'average_temps' => 3700.00,
-            'average_malus' => 0,
-            'average_temps_final' => 3700.00,
-            'member_count' => 2,
-        ]);
+        $this->assertTrue($exceptionThrown, 'Expected QueryException for duplicate team+race+age_category combination');
     }
 
     /**

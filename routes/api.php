@@ -34,7 +34,7 @@ Route::prefix('leaderboard')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::get('/raids', [\App\Http\Controllers\Raid\RaidController::class, 'index']);
-Route::get('/raids/{raid}', [\App\Http\Controllers\Raid\RaidController::class, 'show']);
+Route::get('/raids/{raid:raid_id}', [\App\Http\Controllers\Raid\RaidController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------
@@ -93,7 +93,7 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
 
     // Team age validation endpoints
     Route::prefix('team')->group(function () {
-        Route::get('/age-thresholds', [\App\Http\Controllers\Team\TeamAgeController::class, 'ageThresholds']);
+        Route::get('/age-thresholds', [\App\Http\Controllers\Team\TeamAgeController::class, 'getThresholds']);
         Route::post('/validate-ages', [\App\Http\Controllers\Team\TeamAgeController::class, 'validateAges']);
         Route::post('/validate-birthdates', [\App\Http\Controllers\Team\TeamAgeController::class, 'validateBirthdates']);
         Route::post('/check-participant', [\App\Http\Controllers\Team\TeamAgeController::class, 'checkParticipant']);
@@ -155,7 +155,6 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
     Route::middleware('role:gestionnaire-raid|responsable-club|admin')->group(function () {
         Route::prefix('raids')->group(function () {
             Route::post('/', [\App\Http\Controllers\Raid\RaidController::class, 'store']);
-            Route::get('/{raid}', [\App\Http\Controllers\Raid\RaidController::class, 'show']);
             Route::put('/{raid}', [\App\Http\Controllers\Raid\RaidController::class, 'update']);
             Route::delete('/{raid}', [\App\Http\Controllers\Raid\RaidController::class, 'destroy']);
             Route::get('/{raid}/start-list', [\App\Http\Controllers\Raid\RaidController::class, 'generateStartList']);

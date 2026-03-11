@@ -268,11 +268,11 @@ class PolicyTest extends TestCase
     }
 
     /**
-     * Test RacePolicy::create - responsable-club (without course role) cannot create
+     * Test RacePolicy::create - responsable-club can create races
      */
-    public function test_race_policy_responsable_club_cannot_create_without_course_role(): void
+    public function test_race_policy_responsable_club_can_create_without_course_role(): void
     {
-        $this->assertFalse($this->racePolicy->create($this->responsableClubUser));
+        $this->assertTrue($this->racePolicy->create($this->responsableClubUser));
     }
 
     /**

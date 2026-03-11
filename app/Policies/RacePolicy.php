@@ -40,10 +40,11 @@ class RacePolicy
             return true;
         }
 
-        // Gestionnaire-raid and responsable-club can access the create form
-        // The actual raid ownership check happens when storing with a specific raid_id
-        if ($user->hasRole('gestionnaire-raid') || $user->hasRole('responsable-club')) {
-            return true;
+        // When no raid is provided (accessing the create form), allow roles that can create races
+        if (!$raid) {
+            if ($user->hasRole('gestionnaire-raid') || $user->hasRole('responsable-club')) {
+                return true;
+            }
         }
 
         // If a raid is provided, check if the user has authority over it
