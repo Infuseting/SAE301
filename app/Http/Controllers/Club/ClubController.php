@@ -267,14 +267,14 @@ class ClubController extends Controller
             $membershipStatus = $membership ? $membership->status : null;
         }
 
-        // Only show members if user is a member
+        // Only approved members can see the approved members list.
         if ($isMember) {
             $club->load(['members', 'managers']);
+        }
 
-            // Managers can see pending requests
-            if ($isManager) {
-                $club->load('pendingRequests');
-            }
+        // Club managers and admins can see pending members.
+        if ($isManager) {
+            $club->load('pendingRequests');
         }
 
         // Add status helpers to raids for frontend
@@ -290,12 +290,22 @@ class ClubController extends Controller
         });
 
         if ($request->is('api/*') || ($request->wantsJson() && !$request->hasHeader('X-Inertia'))) {
-            return $this->successResponse([
+            $responseData = [
                 'club' => $club,
                 'isMember' => $isMember,
                 'isManager' => $isManager,
                 'membershipStatus' => $membershipStatus,
-            ], 'Club retrieved successfully');
+            ];
+
+            if ($isMember) {
+                $responseData['members'] = $club->members;
+            }
+
+            if ($isManager) {
+                $responseData['pending_members'] = $club->pendingRequests;
+            }
+
+            return $this->successResponse($responseData, 'Club retrieved successfully');
         }
 
         return Inertia::render('Clubs/Show', [

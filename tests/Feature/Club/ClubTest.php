@@ -142,4 +142,48 @@ class ClubTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_api_club_show_returns_members_for_approved_member(): void
+    {
+        $manager = User::factory()->create();
+        $member = User::factory()->create();
+        $club = Club::factory()->create(['is_approved' => true, 'created_by' => $manager->id]);
+
+        $club->allMembers()->attach($manager->id, ['role' => 'manager', 'status' => 'approved']);
+        $club->allMembers()->attach($member->id, ['role' => 'member', 'status' => 'approved']);
+
+        $response = $this->actingAs($member)->getJson('/api/clubs/' . $club->club_id);
+
+        $response->assertOk();
+        $response->assertJsonPath('data.isMember', true);
+        $response->assertJsonCount(2, 'data.members');
+        $response->assertJsonMissingPath('data.pending_members');
+    }
+
+    public function test_api_club_show_returns_pending_members_for_manager_and_admin(): void
+    {
+        $manager = User::factory()->create();
+        $pendingMember = User::factory()->create();
+        $club = Club::factory()->create(['is_approved' => true, 'created_by' => $manager->id]);
+
+        $club->allMembers()->attach($manager->id, ['role' => 'manager', 'status' => 'approved']);
+        $club->allMembers()->attach($pendingMember->id, ['role' => 'member', 'status' => 'pending']);
+
+        $managerResponse = $this->actingAs($manager)->getJson('/api/clubs/' . $club->club_id);
+
+        $managerResponse->assertOk();
+        $managerResponse->assertJsonPath('data.isManager', true);
+        $managerResponse->assertJsonCount(1, 'data.pending_members');
+
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $adminResponse = $this->actingAs($admin)->getJson('/api/clubs/' . $club->club_id);
+
+        $adminResponse->assertOk();
+        $adminResponse->assertJsonPath('data.isManager', true);
+        $adminResponse->assertJsonCount(1, 'data.pending_members');
+        $adminResponse->assertJsonMissingPath('data.members');
+    }
 }
