@@ -253,9 +253,23 @@ class ClubController extends Controller
         ]);
 
         $user = auth()->user();
+
+        // Determine membership/manager state. By default, membership is derived
+        // from the pivot table (approved members/managers). However, the club
+        // creator should be allowed to view the club details and act as the
+        // effective manager for UI purposes even before an admin approval
+        // attaches them in the pivot table. Treat the creator as member+manager
+        // for the purposes of this response only.
         $isMember = $user && $club->hasMember($user);
         // Admin can manage all clubs, otherwise check if user is club manager
         $isManager = $user && ($user->hasRole('admin') || $club->hasManager($user));
+
+        // If the authenticated user is the creator, consider them member+manager
+        // in the response so they can see members / pending lists in the UI.
+        if ($user && $user->id === $club->created_by) {
+            $isMember = true;
+            $isManager = true;
+        }
 
         // Check if user has a pending request
         $membershipStatus = null;
@@ -298,7 +312,19 @@ class ClubController extends Controller
             ];
 
             if ($isMember) {
-                $responseData['members'] = $club->members;
+                // Load and return approved members. If the creator isn't present
+                // in the pivot (e.g. club not yet approved), include the creator
+                // in the returned list to ensure the UI shows at least the club
+                // owner as a member.
+                $members = $club->members;
+                if ($user && $user->id === $club->created_by) {
+                    // Ensure creator is included in members list payload
+                    $creator = $club->creator;
+                    if ($creator && !$members->contains('id', $creator->id)) {
+                        $members->prepend($creator);
+                    }
+                }
+                $responseData['members'] = $members;
             }
 
             if ($isManager) {
