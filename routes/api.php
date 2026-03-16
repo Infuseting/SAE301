@@ -10,7 +10,8 @@ use App\Http\Controllers\Api\RaceApiController;
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
 Route::post('/register', [\App\Http\Controllers\Api\AuthController::class, 'register']);
 Route::get('/clubs', [\App\Http\Controllers\Club\ClubController::class, 'index']);
-Route::get('/clubs/{club}', [\App\Http\Controllers\Club\ClubController::class, 'show']);
+Route::get('/clubs/{club}', [\App\Http\Controllers\Club\ClubController::class, 'show'])
+    ->middleware(\App\Http\Middleware\AttemptSanctumAuthentication::class);
 
 // Socialite authentication routes
 Route::get('/auth/{provider}/redirect', [\App\Http\Controllers\Auth\SocialiteController::class, 'redirect']);
