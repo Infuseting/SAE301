@@ -2,9 +2,9 @@ name: Laravel test CI
 
 on:
   push:
-    branches: [ "stable" ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ "stable" ]
+    branches: [ "*" ]
 
 jobs:
   laravel-tests:
