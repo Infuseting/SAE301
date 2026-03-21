@@ -74,5 +74,4 @@ jobs:
         APP_ENV: testing
         SESSION_DRIVER: array
         CACHE_DRIVER: array
-        QUEUE_CONNECTION: sync
-      run: php artisan test --do-not-cache-result --without-tty --display-deprecations=false
+      run: php artisan test --do-not-cache-result --no-interaction
