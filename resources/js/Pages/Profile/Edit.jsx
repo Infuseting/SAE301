@@ -8,7 +8,6 @@ import ConnectedAccountsForm from './Partials/ConnectedAccountsForm';
 
 export default function Edit({ mustVerifyEmail, status, connectedAccounts, hasPassword }) {
     const messages = usePage().props.translations?.messages || {};
-    const user = usePage().props.auth.user;
 
     return (
         <AuthenticatedLayout

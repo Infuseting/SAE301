@@ -9,8 +9,6 @@ import LeaderboardButton from "./LeaderboardButton";
 import ManagementButton from "./ManagementButton";
 import BurgerMenu from "./BurgerMenu";
 
-import ManagerButton from "./ManagerButton";
-
 /**
  * Header component - Reusable header for all pages
  *

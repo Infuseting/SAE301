@@ -7,7 +7,6 @@ import { QrCode, Calendar, MapPin, Users, Download, Printer, CheckCircle, Trophy
  * Displays team registration details with QR code for event check-in
  */
 export default function RegistrationTicket({ registration, team, race, raid }) {
-    const messages = usePage().props.translations?.messages || {};
 
     const handlePrint = () => {
         window.print();
@@ -49,7 +48,7 @@ export default function RegistrationTicket({ registration, team, race, raid }) {
                     }
                 `}</style>
             </Head>
-            
+
         <AuthenticatedLayout>
 
             <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 py-12">

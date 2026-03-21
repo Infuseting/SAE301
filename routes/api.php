@@ -62,7 +62,9 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
     Route::get('/users/adherents', [\App\Http\Controllers\Api\UserController::class, 'adherents']);
 
     // Profile endpoints - accessible to authenticated users
-    Route::get('/profile', [\App\Http\Controllers\Profile\PublicProfileController::class, 'myProfile']);
+    //Route::get('/profile', [\App\Http\Controllers\Profile\PublicProfileController::class, 'myProfile']);
+
+
     Route::patch('/profile', [\App\Http\Controllers\Profile\ProfileController::class, 'update']);
     Route::delete('/profile', [\App\Http\Controllers\Profile\ProfileController::class, 'destroy']);
     Route::post('/profile/complete', [\App\Http\Controllers\Profile\ProfileController::class, 'complete']);
@@ -106,14 +108,14 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
         Route::get('/{team}', [\App\Http\Controllers\Team\TeamController::class, 'show']);
         Route::put('/{team}', [\App\Http\Controllers\Team\TeamManagementController::class, 'update']);
         Route::delete('/{team}', [\App\Http\Controllers\Team\TeamManagementController::class, 'destroy']);
-        
+
         // Team invitations
         Route::post('/{team}/invite', [\App\Http\Controllers\Team\TeamController::class, 'inviteByEmail']);
         Route::post('/{team}/remove-member', [\App\Http\Controllers\Team\TeamManagementController::class, 'removeMember']);
-        
+
         // Team management
         Route::get('/management', [\App\Http\Controllers\Team\TeamManagementController::class, 'index']);
-        
+
         // Registration and tickets
         Route::get('/{team}/registration/{registration}/ticket', [\App\Http\Controllers\Team\TeamController::class, 'showRegistrationTicket']);
         Route::get('/{team}/registration/{registration}/qr-code', [\App\Http\Controllers\Team\TeamController::class, 'downloadQrCode']);

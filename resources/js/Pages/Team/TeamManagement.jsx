@@ -14,7 +14,7 @@ import { FaEdit, FaTrash, FaUsers, FaUserMinus, FaChevronDown, FaChevronUp, FaUs
 
 /**
  * Team Management Page Component
- * 
+ *
  * Displays and manages teams based on user role:
  * - Team Leaders: Can view and manage their own teams
  * - Administrators: Can view and manage all teams
@@ -22,7 +22,7 @@ import { FaEdit, FaTrash, FaUsers, FaUserMinus, FaChevronDown, FaChevronUp, FaUs
 export default function TeamManagement({ teams, isAdmin }) {
     const { translations } = usePage().props;
     const messages = translations?.messages || {};
-    
+
     const [expandedTeams, setExpandedTeams] = useState({});
     const [editingTeam, setEditingTeam] = useState(null);
     const [deletingTeam, setDeletingTeam] = useState(null);
@@ -105,9 +105,9 @@ export default function TeamManagement({ teams, isAdmin }) {
      */
     const addMemberToTeam = (user) => {
         // Check if already in current members or added members
-        const alreadyExists = editData.members.some(m => m.id === user.id) || 
+        const alreadyExists = editData.members.some(m => m.id === user.id) ||
                               editData.add_members.some(m => m.id === user.id);
-        
+
         if (alreadyExists) {
             alert('Ce membre fait déjà partie de l\'équipe.');
             setShowMemberModal(false);
@@ -147,7 +147,7 @@ export default function TeamManagement({ teams, isAdmin }) {
      */
     const handleEditSubmit = (e) => {
         e.preventDefault();
-        
+
         // Prepare data with transformed add_members
         const submitData = {
             name: editData.name,
@@ -155,7 +155,7 @@ export default function TeamManagement({ teams, isAdmin }) {
             add_members: editData.add_members.map(m => typeof m === 'object' ? m.id : m),
             remove_members: editData.remove_members,
         };
-        
+
         router.post(route('teams.update', editingTeam.id), submitData, {
             onSuccess: () => {
                 closeEditModal();
@@ -193,29 +193,10 @@ export default function TeamManagement({ teams, isAdmin }) {
     };
 
     /**
-     * Open remove member confirmation
-     */
-    const openRemoveMemberModal = (team, userId) => {
-        setRemovingMember({ team, userId });
-        setRemoveMemberData({ user_id: userId });
-    };
-
-    /**
      * Close remove member modal
      */
     const closeRemoveMemberModal = () => {
         setRemovingMember(null);
-    };
-
-    /**
-     * Confirm member removal
-     */
-    const handleRemoveMemberConfirm = () => {
-        postRemoveMember(route('teams.removeMember', removingMember.team.id), {
-            onSuccess: () => {
-                closeRemoveMemberModal();
-            },
-        });
     };
 
     return (
@@ -346,9 +327,9 @@ export default function TeamManagement({ teams, isAdmin }) {
 
                                                     {/* Members would go here if you want to display them */}
                                                     <div className="text-sm text-gray-500">
-                                                        {messages.view_team_details || 'Voir les détails de l\'équipe'}: 
-                                                        <Link 
-                                                            href={route('teams.show', team.id)} 
+                                                        {messages.view_team_details || 'Voir les détails de l\'équipe'}:
+                                                        <Link
+                                                            href={route('teams.show', team.id)}
                                                             className="ml-2 text-blue-600 hover:underline"
                                                         >
                                                             {messages.view_full_details || 'Détails complets'}
@@ -385,9 +366,9 @@ export default function TeamManagement({ teams, isAdmin }) {
             </div>
 
             {/* Edit Team Modal */}
-            <Modal 
-                show={editingTeam !== null} 
-                onClose={closeEditModal} 
+            <Modal
+                show={editingTeam !== null}
+                onClose={closeEditModal}
                 maxWidth="2xl"
                 closeable={!showMemberModal}
             >
@@ -424,7 +405,7 @@ export default function TeamManagement({ teams, isAdmin }) {
                     {/* Members Management Section */}
                     <div className="mb-4 border-t pt-4">
                         <InputLabel value={messages.team_members || 'Membres de l\'équipe'} />
-                        
+
                         {/* Current Members */}
                         <div className="mt-2 space-y-2">
                             {editData.members.filter(m => !editData.remove_members.includes(m.id)).map((member) => (

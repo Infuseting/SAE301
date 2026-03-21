@@ -5,7 +5,6 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
 import LicenseValidationModal from '@/Components/LicenseValidationModal';
 import { useForm, usePage, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
@@ -13,10 +12,10 @@ import { createPortal } from 'react-dom';
 
 /**
  * ProfileCompletionModal
- * 
+ *
  * A mandatory 2-step modal wizard that forces users to complete their profile information
  * if the `has_completed_profile` check fails.
- * 
+ *
  * Steps:
  * 1. Personal Information (DOB, Address, Phone)
  * 2. Licensing / Medical Information (License Number OR Medical Certificate Code)
@@ -43,7 +42,7 @@ export default function ProfileCompletionModal() {
         phone: user.phone || '',
         license_number: user.license_number || '',
     });
-    
+
     // Initialize selectedDate from user.birth_date only once when modal opens
     useEffect(() => {
         if (isOpen && user.birth_date && !selectedDate) {
@@ -71,7 +70,7 @@ export default function ProfileCompletionModal() {
     const handleConfirmWithoutLicense = () => {
         setShowLicenseModal(false);
         clearErrors('license_number');
-        
+
         // Use router.post directly with explicit data (bypasses useForm state)
         router.post(route('profile.complete'), {
             birth_date: data.birth_date,
@@ -95,7 +94,7 @@ export default function ProfileCompletionModal() {
                 onClose={() => setShowLicenseModal(false)}
                 onConfirmWithoutLicense={handleConfirmWithoutLicense}
             />
-            
+
             <Modal show={isOpen} maxWidth="lg">
             <div className="p-6">
                 <h2 className="text-lg font-medium text-gray-900">

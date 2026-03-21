@@ -18,7 +18,7 @@ use Inertia\Response;
 class LeaderboardController extends Controller
 {
     public function __construct(
-        private LeaderboardService $leaderboardService
+        private readonly LeaderboardService $leaderboardService
     ) {}
 
     /**
@@ -75,9 +75,9 @@ class LeaderboardController extends Controller
     {
         $type = $request->input('type', 'individual');
         $race = $this->leaderboardService->getRaces()->firstWhere('race_id', $raceId);
-        
+
         $csv = $this->leaderboardService->exportToCsv($raceId, $type);
-        
+
         $filename = sprintf(
             'classement_%s_%s_%s.csv',
             $race ? str_replace(' ', '_', $race->race_name) : $raceId,
@@ -101,9 +101,9 @@ class LeaderboardController extends Controller
     public function exportAll(Request $request): HttpResponse
     {
         $type = $request->input('type', 'individual');
-        
+
         $csv = $this->leaderboardService->exportAllToCsv($type);
-        
+
         $filename = sprintf(
             'classement_general_%s_%s.csv',
             $type,

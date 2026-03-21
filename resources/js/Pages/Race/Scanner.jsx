@@ -1,8 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { QrCode, Camera, CheckCircle, XCircle, Users, TrendingUp, AlertCircle, Trophy, Loader, ArrowLeft } from 'lucide-react';
+import { QrCode, Camera, CheckCircle, XCircle, Users, AlertCircle, Trophy, Loader } from 'lucide-react';
 import TeamRegistrationCard from '@/Components/TeamRegistrationCard';
 import UpdatePPSModal from '@/Components/UpdatePPSModal';
 import TeamPaymentModal from '@/Components/TeamPaymentModal';
@@ -23,9 +23,8 @@ export default function Scanner({ race, stats: initialStats }) {
     const [loading, setLoading] = useState(false);
     const [loadingTeam, setLoadingTeam] = useState(false);
     const [stats, setStats] = useState(initialStats);
-    const scannerRef = useRef(null);
     const html5QrCodeRef = useRef(null);
-    
+
     // Modal states
     const [selectedParticipant, setSelectedParticipant] = useState(null);
     const [selectedTeamForPayment, setSelectedTeamForPayment] = useState(null);
@@ -47,12 +46,12 @@ export default function Scanner({ race, stats: initialStats }) {
             setError(null);
             setScanResult(null);
             setScannedTeam(null);
-            
+
             // Check if running on HTTPS or localhost
-            const isSecure = window.location.protocol === 'https:' || 
-                           window.location.hostname === 'localhost' || 
+            const isSecure = window.location.protocol === 'https:' ||
+                           window.location.hostname === 'localhost' ||
                            window.location.hostname === '127.0.0.1';
-            
+
             if (!isSecure) {
                 setError(messages['scanner.error_https'] || '⚠️ La caméra nécessite une connexion HTTPS sécurisée. Votre connexion actuelle n\'est pas sécurisée.');
                 return;
@@ -60,10 +59,10 @@ export default function Scanner({ race, stats: initialStats }) {
 
             // Set scanning to true first to render the div
             setIsScanning(true);
-            
+
             // Wait for the div to be rendered in the DOM
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             // Check if element exists
             const element = document.getElementById('qr-reader');
             if (!element) {
@@ -86,13 +85,13 @@ export default function Scanner({ race, stats: initialStats }) {
 
         } catch (err) {
             console.error('Error starting scanner:', err);
-            
+
             // Reset scanning state on error
             setIsScanning(false);
-            
+
             // Provide more specific error messages
             let errorMsg = messages['scanner.error_camera'] || 'Impossible de démarrer la caméra. ';
-            
+
             if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
                 errorMsg += messages['scanner.error_permission'] || '🚫 Vous avez refusé l\'accès à la caméra. Veuillez autoriser l\'accès dans les paramètres de votre navigateur.';
             } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
@@ -104,7 +103,7 @@ export default function Scanner({ race, stats: initialStats }) {
             } else {
                 errorMsg += `${messages['scanner.error_generic'] || 'Erreur'}: ${err.message || err.toString()}`;
             }
-            
+
             setError(errorMsg);
         }
     };
@@ -135,7 +134,7 @@ export default function Scanner({ race, stats: initialStats }) {
 
         try {
             console.log('QR Code scanned:', decodedText);
-            
+
             // Parse QR code data
             let qrData;
             try {
@@ -146,9 +145,9 @@ export default function Scanner({ race, stats: initialStats }) {
                 setLoading(false);
                 return;
             }
-            
+
             console.log('Parsed QR data:', qrData);
-            
+
             if (qrData.type !== 'team_registration') {
                 setError(`${messages['scanner.invalid_qr_type'] || 'QR Code invalide. Type reçu'}: "${qrData.type || 'undefined'}". ${messages['scanner.not_team_qr'] || 'Ce n\'est pas un code d\'inscription d\'équipe.'}`);
                 setLoading(false);
@@ -208,7 +207,7 @@ export default function Scanner({ race, stats: initialStats }) {
         setLoadingTeam(true);
         try {
             const response = await axios.get(route('races.team-members', { race: race.race_id, registration: regId }));
-            
+
             if (response.data.success) {
                 setScannedTeam(response.data.team);
             }
@@ -222,7 +221,7 @@ export default function Scanner({ race, stats: initialStats }) {
     /**
      * Handle QR scan error (ignored as errors happen continuously)
      */
-    const onScanError = (errorMessage) => {
+    const onScanError = () => {
         // Ignore scan errors (they happen continuously while scanning)
     };
 
@@ -289,7 +288,7 @@ export default function Scanner({ race, stats: initialStats }) {
         if (scannedTeam) {
             setScannedTeam(prevTeam => ({
                 ...prevTeam,
-                members: prevTeam.members.map(m => 
+                members: prevTeam.members.map(m =>
                     m.reg_id === regId ? { ...m, ...updates } : m
                 )
             }));
@@ -370,8 +369,8 @@ export default function Scanner({ race, stats: initialStats }) {
                         <div className="space-y-6">
                             {/* Success Message */}
                             <div className={`rounded-xl p-4 border-2 ${
-                                scanResult?.alreadyPresent 
-                                    ? 'bg-amber-50 border-amber-200' 
+                                scanResult?.alreadyPresent
+                                    ? 'bg-amber-50 border-amber-200'
                                     : 'bg-emerald-50 border-emerald-200'
                             }`}>
                                 <div className="flex items-center gap-3">

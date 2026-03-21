@@ -94,6 +94,7 @@ return [
     'social_login_strava' => 'Strava',
     'confirm_button' => 'Confirm',
     'close' => 'Close',
+    'loading' => 'Loading...',
 
     // Admin - Users
     'admin.users.title' => 'User management',
@@ -140,28 +141,15 @@ return [
     'admin.logs.level_warning' => 'Warning',
     'admin.logs.level_error' => 'Error',
     'admin.logs.level_critical' => 'Critical',
-    'admin.users.remove_role' => 'Remove role',
-    'admin.users.requires_grant_admin' => 'Requires permission',
     'admin.users.role_assigned' => 'Role ":role" assigned successfully!',
     'admin.users.role_removed' => 'Role ":role" removed successfully!',
     'admin.users.role_assign_failed' => 'Failed to assign role',
     'admin.users.role_remove_failed' => 'Failed to remove role',
-    'loading' => 'Loading...',
-
-    // Admin - Logs
-    'admin.logs.title' => 'Activity log',
     'admin.logs.search_placeholder' => 'Search description...',
     'admin.logs.level_all' => 'All levels',
-    'admin.logs.timestamp' => 'Timestamp',
-    'admin.logs.level' => 'Level',
-    'admin.logs.action' => 'Action',
-    'admin.logs.user' => 'User',
-    'admin.logs.content' => 'Content',
-    'admin.logs.ip' => 'IP',
-    'admin.logs.no_activity' => 'No activity for now.',
     'admin.logs.page_info' => 'Page :current / :last — :total entries',
 
-    // Welcome Page
+    // Welcome page
     'documentation_text' => 'Laravel has wonderful documentation covering every aspect of the framework. Whether you are a newcomer or have prior experience with Laravel, we recommend reading our documentation from beginning to end.',
     'laracasts_text' => 'Laracasts offers thousands of video tutorials on Laravel, PHP, and JavaScript development. Check them out, see for yourself, and massively level up your development skills in the process.',
     'laravel_news_text' => 'Laravel News is a community driven portal and newsletter aggregating all of the latest and most important news in the Laravel ecosystem, including new package releases and tutorials.',
@@ -372,7 +360,7 @@ return [
     'no_permission_to_register' => 'You do not have permission to register for this race',
     'registration_successful' => 'Registration successful',
     'valid_until' => 'Valid until',
-    
+
     // Registration conflicts
     'team_not_found' => 'Team not found',
     'team_has_no_members' => 'Team has no members',
@@ -419,7 +407,6 @@ return [
     'team_updated_successfully' => 'Team updated successfully',
     'team_deleted_successfully' => 'Team deleted successfully',
     'member_removed_successfully' => 'Member removed from team successfully',
-    'cancel' => 'Cancel',
     'team_members' => 'Team Members',
     'add_member' => 'Add Member',
     'search_member' => 'Search by name or email...',
@@ -544,8 +531,17 @@ return [
     'modal.license_validation.format_hint' => 'Expected format: 5-6 digits or 1-2 letters followed by 5-6 digits',
     'modal.license_validation.important' => 'Important',
     'modal.license_validation.warning_lose_role' => 'If you continue without a valid licence, you will lose your special role and access to associated features.',
+    'modal.license_validation.title' => 'Invalid license number',
+    'modal.license_validation.invalid_message' => 'The FFCO license number you entered is not valid.',
+    'modal.license_validation.expected_format' => 'Expected format:',
+    'modal.license_validation.format_explanation' => '(5-6 digits or 1-2 letters followed by 5-6 digits)',
+    'modal.license_validation.warning' => 'If you continue without a license number, you will not be able to obtain (or will lose) the role',
+    'modal.license_validation.adherent_role' => '"Member"',
+    'modal.license_validation.features_access' => 'which gives you access to certain features.',
     'modal.license_validation.change_number' => 'Change number',
     'modal.license_validation.continue_without' => 'Continue without licence',
+    'modal.license_validation.unauthorized_action' => 'Unauthorized action detected.',
+    'modal.license_validation.reload_page' => 'Please reload the page.',
 
     // ProfileCompletionModal
     'modal.profile_completion.title' => 'Complete your registration',
@@ -632,10 +628,14 @@ return [
     // SelectResponsableModal
     'modal.select_responsable.title' => 'Select a manager',
     'modal.select_responsable.search_placeholder' => 'Search for a user...',
+    'modal.select_responsable.no_results' => 'No user found',
+    'modal.select_responsable.no_users' => 'No users available',
     'modal.select_responsable.no_users_found' => 'No users found',
     'modal.select_responsable.no_users_available' => 'No users available',
 
     // UpdatePPSModal
+    'modal.update_pps.manage_title' => 'Manage PPS',
+    'modal.update_pps.add_title' => 'Add PPS',
     'modal.update_pps.title_manage' => 'Manage PPS',
     'modal.update_pps.title_add' => 'Add PPS',
     'modal.update_pps.participant' => 'Participant',
@@ -644,8 +644,13 @@ return [
     'modal.update_pps.rejected' => 'Rejected',
     'modal.update_pps.pps_number' => 'PPS Number *',
     'modal.update_pps.pps_placeholder' => 'Enter PPS number',
+    'modal.update_pps.expiry_date' => 'Expiry date *',
     'modal.update_pps.approve_directly' => 'Approve directly',
     'modal.update_pps.save_and_verify' => 'Save and verify PPS automatically',
+    'modal.update_pps.approve_directly_desc' => 'Save and verify PPS in one action',
+    'modal.update_pps.approve' => 'Approve',
+    'modal.update_pps.reject' => 'Reject',
+    'modal.update_pps.saving' => 'Saving...',
 
     // ConnectedAccountsForm
     'modal.connected_accounts.connected' => 'Connected',
@@ -663,12 +668,17 @@ return [
     'user_last_races.view_race' => 'View race',
 
     // InviteByEmailModal
+    'modal.invite_email.title' => 'Invite by email',
     'modal.invite_email.invalid_email' => 'Please enter a valid email address.',
     'modal.invite_email.will_receive_invitation' => 'This person will receive an email invitation.',
     'modal.invite_email.email_placeholder' => 'Email address',
     'modal.invite_email.sending' => 'Sending...',
     'modal.invite_email.add' => 'Add',
     'modal.invite_email.send' => 'Send',
+    'modal.invite_email.create_mode_info' => 'This person will receive an email invitation after the team is created.',
+    'modal.invite_email.placeholder' => 'Enter email...',
+    'modal.invite_user.no_user_found' => 'No user found',
+    'modal.invite_user.all_members' => 'All users are already members',
 
     // InviteUserModal
     'modal.invite_user.title' => 'Invite users',
@@ -682,10 +692,17 @@ return [
     // AdvancedFilter
     'filter.title' => 'Search Filters',
     'filter.subtitle' => 'Customize your event selection',
+    'filter.search_filters' => 'Search filters',
+    'filter.customize_selection' => 'Customize your event selection',
     'filter.difficulty_levels' => 'Difficulty levels',
     'filter.event_types' => 'Event types',
     'filter.reset' => 'Reset',
     'filter.apply' => 'Apply filters',
+    'filter.apply_filters' => 'Apply filters',
+    'filter.easy' => 'Easy',
+    'filter.medium' => 'Medium',
+    'filter.hard' => 'Hard',
+    'filter.expert' => 'Expert',
     'filter.difficulty_easy' => 'Easy',
     'filter.difficulty_medium' => 'Medium',
     'filter.difficulty_hard' => 'Hard',
@@ -694,6 +711,8 @@ return [
     // RegisteredMembersModal
     'modal.registered_members.title' => 'Registered members',
     'modal.registered_members.race' => 'Race',
+    'modal.registered_members.participant' => 'participant',
+    'modal.registered_members.participants' => 'participants',
     'modal.registered_members.no_members' => 'No registered members yet',
 
     // ClubForm
@@ -724,40 +743,6 @@ return [
     'profile.license_hint' => 'Format: 5-6 digits or 1-2 letters followed by 5-6 digits (French Orienteering Federation)',
     'profile.make_public' => 'Make my profile public (Visible to other users)',
 
-    // Team Invite Modals
-    'modal.invite_email.title' => 'Invite by email',
-    'modal.invite_email.invalid_email' => 'Please enter a valid email address.',
-    'modal.invite_email.create_mode_info' => 'This person will receive an email invitation after the team is created.',
-    'modal.invite_email.placeholder' => 'Enter email...',
-    'modal.invite_email.sending' => 'Sending...',
-    'modal.invite_email.add' => 'Add',
-    'modal.invite_email.send' => 'Send',
-    'modal.invite_user.title' => 'Invite users',
-    'modal.invite_user.search_placeholder' => 'Search for a user...',
-    'modal.invite_user.add' => 'Add',
-    'modal.invite_user.invite' => 'Invite',
-    'modal.invite_user.no_user_found' => 'No user found',
-    'modal.invite_user.all_members' => 'All users are already members',
-    'modal.invite_user.invite_new' => 'Invite a new user',
-
-    // Filter component
-    'filter.search_filters' => 'Search filters',
-    'filter.customize_selection' => 'Customize your event selection',
-    'filter.difficulty_levels' => 'Difficulty levels',
-    'filter.event_types' => 'Event types',
-    'filter.reset' => 'Reset',
-    'filter.apply_filters' => 'Apply filters',
-    'filter.easy' => 'Easy',
-    'filter.medium' => 'Medium',
-    'filter.hard' => 'Hard',
-    'filter.expert' => 'Expert',
-
-    // Registered Members Modal
-    'modal.registered_members.title' => 'Registered members',
-    'modal.registered_members.participant' => 'participant',
-    'modal.registered_members.participants' => 'participants',
-    'modal.registered_members.no_members' => 'No members registered yet',
-
     // Profile Completion Modal
     'modal.complete_profile.title' => 'Complete your registration',
     'modal.complete_profile.description' => 'Please complete your personal information to continue.',
@@ -769,41 +754,6 @@ return [
     'modal.complete_profile.license_placeholder' => 'Ex: 123456 or AB12345',
     'modal.complete_profile.license_format' => 'Format: 5-6 digits or 1-2 letters followed by 5-6 digits (French Orienteering Federation)',
     'modal.complete_profile.submit' => 'Complete registration',
-
-    // License Validation Modal
-    'modal.license_validation.title' => 'Invalid license number',
-    'modal.license_validation.invalid_message' => 'The FFCO license number you entered is not valid.',
-    'modal.license_validation.expected_format' => 'Expected format:',
-    'modal.license_validation.format_explanation' => '(5-6 digits or 1-2 letters followed by 5-6 digits)',
-    'modal.license_validation.warning' => 'If you continue without a license number, you will not be able to obtain (or will lose) the role',
-    'modal.license_validation.adherent_role' => '"Member"',
-    'modal.license_validation.features_access' => 'which gives you access to certain features.',
-    'modal.license_validation.change_number' => 'Change number',
-    'modal.license_validation.continue_without' => 'Continue without license',
-    'modal.license_validation.unauthorized_action' => 'Unauthorized action detected.',
-    'modal.license_validation.reload_page' => 'Please reload the page.',
-
-    // Select Responsable Modal
-    'modal.select_responsable.title' => 'Select a responsible person',
-    'modal.select_responsable.search_placeholder' => 'Search by name or email...',
-    'modal.select_responsable.no_results' => 'No user found',
-    'modal.select_responsable.no_users' => 'No users available',
-
-    // Update PPS Modal
-    'modal.update_pps.manage_title' => 'Manage PPS',
-    'modal.update_pps.add_title' => 'Add PPS',
-    'modal.update_pps.participant' => 'Participant',
-    'modal.update_pps.pending_verification' => 'Pending verification',
-    'modal.update_pps.verified' => 'Verified',
-    'modal.update_pps.rejected' => 'Rejected',
-    'modal.update_pps.pps_number' => 'PPS Number *',
-    'modal.update_pps.pps_placeholder' => 'Ex: 1234567890',
-    'modal.update_pps.expiry_date' => 'Expiry date *',
-    'modal.update_pps.approve_directly' => 'Approve directly',
-    'modal.update_pps.approve_directly_desc' => 'Save and verify PPS in one action',
-    'modal.update_pps.approve' => 'Approve',
-    'modal.update_pps.reject' => 'Reject',
-    'modal.update_pps.saving' => 'Saving...',
 
     // Common
     'or' => 'or',
@@ -1048,9 +998,13 @@ return [
     'races.search_placeholder' => 'Search for a race by name, location, raid or club...',
     'races.clear' => 'Clear',
     'races.results_count' => 'race{s} found for',
+    'races.results_found' => 'race(s) found',
+    'races.for' => 'for',
     'races.no_results' => 'No races found for',
+    'races.empty_search_title' => 'No results found',
     'races.empty_title' => 'No results found',
     'races.empty_no_search' => 'No races available',
+    'races.empty_search_message' => 'Try modifying your search or clear the filters to see all races.',
     'races.empty_message' => 'Try modifying your search or clear filters to see all races.',
     'races.empty_message_no_search' => 'There are currently no races scheduled. Check back soon for new events!',
     'races.view_all' => 'View all races',
@@ -1060,7 +1014,7 @@ return [
     'races.view_details' => 'View details',
     'races.duration_min' => 'min',
 
-    // Raids List Page  
+    // Raids List Page
     'raids_list.title' => 'All raids',
     'raids_list.subtitle' => 'Discover all available raids and join the adventure',
     'raids_list.create_raid' => 'Create raid',
@@ -1076,6 +1030,11 @@ return [
     'raids_list.leisure' => 'Leisure',
     'raids_list.competition' => 'Competition',
     'raids_list.category' => 'Category',
+    'raids_list.no_results' => 'No results found',
+    'raids_list.no_raids' => 'No raids available',
+    'raids_list.modify_search' => 'Try modifying your search or clear the filters to see all raids.',
+    'raids_list.no_raids_message' => 'There are currently no raids available. Check back soon for new adventures!',
+    'raids_list.view_all' => 'View all raids',
     'raids_list.search' => 'Search',
     'raids_list.empty_no_results' => 'No results found',
     'raids_list.empty_no_raids' => 'No raids available',
@@ -1084,6 +1043,7 @@ return [
     'raids_list.view_all_raids' => 'View all raids',
     'raids_list.create_first_raid' => 'Create first raid',
     'raids_list.courses_count' => 'course{s}',
+    'raids_list.race' => 'race',
     'raids_list.view_details' => 'View details',
 
     // My Raid Page
@@ -1098,6 +1058,7 @@ return [
     'my_raid.view_raid_details' => 'View raid details',
     'my_raid.from' => 'From',
     'my_raid.to' => 'to',
+    'my_raid.raid_count' => 'raid(s) recorded',
 
     // Raid Detail Page
     'raid_detail.back' => 'Back',
@@ -1107,6 +1068,11 @@ return [
     'raid_detail.settings' => 'SETTINGS',
     'raid_detail.registered_members' => 'Registered members',
     'raid_detail.no_members' => 'No registered members',
+    'raid_detail.registrations_here' => 'Registrations will appear here',
+    'raid_detail.participant' => 'participant',
+    'raid_detail.view_all' => 'View all',
+    'raid_detail.members' => 'members',
+    'raid_detail.view_details' => 'View details',
     'raid_detail.registrations_appear_here' => 'Registrations will appear here',
     'raid_detail.participants_registered' => 'participant{s} registered',
     'raid_detail.see_all_members' => 'See all :count members',
@@ -1127,111 +1093,19 @@ return [
     'raid_detail.more_details' => 'More details',
     'raid_detail.no_courses' => 'NO COURSES',
     'raid_detail.no_courses_message' => 'No courses available for this raid at the moment.',
+    'raid_detail.finished' => 'Finished',
     'raid_detail.status_finished' => 'Finished',
+    'raid_detail.open' => 'Open',
     'raid_detail.status_open' => 'Open',
+    'raid_detail.upcoming' => 'Upcoming',
     'raid_detail.status_upcoming' => 'Upcoming',
     'raid_detail.min_suffix' => 'MIN',
 
-    // Clubs Create Page  
+    // Clubs Create Page
     'clubs.create.title' => 'Create a Club',
     'clubs.create.subtitle' => 'Create your club and manage it easily',
     'clubs.create.approval_required' => 'Approval required',
     'clubs.create.approval_description' => 'Your club creation request will be submitted for approval by an administrator.',
     'clubs.create.submit' => 'Create Club',
-
-    // Races page (Race/Index.jsx)
-    'races.page_title' => 'Race Calendar',
-    'races.page_subtitle' => 'Discover upcoming orienteering events',
-    'races.search_placeholder' => 'Search for a race by name, location, raid or club...',
-    'races.clear' => 'Clear',
-    'races.results_found' => 'race(s) found',
-    'races.for' => 'for',
-    'races.no_results' => 'No races found',
-    'races.empty_search_title' => 'No results found',
-    'races.empty_title' => 'No races available',
-    'races.empty_search_message' => 'Try modifying your search or clear the filters to see all races.',
-    'races.empty_message' => 'There are currently no scheduled races. Check back soon for new events!',
-    'races.view_all' => 'View all races',
-    'races.status_closed' => 'Closed',
-    'races.status_finished' => 'Finished',
-    'races.status_open' => 'Open',
-    'races.view_details' => 'View details',
-
-    // Raids list page (Raid/List.jsx)
-    'raids_list.title' => 'All raids',
-    'raids_list.subtitle' => 'Discover all available raids and join the adventure',
-    'raids_list.create_raid' => 'Create a raid',
-    'raids_list.location' => 'Location',
-    'raids_list.city' => 'City',
-    'raids_list.department' => 'Department',
-    'raids_list.region' => 'Region',
-    'raids_list.search_placeholder' => 'Search...',
-    'raids_list.date' => 'Date',
-    'raids_list.choose_date' => 'Choose a date',
-    'raids_list.type' => 'Type',
-    'raids_list.all' => 'All',
-    'raids_list.leisure' => 'Leisure',
-    'raids_list.competition' => 'Competition',
-    'raids_list.category' => 'Category',
-    'raids_list.no_results' => 'No results found',
-    'raids_list.no_raids' => 'No raids available',
-    'raids_list.modify_search' => 'Try modifying your search or clear the filters to see all raids.',
-    'raids_list.no_raids_message' => 'There are currently no raids available. Check back soon for new adventures!',
-    'raids_list.view_all' => 'View all raids',
-    'raids_list.create_first_raid' => 'Create the first raid',
-    'raids_list.race' => 'race',
-    'raids_list.view_details' => 'View details',
-
-    // My Raid page (Raid/MyRaidIndex.jsx)
-    'my_raid.title' => 'My Raids',
-    'my_raid.subtitle' => 'Find all the raids you are participating in or have participated in',
-    'my_raid.from' => 'From',
-    'my_raid.to' => 'to',
-    'my_raid.participant' => 'Participant',
-    'my_raid.view_raid_details' => 'View raid details',
-    'my_raid.empty_message' => 'No raids to display at the moment.',
-    'my_raid.empty_cta' => 'Browse upcoming raids and register your team!',
-    'my_raid.explore_raids' => 'Explore available raids',
-    'my_raid.history_title' => 'My raid history',
-    'my_raid.raid_count' => 'raid(s) recorded',
-
-    // Raid detail page (Raid/Index.jsx)
-    'raid_detail.back' => 'Back',
-    'raid_detail.courses' => 'Courses',
-    'raid_detail.registered' => 'Registered',
-    'raid_detail.start_list_pdf' => 'START-LIST PDF',
-    'raid_detail.settings' => 'SETTINGS',
-    'raid_detail.registered_members' => 'Registered members',
-    'raid_detail.no_members' => 'No registered members',
-    'raid_detail.registrations_here' => 'Registrations will appear here',
-    'raid_detail.participant' => 'participant',
-    'raid_detail.view_all' => 'View all',
-    'raid_detail.members' => 'members',
-    'raid_detail.view_details' => 'View details',
-    'raid_detail.description' => 'Description',
-    'raid_detail.visit_official_site' => 'Visit official site',
-    'raid_detail.available_courses' => 'AVAILABLE COURSES',
-    'raid_detail.course' => 'COURSE',
-    'raid_detail.new_course' => 'NEW COURSE',
-    'raid_detail.finished' => 'Finished',
-    'raid_detail.open' => 'Open',
-    'raid_detail.upcoming' => 'Upcoming',
-    'raid_detail.organized_by' => 'ORGANIZED BY',
-    'raid_detail.date_time' => 'Date & Time',
-    'raid_detail.duration' => 'Duration',
-    'raid_detail.accepted_categories' => 'Accepted categories',
-    'raid_detail.view_results' => 'View results',
-    'raid_detail.view_my_registration' => 'View my registration',
-    'raid_detail.register' => 'Register',
-    'raid_detail.more_details' => 'More details',
-    'raid_detail.no_courses' => 'NO COURSES',
-    'raid_detail.no_courses_message' => 'No courses are available for this raid at the moment.',
-
-    // Clubs create page (Clubs/Create.jsx)
-    'clubs.create.title' => 'Create a club',
-    'clubs.create.subtitle' => 'Fill out the form below to create your club',
-    'clubs.create.approval_required' => 'Approval required',
-    'clubs.create.approval_description' => 'Your club creation request will be submitted for administrator approval before being published.',
-    'clubs.create.submit' => 'Create club',
 
 ];

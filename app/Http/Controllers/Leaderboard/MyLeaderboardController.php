@@ -16,7 +16,7 @@ use Inertia\Response;
 class MyLeaderboardController extends Controller
 {
     public function __construct(
-        private LeaderboardService $leaderboardService
+        private readonly LeaderboardService $leaderboardService
     ) {}
 
     /**

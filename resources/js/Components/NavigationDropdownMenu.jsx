@@ -1,6 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
 import Dropdown from '@/Components/Dropdown';
-import UserAvatar from '@/Components/UserAvatar';
 
 /**
  * Reusable navigation menu component for both authenticated and guest users

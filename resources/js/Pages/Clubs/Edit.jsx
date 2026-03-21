@@ -1,4 +1,4 @@
-import { Head, Link, usePage, useForm, router } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ClubForm from '@/Components/ClubForm';
 import ClubMembersList from '@/Components/ClubMembersList';

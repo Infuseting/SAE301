@@ -17,6 +17,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use OpenApi\Annotations as OA;
 
 /**
  * Controller for managing race creation.
@@ -35,7 +36,7 @@ class RaceController extends Controller
     {
         // Authorize the user to create a race
         $this->authorize('create', Race::class);
-        
+
         return $this->renderRaceForm($request);
     }
 
@@ -49,10 +50,10 @@ class RaceController extends Controller
     public function edit(int $id)
     {
         $race = Race::with(['runnerParams', 'teamParams', 'categorieAges.ageCategory'])->findOrFail($id);
-        
+
         // Authorize the user to update this race (checks ownership)
         $this->authorize('update', $race);
-        
+
         return $this->renderRaceForm(request(), $race);
     }
 
@@ -146,7 +147,7 @@ class RaceController extends Controller
             ])->toArray()
         ] : null;
 
-        return Inertia::render('Race/NewRace', [    
+        return Inertia::render('Race/NewRace', [
             'users' => $users,
             'types' => $types,
             'ageCategories' => $ageCategories,
@@ -167,7 +168,7 @@ class RaceController extends Controller
      */
     public function store(StoreRaceRequest $request)
     {
-        
+
         $raid = $request->input('raid_id') ? Raid::find($request->input('raid_id')) : null;
 
         // Authorize the user to create a race for this raid
@@ -226,7 +227,7 @@ class RaceController extends Controller
 
         // Insert selected age categories
         $selectedCategories = $request->input('selectedAgeCategories', []);
-        
+
         // Handle both array and JSON formats
         if (is_string($selectedCategories)) {
             $selectedCategories = json_decode($selectedCategories, true) ?? [];
@@ -264,7 +265,7 @@ class RaceController extends Controller
     public function update(StoreRaceRequest $request, int $id)
     {
         $race = Race::findOrFail($id);
-        
+
         // Authorize the user to update this race
         $this->authorize('update', $race);
 
@@ -327,7 +328,7 @@ class RaceController extends Controller
 
         // Update age categories (for competitive races)
         $ageCategories = $request->input('selectedAgeCategories', []);
-        
+
         // Handle both array and JSON formats
         if (is_string($ageCategories)) {
             $ageCategories = json_decode($ageCategories, true) ?? [];
@@ -335,7 +336,7 @@ class RaceController extends Controller
         if (!is_array($ageCategories)) {
             $ageCategories = [];
         }
-        
+
         ParamCategorieAge::where('race_id', $race->race_id)->delete();
         foreach ($ageCategories as $categoryId) {
             ParamCategorieAge::create([
@@ -591,7 +592,7 @@ class RaceController extends Controller
         // Assign responsable-course role (even if user has other roles)
         if (!$user->hasRole('responsable-course')) {
             $user->assignRole('responsable-course');
-            
+
             activity()
                 ->performedOn($race)
                 ->causedBy(auth()->user())
@@ -609,25 +610,25 @@ class RaceController extends Controller
     public function destroy(int $id)
     {
         $race = Race::findOrFail($id);
-        
+
         // Authorize the user to delete the race
         $this->authorize('delete', $race);
-        
+
         $raidId = $race->raid_id;
-        
+
         // Delete associated ParamRunner if exists
         if ($race->pac_id) {
             ParamRunner::where('pac_id', $race->pac_id)->delete();
         }
-        
+
         // Delete associated ParamTeam if exists
         if ($race->pae_id) {
             ParamTeam::where('pae_id', $race->pae_id)->delete();
         }
-        
+
         // Delete the race
         $race->delete();
-        
+
         return redirect()->route('raids.show', $raidId)
             ->with('success', 'La course a été supprimée avec succès!');
     }
@@ -654,7 +655,7 @@ class RaceController extends Controller
 
     /**
      * Generate PDF start-list for race
-     * 
+     *
      * @OA\Get(
      *     path="/api/races/{race}/start-list",
      *     tags={"Races"},
@@ -725,7 +726,7 @@ class RaceController extends Controller
 
     /**
      * Mark team as present by scanning QR code
-     * 
+     *
      * @OA\Post(
      *     path="/api/races/{race}/check-in",
      *     tags={"Races"},
@@ -769,7 +770,7 @@ class RaceController extends Controller
     {
         // Check if user is the race manager (owner of the race)
         $user = auth()->user();
-        
+
         // Get the raid to check club ownership
         $raid = $race->raid()->with('club')->first();
         $isRaceManager = $user && $raid && $raid->club && ($raid->club->created_by === $user->id);
@@ -841,8 +842,8 @@ class RaceController extends Controller
                 'reg_dossard' => $registration->reg_dossard,
                 'team_name' => $registration->team->equ_name,
                 'race_name' => $registration->race->race_name,
-                'leader_name' => $registration->team->leader ? 
-                    $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name : 
+                'leader_name' => $registration->team->leader ?
+                    $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name :
                     'N/A',
                 'is_present' => $registration->is_present,
             ]
@@ -851,7 +852,7 @@ class RaceController extends Controller
 
     /**
      * Toggle participant presence status
-     * 
+     *
      * @OA\Post(
      *     path="/api/races/{race}/toggle-presence",
      *     summary="Toggle participant presence",
@@ -978,7 +979,7 @@ class RaceController extends Controller
 
     /**
      * Get team members for a registration (used after QR scan)
-     * 
+     *
      * @OA\Get(
      *     path="/api/races/{race}/team-members/{registration}",
      *     tags={"Races"},
@@ -1054,8 +1055,8 @@ class RaceController extends Controller
                 'race_participants.reg_id',
                 'users.id as user_id',
                 'users.id as id_users',
-                'users.first_name', 
-                'users.last_name', 
+                'users.first_name',
+                'users.last_name',
                 'users.email',
                 'users.birth_date',
                 'members.adh_license',
@@ -1073,16 +1074,16 @@ class RaceController extends Controller
             ->map(function($p) use ($race, $registrationData) {
                 $now = now();
                 $p->is_license_valid = $p->license_expiry && $now->lessThan($p->license_expiry);
-                $p->is_pps_valid = $p->pps_expiry && 
-                                   $now->lessThan($p->pps_expiry) && 
+                $p->is_pps_valid = $p->pps_expiry &&
+                                   $now->lessThan($p->pps_expiry) &&
                                    $p->pps_status === 'verified' &&
                                    !str_starts_with($p->pps_number ?? '', 'PENDING-');
                 $p->is_captain = $registrationData->team && $registrationData->team->user_id === $p->user_id;
-                
+
                 // Calculate participant price
                 $age = $p->birth_date ? $now->diffInYears($p->birth_date) : null;
                 $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'compétitif';
-                
+
                 if ($p->is_license_valid && $race->price_adherent !== null) {
                     $p->price = $race->price_adherent;
                     $p->price_category = 'Adhérent';
@@ -1093,7 +1094,7 @@ class RaceController extends Controller
                     $p->price = $race->price_major ?? 0;
                     $p->price_category = 'Majeur';
                 }
-                
+
                 return $p;
             });
 

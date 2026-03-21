@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { useForm, Link, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { X, Search, Users, UserPlus, Check, AlertCircle, Info } from 'lucide-react';
 import Modal from '@/Components/Modal';
 
 /**
  * Validates a team for a competitive race.
  * All members must be in the same age category, and that category must be in the accepted list.
- * 
+ *
  * @param {Array} members - Array of team members with age property
  * @param {Array} acceptedCategories - Array of accepted age categories with age_min, age_max
  * @returns {Object} - { isValid: boolean, errors: string[], category: string|null }
@@ -69,7 +69,7 @@ function validateCompetitiveTeam(members, acceptedCategories) {
     if (uniqueCategories.length > 1) {
         result.isValid = false;
         result.errors.push(`Tous les membres doivent être dans la même catégorie d'âge. Catégories présentes: ${uniqueCategories.join(', ')}`);
-        
+
         // Detail per member
         memberCategories.forEach(mc => {
             const name = `${mc.member.first_name} ${mc.member.last_name}`;
@@ -88,7 +88,7 @@ function validateCompetitiveTeam(members, acceptedCategories) {
  * - All participants must be at least A years old
  * - If any participant is under B years old, the team must include someone at least C years old
  * - OR all participants must be at least B years old
- * 
+ *
  * @param {Array} members - Array of team members with age property
  * @param {number} ageA - Minimum age for all participants
  * @param {number} ageB - Intermediate age threshold
@@ -111,8 +111,8 @@ function validateLeisureTeam(members, ageA, ageB, ageC) {
     }
 
     // Check if leisure rules are defined
-    if (ageA === null || ageA === undefined || 
-        ageB === null || ageB === undefined || 
+    if (ageA === null || ageA === undefined ||
+        ageB === null || ageB === undefined ||
         ageC === null || ageC === undefined) {
         // No leisure rules defined, allow all
         return result;
@@ -170,7 +170,7 @@ function validateLeisureTeam(members, ageA, ageB, ageC) {
 /**
  * TeamRegistrationModal Component
  * Handles team registration for races with age validation
- * 
+ *
  * @param {Object} props - Component props
  * @param {boolean} props.isOpen - Whether modal is open
  * @param {Function} props.onClose - Close handler
@@ -189,23 +189,23 @@ function validateLeisureTeam(members, ageA, ageB, ageC) {
  * @param {number} props.currentTeamsCount - Current registered teams count
  * @param {number} props.currentParticipantsCount - Current registered participants count
  */
-export default function TeamRegistrationModal({ 
-    isOpen, 
-    onClose, 
-    teams = [], 
-    minRunners, 
-    maxRunners, 
-    raceId, 
-    racePrices = {}, 
-    isCompetitive = false, 
+export default function TeamRegistrationModal({
+    isOpen,
+    onClose,
+    teams = [],
+    minRunners,
+    maxRunners,
+    raceId,
+    racePrices = {},
+    isCompetitive = false,
     ageCategories = [],
     leisureAgeMin = null,
     leisureAgeIntermediate = null,
     leisureAgeSupervisor = null,
-    maxTeams = 100, 
-    maxParticipants = 100, 
-    currentTeamsCount = 0, 
-    currentParticipantsCount = 0 
+    maxTeams = 100,
+    maxParticipants = 100,
+    currentTeamsCount = 0,
+    currentParticipantsCount = 0
 }) {
     const messages = usePage().props.translations?.messages || {};
     const [searchQuery, setSearchQuery] = useState('');
@@ -219,7 +219,7 @@ export default function TeamRegistrationModal({
 
     /**
      * Validate team based on race type and age rules
-     * 
+     *
      * @param {Object} team - Team object with members array
      * @returns {Object} - Validation result with isValid, errors, warnings, category
      */
@@ -258,9 +258,9 @@ export default function TeamRegistrationModal({
             baseValidation.category = ageValidation.category;
         } else {
             ageValidation = validateLeisureTeam(
-                team.members, 
-                leisureAgeMin, 
-                leisureAgeIntermediate, 
+                team.members,
+                leisureAgeMin,
+                leisureAgeIntermediate,
                 leisureAgeSupervisor
             );
         }
@@ -275,12 +275,12 @@ export default function TeamRegistrationModal({
         // Check if adding this team would exceed limits
         const wouldExceedTeamLimit = isTeamsLimitReached;
         const wouldExceedParticipantLimit = (currentParticipantsCount + membersCount) > maxParticipants;
-        
+
         if (wouldExceedTeamLimit) {
             baseValidation.isValid = false;
             baseValidation.errors.push(`Limite d'équipes atteinte (${currentTeamsCount}/${maxTeams})`);
         }
-        
+
         if (wouldExceedParticipantLimit) {
             baseValidation.isValid = false;
             baseValidation.errors.push(`Limite de participants dépassée (${currentParticipantsCount + membersCount} > ${maxParticipants})`);
@@ -305,7 +305,7 @@ export default function TeamRegistrationModal({
 
     /**
      * Handle team selection
-     * 
+     *
      * @param {number} teamId - Team ID to select
      * @param {boolean} isValid - Whether team is valid for selection
      */
@@ -320,7 +320,7 @@ export default function TeamRegistrationModal({
 
     /**
      * Handle form submission
-     * 
+     *
      * @param {Event} e - Form event
      */
     const handleSubmit = (e) => {
@@ -352,8 +352,8 @@ export default function TeamRegistrationModal({
                 <div className="p-8 space-y-6">
                     {/* Info banner for race type */}
                     <div className={`p-4 rounded-xl border-2 flex items-start gap-3 ${
-                        isCompetitive 
-                            ? 'bg-blue-50 border-blue-200' 
+                        isCompetitive
+                            ? 'bg-blue-50 border-blue-200'
                             : 'bg-emerald-50 border-emerald-200'
                     }`}>
                         <Info className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
@@ -363,16 +363,16 @@ export default function TeamRegistrationModal({
                             <h4 className={`font-black text-sm uppercase ${
                                 isCompetitive ? 'text-blue-900' : 'text-emerald-900'
                             }`}>
-                                {isCompetitive 
+                                {isCompetitive
                                     ? (messages['modal.team_registration.competitive'] || 'Competitive Race')
                                     : (messages['modal.team_registration.leisure'] || 'Leisure Race')}
                             </h4>
                             <p className={`text-xs font-medium ${
                                 isCompetitive ? 'text-blue-700' : 'text-emerald-700'
                             }`}>
-                                {isCompetitive 
+                                {isCompetitive
                                     ? (messages['modal.team_registration.competitive_desc'] || 'All team members must be in the same age category.')
-                                    : leisureAgeMin !== null 
+                                    : leisureAgeMin !== null
                                         ? `${(messages['modal.team_registration.min_age_required'] || 'Minimum age required: :age years').replace(':age', leisureAgeMin)}`
                                         : (messages['modal.team_registration.leisure_desc'] || 'No specific age restrictions.')
                                 }
@@ -424,7 +424,7 @@ export default function TeamRegistrationModal({
                                     <div
                                         key={team.id}
                                         onClick={() => handleSelectTeam(team.id, teamIsValid)}
-                                        className={`p-4 rounded-xl border-2 transition-all group relative 
+                                        className={`p-4 rounded-xl border-2 transition-all group relative
                                             ${!teamIsValid ? 'opacity-70 cursor-not-allowed bg-gray-50 border-gray-200' : 'cursor-pointer'}
                                             ${data.team_id === team.id
                                                 ? 'border-blue-500 bg-blue-50/50'
@@ -434,8 +434,8 @@ export default function TeamRegistrationModal({
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-lg ${
-                                                    data.team_id === team.id 
-                                                        ? 'bg-blue-500 text-white' 
+                                                    data.team_id === team.id
+                                                        ? 'bg-blue-500 text-white'
                                                         : teamIsValid
                                                             ? 'bg-gray-100 text-gray-400 group-hover:bg-blue-100 group-hover:text-blue-600'
                                                             : 'bg-red-100 text-red-400'
@@ -515,7 +515,7 @@ export default function TeamRegistrationModal({
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 {racePrices.major && (
                                     <div>
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{messages['modal.team_registration.estimated_price'] || 'Estimated Price'}</p>
@@ -523,13 +523,13 @@ export default function TeamRegistrationModal({
                                             <span className="text-3xl font-black italic">
                                                 {(() => {
                                                     if (!selectedTeam) return racePrices.major * selectedTeam.members_count;
-                                                    
+
                                                     const licensedCount = selectedTeam.licensed_members_count || 0;
                                                     const nonLicensedCount = selectedTeam.members_count - licensedCount;
-                                                    
+
                                                     const licensedPrice = racePrices.adherent ? licensedCount * racePrices.adherent : 0;
                                                     const nonLicensedPrice = nonLicensedCount * racePrices.major;
-                                                    
+
                                                     return licensedPrice + nonLicensedPrice;
                                                 })()}
                                             </span>
@@ -538,10 +538,10 @@ export default function TeamRegistrationModal({
                                         <p className="text-[9px] text-gray-500 font-medium mt-1">
                                             {(() => {
                                                 if (!selectedTeam) return `Base tarif majeur (${racePrices.major}€/pers)`;
-                                                
+
                                                 const licensedCount = selectedTeam.licensed_members_count || 0;
                                                 const nonLicensedCount = selectedTeam.members_count - licensedCount;
-                                                
+
                                                 if (licensedCount > 0 && nonLicensedCount > 0) {
                                                     return `${licensedCount} licencié(s) à ${racePrices.adherent}€ + ${nonLicensedCount} non-licencié(s) à ${racePrices.major}€`;
                                                 } else if (licensedCount > 0) {
@@ -608,7 +608,7 @@ export default function TeamRegistrationModal({
 
 /**
  * ChevronRight icon component
- * 
+ *
  * @param {Object} props - Component props
  * @param {string} props.className - CSS class name
  * @returns {JSX.Element} SVG icon element

@@ -2,6 +2,8 @@
 
 namespace App\Api;
 
+use OpenApi\Annotations as OA;
+
 /**
  * @OA\Info(
  *      version="1.0.0",
@@ -26,7 +28,7 @@ namespace App\Api;
  *     bearerFormat="JWT",
  *     securityScheme="apiAuth",
  * )
- * 
+ *
  * @OA\Tag(
  *     name="Admin - Club Approval",
  *     description="Admin endpoints for club approval management"
