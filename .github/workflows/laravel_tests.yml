@@ -67,9 +67,4 @@ jobs:
           APP_ENV: testing
           DB_CONNECTION: sqlite
           DB_DATABASE: ":memory:"
-          CACHE_STORE: array
-          SESSION_DRIVER: array
-          QUEUE_CONNECTION: sync
-          MAIL_MAILER: array
-          TERM: xterm-256color
-        run: php artisan test --do-not-cache-result
+        run: ./vendor/bin/phpunit
