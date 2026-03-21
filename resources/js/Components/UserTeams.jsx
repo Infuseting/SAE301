@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 
 /**
  * UserLastRaces component - Displays user's teams in a card grid layout
@@ -6,7 +6,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
  */
 export default function UserTeams({ teams = [] }) {
     const messages = usePage().props.translations?.messages || {};
-    
+
     // Demo data for display purposes
     const demoTeams = [
         {
@@ -82,9 +82,9 @@ export default function UserTeams({ teams = [] }) {
                                 <div className="border-t border-gray-100" />
 
                                 {/* View Team Button */}
-                                <Link href= {route('teams.show', team.id)}> 
-                                    <button 
-                                       
+                                <Link href= {route('teams.show', team.id)}>
+                                    <button
+
                                         className="inline-block w-full text-center bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200"
                                     >
                                         {messages['user_teams.view_team'] || 'View team'}

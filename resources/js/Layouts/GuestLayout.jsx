@@ -1,10 +1,8 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import { Link, usePage } from '@inertiajs/react';
 
 export default function GuestLayout({ children }) {
-    const locale = usePage().props.locale || 'en';
     const messages = usePage().props.translations?.messages || {};
     return (
         <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">

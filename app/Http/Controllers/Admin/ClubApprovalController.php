@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
+use OpenApi\Annotations as OA;
 
 class ClubApprovalController extends Controller
 {
@@ -72,7 +73,7 @@ class ClubApprovalController extends Controller
             return back()->with('error', __('messages.club_already_approved'));
         }
 
-       
+
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($club) {
                 // Approve the club
@@ -102,7 +103,7 @@ class ClubApprovalController extends Controller
                     ->log('Club approved');
             });
         } catch (\Exception $e) {
-           
+
             return back()->with('error', 'Approval failed: ' . $e->getMessage());
         }
 

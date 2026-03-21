@@ -10,6 +10,7 @@ use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Http\Controllers\Api\ApiResponseTrait;
+use OpenApi\Annotations as OA;
 
 class ClubController extends Controller
 {

@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
-import {
-    Users, CheckCircle2, XCircle, Clock, CreditCard,
-    FileText, UserCheck, ChevronDown, ChevronUp, Loader2
-} from 'lucide-react';
+import { Users, CheckCircle2, XCircle, Clock, CreditCard, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
 /**
  * TeamRegistrationCard Component
- * 
+ *
  * Displays team members with their registration status (License, PPS, Payment, Presence)
  * and allows managers to validate PPS, payment, and presence.
- * 
+ *
  * This component is shared between:
  * - Race Scanner page (after QR code scan)
  * - Race Registration Management section
- * 
+ *
  * @param {Object} props
  * @param {Object} props.team - Team data with members
  * @param {number} props.raceId - Race ID for API calls
@@ -36,7 +33,6 @@ export default function TeamRegistrationCard({
     isCompact = false,
     showHeader = true
 }) {
-    const page = usePage();
     const [expanded, setExpanded] = useState(!isCompact);
     const [loadingPresence, setLoadingPresence] = useState({});
     const [members, setMembers] = useState(team?.members || []);
@@ -56,7 +52,7 @@ export default function TeamRegistrationCard({
      */
     const handleTogglePresence = async (regId) => {
         setLoadingPresence(prev => ({ ...prev, [regId]: true }));
-        
+
         try {
             const response = await axios.post(`/races/${raceId}/toggle-presence`, {
                 reg_id: regId
@@ -64,14 +60,14 @@ export default function TeamRegistrationCard({
 
             if (response.data.success) {
                 // Update local state
-                setMembers(prevMembers => 
-                    prevMembers.map(m => 
-                        m.reg_id === regId 
+                setMembers(prevMembers =>
+                    prevMembers.map(m =>
+                        m.reg_id === regId
                             ? { ...m, is_present: response.data.is_present }
                             : m
                     )
                 );
-                
+
                 // Notify parent component
                 if (onPresenceToggle) {
                     onPresenceToggle(regId, response.data.is_present);
@@ -139,7 +135,7 @@ export default function TeamRegistrationCard({
         // PPS is valid
         if (member.is_pps_valid) {
             return (
-                <button 
+                <button
                     onClick={() => handlePPSClick(member)}
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors cursor-pointer"
                 >
@@ -152,7 +148,7 @@ export default function TeamRegistrationCard({
         // PPS is pending
         if (member.pps_status === 'pending') {
             return (
-                <button 
+                <button
                     onClick={() => handlePPSClick(member)}
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors cursor-pointer"
                 >
@@ -164,7 +160,7 @@ export default function TeamRegistrationCard({
 
         // PPS is required
         return (
-            <button 
+            <button
                 onClick={() => handlePPSClick(member)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-red-50 text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
             >
@@ -189,7 +185,7 @@ export default function TeamRegistrationCard({
         }
 
         return (
-            <button 
+            <button
                 onClick={handlePaymentClick}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors cursor-pointer"
             >
@@ -212,8 +208,8 @@ export default function TeamRegistrationCard({
                 onClick={() => handleTogglePresence(member.reg_id)}
                 disabled={isLoading}
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase transition-colors cursor-pointer ${
-                    isPresent 
-                        ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' 
+                    isPresent
+                        ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
                         : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                 }`}
             >
@@ -258,7 +254,7 @@ export default function TeamRegistrationCard({
         <div className="bg-white rounded-2xl shadow-sm border border-blue-50 overflow-hidden">
             {/* Team Header */}
             {showHeader && (
-                <div 
+                <div
                     className={`bg-gradient-to-r from-blue-600 to-blue-700 p-4 ${isCompact ? 'cursor-pointer' : ''}`}
                     onClick={() => isCompact && setExpanded(!expanded)}
                 >

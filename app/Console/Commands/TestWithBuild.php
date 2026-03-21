@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 
+/**
+ * way of use : php artisan test:build
+ */
 class TestWithBuild extends Command
 {
 
@@ -64,7 +67,7 @@ class TestWithBuild extends Command
 
             // Keep color and format in terminal
             $process->setTty(Process::isTtySupported());
-            
+
             // Show real-time output
             $process->run(function ($type, $buffer) {
                 $this->output->write($buffer);

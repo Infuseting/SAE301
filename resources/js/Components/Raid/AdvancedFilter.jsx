@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Filter, CheckCircle2, ChevronDown, ListFilter, Target, Dna } from 'lucide-react';
+import { Filter, CheckCircle2, ChevronDown, Target, Dna } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 
 const AdvancedFilter = ({ categories = [], onApply }) => {

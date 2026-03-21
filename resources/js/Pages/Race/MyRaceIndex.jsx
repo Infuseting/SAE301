@@ -3,7 +3,6 @@ import Footer from "@/Components/Footer";
 import { Link, router, usePage } from "@inertiajs/react";
 import { RiRunLine } from "react-icons/ri";
 import { MdDateRange } from "react-icons/md";
-import { useState } from "react";
 
 function formatTime(seconds) {
     if (!seconds) return "N/A";
@@ -132,15 +131,15 @@ function MyRaceCard({ race, isRegistered = false, messages = {} }) {
                     </Link>
                     {isRegistered && (
                         <Link
-                            href={route("teams.registration.ticket", { 
-                                team: race.team?.id, 
-                                registration: race.registration_id 
+                            href={route("teams.registration.ticket", {
+                                team: race.team?.id,
+                                registration: race.registration_id
                             })}
                             className="flex-1 inline-block px-4 py-2 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
                         >
                             {messages['my_race.my_qr_code'] || "Mon QR Code"}
                         </Link>
-                    )} 
+                    )}
                 </div>
             </div>
         </div>
@@ -150,7 +149,7 @@ function MyRaceCard({ race, isRegistered = false, messages = {} }) {
 export default function MyRaceIndex({ races = [], registers = [], currentPeriod = 'all' }) {
     const isEmpty = races.length === 0 && registers.length === 0;
     const messages = usePage().props.translations?.messages || {};
-    
+
     const periods = [
         { value: 'all', label: messages['my_race.filter_all'] || 'Tous' },
         { value: '1month', label: messages['my_race.filter_1month'] || 'Dernier mois' },

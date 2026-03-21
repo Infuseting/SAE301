@@ -6,7 +6,7 @@ import { FaUsersCog, FaClipboardList, FaRoute, FaUsers } from "react-icons/fa";
 /**
  * ManagementButton component - Dropdown navigation for admin/management pages
  * Provides access to admin dashboard, clubs management, raids management, races management, and teams management
- * 
+ *
  * Shows different menu items based on user role:
  * - Admin: All management options
  * - Team Leader: Only team management
@@ -36,9 +36,6 @@ export default function ManagementButton() {
      * This is determined by the team_leader property passed from the backend
      */
     const isTeamLeader = user?.team_leader === true;
-
-    // Check if user is admin
-    const isAdmin = user?.roles?.some((role) => role.name === "admin" || role === "admin");
 
     // Don't render if user doesn't have admin access and is not a team leader
     if (!hasAdminAccess && !isTeamLeader) {

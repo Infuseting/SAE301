@@ -7,6 +7,7 @@ use App\Models\Club;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use OpenApi\Annotations as OA;
 
 class ClubMemberController extends Controller
 {
@@ -258,7 +259,7 @@ class ClubMemberController extends Controller
             ->where('club_id', $club->club_id)
             ->where('user_id', $user->id)
             ->first();
-            
+
         if (!$membership) {
             return back()->with('error', __('messages.not_a_member'));
         }
@@ -276,7 +277,7 @@ class ClubMemberController extends Controller
                 ->wherePivot('status', 'approved')
                 ->where('clubs.club_id', '!=', $club->club_id)
                 ->count();
-            
+
             if ($otherManagedClubs === 0 && $user->hasRole('responsable-club')) {
                 $user->removeRole('responsable-club');
             }
@@ -288,8 +289,8 @@ class ClubMemberController extends Controller
             ->where('user_id', $user->id)
             ->delete();
 
-        $successMessage = $membership->status === 'pending' 
-            ? __('messages.request_cancelled') 
+        $successMessage = $membership->status === 'pending'
+            ? __('messages.request_cancelled')
             : __('messages.left_club');
 
         activity()

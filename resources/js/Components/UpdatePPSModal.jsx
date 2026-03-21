@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import { X, FileText, Save, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import Modal from '@/Components/Modal';
@@ -6,11 +6,12 @@ import Modal from '@/Components/Modal';
 /**
  * Modal component for managing participant PPS (Pass'Sport Santé) information.
  * Allows race managers to add/update PPS details and verify/reject submissions.
- * 
+ *
  * @param {boolean} isOpen - Controls modal visibility
  * @param {function} onClose - Callback to close the modal
  * @param {object} participant - Participant data including PPS information
  * @param {number} raceId - ID of the race for API routing
+ * @param canVerify
  */
 export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, canVerify = false }) {
     const messages = usePage().props.translations?.messages || {};
@@ -25,7 +26,7 @@ export default function UpdatePPSModal({ isOpen, onClose, participant, raceId, c
      */
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         // If user wants to approve directly and has permission
         if (data.approve_directly && canVerify) {
             put(route('participants.update', { participant: participant.participant_id }), {

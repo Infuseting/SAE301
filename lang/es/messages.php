@@ -61,7 +61,6 @@ return [
     'remember_me' => 'Recuérdame',
     'forgot_password' => '¿Olvidaste tu contraseña?',
     'login_button' => 'Iniciar sesión',
-    'register' => 'Registrarse',
     'register_button' => 'Registrarse',
     'set_password_title' => 'Establecer una contraseña',
     'set_password_subtext' => 'Establece una contraseña para acceder a tu cuenta sin usar proveedores sociales.',
@@ -93,6 +92,7 @@ return [
     'social_login_strava' => 'Strava',
     'confirm_button' => 'Confirmar',
     'close' => 'Cerrar',
+    'loading' => 'Cargando...',
 
     // Admin - Users
     'admin.users.title' => 'Gestión de usuarios',
@@ -137,30 +137,14 @@ return [
     'admin.logs.content' => 'Contenido',
     'admin.logs.ip' => 'IP',
     'admin.logs.no_activity' => 'No hay actividad por ahora.',
+    'admin.logs.search_placeholder' => 'Buscar descripción...',
     'admin.logs.details' => 'Detalles',
+    'admin.logs.level_all' => 'Todos los niveles',
     'admin.logs.level_info' => 'Info',
     'admin.logs.level_notice' => 'Aviso',
     'admin.logs.level_warning' => 'Advertencia',
     'admin.logs.level_error' => 'Error',
-    'admin.logs.level_critical' => 'Crítico',    'admin.users.remove_role' => 'Eliminar rol',
-    'admin.users.requires_grant_admin' => 'Permiso requerido',
-    'admin.users.role_assigned' => '¡Rol ":role" asignado correctamente!',
-    'admin.users.role_removed' => '¡Rol ":role" eliminado correctamente!',
-    'admin.users.role_assign_failed' => 'Error al asignar el rol',
-    'admin.users.role_remove_failed' => 'Error al eliminar el rol',
-    'loading' => 'Cargando...',
-
-    // Admin - Logs
-    'admin.logs.title' => 'Registro de actividad',
-    'admin.logs.search_placeholder' => 'Buscar descripción...',
-    'admin.logs.level_all' => 'Todos los niveles',
-    'admin.logs.timestamp' => 'Timestamp',
-    'admin.logs.level' => 'Nivel',
-    'admin.logs.action' => 'Acción',
-    'admin.logs.user' => 'Usuario',
-    'admin.logs.content' => 'Contenido',
-    'admin.logs.ip' => 'IP',
-    'admin.logs.no_activity' => 'No hay actividad por el momento.',
+    'admin.logs.level_critical' => 'Crítico',
     'admin.logs.page_info' => 'Página :current / :last — :total entradas',
     'back_to_home' => 'Retorno al inicio',
     'security_efficiency' => 'Seguridad y eficiencia al corazón de su experiencia.',
@@ -235,6 +219,7 @@ return [
     'footer_navigation' => 'Navegación',
     'footer_links_calendar' => 'Calendario',
     'footer_links_clubs' => 'Clubes',
+    'footer_links_raids' => 'Incursiones',
     'footer_links_results' => 'Resultados',
     'footer_legal' => 'Legal',
     'footer_links_legal_notice' => 'Aviso Legal',
@@ -253,21 +238,7 @@ return [
     'step_3_title' => '¡Corre!',
     'step_3_desc' => 'Participa en el evento, sigue tus resultados y compara tu rendimiento.',
 
-    // Footer
-    'footer_tagline' => 'La referencia para orienteering en Francia.',
-    'footer_navigation' => 'Navegación',
-    'footer_links_calendar' => 'Calendario',
-    'footer_links_clubs' => 'Clubes',
-    'footer_links_raids' => 'Incursiones',
-    'footer_links_results' => 'Resultados',
-    'footer_legal' => 'Legal',
-    'footer_links_legal_notice' => 'Aviso legal',
-    'footer_links_privacy' => 'Privacidad',
-    'footer_links_terms' => 'Términos de servicio',
-    'footer_contact' => 'Contacto',
-    'footer_copyright' => 'Todos los derechos reservados.',
-
-    // Welcome Page
+    // Welcome page
     'documentation_text' => 'Laravel tiene una maravillosa documentación cubriendo cada aspecto del framework. Ya sea un principiante o alguien con experiencia previa con Laravel, recomendamos leer nuestra documentación desde el principio hasta el final.',
     'laracasts_text' => 'Laracasts ofrece miles de tutoriales de video sobre el desarrollo de Laravel, PHP y JavaScript. Consulte los mismos, vea por usted mismo y aumente considerablemente sus habilidades de desarrollo en el proceso.',
     'laravel_news_text' => 'Laravel News es un portal y boletín de noticias impulsado por la comunidad que agrupa todas las últimas y más importantes noticias en el ecosistema de Laravel, incluyendo nuevas versiones de paquetes y tutoriales.',
@@ -306,7 +277,7 @@ return [
     'no_permission_to_register' => 'No tienes permiso para inscribirte en esta carrera',
     'registration_successful' => 'Inscripción exitosa',
     'valid_until' => 'Válido hasta',
-    
+
     // Registration conflicts
     'team_not_found' => 'Equipo no encontrado',
     'team_has_no_members' => 'El equipo no tiene miembros',
@@ -366,7 +337,6 @@ return [
     'team_updated_successfully' => 'Equipo actualizado con éxito',
     'team_deleted_successfully' => 'Equipo eliminado con éxito',
     'member_removed_successfully' => 'Miembro eliminado del equipo con éxito',
-    'cancel' => 'Cancelar',
     'team_members' => 'Miembros del Equipo',
     'add_member' => 'Añadir Miembro',
     'search_member' => 'Buscar por nombre o correo...',
@@ -493,6 +463,15 @@ return [
     'modal.license_validation.warning_lose_role' => 'Si continúas sin una licencia válida, perderás tu rol especial y el acceso a las funciones asociadas.',
     'modal.license_validation.change_number' => 'Cambiar número',
     'modal.license_validation.continue_without' => 'Continuar sin licencia',
+    'modal.license_validation.title' => 'Número de licencia inválido',
+    'modal.license_validation.invalid_message' => 'El número de licencia FFCO que ingresaste no es válido.',
+    'modal.license_validation.expected_format' => 'Formato esperado:',
+    'modal.license_validation.format_explanation' => '(5-6 dígitos o 1-2 letras seguidas de 5-6 dígitos)',
+    'modal.license_validation.warning' => 'Si continúas sin número de licencia, no podrás obtener (o perderás) el rol',
+    'modal.license_validation.adherent_role' => '"Miembro"',
+    'modal.license_validation.features_access' => 'que te da acceso a ciertas funcionalidades.',
+    'modal.license_validation.unauthorized_action' => 'Acción no autorizada detectada.',
+    'modal.license_validation.reload_page' => 'Por favor recarga la página.',
 
     // ProfileCompletionModal
     'modal.profile_completion.title' => 'Completar tu registro',
@@ -579,10 +558,14 @@ return [
     // SelectResponsableModal
     'modal.select_responsable.title' => 'Seleccionar un responsable',
     'modal.select_responsable.search_placeholder' => 'Buscar un usuario...',
+    'modal.select_responsable.no_results' => 'Ningún usuario encontrado',
+    'modal.select_responsable.no_users' => 'No hay usuarios disponibles',
     'modal.select_responsable.no_users_found' => 'No se encontraron usuarios',
     'modal.select_responsable.no_users_available' => 'No hay usuarios disponibles',
 
     // UpdatePPSModal
+    'modal.update_pps.manage_title' => 'Gestionar PPS',
+    'modal.update_pps.add_title' => 'Añadir PPS',
     'modal.update_pps.title_manage' => 'Gestionar PPS',
     'modal.update_pps.title_add' => 'Añadir PPS',
     'modal.update_pps.participant' => 'Participante',
@@ -592,7 +575,12 @@ return [
     'modal.update_pps.pps_number' => 'Número PPS *',
     'modal.update_pps.pps_placeholder' => 'Introduce el número PPS',
     'modal.update_pps.approve_directly' => 'Aprobar directamente',
+    'modal.update_pps.expiry_date' => 'Fecha de expiración *',
     'modal.update_pps.save_and_verify' => 'Guardar y verificar PPS automáticamente',
+    'modal.update_pps.approve_directly_desc' => 'Guardar y verificar el PPS en una sola acción',
+    'modal.update_pps.approve' => 'Aprobar',
+    'modal.update_pps.reject' => 'Rechazar',
+    'modal.update_pps.saving' => 'Guardando...',
 
     // ConnectedAccountsForm
     'modal.connected_accounts.connected' => 'Conectado',
@@ -610,7 +598,10 @@ return [
     'user_last_races.view_race' => 'Ver carrera',
 
     // InviteByEmailModal
+    'modal.invite_email.title' => 'Invitar por correo electrónico',
     'modal.invite_email.invalid_email' => 'Por favor, introduce una dirección de correo válida.',
+    'modal.invite_email.create_mode_info' => 'Esta persona recibirá una invitación por correo electrónico después de crear el equipo.',
+    'modal.invite_email.placeholder' => 'Introduzca el correo...',
     'modal.invite_email.will_receive_invitation' => 'Esta persona recibirá una invitación por correo.',
     'modal.invite_email.email_placeholder' => 'Dirección de correo',
     'modal.invite_email.sending' => 'Enviando...',
@@ -622,17 +613,26 @@ return [
     'modal.invite_user.search_placeholder' => 'Buscar un usuario...',
     'modal.invite_user.add' => 'Añadir',
     'modal.invite_user.invite' => 'Invitar',
+    'modal.invite_user.no_user_found' => 'No se encontró ningún usuario',
+    'modal.invite_user.all_members' => 'Todos los usuarios ya son miembros',
     'modal.invite_user.no_users_found' => 'No se encontraron usuarios',
     'modal.invite_user.all_already_members' => 'Todos los usuarios ya son miembros',
     'modal.invite_user.invite_new' => 'Invitar un nuevo usuario',
 
     // AdvancedFilter
+    'filter.search_filters' => 'Filtros de búsqueda',
+    'filter.customize_selection' => 'Personaliza tu selección de eventos',
     'filter.title' => 'Filtros de búsqueda',
     'filter.subtitle' => 'Personaliza tu selección de eventos',
     'filter.difficulty_levels' => 'Niveles de dificultad',
     'filter.event_types' => 'Tipos de eventos',
     'filter.reset' => 'Restablecer',
     'filter.apply' => 'Aplicar filtros',
+    'filter.apply_filters' => 'Aplicar filtros',
+    'filter.easy' => 'Fácil',
+    'filter.medium' => 'Medio',
+    'filter.hard' => 'Difícil',
+    'filter.expert' => 'Experto',
     'filter.difficulty_easy' => 'Fácil',
     'filter.difficulty_medium' => 'Medio',
     'filter.difficulty_hard' => 'Difícil',
@@ -641,6 +641,8 @@ return [
     // RegisteredMembersModal
     'modal.registered_members.title' => 'Miembros inscritos',
     'modal.registered_members.race' => 'Carrera',
+    'modal.registered_members.participant' => 'participante',
+    'modal.registered_members.participants' => 'participantes',
     'modal.registered_members.no_members' => 'No hay miembros inscritos todavía',
 
     // ClubForm
@@ -671,40 +673,6 @@ return [
     'profile.license_hint' => 'Formato: 5-6 dígitos o 1-2 letras seguidas de 5-6 dígitos (Federación Francesa de Carrera de Orientación)',
     'profile.make_public' => 'Hacer mi perfil público (Visible para otros usuarios)',
 
-    // Team Invite Modals
-    'modal.invite_email.title' => 'Invitar por correo electrónico',
-    'modal.invite_email.invalid_email' => 'Por favor, introduzca una dirección de correo electrónico válida.',
-    'modal.invite_email.create_mode_info' => 'Esta persona recibirá una invitación por correo electrónico después de crear el equipo.',
-    'modal.invite_email.placeholder' => 'Introduzca el correo...',
-    'modal.invite_email.sending' => 'Enviando...',
-    'modal.invite_email.add' => 'Añadir',
-    'modal.invite_email.send' => 'Enviar',
-    'modal.invite_user.title' => 'Invitar usuarios',
-    'modal.invite_user.search_placeholder' => 'Buscar un usuario...',
-    'modal.invite_user.add' => 'Añadir',
-    'modal.invite_user.invite' => 'Invitar',
-    'modal.invite_user.no_user_found' => 'No se encontró ningún usuario',
-    'modal.invite_user.all_members' => 'Todos los usuarios ya son miembros',
-    'modal.invite_user.invite_new' => 'Invitar a un nuevo usuario',
-
-    // Filter component
-    'filter.search_filters' => 'Filtros de búsqueda',
-    'filter.customize_selection' => 'Personaliza tu selección de eventos',
-    'filter.difficulty_levels' => 'Niveles de dificultad',
-    'filter.event_types' => 'Tipos de eventos',
-    'filter.reset' => 'Restablecer',
-    'filter.apply_filters' => 'Aplicar filtros',
-    'filter.easy' => 'Fácil',
-    'filter.medium' => 'Medio',
-    'filter.hard' => 'Difícil',
-    'filter.expert' => 'Experto',
-
-    // Registered Members Modal
-    'modal.registered_members.title' => 'Miembros registrados',
-    'modal.registered_members.participant' => 'participante',
-    'modal.registered_members.participants' => 'participantes',
-    'modal.registered_members.no_members' => 'Aún no hay miembros registrados',
-
     // Profile Completion Modal
     'modal.complete_profile.title' => 'Completar tu registro',
     'modal.complete_profile.description' => 'Por favor completa tu información personal para continuar.',
@@ -716,41 +684,6 @@ return [
     'modal.complete_profile.license_placeholder' => 'Ej: 123456 o AB12345',
     'modal.complete_profile.license_format' => 'Formato: 5-6 dígitos o 1-2 letras seguidas de 5-6 dígitos (Federación Francesa de Orientación)',
     'modal.complete_profile.submit' => 'Completar registro',
-
-    // License Validation Modal
-    'modal.license_validation.title' => 'Número de licencia inválido',
-    'modal.license_validation.invalid_message' => 'El número de licencia FFCO que ingresaste no es válido.',
-    'modal.license_validation.expected_format' => 'Formato esperado:',
-    'modal.license_validation.format_explanation' => '(5-6 dígitos o 1-2 letras seguidas de 5-6 dígitos)',
-    'modal.license_validation.warning' => 'Si continúas sin número de licencia, no podrás obtener (o perderás) el rol',
-    'modal.license_validation.adherent_role' => '"Miembro"',
-    'modal.license_validation.features_access' => 'que te da acceso a ciertas funcionalidades.',
-    'modal.license_validation.change_number' => 'Cambiar número',
-    'modal.license_validation.continue_without' => 'Continuar sin licencia',
-    'modal.license_validation.unauthorized_action' => 'Acción no autorizada detectada.',
-    'modal.license_validation.reload_page' => 'Por favor recarga la página.',
-
-    // Select Responsable Modal
-    'modal.select_responsable.title' => 'Seleccionar un responsable',
-    'modal.select_responsable.search_placeholder' => 'Buscar por nombre o email...',
-    'modal.select_responsable.no_results' => 'Ningún usuario encontrado',
-    'modal.select_responsable.no_users' => 'No hay usuarios disponibles',
-
-    // Update PPS Modal
-    'modal.update_pps.manage_title' => 'Gestionar PPS',
-    'modal.update_pps.add_title' => 'Añadir PPS',
-    'modal.update_pps.participant' => 'Participante',
-    'modal.update_pps.pending_verification' => 'Verificación pendiente',
-    'modal.update_pps.verified' => 'Verificado',
-    'modal.update_pps.rejected' => 'Rechazado',
-    'modal.update_pps.pps_number' => 'Número PPS *',
-    'modal.update_pps.pps_placeholder' => 'Ej: 1234567890',
-    'modal.update_pps.expiry_date' => 'Fecha de expiración *',
-    'modal.update_pps.approve_directly' => 'Aprobar directamente',
-    'modal.update_pps.approve_directly_desc' => 'Guardar y verificar el PPS en una sola acción',
-    'modal.update_pps.approve' => 'Aprobar',
-    'modal.update_pps.reject' => 'Rechazar',
-    'modal.update_pps.saving' => 'Guardando...',
 
     // Common
     'or' => 'o',
@@ -941,8 +874,6 @@ return [
     'race.view.team_info' => 'INFORMACIÓN DEL EQUIPO',
     'race.view.min_teams' => 'Equipos mín',
     'race.view.max_teams' => 'Equipos máx',
-
-    'race.view.max_teams' => 'Máximo de Equipos',
 
     // Navbar translations
     'navbar.races' => 'Carreras',

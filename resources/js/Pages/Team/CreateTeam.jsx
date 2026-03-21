@@ -18,16 +18,11 @@ export default function CreateTeam() {
         emailInvites: [],
         join_team: true,
     });
-    const [selectedLeader, setSelectedLeader] = useState(null);
-    const [showLeaderDropdown, setShowLeaderDropdown] = useState(false);
-    const [showTeammateDropdown, setShowTeammateDropdown] = useState(false);
     const [teammateSearch, setTeammateSearch] = useState('');
-    const [teammateSearchResults, setTeammateSearchResults] = useState([]);
     const { auth, translations } = usePage().props;
     const currentUser = auth?.user;
     const messages = translations?.messages || {};
     const [redirectUri, setRedirectUri] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showEmailModal, setShowEmailModal] = useState(false);
 
@@ -39,7 +34,7 @@ export default function CreateTeam() {
         }
         const timeoutId = setTimeout(() => {
             performTeammateSearch(teammateSearch);
-        }, 300); 
+        }, 300);
         return () => clearTimeout(timeoutId);
     }, [teammateSearch]);
 
@@ -73,7 +68,7 @@ export default function CreateTeam() {
             alert(messages['team.create.at_least_one_participant'] || 'L\'équipe doit avoir au moins un participant.');
             return;
         }
-        
+
         post(route('team.store'), {
             onSuccess: () => {
                 if (redirectUri) {
@@ -82,20 +77,6 @@ export default function CreateTeam() {
                 }
             },
         });
-    };
-
-    const handleImageChange = (e) => {
-        const Label = document.getElementById('download_label');
-        const file = e.target.files[0];
-        if (file) {
-            Label.textContent = messages['team.create.click_change_image'] || "Cliquez pour changer l'image";
-            setData('image', file);
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setImagePreview(event.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
     };
 
     const addTeammate = (user) => {
@@ -215,7 +196,7 @@ export default function CreateTeam() {
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
-                                        {data.teammates.map((teammate, index) => (
+                                        {data.teammates.map((teammate) => (
                                             <div
                                                 key={teammate.id}
                                                 className="flex items-center justify-between p-4 border rounded-lg hover:opacity-90 transition"
@@ -277,13 +258,13 @@ export default function CreateTeam() {
                             <Link
                                 href={route('dashboard')}
                                 className="inline-flex items-center px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium transition"
-                                style={{}} 
+                                style={{}}
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             >
                                 {messages['cancel'] || "Annuler"}
                             </Link>
-                            <PrimaryButton 
+                            <PrimaryButton
                                 disabled={processing}
                                 className="px-8 py-3"
                                 style={{backgroundColor: 'rgb(4, 120, 87)'}}

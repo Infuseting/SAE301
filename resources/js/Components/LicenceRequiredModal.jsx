@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import InputLabel from '@/Components/InputLabel';
@@ -8,15 +8,14 @@ import InputError from '@/Components/InputError';
 /**
  * Blocking modal that forces managers to add a valid licence
  * Cannot be closed until a valid licence is submitted
- * 
+ *
  * @param {boolean} show - Whether to show the modal
  */
 export default function LicenceRequiredModal({ show }) {
     const { translations, auth } = usePage().props;
     const messages = translations?.messages || {};
     const currentUser = auth?.user;
-    const t = (key, fallback) => translations?.profile?.[key] || fallback;
-    
+
     const { data, setData, patch, processing, errors, reset } = useForm({
         first_name: currentUser?.first_name || '',
         last_name: currentUser?.last_name || '',
@@ -44,7 +43,7 @@ export default function LicenceRequiredModal({ show }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         patch(route('profile.update'), {
             preserveScroll: true,
             onSuccess: () => {

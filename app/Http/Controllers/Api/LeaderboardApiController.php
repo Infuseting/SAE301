@@ -13,7 +13,7 @@ class LeaderboardApiController extends Controller
     use ApiResponseTrait;
 
     public function __construct(
-        private LeaderboardService $leaderboardService
+        private readonly LeaderboardService $leaderboardService
     ) {}
 
     /**
