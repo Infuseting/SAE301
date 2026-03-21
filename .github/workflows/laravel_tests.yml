@@ -20,7 +20,7 @@ jobs:
         with:
           php-version: '8.2'
           extensions: mbstring, pdo, sqlite, pdo_sqlite
-          coverage: pcov
+          coverage: none
         
       - name: Cache Composer dependencies
         uses: actions/cache@v4
@@ -45,20 +45,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Cache Node modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-
   
-      - name: Install frontend dependencies
-        run: npm ci
-        
-      - name: Build frontend assets
-        run: npm run build
-        
+      - name: Install dependencies and build frontend
+        run: |
+          npm ci
+          npm run build
+          
       - name: Create Database
         run: |
           mkdir -p database
@@ -75,4 +67,4 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
           APP_ENV: testing
-        run: php artisan test
+        run: php artisan test --do-not-cache-result
