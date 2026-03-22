@@ -9,5 +9,10 @@ export default defineConfig({
             refresh: true,
         }),
         react(),
-    ]
+    ],
+    server: {
+        https: false,      // ← force HTTP
+        host: '0.0.0.0',   // ← accessible depuis ton réseau local
+    },
+	base: '/build/',             // ← chemins relatifs pour les assets
 });

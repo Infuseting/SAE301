@@ -38,9 +38,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
-        if ($this->app->environment('production')) {
-            URL::forceScheme('https');
-        }
+        if ($this->app->environment('production') && !str_contains(request()->getHost(), '192.168.')) {
+ 	   URL::forceScheme('https');
+	}
 
         // Register Policies
         Gate::policy(\App\Models\Club::class, \App\Policies\ClubPolicy::class);
