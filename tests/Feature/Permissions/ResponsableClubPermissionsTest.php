@@ -284,7 +284,13 @@ class ResponsableClubPermissionsTest extends TestCase
     public function test_responsable_club_can_access_race_creation_page(): void
     {
         // Responsable-club role is included in races route middleware
-        $response = $this->actingAs($this->responsableClub)->get(route('races.create'));
+        // Create an approved club first
+        $club = Club::factory()->approved()->create();
+
+        // Create a raid for that club
+        $raid = Raid::factory()->create(['clu_id' => $club->club_id]);
+
+        $response = $this->actingAs($this->responsableClub)->get(route('races.create', ['raid_id' => $raid->raid_id]));
         $response->assertStatus(200);
     }
 
@@ -301,7 +307,7 @@ class ResponsableClubPermissionsTest extends TestCase
             ]);
 
         $response->assertOk();
-        $response->assertJson(['success' => true]);
+        $response->assertJson(['status' => 'success']);
     }
 
     public function test_responsable_club_can_access_admin_dashboard(): void

@@ -46,7 +46,7 @@ class TeamControllerTest extends TestCase
             'join_team' => true,
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('home'));
         $response->assertSessionHas('success', 'Équipe créée avec succès!');
 
         // Team created with creator as leader
@@ -83,7 +83,7 @@ class TeamControllerTest extends TestCase
             'join_team' => false,
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('home'));
 
         // Team created with creator as leader
         $team = Team::where('equ_name', 'Team Without Creator')->first();
@@ -122,7 +122,7 @@ class TeamControllerTest extends TestCase
             'join_team' => true,
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('home'));
 
         $team = Team::where('equ_name', 'Team with Image')->first();
         $this->assertNotNull($team);
@@ -149,7 +149,7 @@ class TeamControllerTest extends TestCase
             'join_team' => true,
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('home'));
 
         $team = Team::where('equ_name', 'Solo Team')->first();
         $this->assertEquals($creator->id, $team->user_id);
@@ -478,10 +478,10 @@ class TeamControllerTest extends TestCase
             'join_team' => true,
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('home'));
 
         $team = Team::where('equ_name', 'Big Team')->first();
-        
+
         // 6 users total (creator + 5 teammates)
         $this->assertEquals(6, $team->users()->count());
     }
@@ -500,7 +500,7 @@ class TeamControllerTest extends TestCase
             'join_team' => true,
         ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('home'));
 
         $team = Team::where('equ_name', 'Creator Only Team')->first();
         $this->assertEquals(1, $team->users()->count());

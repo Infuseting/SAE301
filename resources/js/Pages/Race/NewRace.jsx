@@ -218,8 +218,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         validateDates(name, value);
     };
 
-    const isCompetitive = types.find(t => t.id === parseInt(data.type))?.name.toLowerCase() === 'compétitif' ||
-        types.find(t => t.id === parseInt(data.type))?.name.toLowerCase() === 'competitif';
+    const isCompetitive = types.find(t => t.id === parseInt(data.type))?.name?.toLowerCase() === 'compétitif' ||
+        types.find(t => t.id === parseInt(data.type))?.name?.toLowerCase() === 'competitif';
 
     // Check if an age category is available for competitive races
     const isAgeCategoryAvailable = (category) => {
@@ -230,8 +230,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
     // Remove unavailable categories when switching to competitive
     const handleTypeChange = (typeId) => {
         setData('type', parseInt(typeId));
-        const newIsCompetitive = types.find(t => t.id === parseInt(typeId))?.name.toLowerCase() === 'compétitif' ||
-            types.find(t => t.id === parseInt(typeId))?.name.toLowerCase() === 'competitif';
+        const newIsCompetitive = types.find(t => t.id === parseInt(typeId))?.name?.toLowerCase() === 'compétitif' ||
+            types.find(t => t.id === parseInt(typeId))?.name?.toLowerCase() === 'competitif';
 
         if (newIsCompetitive) {
             // Filter out categories with age_min < 18
@@ -290,14 +290,6 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
             // Clear age categories for leisure races
             submissionData.selectedAgeCategories = [];
         }
-
-        // Debug: Log all form data
-        console.log('Form data before submission:', submissionData);
-        console.log('Processing state:', processing);
-        console.log('Selected age categories:', submissionData.selectedAgeCategories);
-        console.log('Is competitive:', isCompetitive);
-        console.log('Image file:', submissionData.image);
-        console.log('Image is File?:', submissionData.image instanceof File);
 
         if (isEditMode) {
             // Use router.post with _method: PUT for file uploads to work correctly

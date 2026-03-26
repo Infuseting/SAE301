@@ -183,7 +183,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                     </p>
                                 </div>
                                 {canAddRace && (
-                                    <Link href={route('races.create', { raid_id: raid.raid_id })}>
+                                    <Link href={route('races.create', { raid: raid.raid_id })}>
                                         <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-black text-xs transition-all shadow-xl shadow-blue-200 flex items-center gap-2">
                                             <Plus className="h-4 w-4" />
                                             {messages['raid_detail.new_course'] || 'NOUVELLE COURSE'}

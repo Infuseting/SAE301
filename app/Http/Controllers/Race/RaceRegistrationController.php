@@ -6,15 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Race;
 use App\Services\LicenceService;
 use App\Rules\NoConflictingRegistration;
+use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use OpenApi\Annotations as OA;
+use App\Http\Controllers\Api\ApiResponseTrait;
 
 /**
  * Controller for managing race registrations
  */
 class RaceRegistrationController extends Controller
 {
+    use ApiResponseTrait;
+
     protected LicenceService $licenceService;
 
     public function __construct(LicenceService $licenceService)
@@ -55,7 +60,7 @@ class RaceRegistrationController extends Controller
      * )
      *
      * @param Race $race
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function checkEligibility(Race $race)
     {
@@ -63,17 +68,17 @@ class RaceRegistrationController extends Controller
 
         // Check if user can register
         if (!Gate::allows('register', $race)) {
-            return response()->json([
+
+            return $this->errorResponse(__('messages.no_permission_to_register'), 403, [
                 'can_register' => false,
-                'reason' => 'permission_denied',
-                'message' => __('messages.no_permission_to_register'),
+                'reason' => 'permission_denied'
             ]);
         }
 
-        // Check if user has valid licence or PPS
+        // Check if user has valid license or PPS
         $hasValidCredentials = $this->licenceService->hasValidCredentials($user);
 
-        return response()->json([
+        return $this->successResponse([
             'can_register' => $hasValidCredentials,
             'has_valid_licence' => $this->licenceService->hasValidLicence($user),
             'has_valid_pps' => $this->licenceService->hasValidPps($user),
@@ -123,7 +128,7 @@ class RaceRegistrationController extends Controller
      *
      * @param Request $request
      * @param Race $race
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function register(Request $request, Race $race)
     {
@@ -131,34 +136,24 @@ class RaceRegistrationController extends Controller
 
         // Check permission
         if (!Gate::allows('register', $race)) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.no_permission_to_register'),
-            ], 403);
+            return $this->forbiddenResponse(__('messages.no_permission_to_register'));
         }
 
         // Check if user has valid credentials
         if (!$this->licenceService->hasValidCredentials($user)) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.need_valid_credentials'),
-                'needs_credentials' => true,
-            ], 400);
+
+            return $this->errorResponse(__('messages.need_valid_credentials'), 400, [
+                'needs_credentials' => true
+            ]);
         }
 
         try {
             // TODO: Implement actual race registration logic
             // This would involve creating a participant record, etc.
 
-            return response()->json([
-                'success' => true,
-                'message' => __('messages.registration_successful'),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            return $this->successResponse(__('messages.registration_successful'));
+        } catch (Exception $e) {
+            return $this->serverErrorResponse($e->getMessage());
         }
     }
     /**
@@ -166,7 +161,7 @@ class RaceRegistrationController extends Controller
      *
      * @param Request $request
      * @param Race $race
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function registerTeam(Request $request, Race $race)
     {
@@ -174,10 +169,7 @@ class RaceRegistrationController extends Controller
 
         // Check permission (assuming 'register' policy covers this or add new one)
         if (!Gate::allows('register', $race)) {
-            return response()->json([
-                'success' => false,
-                'message' => __('messages.no_permission_to_register'),
-            ], 403);
+            return $this->forbiddenResponse(__('messages.no_permission_to_register'));
         }
 
         $validated = $request->validate([
@@ -196,14 +188,11 @@ class RaceRegistrationController extends Controller
         // Check team size - must be between minPerTeam and maxPerTeam
         $minTeamSize = $race->teamParams?->pae_team_count_min ?? 1;
         $maxTeamSize = $race->teamParams?->pae_team_count_max ?? 1;
-        
+
         $currentRunners = $team->users()->count();
 
         if ($currentRunners < $minTeamSize || $currentRunners > $maxTeamSize) {
-             return response()->json([
-                'success' => false,
-                'message' => "Le nombre de coureurs doit être entre $minTeamSize et $maxTeamSize (actuellement $currentRunners).",
-            ], 400);
+            return $this->errorResponse("Le nombre de coureurs doit être entre $minTeamSize et $maxTeamSize (actuellement $currentRunners).");
         }
 
         try {
@@ -212,12 +201,9 @@ class RaceRegistrationController extends Controller
                 ->where('equ_id', $team->equ_id)
                 ->where('race_id', $race->race_id)
                 ->exists();
-                
+
             if ($existing) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Cette équipe est déjà inscrite.",
-                ], 400);
+                return $this->errorResponse("Cette équipe est déjà inscrite.");
             }
 
             // Register team
@@ -269,7 +255,7 @@ class RaceRegistrationController extends Controller
             // Eager load the leader relationship
             $team->load('leader');
             $teamMembers = collect([$team->leader])->merge($team->users)->unique('id');
-            
+
             foreach ($teamMembers as $member) {
                 \DB::table('race_participants')->insert([
                     'reg_id' => $regId,
@@ -284,11 +270,8 @@ class RaceRegistrationController extends Controller
 
             return redirect()->back()->with('success', 'Équipe inscrite avec succès! Les coureurs peuvent maintenant ajouter leur PPS.');
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+        } catch (Exception $e) {
+            return $this->serverErrorResponse($e->getMessage());
         }
     }
 
@@ -320,14 +303,14 @@ class RaceRegistrationController extends Controller
             $race->teams()->detach($team->equ_id);
 
             return redirect()->back()->with('success', 'Inscription annulée avec succès.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->withErrors(['error' => 'Erreur lors de l\'annulation: ' . $e->getMessage()]);
         }
     }
 
     /**
      * Update PPS information for a participant
-     * 
+     *
      * @param Request $request
      * @param int $raceId
      * @param int $userId
@@ -341,10 +324,10 @@ class RaceRegistrationController extends Controller
         }
 
         $race = Race::findOrFail($raceId);
-        
+
         // Check if user is race manager
-        $isRaceManager = $authUser->hasRole('admin') || 
-            ($race->organizer && $authUser->adh_id === $race->organizer->adh_id) || 
+        $isRaceManager = $authUser->hasRole('admin') ||
+            ($race->organizer && $authUser->adh_id === $race->organizer->adh_id) ||
             ($race->raid && $race->raid->club && $race->raid->club->hasManager($authUser));
 
         if (!$isRaceManager) {
@@ -358,7 +341,7 @@ class RaceRegistrationController extends Controller
 
         try {
             $user = \App\Models\User::findOrFail($userId);
-            
+
             // Update or create medical document
             if ($user->doc_id) {
                 $medicalDoc = \App\Models\MedicalDoc::find($user->doc_id);
@@ -378,14 +361,14 @@ class RaceRegistrationController extends Controller
             }
 
             return redirect()->back()->with('success', 'PPS mis à jour avec succès.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->withErrors(['error' => 'Erreur lors de la mise à jour du PPS: ' . $e->getMessage()]);
         }
     }
 
     /**
      * Confirm team payment and validate all team members
-     * 
+     *
      * @param Request $request
      * @param int $raceId
      * @param int $teamId
@@ -399,10 +382,10 @@ class RaceRegistrationController extends Controller
         }
 
         $race = Race::findOrFail($raceId);
-        
+
         // Check if user is race manager
-        $isRaceManager = $authUser->hasRole('admin') || 
-            ($race->organizer && $authUser->adh_id === $race->organizer->adh_id) || 
+        $isRaceManager = $authUser->hasRole('admin') ||
+            ($race->organizer && $authUser->adh_id === $race->organizer->adh_id) ||
             ($race->raid && $race->raid->club && $race->raid->club->hasManager($authUser));
 
         if (!$isRaceManager) {
@@ -411,7 +394,7 @@ class RaceRegistrationController extends Controller
 
         try {
             $team = \App\Models\Team::findOrFail($teamId);
-            
+
             // Get payment IDs for this team and race
             $paymentIds = \DB::table('registration')
                 ->where('equ_id', $team->equ_id)
@@ -437,7 +420,7 @@ class RaceRegistrationController extends Controller
                 ->update(['reg_validated' => true]);
 
             return redirect()->back()->with('success', 'Paiement confirmé. Tous les membres de l\'équipe sont maintenant validés.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->withErrors(['error' => 'Erreur lors de la confirmation du paiement: ' . $e->getMessage()]);
         }
     }

@@ -197,6 +197,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Benutzerdefinierte Validierungsmeldungen für Teams
+    |--------------------------------------------------------------------------
+    */
+
+    'team' => [
+        'name.required' => 'Der Teamname ist erforderlich.',
+        'name.string' => 'Der Teamname muss eine Zeichenkette sein.',
+        'name.max' => 'Der Teamname darf :max Zeichen nicht überschreiten.',
+        'image.image' => 'Das Bild muss eine gültige Bilddatei sein.',
+        'image.max' => 'Das Bild darf :max Kilobyte nicht überschreiten.',
+        'teammates.array' => 'Teamkollegen müssen ein Array sein.',
+        'teammates.*.id.integer' => 'Jeder Teamkollege muss eine gültige ID haben.',
+        'teammates.*.id.exists' => 'Mindestens ein Teamkollege existiert nicht.',
+        'emailInvites.array' => 'E-Mail-Einladungen müssen ein Array sein.',
+        'emailInvites.*.email' => 'Mindestens eine E-Mail-Adresse ist ungültig.',
+        'join_team.boolean' => 'Der Partizipationswert muss boolesch sein.',
+        'participants' => 'Das Team muss mindestens einen Teilnehmer haben. Bitte aktivieren Sie "Ich nehme teil" oder fügen Sie Teamkollegen hinzu.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Custom Validation Attributes
     |--------------------------------------------------------------------------
     |

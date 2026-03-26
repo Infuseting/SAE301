@@ -1006,4 +1006,14 @@ return [
     'clubs.create.approval_description' => 'Ihr Antrag zur Vereinserstellung wird zur Genehmigung durch einen Administrator eingereicht, bevor er veröffentlicht wird.',
     'clubs.create.submit' => 'Verein erstellen',
 
+    // Team Invitations
+    'team.invitation.expired' => 'Diese Einladung ist abgelaufen oder wurde bereits verwendet.',
+    'team.invitation.joined_success' => 'Sie sind erfolgreich dem Team beigetreten!',
+    'team.invitation.joined_message' => 'Sie sind dem Team beigetreten',
+    'team.invitation.sent_success' => 'Einladung erfolgreich versendet!',
+    'team.invitation.unauthorized' => 'Sie sind nicht berechtigt, Einladungen für dieses Team zu versenden.',
+    'team.invitation.invalid_email' => 'Die angegebene E-Mail-Adresse ist nicht gültig.',
+
 ];
+
+

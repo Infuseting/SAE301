@@ -2,17 +2,19 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\Api\ApiResponseTrait;
 use App\Services\LicenceService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Middleware that blocks managers without valid licence from accessing protected routes
+ * Middleware that blocks managers without valid license from accessing protected routes
  * This prevents bypassing the frontend modal by directly accessing URLs
  */
 class EnsureManagerHasValidLicence
 {
+    use ApiResponseTrait;
     protected LicenceService $licenceService;
 
     public function __construct(LicenceService $licenceService)
@@ -23,7 +25,7 @@ class EnsureManagerHasValidLicence
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param Closure(Request): (Response) $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -33,7 +35,7 @@ class EnsureManagerHasValidLicence
             return $next($request);
         }
 
-        // Admin bypass - admins don't need a licence
+        // Admin bypass - admins don't need a license
         if ($user->hasRole('admin')) {
             return $next($request);
         }
@@ -55,14 +57,14 @@ class EnsureManagerHasValidLicence
             $user->load('member');
         }
 
-        // Check if manager has valid licence
+        // Check if manager has valid license
         $hasValidLicence = $this->licenceService->hasValidLicence($user);
 
         if ($hasValidLicence) {
             return $next($request);
         }
 
-        // Allow only specific routes for managers without licence
+        // Allow only specific routes for managers without license
         $allowedRoutes = [
             'profile.update',
             'profile.edit',
@@ -76,7 +78,7 @@ class EnsureManagerHasValidLicence
 
         $currentRoute = $request->route()?->getName();
 
-        if (in_array($currentRoute, $allowedRoutes)) {
+        if (in_array($currentRoute, $allowedRoutes, true)) {
             return $next($request);
         }
 
@@ -88,10 +90,10 @@ class EnsureManagerHasValidLicence
 
         // Block POST/PUT/DELETE actions with appropriate response
         if ($request->expectsJson() || $request->header('X-Inertia')) {
-            return response()->json([
-                'message' => 'Votre licence est invalide ou expirée. Veuillez mettre à jour votre licence pour continuer.',
-                'requires_licence_update' => true,
-            ], 403);
+
+            return $this->forbiddenResponse('Votre licence est invalide ou expirée. Veuillez mettre à jour votre licence pour continuer.', [
+                'requires_licence_update' => true
+            ]);
         }
 
         // For regular POST requests (non-Inertia), redirect to profile edit

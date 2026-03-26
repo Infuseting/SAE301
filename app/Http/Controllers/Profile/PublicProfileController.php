@@ -9,6 +9,12 @@ use Inertia\Inertia;
 
 class PublicProfileController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        return $this->show($request, $request->user());
+    }
+
     /**
      * Display the specified user's public profile.
      *
@@ -65,18 +71,6 @@ class PublicProfileController extends Controller
             'races' => $this->getUserRaces($user),
             'isOwner' => $isOwner,
         ]);
-    }
-
-    /**
-     * Display the authenticated user's profile.
-     */
-    public function myProfile(Request $request)
-    {
-        if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json($request->user());
-        }
-
-        return $this->show($request, $request->user());
     }
 
     /**

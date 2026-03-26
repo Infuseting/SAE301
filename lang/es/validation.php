@@ -198,6 +198,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Mensajes de Validación Personalizados para Equipos
+    |--------------------------------------------------------------------------
+    */
+
+    'team' => [
+        'name.required' => 'El nombre del equipo es obligatorio.',
+        'name.string' => 'El nombre del equipo debe ser una cadena de texto.',
+        'name.max' => 'El nombre del equipo no puede exceder :max caracteres.',
+        'image.image' => 'La imagen debe ser un archivo de imagen válido.',
+        'image.max' => 'La imagen no puede exceder :max kilobytes.',
+        'teammates.array' => 'Los compañeros deben ser un arreglo.',
+        'teammates.*.id.integer' => 'Cada compañero debe tener una ID válida.',
+        'teammates.*.id.exists' => 'Al menos un compañero no existe.',
+        'emailInvites.array' => 'Las invitaciones por correo deben ser un arreglo.',
+        'emailInvites.*.email' => 'Al menos una dirección de correo no es válida.',
+        'join_team.boolean' => 'El valor de participación debe ser booleano.',
+        'participants' => 'El equipo debe tener al menos un participante. Por favor, marque "Participo" o agregue compañeros.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Custom Validation Attributes
     |--------------------------------------------------------------------------
     |

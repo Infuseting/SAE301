@@ -11,13 +11,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Test User (authenticated without licence) permissions
+ * Test User (authenticated without license) permissions
  *
  * User should be able to:
  * - View clubs, raids, races
  * - Create and edit profile
  * - View public profiles
- * - NOT register to races (requires licence)
+ * - NOT register to races (requires license)
  * - NOT create clubs, raids, or races
  * - NOT access admin pages
  */
@@ -32,7 +32,7 @@ class UserPermissionsTest extends TestCase
         parent::setUp();
         $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
 
-        // Create a user without licence (no adh_id, no doc_id)
+        // Create a user without license (no adh_id, no doc_id)
         $this->user = User::factory()->create([
             'adh_id' => null,
             'doc_id' => null,
@@ -139,7 +139,7 @@ class UserPermissionsTest extends TestCase
 
         // Licence store returns JSON response
         $response->assertOk();
-        $response->assertJson(['success' => true]);
+        $response->assertJson(['status' => 'success']);
     }
 
     public function test_user_can_add_pps_code(): void
@@ -150,7 +150,7 @@ class UserPermissionsTest extends TestCase
 
         // PPS store returns JSON response
         $response->assertOk();
-        $response->assertJson(['success' => true]);
+        $response->assertJson(['status' => 'success']);
     }
 
     public function test_user_cannot_create_club(): void
@@ -205,10 +205,15 @@ class UserPermissionsTest extends TestCase
         $response = $this->actingAs($this->user)
             ->postJson(route('race.register', $race));
 
-        // Should fail because user doesn't have valid licence or PPS
+        // Should fail because user doesn't have valid license or PPS
         // The register endpoint returns 400 with needs_credentials flag
         $response->assertStatus(400);
-        $response->assertJson(['success' => false, 'needs_credentials' => true]);
+        $response->assertJson([
+            'status' => 'error',
+            'errors' => [
+                'needs_credentials' => true
+            ]
+        ]);
     }
 
     public function test_user_cannot_access_admin_dashboard(): void

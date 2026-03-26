@@ -18,7 +18,7 @@ class AdherentRoleAssignmentTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create adherent role if not exists
         Role::firstOrCreate(['name' => 'adherent', 'guard_name' => 'web']);
     }
@@ -48,7 +48,7 @@ class AdherentRoleAssignmentTest extends TestCase
             ]);
 
         $response->assertRedirect(route('profile.edit'));
-        
+
         $user->refresh();
         $this->assertTrue($user->hasRole('adherent'));
         $this->assertNotNull($user->member);
@@ -90,7 +90,7 @@ class AdherentRoleAssignmentTest extends TestCase
             ]);
 
         $response->assertRedirect(route('profile.edit'));
-        
+
         $user->refresh();
         $this->assertFalse($user->hasRole('adherent'));
         $this->assertNull($user->adh_id);
@@ -123,7 +123,7 @@ class AdherentRoleAssignmentTest extends TestCase
             ]);
 
         $response->assertSessionHasErrors('license_number');
-        
+
         $user->refresh();
         $this->assertFalse($user->hasRole('adherent'));
     }
@@ -165,7 +165,7 @@ class AdherentRoleAssignmentTest extends TestCase
             ]);
 
         $response->assertRedirect(route('profile.edit'));
-        
+
         $user->refresh();
         // Should keep adherent role because has responsable-club
         $this->assertTrue($user->hasRole('adherent'));
@@ -193,8 +193,8 @@ class AdherentRoleAssignmentTest extends TestCase
                 'license_number' => 'AB123456',
             ]);
 
-        $response->assertRedirect(route('dashboard'));
-        
+        $response->assertRedirect(route('home'));
+
         $user->refresh();
         $this->assertTrue($user->hasRole('adherent'));
         $this->assertNotNull($user->member);
@@ -224,8 +224,8 @@ class AdherentRoleAssignmentTest extends TestCase
                 'license_number' => '',
             ]);
 
-        $response->assertRedirect(route('dashboard'));
-        
+        $response->assertRedirect(route('home'));
+
         $user->refresh();
         $this->assertFalse($user->hasRole('adherent'));
         $this->assertNull($user->adh_id);

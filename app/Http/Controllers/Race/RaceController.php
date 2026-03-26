@@ -5,19 +5,30 @@ namespace App\Http\Controllers\Race;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Race\StoreRaceRequest;
 use App\Models\Race;
+use App\Models\Registration;
+use App\Models\Team;
 use App\Models\User;
 use App\Models\ParamType;
 use App\Models\ParamRunner;
 use App\Models\ParamTeam;
 use App\Models\Raid;
-use App\Models\PriceAgeCategory;
 use App\Models\AgeCategorie;
 use App\Models\ParamCategorieAge;
+use Carbon\Carbon;
+use DB;
+use Exception;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Inertia\Response;
+use JsonException;
 use OpenApi\Annotations as OA;
+use App\Http\Controllers\Api\ApiResponseTrait;
+use PDF;
+use Str;
 
 /**
  * Controller for managing race creation.
@@ -25,17 +36,25 @@ use OpenApi\Annotations as OA;
 class RaceController extends Controller
 {
     use AuthorizesRequests;
+    use ApiResponseTrait;
 
     /**
      * Show the form for creating a new race.
      * Only responsable-course and admin can access this page.
      *
-     * @return \Inertia\Response
+     * @param Request $request
+     * @return Response
      */
-    public function show(Request $request)
+    public function show(Request $request): Response
     {
         // Authorize the user to create a race
         $this->authorize('create', Race::class);
+
+        // raid_id is required for creating a race (accepts both 'raid_id' and 'raid' parameters)
+        $raidId = $request->query('raid_id') ?? $request->query('raid');
+        if (!$raidId) {
+            abort(404, 'Vous devez sélectionner un raid pour créer une course.');
+        }
 
         return $this->renderRaceForm($request);
     }
@@ -45,9 +64,9 @@ class RaceController extends Controller
      * Only the race organizer (adh_id matches) or admin can edit.
      *
      * @param int $id The race ID
-     * @return \Inertia\Response
+     * @return Response
      */
-    public function edit(int $id)
+    public function edit(int $id): Response
     {
         $race = Race::with(['runnerParams', 'teamParams', 'categorieAges.ageCategory'])->findOrFail($id);
 
@@ -62,25 +81,26 @@ class RaceController extends Controller
      *
      * @param Request $request
      * @param Race|null $race The race to edit (null for create)
-     * @return \Inertia\Response
+     * @return Response
      */
-    /**
-     * Render the race form (used for both create and edit)
-     *
-     * @param Request $request
-     * @param Race|null $race The race to edit (null for create)
-     * @return \Inertia\Response
-     */
-    private function renderRaceForm(Request $request, ?Race $race = null)
+    private function renderRaceForm(Request $request, ?Race $race = null): Response
     {
-        $raidId = $race ? $race->raid_id : $request->query('raid_id');
+        // Get raid_id from the race or from query parameters (accepts both 'raid_id' and 'raid')
+        $raidId = $race ? $race->raid_id : ($request->query('raid_id') ?? $request->query('raid'));
         $raid = $raidId ? Raid::find($raidId) : null;
-        $usersQuery = User::select('id', 'last_name', 'first_name', 'email', 'adh_id');
+
+        // If in create mode and raid is not found, throw 404
+        if (!$race && !$raid) {
+            abort(404, 'Le raid sélectionné n\'existe pas.');
+        }
+
+        $usersQuery = User::select('id', 'first_name', 'last_name', 'email', 'adh_id');
 
         if ($raid) {
-            // Filter users who belong to the same club as the raid
+            // Filter users who belong to the same club as the raid and have approved status
             $usersQuery->whereHas('clubs', function($q) use ($raid) {
-                $q->where('clubs.club_id', $raid->clu_id);
+                $q->where('clubs.club_id', $raid->clu_id)
+                  ->where('club_user.status', 'approved');
             });
         }
 
@@ -97,7 +117,7 @@ class RaceController extends Controller
             ->toArray();
 
         // Get all types from database
-        $types = ParamType::select('typ_id', 'typ_name')
+        $types = ParamType::select('typ_id')
             ->orderBy('typ_id')
             ->get()
             ->map(fn($type) => [
@@ -164,9 +184,10 @@ class RaceController extends Controller
      * Store a newly created race in the database.
      *
      * @param StoreRaceRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
+     * @throws JsonException
      */
-    public function store(StoreRaceRequest $request)
+    public function store(StoreRaceRequest $request): RedirectResponse
     {
 
         $raid = $request->input('raid_id') ? Raid::find($request->input('raid_id')) : null;
@@ -230,7 +251,7 @@ class RaceController extends Controller
 
         // Handle both array and JSON formats
         if (is_string($selectedCategories)) {
-            $selectedCategories = json_decode($selectedCategories, true) ?? [];
+            $selectedCategories = json_decode($selectedCategories, true, 512, JSON_THROW_ON_ERROR) ?? [];
         }
         if (!is_array($selectedCategories)) {
             $selectedCategories = [];
@@ -260,9 +281,10 @@ class RaceController extends Controller
      *
      * @param StoreRaceRequest $request
      * @param int $id The race ID
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
+     * @throws JsonException
      */
-    public function update(StoreRaceRequest $request, int $id)
+    public function update(StoreRaceRequest $request, int $id): RedirectResponse
     {
         $race = Race::findOrFail($id);
 
@@ -331,7 +353,7 @@ class RaceController extends Controller
 
         // Handle both array and JSON formats
         if (is_string($ageCategories)) {
-            $ageCategories = json_decode($ageCategories, true) ?? [];
+            $ageCategories = json_decode($ageCategories, true, 512, JSON_THROW_ON_ERROR) ?? [];
         }
         if (!is_array($ageCategories)) {
             $ageCategories = [];
@@ -356,7 +378,7 @@ class RaceController extends Controller
 
         $successMessage = 'La course a été modifiée avec succès!';
         if ($kickedTeamsCount > 0) {
-            $successMessage .= " {$kickedTeamsCount} équipe(s) ont été retirées car elles ne respectent plus les règles d'âge.";
+            $successMessage .= " $kickedTeamsCount équipe(s) ont été retirées car elles ne respectent plus les règles d'âge.";
         }
 
         return redirect()->route('races.show', $race->race_id)
@@ -390,13 +412,13 @@ class RaceController extends Controller
 
             if (!$isCompliant) {
                 // Remove team from race registration
-                \DB::table('registration')
+                DB::table('registration')
                     ->where('race_id', $race->race_id)
                     ->where('equ_id', $team->equ_id)
                     ->delete();
 
                 // Also remove from race_participants table
-                \DB::table('race_participants')
+                DB::table('race_participants')
                     ->whereIn('reg_id', function($query) use ($race, $team) {
                         $query->select('reg_id')
                             ->from('registration')
@@ -426,7 +448,7 @@ class RaceController extends Controller
     /**
      * Validate if a team complies with age rules.
      *
-     * @param \App\Models\Team $team The team to validate
+     * @param Team $team The team to validate
      * @param bool $isCompetitive Whether the race is competitive
      * @param array $ageCategories Accepted age category IDs (for competitive)
      * @param int|null $leisureAgeMin Age A - minimum age for all (leisure)
@@ -435,15 +457,15 @@ class RaceController extends Controller
      * @return bool True if team is compliant
      */
     private function validateTeamAgeCompliance(
-        $team,
-        bool $isCompetitive,
+        Team  $team,
+        bool  $isCompetitive,
         array $ageCategories,
-        ?int $leisureAgeMin,
-        ?int $leisureAgeIntermediate,
-        ?int $leisureAgeSupervisor
+        ?int  $leisureAgeMin,
+        ?int  $leisureAgeIntermediate,
+        ?int  $leisureAgeSupervisor
     ): bool {
         // Get team members with their ages
-        $members = \DB::table('has_participate')
+        $members = DB::table('has_participate')
             ->join('users', 'has_participate.id_users', '=', 'users.id')
             ->where('has_participate.equ_id', $team->equ_id)
             ->select('users.id', 'users.birth_date')
@@ -458,7 +480,7 @@ class RaceController extends Controller
             if (!$m->birth_date) {
                 return null;
             }
-            $birthDate = \Carbon\Carbon::parse($m->birth_date);
+            $birthDate = Carbon::parse($m->birth_date);
             return (int) $birthDate->diffInYears($now);
         })->filter()->values()->toArray();
 
@@ -468,9 +490,9 @@ class RaceController extends Controller
 
         if ($isCompetitive) {
             return $this->validateCompetitiveTeam($memberAges, $ageCategories);
-        } else {
-            return $this->validateLeisureTeam($memberAges, $leisureAgeMin, $leisureAgeIntermediate, $leisureAgeSupervisor);
         }
+
+        return $this->validateLeisureTeam($memberAges, $leisureAgeMin, $leisureAgeIntermediate, $leisureAgeSupervisor);
     }
 
     /**
@@ -499,7 +521,7 @@ class RaceController extends Controller
         foreach ($memberAges as $age) {
             $category = $ageCategories->first(function($cat) use ($age) {
                 $minAge = $cat->age_min;
-                $maxAge = $cat->age_max !== null ? $cat->age_max : PHP_INT_MAX;
+                $maxAge = $cat->age_max ?? PHP_INT_MAX;
                 return $age >= $minAge && $age <= $maxAge;
             });
 
@@ -543,19 +565,15 @@ class RaceController extends Controller
         }
 
         // Check if any member is under B years old
-        $membersBelowB = array_filter($memberAges, fn($age) => $age < $ageB);
+        $membersBelowB = array_filter($memberAges, static fn($age) => $age < $ageB);
         $needsSupervisor = count($membersBelowB) > 0;
 
         // Check if there's a supervisor (someone at least C years old)
-        $supervisors = array_filter($memberAges, fn($age) => $age >= $ageC);
+        $supervisors = array_filter($memberAges, static fn($age) => $age >= $ageC);
         $hasSupervisor = count($supervisors) > 0;
 
         // Rule 2: If any participant is under B, team must have someone at least C
-        if ($needsSupervisor && !$hasSupervisor) {
-            return false;
-        }
-
-        return true;
+        return !($needsSupervisor && !$hasSupervisor);
     }
 
     /**
@@ -582,7 +600,7 @@ class RaceController extends Controller
         // Check if the user is a member of the raid's club
         $isMemberOfClub = $user->clubs()
             ->where('clubs.club_id', $raid->clu_id)
-            ->wherePivot('status', 'approved')
+            ->where('club_user.status', 'approved')
             ->exists();
 
         if (!$isMemberOfClub) {
@@ -605,9 +623,9 @@ class RaceController extends Controller
      * Delete the specified race.
      *
      * @param int $id The race ID to delete
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
-    public function destroy(int $id)
+    public function destroy(int $id): RedirectResponse
     {
         $race = Race::findOrFail($id);
 
@@ -648,7 +666,7 @@ class RaceController extends Controller
         try {
             [$hours, $minutes] = explode(':', $duration);
             return (int)$hours * 60 + (int)$minutes;
-        } catch (\Exception $e) {
+        } catch (Exception) {
             return null;
         }
     }
@@ -685,7 +703,7 @@ class RaceController extends Controller
      *     )
      * )
      */
-    public function generateStartList(Race $race)
+    public function generateStartList(Race $race): \Illuminate\Http\Response
     {
         // Check if user is race manager or admin
         $user = auth()->user();
@@ -697,7 +715,7 @@ class RaceController extends Controller
         }
 
         // Get all validated registrations for this race
-        $registrations = \DB::table('registration')
+        $registrations = DB::table('registration')
             ->where('race_id', $race->race_id)
             ->where('reg_validated', true)
             ->orderBy('reg_dossard')
@@ -705,23 +723,23 @@ class RaceController extends Controller
 
         // Load teams and captains for each registration
         $teams = $registrations->map(function ($registration) {
-            $team = \App\Models\Team::with('leader')->find($registration->equ_id);
+            $team = Team::with('leader')->find($registration->equ_id);
             $registration->team = $team;
             return $registration;
         });
 
         // Generate PDF
-        $pdf = \PDF::loadView('pdf.race-start-list', [
+        $pdf = PDF::loadView('pdf.race-start-list', [
             'race' => $race,
             'registrations' => $teams,
             'totalTeams' => count($teams),
         ]);
 
         // Set paper size and orientation
-        $pdf->setPaper('A4', 'portrait');
+        $pdf->setPaper('A4');
 
         // Download the PDF
-        return $pdf->download('start-list-' . \Str::slug($race->race_name) . '.pdf');
+        return $pdf->download('start-list-' . Str::slug($race->race_name) . '.pdf');
     }
 
     /**
@@ -766,7 +784,7 @@ class RaceController extends Controller
      *     )
      * )
      */
-    public function checkIn(Request $request, Race $race)
+    public function checkIn(Request $request, Race $race): JsonResponse
     {
         // Check if user is the race manager (owner of the race)
         $user = auth()->user();
@@ -776,10 +794,7 @@ class RaceController extends Controller
         $isRaceManager = $user && $raid && $raid->club && ($raid->club->created_by === $user->id);
 
         if (!$isRaceManager) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. Only the race manager can check-in teams.'
-            ], 403);
+            return $this->forbiddenResponse('Unauthorized. Only the race manager can check-in teams.');
         }
 
         $validated = $request->validate([
@@ -788,40 +803,32 @@ class RaceController extends Controller
         ]);
 
         // Find the registration
-        $registration = \App\Models\Registration::with(['team.leader', 'race'])
+        $registration = Registration::with(['team.leader', 'race'])
             ->where('reg_id', $validated['reg_id'])
             ->where('equ_id', $validated['equ_id'])
             ->first();
 
         if (!$registration) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Registration not found.'
-            ], 404);
+            return $this->notFoundResponse('Registration not found.');
         }
 
         // Check if registration belongs to this race
         if ($registration->race_id !== $race->race_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This registration does not belong to this race.'
-            ], 400);
+
+            return $this->errorResponse('This registration does not belong to this race.');
         }
 
         // Check if already present
         if ($registration->is_present) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Team already checked in.',
+            return $this->successResponse([
                 'already_present' => true,
                 'registration' => [
                     'reg_id' => $registration->reg_id,
                     'reg_dossard' => $registration->reg_dossard,
                     'team_name' => $registration->team->equ_name,
-                    'race_name' => $registration->race->race_name,
                     'is_present' => $registration->is_present,
                 ]
-            ]);
+            ], 'Team already checked in.');
         }
 
         // Mark as present
@@ -834,20 +841,14 @@ class RaceController extends Controller
             ->performedOn($registration)
             ->log('Team checked in at race');
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Team successfully checked in!',
+        return $this->successResponse([
             'registration' => [
                 'reg_id' => $registration->reg_id,
                 'reg_dossard' => $registration->reg_dossard,
                 'team_name' => $registration->team->equ_name,
-                'race_name' => $registration->race->race_name,
-                'leader_name' => $registration->team->leader ?
-                    $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name :
-                    'N/A',
                 'is_present' => $registration->is_present,
             ]
-        ]);
+        ], 'Team successfully checked in!');
     }
 
     /**
@@ -890,7 +891,7 @@ class RaceController extends Controller
      *     )
      * )
      */
-    public function togglePresence(Request $request, Race $race)
+    public function togglePresence(Request $request, Race $race): JsonResponse
     {
         // Check if user is race manager or admin
         $user = auth()->user();
@@ -898,10 +899,8 @@ class RaceController extends Controller
         $isRaceManager = $user && ($user->hasRole('responsable-course') || ($race->organizer && $user->adh_id === $race->organizer->adh_id) || ($race->raid && $race->raid->club && $race->raid->club->hasManager($user)));
 
         if (!$isAdmin && !$isRaceManager) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. Only race managers can toggle presence.'
-            ], 403);
+
+            return $this->forbiddenResponse('Forbidden. Only race managers can toggle presence.');
         }
 
         $validated = $request->validate([
@@ -909,15 +908,12 @@ class RaceController extends Controller
         ]);
 
         // Find the registration
-        $registration = \App\Models\Registration::where('reg_id', $validated['reg_id'])
+        $registration = Registration::where('reg_id', $validated['reg_id'])
             ->where('race_id', $race->race_id)
             ->first();
 
         if (!$registration) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Registration not found.'
-            ], 404);
+            return $this->notFoundResponse('Registration not found.');
         }
 
         // Toggle presence
@@ -930,8 +926,7 @@ class RaceController extends Controller
             ->performedOn($registration)
             ->log($registration->is_present ? 'Participant marked as present' : 'Participant marked as absent');
 
-        return response()->json([
-            'success' => true,
+        return $this->successResponse([
             'is_present' => $registration->is_present,
             'message' => $registration->is_present ? 'Participant marqué comme présent' : 'Participant marqué comme absent'
         ]);
@@ -940,7 +935,7 @@ class RaceController extends Controller
     /**
      * Display QR scanner page for race managers
      */
-    public function scannerPage(Race $race)
+    public function scannerPage(Race $race): Response
     {
         // Check if user is race manager or admin
         $user = auth()->user();
@@ -952,12 +947,12 @@ class RaceController extends Controller
         }
 
         // Get statistics
-        $totalRegistrations = \DB::table('registration')
+        $totalRegistrations = DB::table('registration')
             ->where('race_id', $race->race_id)
             ->where('reg_validated', true)
             ->count();
 
-        $presentCount = \DB::table('registration')
+        $presentCount = DB::table('registration')
             ->where('race_id', $race->race_id)
             ->where('reg_validated', true)
             ->where('is_present', true)
@@ -967,7 +962,6 @@ class RaceController extends Controller
             'race' => [
                 'race_id' => $race->race_id,
                 'race_name' => $race->race_name,
-                'race_date' => $race->race_date,
             ],
             'stats' => [
                 'total' => $totalRegistrations,
@@ -1017,7 +1011,7 @@ class RaceController extends Controller
      *     )
      * )
      */
-    public function getTeamMembers(Race $race, int $registration)
+    public function getTeamMembers(Race $race, int $registration): JsonResponse
     {
         // Check if user is race manager or admin
         $user = auth()->user();
@@ -1025,27 +1019,21 @@ class RaceController extends Controller
         $isRaceManager = $user && ($user->hasRole('responsable-course') || ($race->organizer && $user->adh_id === $race->organizer->adh_id) || ($race->raid && $race->raid->club && $race->raid->club->hasManager($user)));
 
         if (!$isAdmin && !$isRaceManager) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. Only race managers can access team members.'
-            ], 403);
+            return $this->forbiddenResponse('Forbidden. Only race managers can access team members.');
         }
 
         // Find the registration
-        $registrationData = \App\Models\Registration::with(['team.leader'])
+        $registrationData = Registration::with(['team.leader'])
             ->where('reg_id', $registration)
             ->where('race_id', $race->race_id)
             ->first();
 
         if (!$registrationData) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Registration not found.'
-            ], 404);
+            return $this->notFoundResponse('Registration not found.');
         }
 
         // Get team members with their status
-        $members = \DB::table('race_participants')
+        $members = DB::table('race_participants')
             ->join('registration', 'race_participants.reg_id', '=', 'registration.reg_id')
             ->join('users', 'race_participants.user_id', '=', 'users.id')
             ->leftJoin('members', 'users.adh_id', '=', 'members.adh_id')
@@ -1098,8 +1086,7 @@ class RaceController extends Controller
                 return $p;
             });
 
-        return response()->json([
-            'success' => true,
+        return $this->successResponse([
             'team' => [
                 'id' => $registrationData->team->equ_id,
                 'name' => $registrationData->team->equ_name,

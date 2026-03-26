@@ -18,7 +18,7 @@ class AdminController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             if (!$user) {
                 return redirect()->route('login');
             }
@@ -38,7 +38,7 @@ class AdminController extends Controller
                 $myresponsibleRaces = Race::where('adh_id', $user->adh_id)->get();
             }
 
-        
+
 
             $user->load('roles.permissions');
 
@@ -48,17 +48,17 @@ class AdminController extends Controller
                 'myresponsibleRaces' => $myresponsibleRaces,
             ]);
         } catch (\Exception $e) {
-            
-            return redirect()->route('dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès au tableau de bord admin.']);
+
+            return redirect()->route('home')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès au tableau de bord admin.']);
         }
     }
-    
+
 
     public function racemanagement(): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
         try {
             $user = Auth::user();
-            
+
             if (!$user) {
                 return redirect()->route('login');
             }
@@ -68,7 +68,7 @@ class AdminController extends Controller
                 $races = Race::with('raid')->get();
             } else {
                 $races = Race::where('adh_id', $user->adh_id)
-                    ->with('raid') 
+                    ->with('raid')
                     ->get();
             }
 
@@ -76,7 +76,7 @@ class AdminController extends Controller
                 'races' => $races,
             ]);
         } catch (\Exception $e) {
-            
+
             return redirect()->route('admin.dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès à la gestion des courses.']);
         }
     }
@@ -85,7 +85,7 @@ class AdminController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             if (!$user) {
                 return redirect()->route('login');
             }
@@ -101,7 +101,7 @@ class AdminController extends Controller
                 'raids' => $raids,
             ]);
         } catch (\Exception $e) {
-            
+
             return redirect()->route('admin.dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès à la gestion des raids.']);
         }
     }
@@ -116,7 +116,7 @@ class AdminController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             if (!$user) {
                 return redirect()->route('login');
             }
@@ -136,7 +136,7 @@ class AdminController extends Controller
                 'clubs' => $clubs,
             ]);
         } catch (\Exception $e) {
-            
+
             return redirect()->route('admin.dashboard')->withErrors(['error' => 'Une erreur est survenue lors de l\'accès à la gestion des clubs.']);
         }
     }

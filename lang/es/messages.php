@@ -1017,4 +1017,14 @@ return [
     'clubs.create.approval_description' => 'Tu solicitud de creación de club será enviada para aprobación del administrador antes de ser publicada.',
     'clubs.create.submit' => 'Crear club',
 
+    // Team Invitations
+    'team.invitation.expired' => 'Esta invitación ha expirado o ya ha sido utilizada.',
+    'team.invitation.joined_success' => '¡Te has unido al equipo exitosamente!',
+    'team.invitation.joined_message' => 'Te has unido al equipo',
+    'team.invitation.sent_success' => '¡Invitación enviada exitosamente!',
+    'team.invitation.unauthorized' => 'No estás autorizado para enviar invitaciones para este equipo.',
+    'team.invitation.invalid_email' => 'La dirección de correo electrónico proporcionada no es válida.',
+
 ];
+
+

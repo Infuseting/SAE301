@@ -88,9 +88,11 @@ class PasswordResetTest extends TestCase
             'password_confirmation' => 'password',
         ]);
 
+        /*
         if (!$response->getSession()->has('errors')) {
             dump(session()->all());
         }
+        */
         $response->assertSessionHasErrors(['email']);
         $this->assertFalse(auth()->attempt([
             'email' => $user->email,

@@ -55,11 +55,7 @@ use OpenApi\Annotations as OA;
  * )
  * @OA\Tag(
  *     name="Races",
- *     description="Public race API endpoints"
- * )
- * @OA\Tag(
- *     name="Race Management",
- *     description="Endpoints for managing races"
+ *     description="Race API endpoints"
  * )
  * @OA\Tag(
  *     name="Race Participants",
@@ -67,7 +63,7 @@ use OpenApi\Annotations as OA;
  * )
  * @OA\Tag(
  *     name="Raids",
- *     description="Public raids API endpoints"
+ *     description="Raids API endpoints"
  * )
  * @OA\Tag(
  *     name="Teams",
@@ -78,13 +74,13 @@ use OpenApi\Annotations as OA;
  *     description="Endpoints for validating team age composition and participant eligibility"
  * )
  * @OA\Tag(
- *     name="Team Management",
- *     description="Endpoints for team management (admin and team leaders)"
- * )
- * @OA\Tag(
  *     name="User",
  *     description="User profile and account management endpoints"
  * )
+ * @OA\Tag(
+ *      name="Users",
+ *      description="Users management endpoints"
+ *  )
  */
 
 

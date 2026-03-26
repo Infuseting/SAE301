@@ -1108,4 +1108,14 @@ return [
     'clubs.create.approval_description' => 'Your club creation request will be submitted for approval by an administrator.',
     'clubs.create.submit' => 'Create Club',
 
+    // Team Invitations
+    'team.invitation.expired' => 'This invitation has expired or has already been used.',
+    'team.invitation.joined_success' => 'You have successfully joined the team!',
+    'team.invitation.joined_message' => 'You have joined the team',
+    'team.invitation.sent_success' => 'Invitation sent successfully!',
+    'team.invitation.unauthorized' => 'You are not authorized to send invitations for this team.',
+    'team.invitation.invalid_email' => 'The provided email address is not valid.',
+
 ];
+
+

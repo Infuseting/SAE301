@@ -19,6 +19,8 @@ export default function CreateTeam() {
         join_team: true,
     });
     const [teammateSearch, setTeammateSearch] = useState('');
+    const [teammateSearchResults, setTeammateSearchResults] = useState([]);
+    const [showTeammateDropdown, setShowTeammateDropdown] = useState(false);
     const { auth, translations } = usePage().props;
     const currentUser = auth?.user;
     const messages = translations?.messages || {};
@@ -73,7 +75,7 @@ export default function CreateTeam() {
             onSuccess: () => {
                 if (redirectUri) {
                     // If a redirect URI was provided, go back to that flow.
-                    window.location.href = redirectUri;
+                    window.location.href = redirectUri.toString();
                 }
             },
         });
@@ -256,7 +258,7 @@ export default function CreateTeam() {
                         {/* Submit Button */}
                         <div className="pt-6 border-t border-gray-200 flex gap-3 justify-end">
                             <Link
-                                href={route('dashboard')}
+                                href={route('home')}
                                 className="inline-flex items-center px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium transition"
                                 style={{}}
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}

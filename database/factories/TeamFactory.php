@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * Factory for generating Team model instances.
- * 
+ *
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Team>
  */
 class TeamFactory extends Factory
@@ -29,6 +29,7 @@ class TeamFactory extends Factory
         return [
             'equ_name' => fake()->words(2, true),
             'equ_image' => null,
+            'user_id' => User::factory(),
             'adh_id' => Member::factory(),
         ];
     }

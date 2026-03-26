@@ -7,9 +7,12 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
+use App\Http\Controllers\Api\ApiResponseTrait;
 
 class UserController extends Controller
 {
+    use ApiResponseTrait;
+
     /**
      * List users with pagination and optional search.
      * Accepts filters via POST to avoid URL parameters.
@@ -128,7 +131,7 @@ class UserController extends Controller
     {
         $roles = Role::all(['id', 'name']);
 
-        return response()->json(['roles' => $roles]);
+        return $this->successResponse(['roles' => $roles]);
     }
 
     /**

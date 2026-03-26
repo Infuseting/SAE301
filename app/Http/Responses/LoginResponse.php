@@ -2,10 +2,12 @@
 
 namespace App\Http\Responses;
 
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Fortify;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Custom login response to handle pending invitations and custom redirects.
@@ -15,10 +17,10 @@ class LoginResponse implements LoginResponseContract
     /**
      * Create an HTTP response that represents the object.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param  Request  $request
+     * @return Response
      */
-    public function toResponse($request)
+    public function toResponse($request): Response
     {
         // Handle JSON responses
         if ($request->wantsJson()) {

@@ -96,8 +96,8 @@ class ClubController extends Controller
      * Display a listing of clubs managed by the authenticated user.
      *
      * @OA\Get(
-     *     path="/api/me/managed-clubs",
-     *     tags={"Clubs"},
+     *     path="/api/user/managed-clubs",
+     *     tags={"User"},
      *     summary="Get clubs managed by the user",
      *     description="Returns a list of clubs where the user is an owner (creator) or manager",
      *     security={{"sanctum":{}}},

@@ -1,10 +1,8 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Team\TeamAgeController;
 use App\Http\Controllers\Api\LeaderboardApiController;
 use App\Http\Controllers\Api\RaceApiController;
+use Illuminate\Support\Facades\Route;
 
 // Public endpoints (no authentication required)
 Route::post('/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
@@ -48,27 +46,17 @@ Route::get('/races/{id}', [RaceApiController::class, 'show']);
 
 
 Route::middleware('auth:sanctum')->as('api.')->group(function () {
-    // Current user
-    Route::get('/user', function (Request $request) {
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User retrieved successfully',
-            'data' => $request->user(),
-        ]);
-    });
 
-    // User endpoints
-    Route::get('/users/search', [\App\Http\Controllers\Api\UserController::class, 'search']);
-    Route::get('/users/adherents', [\App\Http\Controllers\Api\UserController::class, 'adherents']);
-
-    // Profile endpoints - accessible to authenticated users
-    //Route::get('/profile', [\App\Http\Controllers\Profile\PublicProfileController::class, 'myProfile']);
-
-
-    Route::patch('/profile', [\App\Http\Controllers\Profile\ProfileController::class, 'update']);
-    Route::delete('/profile', [\App\Http\Controllers\Profile\ProfileController::class, 'destroy']);
-    Route::post('/profile/complete', [\App\Http\Controllers\Profile\ProfileController::class, 'complete']);
+    // User / Profile endpoints - accessible to authenticated users
+    Route::get('/user', [\App\Http\Controllers\Profile\ProfileController::class, 'index']);
+    Route::patch('/user', [\App\Http\Controllers\Profile\ProfileController::class, 'update']);
+    Route::delete('/user', [\App\Http\Controllers\Profile\ProfileController::class, 'destroy']);
     Route::put('/user/set-password', [\App\Http\Controllers\Auth\SetPasswordController::class, 'store']);
+    Route::get('/user/managed-clubs', [\App\Http\Controllers\Club\ClubController::class, 'managed']);
+    Route::get('/user/managed-races', [\App\Http\Controllers\Api\RaceManagementController::class, 'index']);
+    Route::post('/user/profile/complete', [\App\Http\Controllers\Profile\ProfileController::class, 'complete']);
+    Route::get('/users/search', [\App\Http\Controllers\Api\UsersController::class, 'search']);
+    Route::get('/users/adherents', [\App\Http\Controllers\Api\UsersController::class, 'adherents']);
 
     // Club operations - requires auth, authorization in controller
     Route::apiResource('clubs', \App\Http\Controllers\Club\ClubController::class)->except(['index', 'show']);
@@ -91,11 +79,9 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
         Route::post('/clubs/{club}/reject', [\App\Http\Controllers\Admin\ClubApprovalController::class, 'reject']);
     });
 
-    // Managed clubs
-    Route::get('/me/managed-clubs', [\App\Http\Controllers\Club\ClubController::class, 'managed']);
-
     // Team age validation endpoints
-    Route::prefix('team')->group(function () {
+    Route::prefix('teams')->group(function () {
+        // Route : /api/teams/age-validation ??
         Route::get('/age-thresholds', [\App\Http\Controllers\Team\TeamAgeController::class, 'getThresholds']);
         Route::post('/validate-ages', [\App\Http\Controllers\Team\TeamAgeController::class, 'validateAges']);
         Route::post('/validate-birthdates', [\App\Http\Controllers\Team\TeamAgeController::class, 'validateBirthdates']);
@@ -104,6 +90,7 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
 
     // Teams CRUD - requires auth, authorization in controller
     Route::prefix('teams')->group(function () {
+        //Route::get('/', [\App\Http\Controllers\Team\TeamController::class, 'index']);
         Route::post('/', [\App\Http\Controllers\Team\TeamController::class, 'store']);
         Route::get('/{team}', [\App\Http\Controllers\Team\TeamController::class, 'show']);
         Route::put('/{team}', [\App\Http\Controllers\Team\TeamManagementController::class, 'update']);
@@ -122,13 +109,13 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
     });
 
     // Team invitations
-    Route::post('/invitations/{token}/accept', [\App\Http\Controllers\Team\TeamController::class, 'acceptInvitation']);
-    Route::get('/invitations/{token}', [\App\Http\Controllers\Team\TeamController::class, 'showAcceptInvitation']);
+    Route::post('/teams/invitations/{token}/accept', [\App\Http\Controllers\Team\TeamController::class, 'acceptInvitation'])->name('teams.invitations.accept');
+    Route::get('/teams/invitations/{token}', [\App\Http\Controllers\Team\TeamController::class, 'showAcceptInvitation'])->name('teams.invitations.show');
 
     // Race registration - requires valid licence
     Route::middleware('manager_licence')->group(function () {
-        Route::get('/races/{race}/registration/check', [\App\Http\Controllers\Race\RaceRegistrationController::class, 'checkEligibility']);
-        Route::post('/races/{race}/register', [\App\Http\Controllers\Race\RaceRegistrationController::class, 'register']);
+        Route::get('/races/{raceId}/registration/check', [\App\Http\Controllers\Race\RaceRegistrationController::class, 'checkEligibility']);
+        Route::post('/races/{raceId}/register', [\App\Http\Controllers\Race\RaceRegistrationController::class, 'register']);
     });
 
     // Race participants management (per registration)
@@ -138,7 +125,7 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
     });
 
     // Race participants CRUD
-    Route::prefix('participants')->group(function () {
+    Route::prefix('races/participants')->group(function () {
         Route::put('/{participant}', [\App\Http\Controllers\Team\TeamRunnerController::class, 'update']);
         Route::delete('/{participant}', [\App\Http\Controllers\Team\TeamRunnerController::class, 'destroy']);
         Route::post('/{participant}/verify-pps', [\App\Http\Controllers\Team\TeamRunnerController::class, 'verifyPps']);
@@ -166,7 +153,9 @@ Route::middleware('auth:sanctum')->as('api.')->group(function () {
     });
 
     // Race management API
-    Route::get('/me/managed-races', [\App\Http\Controllers\Api\RaceManagementController::class, 'index']);
-    Route::get('/races/{race}/participants', [\App\Http\Controllers\Api\RaceManagementController::class, 'participants']);
-    Route::patch('/registrations/{registration}/validate-docs', [\App\Http\Controllers\Api\RaceManagementController::class, 'validateDocuments']);
+    Route::middleware('role:responsable-course|gestionnaire-raid|admin')->group(function () {
+        Route::post('/races/create', [\App\Http\Controllers\Race\RaceController::class, 'store']);
+        Route::get('/races/{race}/participants', [\App\Http\Controllers\Api\RaceManagementController::class, 'participants']);
+    });
+    Route::patch('/races/registrations/{registration}/validate-docs', [\App\Http\Controllers\Api\RaceManagementController::class, 'validateDocuments']);
 });

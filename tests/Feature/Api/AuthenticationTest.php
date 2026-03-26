@@ -94,7 +94,7 @@ class AuthenticationTest extends TestCase
     public function test_access_protected_route_without_token(): void
     {
         $response = $this->getJson('/api/user');
-        
+
         $response->assertStatus(401);
     }
 }

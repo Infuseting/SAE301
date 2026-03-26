@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
+import UserAvatar from '@/Components/UserAvatar';
 
 /**
  * Modal for inviting existing users to a team.
@@ -17,40 +18,83 @@ export default function InviteUserModal({ isOpen, onClose, users, teamMembers, a
     // Create mode: API search
     const isCreateMode = !!onSelect;
 
+    // Load initial list when modal opens
     useEffect(() => {
-        if (!isCreateMode || !searchQuery.trim()) {
-            setSearchResults([]);
+        if (!isCreateMode || !isOpen) {
             return;
         }
-        const timeoutId = setTimeout(async () => {
-            setIsSearching(true);
-            try {
-                const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`, {
-                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                    credentials: 'same-origin'
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setSearchResults(data);
-                }
-            } catch (error) {
-                console.error('Search error:', error);
-            }
-            setIsSearching(false);
-        }, 300);
-        return () => clearTimeout(timeoutId);
+
+        // Load initial list of all users when modal opens
+        loadInitialUsers();
+    }, [isOpen, isCreateMode]);
+
+    // Load users when search query changes
+    useEffect(() => {
+        if (!isCreateMode || !searchQuery.trim()) {
+            return;
+        }
+
+        // Search when user has typed at least 2 characters
+        if (searchQuery.trim().length >= 2) {
+            const timeoutId = setTimeout(() => {
+                searchUsers(searchQuery);
+            }, 300);
+            return () => clearTimeout(timeoutId);
+        }
     }, [searchQuery, isCreateMode]);
 
+    // Load initial list when modal opens
+    const loadInitialUsers = async () => {
+        setIsSearching(true);
+        try {
+            // Call /users/search without 'q' parameter to get initial list
+            const response = await fetch(`/users/search`, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const result = await response.json();
+                setSearchResults(result.data || []);
+            }
+        } catch (error) {
+            console.error('Load users error:', error);
+            setSearchResults([]);
+        }
+        setIsSearching(false);
+    };
+
+    // Search users by query
+    const searchUsers = async (query) => {
+        setIsSearching(true);
+        try {
+            const response = await fetch(`/users/search?q=${encodeURIComponent(query)}`, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const result = await response.json();
+                setSearchResults(result.data || []);
+            } else if (response.status === 401) {
+                console.warn('User not authenticated for search');
+                setSearchResults([]);
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            setSearchResults([]);
+        }
+        setIsSearching(false);
+    };
+
     const memberIds = teamMembers?.map(m => m.id) || [];
-    
+
     // In create mode, use the API search results
     // In team mode, filter the provided users list
-    const availableUsers = isCreateMode 
+    const availableUsers = isCreateMode
         ? searchResults.filter(user => user.id !== auth?.user?.id && !memberIds.includes(user.id))
         : (users || [])
             .filter(user => user.id !== auth?.user?.id)
             .filter(user => !memberIds.includes(user.id))
-            .filter(user => 
+            .filter(user =>
                 (user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (user.email || '').toLowerCase().includes(searchQuery.toLowerCase())
             );
@@ -101,17 +145,17 @@ export default function InviteUserModal({ isOpen, onClose, users, teamMembers, a
                                         className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <img
-                                                src={user.avatar || 'https://via.placeholder.com/40'}
-                                                alt={user.name}
-                                                className="h-10 w-10 rounded-full object-cover"
+                                            <UserAvatar
+                                                user={user}
+                                                className="text-sm"
+                                                size="md"
                                             />
                                             <div>
                                                 <p className="font-semibold text-gray-900">{user.name}</p>
                                                 <p className="text-sm text-gray-500">{user.email}</p>
                                             </div>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => handleInvite(user)}
                                             disabled={processing || isSearching}
                                             className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"

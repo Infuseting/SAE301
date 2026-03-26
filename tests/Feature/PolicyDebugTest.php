@@ -29,17 +29,6 @@ class PolicyDebugTest extends TestCase
         // Create club owned by different user
         $club = Club::factory()->create();
 
-        // Debug output
-        /*
-        dump("User ID: {$responsableClub->id}");
-        dump("Club created_by: {$club->created_by}");
-        dump("User has role responsable-club: " . ($responsableClub->hasRole('responsable-club') ? 'YES' : 'NO'));
-        dump("User has permission edit-own-club: " . ($responsableClub->hasPermissionTo('edit-own-club') ? 'YES' : 'NO'));
-        dump("Club hasManager(user): " . ($club->hasManager($responsableClub) ? 'YES' : 'NO'));
-        dump("User can('update', club): " . ($responsableClub->can('update', $club) ? 'YES' : 'NO'));
-        dump("Gate allows: " . (Gate::forUser($responsableClub)->allows('update', $club) ? 'YES' : 'NO'));
-        */
-
         // The assertion we EXPECT to pass
         $this->assertFalse($responsableClub->can('update', $club),
             'ResponsableClub should NOT be able to update club they do not own or manage');

@@ -1,33 +1,32 @@
 <?php
 
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MapController;
-use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\LogController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ClubApprovalController;
 use App\Http\Controllers\Admin\LeaderboardController as AdminLeaderboardController;
+use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\Club\ClubController;
 use App\Http\Controllers\Club\ClubMemberController;
 use App\Http\Controllers\Leaderboard\LeaderboardController;
 use App\Http\Controllers\Leaderboard\MyLeaderboardController;
+use App\Http\Controllers\MapController;
+use App\Http\Controllers\Profile\LicenceController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Profile\PublicProfileController;
-use App\Http\Controllers\Profile\LicenceController;
-use App\Http\Controllers\Race\RaceResultController;
-use App\Http\Controllers\Race\RaceRegistrationController;
 use App\Http\Controllers\Race\MyRaceController;
 use App\Http\Controllers\Race\RaceController;
+use App\Http\Controllers\Race\RaceRegistrationController;
+use App\Http\Controllers\Race\RaceResultController;
 use App\Http\Controllers\Race\VisuRaceController;
 use App\Http\Controllers\Raid\RaidController;
-use App\Http\Controllers\Team\TeamController;
 use App\Http\Controllers\Team\TeamAgeController;
+use App\Http\Controllers\Team\TeamController;
 use App\Http\Controllers\Team\TeamManagementController;
-use App\Models\Raid;
+use App\Http\Controllers\WelcomeController;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
@@ -35,14 +34,14 @@ Route::get('/', [WelcomeController::class, 'index'])->name('home');
 // Debug route - Laravel Logs (WARNING: Remove in production!)
 Route::get('/logs/laravel', function () {
     $logPath = storage_path('logs/laravel.log');
-    
+
     if (!file_exists($logPath)) {
         abort(404, 'Log file not found');
     }
-    
+
     $lines = file($logPath);
     $lastLines = array_slice($lines, -500); // Last 500 lines
-    
+
     return response('<pre>' . htmlspecialchars(implode('', $lastLines)) . '</pre>')
         ->header('Content-Type', 'text/html; charset=UTF-8');
 })->name('logs.laravel');
@@ -78,16 +77,16 @@ Route::get('/invitations/accept/{token}', [TeamController::class, 'showAcceptInv
 Route::post('/invitations/accept/{token}', [TeamController::class, 'acceptInvitation'])->name('invitations.accept')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
-    // Profile routes - always accessible (needed to update licence)
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::get('/profile', [PublicProfileController::class, 'myProfile'])->name('profile.index');
-    Route::get('/profile/{user}', [PublicProfileController::class, 'show'])->name('profile.show');
+    // Profile routes - always accessible (needed to update license)
+    Route::get('/profile', [PublicProfileController::class, 'index'])->name('profile.index');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile/{user}', [PublicProfileController::class, 'show'])->name('profile.show');
+    Route::post('/profile/complete', [ProfileController::class, 'complete'])->name('profile.complete');
     Route::put('/user/set-password', [SetPasswordController::class, 'store'])->name('password.set');
-    
-    // Licence and PPS management - always accessible
+
+    // License and PPS management - always accessible
     Route::post('/licence', [LicenceController::class, 'storeLicence'])->name('licence.store');
     Route::post('/pps', [LicenceController::class, 'storePpsCode'])->name('pps.store');
     Route::get('/credentials/check', [LicenceController::class, 'checkCredentials'])->name('credentials.check');
@@ -95,24 +94,24 @@ Route::middleware('auth')->group(function () {
 
 // Routes requiring authentication
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Welcome');
-    })->name('dashboard');
 
     // My leaderboard - accessible to all authenticated users
     Route::get('/my-leaderboard', [MyLeaderboardController::class, 'index'])->name('my-leaderboard.index');
 
+    // User search endpoint for team creation (handles both list and search)
+    Route::get('/users/search', [\App\Http\Controllers\Team\UserSearchController::class, 'handle'])->name('users.search');
+
     // Team age validation page
-    Route::get('/team/age-validation', [TeamAgeController::class, 'index'])->name('team.age-validation');
-    
+    Route::get('/teams/age-validation', [TeamAgeController::class, 'index'])->name('team.age-validation');
+
     // Team creation routes
-    Route::get('/createTeam', [TeamController::class, 'create'])->name('team.create');
-    Route::post('/createTeam', [TeamController::class, 'store'])->name('team.store');
+    Route::get('/teams/create', [TeamController::class, 'create'])->name('team.create');
+    Route::post('/teams/create', [TeamController::class, 'store'])->name('team.store');
     // Show team details
     Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show')->whereNumber('team');
     Route::post('/teams/{team}/invite-email', [TeamController::class, 'inviteByEmail'])->name('teams.invite-email');
-    Route::post('/teams/{team}/invite/{user}', [TeamController::class, 'inviteByEmail'])->name('teams.invite-user');
-    
+    Route::post('/teams/{team}/invite/{userId}', [TeamController::class, 'inviteByEmail'])->name('teams.invite-user');
+
     // Race participants management (per registration)
     Route::get('/registrations/{registration}/runners', [App\Http\Controllers\Team\TeamRunnerController::class, 'index'])->name('registrations.runners.index');
     Route::post('/registrations/{registration}/runners', [App\Http\Controllers\Team\TeamRunnerController::class, 'store'])->name('registrations.runners.store');
@@ -166,7 +165,7 @@ Route::middleware(['auth', 'role:responsable-course|gestionnaire-raid|responsabl
     Route::post('/races/{race}/check-in', [RaceController::class, 'checkIn'])->name('races.check-in');
     Route::post('/races/{race}/toggle-presence', [RaceController::class, 'togglePresence'])->name('races.toggle-presence');
     Route::get('/races/{race}/team-members/{registration}', [RaceController::class, 'getTeamMembers'])->name('races.team-members');
-    
+
     // Race results management (CSV export/import)
     Route::get('/races/{race}/results/export-template', [RaceResultController::class, 'exportTeamsTemplate'])->name('races.results.export-template');
     Route::post('/races/{race}/results/import', [RaceResultController::class, 'importResults'])->name('races.results.import');
@@ -188,11 +187,11 @@ Route::middleware(['auth', 'manager_licence'])->group(function () {
     Route::get('/races/{race}/registration/check', [RaceRegistrationController::class, 'checkEligibility'])->name('race.registration.check');
     Route::post('/races/{race}/register', [RaceRegistrationController::class, 'register'])->name('race.register');
     Route::post('/races/{race}/register-team', [RaceRegistrationController::class, 'registerTeam'])->name('race.registerTeam');
-    Route::delete('/races/{race}/cancel-registration/{team}', [RaceRegistrationController::class, 'cancelRegistration'])->name('race.cancelRegistration');
-    
+    Route::delete('/races/{race}/cancel-registration/{teamId}', [RaceRegistrationController::class, 'cancelRegistration'])->name('race.cancelRegistration');
+
     // Race management (for race managers)
     Route::put('/races/{race}/update-pps/{user}', [RaceRegistrationController::class, 'updatePPS'])->name('race.updatePPS');
-    Route::post('/races/{race}/confirm-team-payment/{team}', [RaceRegistrationController::class, 'confirmTeamPayment'])->name('race.confirmTeamPayment');
+    Route::post('/races/{race}/confirm-team-payment/{teamId}', [RaceRegistrationController::class, 'confirmTeamPayment'])->name('race.confirmTeamPayment');
 });
 
 Route::middleware(['auth',  'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {

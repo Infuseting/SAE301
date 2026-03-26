@@ -54,7 +54,7 @@ class ResponsableCoursePermissionsTest extends TestCase
 
     public function test_responsable_course_can_view_races_create_page(): void
     {
-        $response = $this->actingAs($this->responsableCourse)->get(route('races.create'));
+        $response = $this->actingAs($this->responsableCourse)->get(route('races.create', ['raid_id' => $this->raid->raid_id]));
         $response->assertStatus(200);
     }
 
@@ -232,7 +232,7 @@ class ResponsableCoursePermissionsTest extends TestCase
             ]);
 
         $response->assertOk();
-        $response->assertJson(['success' => true]);
+        $response->assertJson(['status' => 'success']);
     }
 
     public function test_responsable_course_can_access_club_creation_page(): void

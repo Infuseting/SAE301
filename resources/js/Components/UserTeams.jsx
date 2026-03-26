@@ -37,7 +37,7 @@ export default function UserTeams({ teams = [] }) {
         <div className="py-6">
             <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    {messages['user_teams.title'] || 'Your teams'} | <a href="/createTeam" className="text-blue-500 hover:text-blue-600 ml-2">{messages['user_teams.create'] || 'Create a team'}</a>
+                    {messages['user_teams.title'] || 'Your teams'} | <Link href={route('team.create')} className="text-blue-500 hover:text-blue-600 ml-2">{messages['user_teams.create'] || 'Create a team'}</Link>
                 </h2>
 
                 {displayTeams.length === 0 ? (

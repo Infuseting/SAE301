@@ -44,6 +44,9 @@ class User extends Authenticatable
     use Notifiable;
     use TwoFactorAuthenticatable;
 
+    public mixed $licence_expiry_date;
+    public mixed $pps_expiry_date;
+
     /**
      * The attributes that are mass assignable.
      *

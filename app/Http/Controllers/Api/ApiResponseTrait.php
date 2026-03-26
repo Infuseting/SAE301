@@ -18,7 +18,7 @@ trait ApiResponseTrait
      * @param int $statusCode HTTP status code (default 200).
      * @return JsonResponse
      */
-    protected function successResponse(mixed $data = null, string $message = 'OK', int $statusCode = 200): JsonResponse
+    protected function  successResponse(mixed $data = null, string $message = 'OK', int $statusCode = 200): JsonResponse
     {
         return response()->json([
             'status' => 'success',
@@ -51,17 +51,6 @@ trait ApiResponseTrait
     }
 
     /**
-     * Return a not found JSON response.
-     *
-     * @param string $message A human-readable not-found message.
-     * @return JsonResponse
-     */
-    protected function notFoundResponse(string $message = 'Resource not found'): JsonResponse
-    {
-        return $this->errorResponse($message, 404);
-    }
-
-    /**
      * Return an unauthorized JSON response.
      *
      * @param string $message A human-readable unauthorized message.
@@ -76,11 +65,44 @@ trait ApiResponseTrait
      * Return a forbidden JSON response.
      *
      * @param string $message A human-readable forbidden message.
+     * @param mixed $errors Optional validation errors or additional error details.
      * @return JsonResponse
      */
-    protected function forbiddenResponse(string $message = 'Forbidden'): JsonResponse
+    protected function forbiddenResponse(string $message = 'Forbidden', mixed $errors = null): JsonResponse
     {
-        return $this->errorResponse($message, 403);
+        return $this->errorResponse($message, 403, $errors);
+    }
+
+    /**
+     * Return a not found JSON response.
+     *
+     * @param string $message A human-readable not-found message.
+     * @param mixed|null $errors
+     * @return JsonResponse
+     */
+    protected function notFoundResponse(string $message = 'Resource not found', mixed $errors = null): JsonResponse
+    {
+        return $this->errorResponse($message, 404, $errors);
+    }
+
+    /**
+     * Return a server error JSON response
+     *
+     * @param mixed $errors Optional validation errors or additional error details.
+     */
+    protected function unprocessableContentResponse(string $message = 'Unprocessable Content', mixed $errors = null): JsonResponse
+    {
+        return $this->errorResponse($message, 422, $errors);
+    }
+
+    /**
+     * Return a server error JSON response
+     *
+     * @param mixed $errors Optional validation errors or additional error details.
+     */
+    protected function serverErrorResponse(string $message = 'Server Error', mixed $errors = null): JsonResponse
+    {
+        return $this->errorResponse($message, 500, $errors);
     }
 
     /**

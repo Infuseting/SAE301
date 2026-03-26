@@ -220,7 +220,8 @@ class GestionnaireRaidPermissionsTest extends TestCase
 
     public function test_gestionnaire_raid_can_view_races_create_page(): void
     {
-        $response = $this->actingAs($this->gestionnaireRaid)->get(route('races.create'));
+        $raid = Raid::factory()->create(['clu_id' => $this->club->club_id]);
+        $response = $this->actingAs($this->gestionnaireRaid)->get(route('races.create', ['raid_id' => $raid->raid_id]));
         $response->assertStatus(200);
     }
 
@@ -302,7 +303,7 @@ class GestionnaireRaidPermissionsTest extends TestCase
             ]);
 
         $response->assertOk();
-        $response->assertJson(['success' => true]);
+        $response->assertJson(['status' => 'success']);
     }
 
     public function test_gestionnaire_raid_can_view_my_raids(): void

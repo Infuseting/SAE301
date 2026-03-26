@@ -96,10 +96,10 @@ class AdherentPermissionsTest extends TestCase
         $response = $this->actingAs($this->adherent)
             ->postJson(route('race.register', $race));
 
-        // Should succeed because adherent has valid licence
+        // Should succeed because adherent has valid license
         // The register endpoint returns JSON, not a redirect
         $response->assertOk();
-        $response->assertJson(['success' => true]);
+        $response->assertJson(['status' => 'success']);
     }
 
     public function test_adherent_can_view_my_races(): void

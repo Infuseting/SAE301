@@ -473,7 +473,7 @@ class AdminPermissionsTest extends TestCase
             ]);
 
         $response->assertOk();
-        $response->assertJson(['success' => true]);
+        $response->assertJson(['status' => 'success']);
     }
 
     public function test_admin_without_licence_can_still_create_resources(): void
