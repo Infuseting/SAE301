@@ -13,7 +13,7 @@ use OpenApi\Annotations as OA;
 
 /**
  * Controller for managing teams.
- * 
+ *
  * Team leaders can manage their own teams.
  * Administrators can manage all teams.
  */
@@ -21,14 +21,14 @@ class TeamManagementController extends Controller
 {
     /**
      * Display the team management page.
-     * 
+     *
      * Shows teams based on user role:
      * - Admin: All teams
      * - Team Leader: Only teams where user is the leader
-     * 
+     *
      * @OA\Get(
      *     path="/api/teams/management",
-     *     tags={"Team Management"},
+     *     tags={"Teams"},
      *     summary="Get teams for management",
      *     description="Returns paginated list of teams based on user role",
      *     @OA\Response(
@@ -105,12 +105,12 @@ class TeamManagementController extends Controller
 
     /**
      * Update team information.
-     * 
+     *
      * Only team leader or admin can update.
-     * 
+     *
      * @OA\Put(
-     *     path="/api/teams/{team}",
-     *     tags={"Team Management"},
+     *     path="/api/teams/{teamId}",
+     *     tags={"Teams"},
      *     summary="Update team",
      *     description="Update team information including name, image, and members",
      *     @OA\Parameter(
@@ -155,7 +155,7 @@ class TeamManagementController extends Controller
     public function update(Request $request, Team $team)
     {
         $user = Auth::user();
-        
+
         // Check authorization
         if (!$user->hasRole('admin') && $team->user_id !== $user->id) {
             abort(403, 'Unauthorized action.');
@@ -171,7 +171,7 @@ class TeamManagementController extends Controller
         ]);
 
         $team->equ_name = $validated['name'];
-        
+
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($team->equ_image) {
@@ -207,13 +207,13 @@ class TeamManagementController extends Controller
 
     /**
      * Delete a team.
-     * 
+     *
      * Only team leader or admin can delete.
      * Cannot delete if team has active registrations.
-     * 
+     *
      * @OA\Delete(
-     *     path="/api/teams/{team}",
-     *     tags={"Team Management"},
+     *     path="/api/teams/{teamId}",
+     *     tags={"Teams"},
      *     summary="Delete team",
      *     description="Delete a team if it has no active registrations",
      *     @OA\Parameter(
@@ -241,7 +241,7 @@ class TeamManagementController extends Controller
     public function destroy(Team $team)
     {
         $user = Auth::user();
-        
+
         // Check authorization
         if (!$user->hasRole('admin') && $team->user_id !== $user->id) {
             abort(403, 'Unauthorized action.');
@@ -266,12 +266,12 @@ class TeamManagementController extends Controller
 
     /**
      * Remove a member from the team.
-     * 
+     *
      * Only team leader or admin can remove members.
-     * 
+     *
      * @OA\Post(
-     *     path="/api/teams/{team}/remove-member",
-     *     tags={"Team Management"},
+     *     path="/api/teams/{teamId}/remove-member",
+     *     tags={"Teams"},
      *     summary="Remove team member",
      *     description="Remove a specific member from the team",
      *     @OA\Parameter(
@@ -302,7 +302,7 @@ class TeamManagementController extends Controller
     public function removeMember(Request $request, Team $team)
     {
         $user = Auth::user();
-        
+
         // Check authorization
         if (!$user->hasRole('admin') && $team->user_id !== $user->id) {
             abort(403, 'Unauthorized action.');

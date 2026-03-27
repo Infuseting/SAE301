@@ -1,11 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
 import { Head, Link, usePage } from '@inertiajs/react';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import RaidProgress from '@/Components/Raid/RaidProgress';
 import RegisteredMembersModal from '@/Components/Raid/RegisteredMembersModal';
-import { Settings, Plus, MapPin, Calendar, Info, Users, ChevronRight, Trophy, FileText } from 'lucide-react';
+import { Settings, Plus, MapPin, Info, Users, ChevronRight, Trophy, FileText } from 'lucide-react';
 
 /**
  * Raid Detail Component
@@ -185,7 +183,7 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                     </p>
                                 </div>
                                 {canAddRace && (
-                                    <Link href={route('races.create', { raid_id: raid.raid_id })}>
+                                    <Link href={route('races.create', { raid: raid.raid_id })}>
                                         <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-black text-xs transition-all shadow-xl shadow-blue-200 flex items-center gap-2">
                                             <Plus className="h-4 w-4" />
                                             {messages['raid_detail.new_course'] || 'NOUVELLE COURSE'}
@@ -276,12 +274,12 @@ export default function Index({ raid, courses = [], typeCategories = [], isRaidM
                                                         ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-200'
                                                         : 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-200'
                                                         }`}>
-                                                        {course.is_finished 
-                                                            ? (messages['raid_detail.view_results'] || 'Consulter les résultats') 
-                                                            : course.is_registered 
-                                                            ? (messages['raid_detail.view_my_registration'] || 'Voir mon inscription') 
-                                                            : course.is_open 
-                                                            ? "S'inscrire" 
+                                                        {course.is_finished
+                                                            ? (messages['raid_detail.view_results'] || 'Consulter les résultats')
+                                                            : course.is_registered
+                                                            ? (messages['raid_detail.view_my_registration'] || 'Voir mon inscription')
+                                                            : course.is_open
+                                                            ? "S'inscrire"
                                                             : 'Plus de détails'}
                                                         <ChevronRight className="h-4 w-4" />
                                                     </button>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { MdManageAccounts } from "react-icons/md";
 
@@ -6,7 +6,6 @@ export default function ManagerButton() {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const messages = usePage().props.translations?.messages || {};
-    const user = usePage().props.auth.user;
     return (
         <div className="relative" ref={dropdownRef}>
             {/* Dropdown Button */}

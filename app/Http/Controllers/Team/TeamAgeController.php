@@ -8,16 +8,19 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Http\Controllers\Api\ApiResponseTrait;
 
 use OpenApi\Annotations as OA;
 
 /**
  * Controller for team age validation.
- * 
+ *
  * Handles validation of team compositions based on age requirements.
  */
 class TeamAgeController extends Controller
 {
+    use ApiResponseTrait;
+
     /**
      * The age validation service instance.
      */
@@ -33,23 +36,6 @@ class TeamAgeController extends Controller
         $this->ageService = $ageService;
     }
 
-    /**
-     * Display the team age validation page.
-     * 
-     * @OA\Get(
-     *     path="/api/team/age-validation",
-     *     tags={"Team Age Validation"},
-     *     summary="Show age validation page",
-     *     description="Display the team age validation interface with rules and thresholds",
-     *     @OA\Response(
-     *         response=200,
-     *         description="Age validation page"
-     *     ),
-     *     security={{"apiAuth": {}}}
-     * )
-     *
-     * @return Response
-     */
     public function index(): Response
     {
         return Inertia::render('Team/AgeValidation', [
@@ -62,7 +48,7 @@ class TeamAgeController extends Controller
      * Get the current age thresholds.
      *
      * @OA\Get(
-     *     path="/api/team/age-thresholds",
+     *     path="/api/teams/age-thresholds",
      *     tags={"Team Age Validation"},
      *     summary="Get age thresholds",
      *     description="Returns the current age thresholds (A, B, C) for team validation",
@@ -84,7 +70,7 @@ class TeamAgeController extends Controller
      */
     public function getThresholds(): JsonResponse
     {
-        return response()->json([
+        return $this->successResponse([
             'thresholds' => $this->ageService->getThresholds(),
             'rules' => $this->ageService->getRulesExplanation(),
         ]);
@@ -94,7 +80,7 @@ class TeamAgeController extends Controller
      * Validate a team's age composition.
      *
      * @OA\Post(
-     *     path="/api/team/validate-ages",
+     *     path="/api/teams/validate-ages",
      *     tags={"Team Age Validation"},
      *     summary="Validate team ages",
      *     description="Validates a team's age composition against the rules: all >= A, and if any < B then at least one >= C",
@@ -136,14 +122,14 @@ class TeamAgeController extends Controller
 
         $result = $this->ageService->validateTeam($validated['ages']);
 
-        return response()->json($result);
+        return $this->successResponse($result);
     }
 
     /**
      * Validate a team using birthdates.
      *
      * @OA\Post(
-     *     path="/api/team/validate-birthdates",
+     *     path="/api/teams/validate-birthdates",
      *     tags={"Team Age Validation"},
      *     summary="Validate team by birthdates",
      *     description="Validates a team's composition by calculating ages from birthdates",
@@ -193,7 +179,7 @@ class TeamAgeController extends Controller
         ]);
 
         $referenceDate = $validated['reference_date'] ?? null;
-        
+
         // Calculate ages for response
         $calculatedAges = array_map(
             fn($birthdate) => $this->ageService->calculateAge($birthdate, $referenceDate),
@@ -207,14 +193,14 @@ class TeamAgeController extends Controller
 
         $result['calculated_ages'] = $calculatedAges;
 
-        return response()->json($result);
+        return $this->successResponse($result);
     }
 
     /**
      * Check if a single participant meets the minimum age requirement.
      *
      * @OA\Post(
-     *     path="/api/team/check-participant",
+     *     path="/api/teams/check-participant",
      *     tags={"Team Age Validation"},
      *     summary="Check participant eligibility",
      *     description="Checks if a single participant meets the minimum age requirement",
@@ -255,26 +241,25 @@ class TeamAgeController extends Controller
         ]);
 
         $age = $validated['age'] ?? $this->ageService->calculateAge($validated['birthdate']);
-        
+
         $thresholds = $this->ageService->getThresholds();
         $eligible = $this->ageService->isParticipantValid($age);
         $isMinor = $this->ageService->isMinor($age);
         $isAdult = $this->ageService->isAdult($age);
 
-        $message = $eligible 
-            ? ($isMinor 
+        $message = $eligible
+            ? ($isMinor
                 ? "Participant is eligible but under {$thresholds['intermediate']}. Team will need an adult ({$thresholds['adult']}+)."
-                : ($isAdult 
+                : ($isAdult
                     ? "Participant is eligible and can supervise minors."
                     : "Participant is eligible."))
             : "Participant must be at least {$thresholds['min']} years old.";
 
-        return response()->json([
+        return $this->successResponse([
             'eligible' => $eligible,
             'age' => $age,
             'is_minor' => $isMinor,
             'is_adult' => $isAdult,
-            'message' => $message,
-        ]);
+        ], $message);
     }
 }

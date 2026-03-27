@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Registration;
 use App\Models\RaceParticipant;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Api\ApiResponseTrait;
 use OpenApi\Annotations as OA;
 
 /**
@@ -14,6 +17,8 @@ use OpenApi\Annotations as OA;
  */
 class TeamRunnerController extends Controller
 {
+    use ApiResponseTrait;
+
     /**
      * Get all runners for a registration with their PPS status.
      *
@@ -60,23 +65,20 @@ class TeamRunnerController extends Controller
      * )
      *
      * @param Registration $registration
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function index(Registration $registration): \Illuminate\Http\JsonResponse
+    public function index(Registration $registration): JsonResponse
     {
         $user = auth()->user();
-        
+
         // Check if user is team leader, race manager, or admin
-        $isAuthorized = $registration->team->user_id === $user->id || 
-                        $user->hasRole('admin') || 
-                        $user->hasRole('gestionnaire-raid') || 
+        $isAuthorized = $registration->team->user_id === $user->id ||
+                        $user->hasRole('admin') ||
+                        $user->hasRole('gestionnaire-raid') ||
                         $user->hasRole('responsable-course');
-        
+
         if (!$isAuthorized) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Non autorisé à voir les coureurs de cette inscription.',
-            ], 403);
+            return $this->forbiddenResponse('Non autorisé à voir les coureurs de cette inscription.');
         }
 
         $runners = $registration->participants()
@@ -101,8 +103,7 @@ class TeamRunnerController extends Controller
                 ];
             });
 
-        return response()->json([
-            'success' => true,
+        return $this->successResponse([
             'runners' => $runners,
             'registration' => [
                 'id' => $registration->reg_id,
@@ -163,18 +164,15 @@ class TeamRunnerController extends Controller
      *
      * @param Request $request
      * @param Registration $registration
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function store(Request $request, Registration $registration): \Illuminate\Http\JsonResponse
+    public function store(Request $request, Registration $registration): JsonResponse
     {
         $authUser = auth()->user();
-        
+
         // Check if user is team leader or admin
         if ($registration->team->user_id !== $authUser->id && !$authUser->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Non autorisé à modifier cette inscription.',
-            ], 403);
+            return $this->forbiddenResponse('Non autorisé à modifier cette inscription.');
         }
 
         $validated = $request->validate([
@@ -188,10 +186,7 @@ class TeamRunnerController extends Controller
         // Check if user is already a participant in this registration
         $exists = $registration->participants()->where('user_id', $userToAdd->id)->exists();
         if ($exists) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cet utilisateur participe déjà à cette course.',
-            ], 400);
+            return $this->errorResponse('Cet utilisateur participe déjà à cette course.');
         }
 
         // Create participant record
@@ -203,14 +198,12 @@ class TeamRunnerController extends Controller
             'pps_status' => !empty($validated['pps_number']) ? 'pending' : 'pending',
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Coureur ajouté avec succès.',
+        return $this->successResponse([
             'participant' => [
                 'id' => $participant->rpa_id,
                 'user_id' => $participant->user_id,
-            ],
-        ]);
+            ]
+        ], 'Coureur ajouté avec succès.');
     }
 
     /**
@@ -249,17 +242,17 @@ class TeamRunnerController extends Controller
      *
      * @param Request $request
      * @param RaceParticipant $participant
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
-    public function update(Request $request, RaceParticipant $participant)
+    public function update(Request $request, RaceParticipant $participant): RedirectResponse
     {
         $authUser = auth()->user();
-        
+
         // Check if user is team leader, the user themselves, or admin
-        $isAuthorized = $participant->registration->team->user_id === $authUser->id || 
-                        $participant->user_id === $authUser->id || 
+        $isAuthorized = $participant->registration->team->user_id === $authUser->id ||
+                        $participant->user_id === $authUser->id ||
                         $authUser->hasRole('admin');
-        
+
         if (!$isAuthorized) {
             return back()->with('error', 'Non autorisé à modifier les informations PPS.');
         }
@@ -272,20 +265,20 @@ class TeamRunnerController extends Controller
 
         // Update PPS information
         $updateData = [];
-        
+
         if (isset($validated['pps_number'])) {
             $updateData['pps_number'] = $validated['pps_number'];
         }
-        
+
         if (isset($validated['pps_expiry'])) {
             $updateData['pps_expiry'] = $validated['pps_expiry'];
         }
-        
+
         // If updating PPS number or expiry, reset to pending (unless admin is setting status)
         if ((isset($validated['pps_number']) || isset($validated['pps_expiry'])) && !isset($validated['pps_status'])) {
             $updateData['pps_status'] = 'pending';
         }
-        
+
         // If admin is setting status directly
         if (isset($validated['pps_status'])) {
             $updateData['pps_status'] = $validated['pps_status'];
@@ -293,7 +286,7 @@ class TeamRunnerController extends Controller
                 $updateData['pps_verified_at'] = now();
             }
         }
-        
+
         $participant->update($updateData);
 
         return back()->with('success', 'PPS mis à jour avec succès.');
@@ -330,26 +323,20 @@ class TeamRunnerController extends Controller
      * )
      *
      * @param RaceParticipant $participant
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function destroy(RaceParticipant $participant): \Illuminate\Http\JsonResponse
+    public function destroy(RaceParticipant $participant): JsonResponse
     {
         $authUser = auth()->user();
-        
+
         // Check if user is team leader or admin
         if ($participant->registration->team->user_id !== $authUser->id && !$authUser->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Non autorisé à modifier cette inscription.',
-            ], 403);
+            return $this->forbiddenResponse('Non autorisé à modifier cette inscription.');
         }
 
         $participant->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Coureur retiré de la course.',
-        ]);
+        return $this->successResponse('Coureur retiré de la course.');
     }
 
     /**
@@ -390,12 +377,12 @@ class TeamRunnerController extends Controller
      *
      * @param Request $request
      * @param RaceParticipant $participant
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function verifyPps(Request $request, RaceParticipant $participant)
     {
         $authUser = auth()->user();
-        
+
         // Only admins or race managers can verify PPS
         if (!$authUser->hasRole('admin') && !$authUser->hasRole('gestionnaire-raid') && !$authUser->hasRole('responsable-course')) {
             return back()->with('error', 'Non autorisé à vérifier les PPS.');

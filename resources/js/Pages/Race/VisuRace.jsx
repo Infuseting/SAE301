@@ -8,10 +8,9 @@ import TeamPaymentModal from '@/Components/TeamPaymentModal';
 import TeamRegistrationCard from '@/Components/TeamRegistrationCard';
 import axios from 'axios';
 import {
-    Calendar, Timer, MapPin, Users, Info, ChevronRight,
-    Trophy, Heart, ShieldCheck, FileText, UserCheck,
-    AlertCircle, Clock, CheckCircle2, XCircle, Settings,
-    CreditCard, Utensils, QrCode, Download, Upload, Loader2
+    Calendar, Timer, MapPin, Users, ChevronRight, Trophy,
+    Heart, ShieldCheck, AlertCircle, Clock, CheckCircle2,
+    Settings, CreditCard, QrCode, Download, Upload, Loader2
 } from 'lucide-react';
 
 export default function VisuRace({ auth, race, isManager, participants = [], error, errorMessage, userTeams = [], registeredByLeader = null, registeredTeam = null, racePhase = 'registration', hasResults = false }) {
@@ -33,7 +32,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
      */
     const teamsData = useMemo(() => {
         const teamMap = new Map();
-        
+
         participantsState.forEach(p => {
             if (!teamMap.has(p.equ_id)) {
                 teamMap.set(p.equ_id, {
@@ -49,7 +48,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                 user_id: p.user_id || p.id_users,
             });
         });
-        
+
         return Array.from(teamMap.values());
     }, [participantsState]);
 
@@ -90,9 +89,9 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
             if (response.data.success) {
                 console.log('Updating state for reg_id:', regId, 'to is_present:', response.data.is_present);
                 // Update local state
-                setParticipantsState(prevParticipants => 
-                    prevParticipants.map(p => 
-                        p.reg_id === regId 
+                setParticipantsState(prevParticipants =>
+                    prevParticipants.map(p =>
+                        p.reg_id === regId
                             ? { ...p, is_present: response.data.is_present }
                             : p
                     )
@@ -112,8 +111,8 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
      * @param {Object} updates - Updates to apply
      */
     const handleMemberUpdate = (regId, updates) => {
-        setParticipantsState(prevParticipants => 
-            prevParticipants.map(p => 
+        setParticipantsState(prevParticipants =>
+            prevParticipants.map(p =>
                 p.reg_id === regId ? { ...p, ...updates } : p
             )
         );
@@ -153,20 +152,20 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
      */
     const handleCsvUpload = async () => {
         if (!csvFile) return;
-        
+
         setIsUploading(true);
         setUploadMessage(null);
-        
+
         const formData = new FormData();
         formData.append('csv_file', csvFile);
-        
+
         try {
             const response = await axios.post(route('races.results.import', race.id), formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            
+
             setUploadMessage({ type: 'success', text: response.data.message });
             setCsvFile(null);
             if (fileInputRef.current) {
@@ -268,8 +267,6 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
     };
 
     const currentStatus = statusConfig[race.status] || statusConfig.planned;
-    const userIsLog = auth.user;
-    const userIsBusy = false;
 
     return (
         <AuthenticatedLayout user={auth.user}>
@@ -305,7 +302,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     <Trophy className="w-8 h-8 text-white/40" />
                                 )}
                             </div>
-                            
+
                             <div className="flex-1">
                                 <div className="space-y-3">
                                     <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-lg ${currentStatus.color}`}>
@@ -395,7 +392,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         </h3>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                             {race.ageCategories.map((category) => (
-                                                <div 
+                                                <div
                                                     key={category.id}
                                                     className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-3 text-center hover:shadow-md transition-all"
                                                 >
@@ -436,8 +433,8 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                             </div>
                                             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
                                                 <p className="text-xs font-bold text-blue-800 leading-relaxed">
-                                                    <span className="font-black">{translations['race.view.rules'] || 'Règles'} :</span> {translations['race.view.rules_desc'] || 'Tous les participants doivent avoir au moins'} <span className="font-black text-blue-600">{race.leisureAgeMin} {translations['race.view.years'] || 'ans'}</span>. 
-                                                    {translations['race.view.if_member_less_than'] || 'Si un membre a moins de'} <span className="font-black text-amber-600">{race.leisureAgeIntermediate} {translations['race.view.years'] || 'ans'}</span>, 
+                                                    <span className="font-black">{translations['race.view.rules'] || 'Règles'} :</span> {translations['race.view.rules_desc'] || 'Tous les participants doivent avoir au moins'} <span className="font-black text-blue-600">{race.leisureAgeMin} {translations['race.view.years'] || 'ans'}</span>.
+                                                    {translations['race.view.if_member_less_than'] || 'Si un membre a moins de'} <span className="font-black text-amber-600">{race.leisureAgeIntermediate} {translations['race.view.years'] || 'ans'}</span>,
                                                     {translations['race.view.team_must_include'] || 'l\'équipe doit inclure un accompagnateur d\'au moins'} <span className="font-black text-emerald-600">{race.leisureAgeSupervisor} {translations['race.view.years'] || 'ans'}</span>.
                                                 </p>
                                             </div>
@@ -640,8 +637,8 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                     {translations['race.view.results_management'] || 'Gestion des Résultats'}
                                                 </h3>
                                                 <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
-                                                    hasResults 
-                                                        ? 'bg-emerald-50 text-emerald-600' 
+                                                    hasResults
+                                                        ? 'bg-emerald-50 text-emerald-600'
                                                         : 'bg-orange-50 text-orange-600'
                                                 }`}>
                                                     {hasResults ? (translations['race.view.results_published'] || 'Résultats publiés') : (translations['race.view.pending'] || 'En attente')}
@@ -653,7 +650,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                 <p className="text-xs text-blue-700/60 font-medium">
                                                     {translations['race.view.download_template_desc'] || 'Téléchargez le template CSV avec la liste des équipes présentes, puis remplissez les temps et points.'}
                                                 </p>
-                                                <a 
+                                                <a
                                                     href={route('races.results.export-template', race.id)}
                                                     className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-black text-xs tracking-[0.15em] transition-all shadow-lg shadow-blue-200 uppercase flex items-center justify-center gap-2 text-white"
                                                 >
@@ -668,14 +665,14 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                     {translations['race.view.import_desc'] || 'Importez le fichier CSV complété avec les résultats de la course.'}
                                                 </p>
                                                 <div className="flex gap-2">
-                                                    <input 
-                                                        type="file" 
+                                                    <input
+                                                        type="file"
                                                         accept=".csv"
                                                         ref={fileInputRef}
                                                         onChange={handleCsvFileChange}
                                                         className="flex-1 text-sm text-blue-700 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:uppercase file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 file:cursor-pointer cursor-pointer"
                                                     />
-                                                    <button 
+                                                    <button
                                                         onClick={handleCsvUpload}
                                                         disabled={!csvFile || isUploading}
                                                         className={`px-6 py-2 rounded-xl font-black text-xs uppercase flex items-center gap-2 transition-all ${
@@ -699,8 +696,8 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                 </div>
                                                 {uploadMessage && (
                                                     <div className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
-                                                        uploadMessage.type === 'success' 
-                                                            ? 'bg-emerald-50 text-emerald-600' 
+                                                        uploadMessage.type === 'success'
+                                                            ? 'bg-emerald-50 text-emerald-600'
                                                             : 'bg-red-50 text-red-600'
                                                     }`}>
                                                         {uploadMessage.type === 'success' ? (
@@ -716,7 +713,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                             {/* View Results Link */}
                                             {hasResults && (
                                                 <div className="pt-4 border-t border-blue-50">
-                                                    <Link 
+                                                    <Link
                                                         href={route('leaderboard.index', { race_id: race.id })}
                                                         className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 py-3 rounded-xl font-black text-xs tracking-[0.15em] transition-all shadow-lg shadow-amber-200 uppercase flex items-center justify-center gap-2 text-white"
                                                     >
@@ -746,7 +743,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     {!race.is_finished && race.isOpen && isRegistrationOpen() ? (
                                         <div className="space-y-3">
                                             {auth?.user ? (
-                                                <button 
+                                                <button
                                                     onClick={handleOpenRegistration}
                                                     className="w-full bg-emerald-500 hover:bg-emerald-400 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-emerald-950 uppercase flex items-center justify-center gap-3"
                                                 >
@@ -754,7 +751,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                     <ChevronRight className="h-4 w-4" />
                                                 </button>
                                             ) : (
-                                                <Link 
+                                                <Link
                                                     href={route('login', { redirect_uri: window.location.href })}
                                                     className="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-blue-950 uppercase flex items-center justify-center gap-3"
                                                 >
@@ -806,7 +803,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                         </div>
                                     ) : race.status === 'completed' || hasResults ? (
                                         <div className="space-y-3">
-                                            <Link 
+                                            <Link
                                                 href={route('leaderboard.index', { race_id: race.id })}
                                                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 py-4 rounded-xl font-black text-xs tracking-[0.2em] transition-all shadow-xl shadow-amber-950/50 uppercase flex items-center justify-center gap-3"
                                             >
@@ -814,7 +811,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                                 {translations['race.view.see_results'] || 'VOIR LES RÉSULTATS'}
                                                 <ChevronRight className="h-4 w-4" />
                                             </Link>
-                                            <a 
+                                            <a
                                                 href={route('races.results.download', race.id)}
                                                 className="w-full bg-white/10 hover:bg-white/20 py-3 rounded-xl font-bold text-[10px] tracking-[0.15em] transition-all border border-white/20 uppercase flex items-center justify-center gap-2"
                                             >
@@ -843,7 +840,7 @@ export default function VisuRace({ auth, race, isManager, participants = [], err
                                     ) : (
                                         <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
                                             <p className="text-xs font-bold text-emerald-100/60 leading-relaxed uppercase tracking-widest text-center">
-                                                {race.registrationPeriod ? 
+                                                {race.registrationPeriod ?
                                                     `${translations['race.view.registration_from'] || 'Inscriptions du'} ${new Date(race.registrationPeriod.startDate).toLocaleDateString('fr-FR')} ${translations['race.view.to'] || 'au'} ${new Date(race.registrationPeriod.endDate).toLocaleDateString('fr-FR')}`
                                                     : (translations['race.view.dates_tbd'] || 'Dates d\'inscription à définir')
                                                 }

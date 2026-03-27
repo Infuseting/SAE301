@@ -38,6 +38,7 @@ class Race extends Model
 {
     use HasFactory;
     // use LogsActivity;
+    public mixed $race_date;
 
     /**
      * The table associated with the model.

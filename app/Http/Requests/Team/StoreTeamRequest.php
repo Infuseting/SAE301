@@ -2,16 +2,23 @@
 
 namespace App\Http\Requests\Team;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Controllers\Api\ApiResponseTrait;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
- * Form request for creating a new team.
+ * Form Request for storing teams.
+ *
+ * Handles validation for both API (JSON) and web (form) submissions.
  */
 class StoreTeamRequest extends FormRequest
 {
+    use ApiResponseTrait;
+
     /**
      * Determine if the user is authorized to make this request.
-     * All authenticated users can create teams.
      */
     public function authorize(): bool
     {
@@ -21,36 +28,76 @@ class StoreTeamRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
+     * @return array<string, Rule|array|string>
      */
     public function rules(): array
     {
         return [
             'name' => 'required|string|max:32',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'nullable|image|max:2048',
             'teammates' => 'nullable|array',
             'teammates.*.id' => 'integer|exists:users,id',
             'emailInvites' => 'nullable|array',
-            'emailInvites.*' => 'email|max:255',
+            'emailInvites.*' => 'email',
             'join_team' => 'nullable|boolean',
         ];
     }
 
     /**
-     * Get custom messages for validation errors.
+     * Get custom messages for validator errors.
      *
      * @return array<string, string>
      */
     public function messages(): array
     {
-        return [
-            'name.required' => 'Team name is required',
-            'name.max' => 'Team name must not exceed 32 characters',
-            'image.image' => 'The file must be a valid image',
-            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif, webp',
-            'image.max' => 'The image may not be greater than 2 MB',
-            'teammates.*.id.exists' => 'One or more teammates do not exist',
-            'emailInvites.*.email' => 'One or more email addresses are invalid',
-        ];
+        return trans('validation.team');
+    }
+
+    /**
+     * Get the validator instance (for additional validation).
+     *
+     * @param \Illuminate\Validation\Validator $validator
+     * @return \Illuminate\Validation\Validator
+     */
+    public function withValidator(\Illuminate\Validation\Validator $validator): \Illuminate\Validation\Validator
+    {
+        $validator->after(function ($validator) {
+            // Check if team has at least one participant
+            $joinTeam = $this->input('join_team') ?? false;
+            $teammates = $this->input('teammates') ?? [];
+            $hasTeammates = !empty($teammates);
+
+            if (!$joinTeam && !$hasTeammates) {
+                $validator->errors()->add(
+                    'teammates',
+                    'L\'équipe doit avoir au moins un participant. Cochez "Je participe" ou ajoutez des coéquipiers.'
+                );
+            }
+        });
+
+        return $validator;
+    }
+
+    /**
+     * Handle a failed validation attempt.
+     *
+     * For API requests, return JSON error response.
+     * For web requests, use the default behavior.
+     */
+    protected function failedValidation(Validator $validator): void
+    {
+        // For API JSON requests
+        if ($this->wantsJson()) {
+            throw new ValidationException(
+                $validator,
+                $this->unprocessableContentResponse('Validation failed', $validator->errors())
+            );
+        }
+
+        // For web requests (default behavior)
+        parent::failedValidation($validator);
     }
 }
+
+
+

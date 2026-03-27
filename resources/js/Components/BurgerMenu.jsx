@@ -10,7 +10,6 @@ export default function BurgerMenu() {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const messages = usePage().props.translations?.messages || {};
-    const user = usePage().props.auth.user;
     return (
         <div className="relative" ref={dropdownRef}>
             {/* Dropdown Button */}

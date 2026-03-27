@@ -197,6 +197,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Custom Validation Messages for Teams
+    |--------------------------------------------------------------------------
+    */
+
+    'team' => [
+        'name.required' => 'The team name is required.',
+        'name.string' => 'The team name must be a string.',
+        'name.max' => 'The team name cannot exceed :max characters.',
+        'image.image' => 'The image must be a valid image file.',
+        'image.max' => 'The image cannot exceed :max kilobytes.',
+        'teammates.array' => 'Teammates must be an array.',
+        'teammates.*.id.integer' => 'Each teammate must have a valid ID.',
+        'teammates.*.id.exists' => 'At least one teammate does not exist.',
+        'emailInvites.array' => 'Email invitations must be an array.',
+        'emailInvites.*.email' => 'At least one email address is invalid.',
+        'join_team.boolean' => 'Participation value must be boolean.',
+        'participants' => 'The team must have at least one participant. Please check "I participate" or add teammates.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Custom Validation Attributes
     |--------------------------------------------------------------------------
     |

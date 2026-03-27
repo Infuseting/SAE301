@@ -15,7 +15,7 @@ class LicenceRequirementTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create roles only if they don't exist
         Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'adherent', 'guard_name' => 'web']);
@@ -35,7 +35,7 @@ class LicenceRequirementTest extends TestCase
         ]);
         $user->assignRole('user');
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('home'));
 
         $response->assertSuccessful();
         $this->assertFalse($response->viewData('page')['props']['requiresLicenceUpdate']);
@@ -57,7 +57,7 @@ class LicenceRequirementTest extends TestCase
         ]);
         $user->assignRole(['user', 'adherent', 'responsable-club']);
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('home'));
 
         $response->assertSuccessful();
         $this->assertFalse($response->viewData('page')['props']['requiresLicenceUpdate']);
@@ -74,7 +74,7 @@ class LicenceRequirementTest extends TestCase
         ]);
         $user->assignRole(['user', 'responsable-club']);
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('home'));
 
         // Page loads but requiresLicenceUpdate is true (modal will show)
         $response->assertSuccessful();
@@ -92,7 +92,7 @@ class LicenceRequirementTest extends TestCase
         ]);
         $user->assignRole(['user', 'gestionnaire-raid']);
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('home'));
 
         // Page loads but requiresLicenceUpdate is true (modal will show)
         $response->assertSuccessful();
@@ -110,7 +110,7 @@ class LicenceRequirementTest extends TestCase
         ]);
         $user->assignRole(['user', 'responsable-course']);
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('home'));
 
         // Page loads but requiresLicenceUpdate is true (modal will show)
         $response->assertSuccessful();
@@ -128,7 +128,7 @@ class LicenceRequirementTest extends TestCase
         ]);
         $user->assignRole(['user', 'gestionnaire-equipe']);
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('home'));
 
         // Page loads but requiresLicenceUpdate is true (modal will show)
         $response->assertSuccessful();
@@ -152,7 +152,7 @@ class LicenceRequirementTest extends TestCase
         ]);
         $user->assignRole(['user', 'adherent', 'responsable-club']);
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('home'));
 
         // Page loads but requiresLicenceUpdate is true (modal will show)
         $response->assertSuccessful();
@@ -170,7 +170,7 @@ class LicenceRequirementTest extends TestCase
         $user->assignRole(['user', 'gestionnaire-raid']);
 
         // Can access dashboard (modal will show)
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('home'));
         $response->assertSuccessful();
         $this->assertTrue($response->viewData('page')['props']['requiresLicenceUpdate']);
 
@@ -179,7 +179,7 @@ class LicenceRequirementTest extends TestCase
         $response->assertSuccessful();
         $this->assertTrue($response->viewData('page')['props']['requiresLicenceUpdate']);
     }
-    
+
     /**
      * Test that POST actions are blocked for managers without licence
      */
@@ -218,7 +218,7 @@ class LicenceRequirementTest extends TestCase
         $user->assignRole(['user', 'responsable-club']);
 
         // First verify requiresLicenceUpdate is true
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('home'));
         $response->assertSuccessful();
         $this->assertTrue($response->viewData('page')['props']['requiresLicenceUpdate']);
 
@@ -235,7 +235,7 @@ class LicenceRequirementTest extends TestCase
 
         // Verify requirement is now false
         $user->refresh();
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('home'));
         $response->assertSuccessful();
         $this->assertFalse($response->viewData('page')['props']['requiresLicenceUpdate']);
     }

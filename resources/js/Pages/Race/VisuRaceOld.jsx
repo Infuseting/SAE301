@@ -1,5 +1,4 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link } from '@inertiajs/react';
 
 export default function VisuRace({ auth, race: raceData, error, errorMessage }) {
@@ -22,14 +21,14 @@ export default function VisuRace({ auth, race: raceData, error, errorMessage }) 
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                     </svg>
                                 </div>
-                                
+
                                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
                                     {error || 'Course non trouvée'}
                                 </h3>
                                 <p className="text-gray-600 mb-8">
                                     {errorMessage || "La course que vous recherchez n'existe pas ou a été supprimée."}
                                 </p>
-                                
+
                                 <div className="flex justify-center gap-4">
                                     <Link
                                         href="/"
@@ -99,19 +98,19 @@ export default function VisuRace({ auth, race: raceData, error, errorMessage }) 
     // Formatage des dates
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('fr-FR', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+        return date.toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
     };
 
     const formatTime = (dateString) => {
         const date = new Date(dateString);
-        return date.toLocaleTimeString('fr-FR', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+        return date.toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 
@@ -190,7 +189,7 @@ export default function VisuRace({ auth, race: raceData, error, errorMessage }) 
                                 </div>
                                 <h1 className="text-3xl font-bold text-gray-900 mb-4">{race.title}</h1>
                                 <p className="text-gray-600 leading-relaxed mb-6">{race.description}</p>
-                                
+
                                 {/* Quick info */}
                                 <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                                     <div className="flex items-center gap-2">
@@ -303,7 +302,7 @@ export default function VisuRace({ auth, race: raceData, error, errorMessage }) 
                                                 />
                                             </div>
                                             <p className="mt-2 text-sm text-gray-500">
-                                                {availableSpots > 0 
+                                                {availableSpots > 0
                                                     ? `${availableSpots} places restantes`
                                                     : 'Complet !'
                                                 }

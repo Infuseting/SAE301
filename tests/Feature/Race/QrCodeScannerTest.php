@@ -9,7 +9,6 @@ use App\Models\Raid;
 use App\Models\Registration;
 use App\Models\Team;
 use App\Models\User;
-use App\Services\QrCodeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +17,7 @@ use Tests\TestCase;
 
 /**
  * Feature tests for QR Code Scanner functionality
- * 
+ *
  * Tests cover:
  * - Scanner page access (authorization)
  * - Check-in API endpoint
@@ -44,9 +43,9 @@ class QrCodeScannerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         Storage::fake('public');
-        
+
         $this->createRolesAndPermissions();
         $this->createTestData();
     }
@@ -143,11 +142,6 @@ class QrCodeScannerTest extends TestCase
         $this->registration->reg_points = 0;
         $this->registration->is_present = false;
         $this->registration->saveQuietly();
-
-        // Generate QR code for registration
-        $qrService = new QrCodeService();
-        $qrPath = $qrService->generateQrCodeForTeam($this->team->equ_id, $this->registration->reg_id);
-        $this->registration->updateQuietly(['qr_code_path' => $qrPath]);
     }
 
     // ==========================================
@@ -216,7 +210,7 @@ class QrCodeScannerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'success' => true,
+            'status' => 'success',
             'message' => 'Team successfully checked in!',
         ]);
 
@@ -286,8 +280,13 @@ class QrCodeScannerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'success' => true,
-            'already_present' => true,
+            'status' => 'success',
+            'data' => [
+                'already_present' => true,
+                'registration' => [
+                    'reg_id' => $this->registration->reg_id,
+                ]
+            ]
         ]);
     }
 

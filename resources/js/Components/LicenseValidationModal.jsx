@@ -1,5 +1,4 @@
 import Modal from '@/Components/Modal';
-import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
 import { useEffect, useRef } from 'react';
@@ -7,12 +6,12 @@ import { usePage } from '@inertiajs/react';
 
 /**
  * LicenseValidationModal
- * 
+ *
  * Modal displayed when an invalid FFCO license number is submitted.
  * Provides two options:
  * 1. "Changer" - Close modal and let user correct the license number
  * 2. "Plus tard" - Clear license number and submit form (user loses/doesn't get "adherent" role)
- * 
+ *
  * This modal is UNCLOSEABLE except via the two action buttons.
  * Protection: If removed from DOM, page interaction is blocked.
  */
@@ -35,7 +34,7 @@ export default function LicenseValidationModal({ show, onClose, onConfirmWithout
         const checkModalIntegrity = setInterval(() => {
             if (show && modalRef.current) {
                 const modalInDom = document.body.contains(modalRef.current);
-                
+
                 if (!modalInDom) {
                     // Modal has been removed from DOM - create permanent blocking overlay
                     if (!overlayRef.current) {
@@ -67,17 +66,17 @@ export default function LicenseValidationModal({ show, onClose, onConfirmWithout
                                 <p class="text-lg mt-2">${messages['modal.license_validation.reload_page'] || "Veuillez recharger la page."}</p>
                             </div>
                         `;
-                        
+
                         // Make it unremovable
                         Object.defineProperty(blockingOverlay, 'remove', {
                             value: () => {},
                             writable: false,
                             configurable: false
                         });
-                        
+
                         document.body.appendChild(blockingOverlay);
                         overlayRef.current = blockingOverlay;
-                        
+
                         // Block all interactions
                         document.body.style.pointerEvents = 'none';
                         blockingOverlay.style.pointerEvents = 'auto';

@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers\Team;
 
+use App\Http\Controllers\Api\ApiResponseTrait;
 use App\Http\Controllers\Controller;
-use Inertia\Inertia;
-use Illuminate\Http\Request;
+use App\Http\Requests\Team\StoreTeamRequest;
+use App\Mail\TeamInvitation;
+use App\Models\Invitation;
+use App\Models\Registration;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\Invitation;
-use App\Mail\TeamInvitation;
+use App\Services\QrCodeService;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
 use OpenApi\Annotations as OA;
 
 /**
@@ -19,99 +25,92 @@ use OpenApi\Annotations as OA;
  */
 class TeamController extends Controller
 {
-    /**
-     * Show the form for creating a new team.
-     * 
-     * @OA\Get(
-     *     path="/api/team/create",
-     *     tags={"Teams"},
-     *     summary="Show team creation form",
-     *     description="Display the team creation page",
-     *     @OA\Response(
-     *         response=200,
-     *         description="Team creation page"
-     *     ),
-     *     security={{"apiAuth": {}}}
-     * )
-     */
-    public function create()
+    use ApiResponseTrait;
+
+    public function create(): Response
     {
         return Inertia::render('Team/CreateTeam');
     }
 
     /**
      * Store a newly created team with users.
-     * 
+     *
      * Creates a new team, assigns the leader and teammates,
      * and adds the creator based on their selected role (leader or teammate).
      * Prevents duplicate entries and ensures the creator is not added multiple times.
-     * 
+     *
      * @OA\Post(
-     *     path="/api/team",
+     *     path="/api/teams",
      *     tags={"Teams"},
      *     summary="Create a new team",
      *     description="Create a new team with optional teammates and email invitations",
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\MediaType(
-     *             mediaType="multipart/form-data",
-     *             @OA\Schema(
-     *                 required={"name"},
-     *                 @OA\Property(property="name", type="string", maxLength=32, example="Les Aventuriers"),
-     *                 @OA\Property(property="image", type="file", description="Team logo (max 2MB)"),
-     *                 @OA\Property(
-     *                     property="teammates",
-     *                     type="array",
-     *                     @OA\Items(
-     *                         type="object",
-     *                         @OA\Property(property="id", type="integer", example=5)
-     *                     )
-     *                 ),
-     *                 @OA\Property(
-     *                     property="emailInvites",
-     *                     type="array",
-     *                     @OA\Items(type="string", format="email", example="user@example.com")
-     *                 ),
-     *                 @OA\Property(property="join_team", type="boolean", example=true)
-     *             )
+     *         @OA\JsonContent(
+     *             required={"name"},
+     *             @OA\Property(property="name", type="string", maxLength=32, example="Les Aventuriers"),
+     *             @OA\Property(property="image", type="string", nullable=true, example=null, description="Optional team image URL"),
+     *             @OA\Property(
+     *                  property="teammates",
+     *                  type="array",
+     *                  items=@OA\Items(type="object", @OA\Property(property="id", type="integer")),
+     *                  description="List of teammates' IDs. At least one teammate is required if 'join_team' is not true.",
+     *                  nullable=true
+     *             ),
+     *             @OA\Property(
+     *                  property="emailInvites",
+     *                  type="array",
+     *                  items=@OA\Items(type="string", format="email"),
+     *                  description="List of email invitations for the team.",
+     *                  nullable=true
+     *              ),
+     *             @OA\Property(
+     *                  property="join_team",
+     *                  type="boolean",
+     *                  description="Flag to indicate if the user is joining an existing team. Either 'join_team' or 'teammates' must be provided or both.",
+     *                  nullable=true
+     *              )
      *         )
      *     ),
+     *     @OA\Response(
+     *          response=200,
+     *          description="Team created successfully",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Team created successfully")
+     *          )
+     *      ),
      *     @OA\Response(
      *         response=302,
      *         description="Team created successfully, redirect to dashboard"
      *     ),
      *     @OA\Response(
+     *          response=400,
+     *          description="Bad Request - Validation error, either 'join_team' or 'teammates' must be provided",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="error", type="string", example="Either 'join_team' or 'teammates' must be provided.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthorized - You must be authenticated to create a team.",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="error", type="string", example="Unauthorized")
+     *          )
+     *      ),
+     *      @OA\Response(
      *         response=422,
      *         description="Validation error"
-     *     ),
-     *     security={{"apiAuth": {}}}
+     *      ),
+     *      security={{"apiAuth": {}}}
      * )
      */
-    public function store(Request $request)
+    public function store(StoreTeamRequest $request)
     {
         // Le créateur est toujours le leader
         $creatorId = $request->user()->id;
 
-        // Validate input
-        $validated = $request->validate([
-            'name' => 'required|string|max:32',
-            'image' => 'nullable|image|max:2048',
-            'teammates' => 'nullable|array',
-            'teammates.*.id' => 'integer|exists:users,id',
-            'emailInvites' => 'nullable|array',
-            'emailInvites.*' => 'email',
-            'join_team' => 'nullable|boolean',
-        ]);
-
-        // Vérifier qu'il y a au moins un participant (créateur ou coéquipiers)
-        $joinTeam = $validated['join_team'] ?? false;
-        $hasTeammates = !empty($validated['teammates']);
-        
-        if (!$joinTeam && !$hasTeammates) {
-            return back()->withErrors([
-                'teammates' => 'L\'équipe doit avoir au moins un participant. Cochez "Je participe" ou ajoutez des coéquipiers.'
-            ])->withInput();
-        }
+        // Get validated data
+        $validated = $request->validated();
 
         // Create the team with the creator as leader
         $team = Team::create([
@@ -119,23 +118,23 @@ class TeamController extends Controller
             'equ_image' => $request->file('image') ? $request->file('image')->store('teams', 'public') : null,
             'user_id' => $creatorId,
         ]);
-        
+
         $usersToAttach = [];
 
-        if (!empty($validated['join_team']) && $validated['join_team']) {
+        if (!empty($validated['join_team'])) {
             // If the creator wants to join as a teammate, add them
             $usersToAttach[] = $creatorId;
         }
 
         // Add teammates to the team
         if (!empty($validated['teammates'])) {
-            $teammateIds = array_map(fn($teammate) => (int) $teammate['id'], $validated['teammates']);
+            $teammateIds = array_map(static fn($teammate) => (int) $teammate['id'], $validated['teammates']);
             foreach ($teammateIds as $id) {
                 if ($id !== $creatorId) {
                     $usersToAttach[] = $id;
                 }
             }
-        }        
+        }
         if (!empty($usersToAttach)) {
             $team->users()->attach(array_unique($usersToAttach));
         }
@@ -144,7 +143,7 @@ class TeamController extends Controller
         if (!empty($validated['emailInvites'])) {
             foreach ($validated['emailInvites'] as $email) {
                 $token = Str::random(64);
-                
+
                 Invitation::create([
                     'inviter_id' => $creatorId,
                     'invitee_id' => null,
@@ -154,19 +153,26 @@ class TeamController extends Controller
                     'status' => 'pending',
                     'expires_at' => now()->addDays(7),
                 ]);
-                
+
                 Mail::to($email)->send(new TeamInvitation($team->equ_name, $request->user()->name, $token));
             }
         }
-        
-        return redirect()->route('dashboard')->with('success', 'Équipe créée avec succès!');
+
+        if ($request->wantsJson()) {
+            return $this->successResponse([
+                'team_id' => $team->equ_id,
+                'team_name' => $team->equ_name,
+            ], 'Team created successfully', 201);
+        }
+
+        return redirect()->route('home')->with('success', 'Équipe créée avec succès!');
     }
 
     /**
      * Display team details.
-     * 
+     *
      * @OA\Get(
-     *     path="/api/teams/{team}",
+     *     path="/api/teams/{teamId}",
      *     tags={"Teams"},
      *     summary="Get team details",
      *     description="Display detailed information about a specific team",
@@ -187,7 +193,7 @@ class TeamController extends Controller
      *     )
      * )
      */
-    public function show(Team $team)
+    public function show(Team $team): Response
     {
         // Get team members
         $members = $team->users()->get()->map(fn($user) => [
@@ -195,6 +201,17 @@ class TeamController extends Controller
             'name' => $user->name,
             'avatar' => $user->avatar,
         ])->toArray();
+        /*
+         $members = $team->users()
+            ->get()
+            ->map(fn($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => $user->avatar,
+            ])
+            ->toArray();
+        */
 
         // Get all users for invitation
         $users = User::all()->map(fn($user) => [
@@ -204,6 +221,9 @@ class TeamController extends Controller
             'avatar' => $user->avatar,
         ])->toArray();
 
+        // Get leader info
+        $leader = $team->creator ?? null;
+
         return Inertia::render('Team/Show', [
             'team' => [
                 'id' => $team->equ_id,
@@ -211,7 +231,13 @@ class TeamController extends Controller
                 'image' => $team->equ_image ? '/storage/' . $team->equ_image : null,
                 'members' => $members,
                 'created_at' => $team->created_at->format('d/m/Y'),
-                'creator_id' => $team->user_id,  
+                'members_count' => count($members),
+                'creator_id' => $team->user_id,
+                'creator' => $leader ? [
+                    'id' => $leader->id,
+                    'name' => $leader->name,
+                    'email' => $leader->email,
+                ] : null,
             ],
             'users' => $users,
         ]);
@@ -219,9 +245,9 @@ class TeamController extends Controller
 
     /**
      * Send invitation email to a user.
-     * 
+     *
      * @OA\Post(
-     *     path="/api/teams/{team}/invite",
+     *     path="/api/teams/{teamId}/invite",
      *     tags={"Teams"},
      *     summary="Send team invitation",
      *     description="Send an invitation to join the team via email",
@@ -236,27 +262,55 @@ class TeamController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"email"},
-     *             @OA\Property(property="email", type="string", format="email", example="invitee@example.com")
+     *             @OA\Property(property="email", type="string", format="email", example="receiver.invite@example.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Invitation sent successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Invitation sent successfully!")
      *         )
      *     ),
      *     @OA\Response(
      *         response=302,
-     *         description="Invitation sent successfully"
+     *         description="Invitation sent successfully (web redirect)"
      *     ),
      *     @OA\Response(
      *         response=403,
      *         description="Unauthorized - Only team leader can invite"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error - Invalid email"
      *     ),
      *     security={{"apiAuth": {}}}
      * )
      */
     public function inviteByEmail(Team $team, Request $request, User $user = null)
     {
-        if ($request->user()->id !== $team->user_id) return response()->json(['error' => 'Unauthorized'], 403);
-        
-        $email = $user?->email ?? $request->validate(['email' => 'required|email'])['email'];
+        // Check authorization - only team leader can invite
+        if ($request->user()->id !== $team->user_id) {
+            $errorMessage = __('messages.team.invitation.unauthorized');
+            $errorMessage = __('team.invitation.unauthorized');
+
+            if ($request->wantsJson()) {
+                return $this->forbiddenResponse($errorMessage);
+            }
+
+            return redirect()->back()->with('error', $errorMessage);
+        }
+
+        // Validate email
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $email = $user?->email ?? $validated['email'];
         $token = Str::random(64);
-        
+
+        // Create invitation
         Invitation::create([
             'inviter_id' => $request->user()->id,
             'invitee_id' => $user?->id,
@@ -266,17 +320,33 @@ class TeamController extends Controller
             'status' => 'pending',
             'expires_at' => now()->addDays(7),
         ]);
-        
+
+        // Send invitation email
         Mail::to($email)->send(new TeamInvitation($team->equ_name, $request->user()->name, $token));
-        return redirect()->back()->with('success', 'Invitation envoyée');
+
+        $successMessage = __('messages.team.invitation.sent_success');
+        $successMessage = __('team.invitation.sent_success');
+
+        // Return JSON response for API requests
+        if ($request->wantsJson()) {
+            return $this->successResponse([
+                'token' => $token,
+                'email' => $email,
+                'expires_at' => now()->addDays(7)->toIso8601String(),
+                'accept_url' => route('api.teams.invitations.accept', $token),
+            ], $successMessage);
+        }
+
+        // Redirect for web requests
+        return redirect()->back()->with('success', $successMessage);
     }
 
     /**
      * Display registration ticket with QR code.
      * Shows the QR code for a validated team registration.
-     * 
+     *
      * @OA\Get(
-     *     path="/api/teams/{team}/registration/{registrationId}/ticket",
+     *     path="/api/teams/{teamId}/registration/{registrationId}/ticket",
      *     tags={"Teams"},
      *     summary="Show team registration ticket",
      *     description="Display the registration ticket with QR code for race check-in",
@@ -309,38 +379,38 @@ class TeamController extends Controller
      *     security={{"apiAuth": {}}}
      * )
      */
-    public function showRegistrationTicket(Team $team, int $registrationId)
+    public function showRegistrationTicket(Team $team, int $registrationId): Response
     {
         $user = auth()->user();
-        
+
         // Check if user is team leader or member
         $isTeamLeader = $team->user_id === $user->id;
         $isTeamMember = $team->users()->where('users.id', $user->id)->exists();
-        
+
         if (!$isTeamLeader && !$isTeamMember) {
             abort(403, 'Unauthorized. You must be a team member to view this ticket.');
         }
 
         // Get registration with race and raid information
-        $registration = \App\Models\Registration::with(['race.raid', 'team.leader', 'team.users'])
+        $registration = Registration::with(['race.raid', 'team.leader', 'team.users'])
             ->where('reg_id', $registrationId)
             ->where('equ_id', $team->equ_id)
             ->firstOrFail();
 
         // Note: We allow viewing the ticket even if not validated yet
         // The ticket will show the validation status
-        
+
         // Generate QR code if it doesn't exist yet
         if (empty($registration->qr_code_path)) {
             try {
-                $qrCodeService = app(\App\Services\QrCodeService::class);
+                $qrCodeService = app(QrCodeService::class);
                 $qrPath = $qrCodeService->generateQrCodeForTeam(
                     $registration->equ_id,
                     $registration->reg_id
                 );
                 $registration->updateQuietly(['qr_code_path' => $qrPath]);
                 $registration->refresh(); // Reload to get the updated qr_code_url accessor
-            } catch (\Exception $e) {
+            } catch (Exception) {
                 //
             }
         }
@@ -387,9 +457,9 @@ class TeamController extends Controller
 
     /**
      * Show the invitation acceptance page.
-     * 
+     *
      * @OA\Get(
-     *     path="/api/invitations/{token}",
+     *     path="/api/teams/invitations/{token}",
      *     tags={"Teams"},
      *     summary="Show invitation acceptance page",
      *     description="Display the page to accept a team invitation via token",
@@ -417,12 +487,12 @@ class TeamController extends Controller
     public function showAcceptInvitation($token)
     {
         $invitation = Invitation::where('token', $token)->firstOrFail();
-        
-        if ($invitation->expires_at < now() || $invitation->status !== 'pending') {
+
+        if ($invitation->status !== 'pending' || $invitation->expires_at < now()) {
             return redirect()->route('home')->with('error', 'Cette invitation a expiré ou a déjà été utilisée.');
         }
 
-        // If not authenticated, store token in session and redirect to login
+        // If not authenticated, store token in session and redirect to log in
         if (!auth()->check()) {
             session()->put('pending_invitation_token', $token);
             return redirect()->route('login')->with('info', 'Connectez-vous pour accepter l\'invitation.');
@@ -443,9 +513,9 @@ class TeamController extends Controller
 
     /**
      * Accept an invitation via token.
-     * 
+     *
      * @OA\Post(
-     *     path="/api/invitations/{token}/accept",
+     *     path="/api/teams/invitations/{token}/accept",
      *     tags={"Teams"},
      *     summary="Accept team invitation",
      *     description="Accept a team invitation and join the team",
@@ -467,33 +537,54 @@ class TeamController extends Controller
      *     security={{"apiAuth": {}}}
      * )
      */
-    public function acceptInvitation($token)
+    public function acceptInvitation($token, Request $request)
     {
         $invitation = Invitation::where('token', $token)->firstOrFail();
-        
-        if ($invitation->expires_at < now() || $invitation->status !== 'pending') {
-            return redirect()->route('home')->with('error', 'Cette invitation a expiré ou a déjà été utilisée.');
+
+        if ($invitation->status !== 'pending' || $invitation->expires_at < now()) {
+            $errorMessage = __('messages.team.invitation.expired');
+            $errorMessage = __('team.invitation.expired');
+
+            // Return JSON response for API requests
+            if ($request->wantsJson()) {
+                return $this->errorResponse($errorMessage, 410);
+            }
+
+            // Redirect for web requests
+            return redirect()->route('home')->with('error', $errorMessage);
         }
 
         $team = Team::findOrFail($invitation->equ_id);
-        
+
         // Add user to team if not already a member
         if (!$team->users()->wherePivot('id_users', auth()->id())->exists()) {
             $team->users()->attach(auth()->id());
         }
-        
+
         $invitation->update(['status' => 'accepted', 'invitee_id' => auth()->id()]);
 
-        return redirect()->route('teams.show', $team->equ_id)->with('success', 'Vous avez rejoint l\'équipe!');
+        $successMessage = __('messages.team.invitation.joined_success');
+        $successMessage = __('team.invitation.joined_success');
+
+        // Return JSON response for API requests
+        if ($request->wantsJson()) {
+            return $this->successResponse([
+                'team_id' => $team->equ_id,
+                'team_name' => $team->equ_name,
+            ], $successMessage);
+        }
+
+        // Redirect for web requests
+        return redirect()->route('teams.show', $team->equ_id)->with('success', $successMessage);
     }
 
     /**
      * Download QR code image with permission verification
-     * 
+     *
      * Only team members and leaders can download QR codes
-     * 
+     *
      * @OA\Get(
-     *     path="/api/teams/{team}/registration/{registration}/qr-code",
+     *     path="/api/teams/{teamId}/registration/{registration}/qr-code",
      *     summary="Download QR code image",
      *     tags={"Teams"},
      *     @OA\Parameter(
@@ -526,17 +617,17 @@ class TeamController extends Controller
     public function downloadQrCode(Team $team, int $registrationId)
     {
         $user = auth()->user();
-        
+
         // Check if user is team leader or member
         $isTeamLeader = $team->user_id === $user->id;
         $isTeamMember = $team->users()->where('users.id', $user->id)->exists();
-        
+
         if (!$isTeamLeader && !$isTeamMember) {
             abort(403, 'Unauthorized. You must be a team member to access this QR code.');
         }
 
         // Get registration to verify it belongs to this team
-        $registration = \App\Models\Registration::where('reg_id', $registrationId)
+        $registration = Registration::where('reg_id', $registrationId)
             ->where('equ_id', $team->equ_id)
             ->firstOrFail();
 

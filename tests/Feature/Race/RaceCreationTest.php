@@ -19,7 +19,7 @@ use Tests\TestCase;
 
 /**
  * Test suite for Race creation functionality
- * 
+ *
  * Tests cover:
  * - Access control (only responsable-course, gestionnaire-raid, admin can create)
  * - Validation rules (dates, required fields, relationships)
@@ -247,7 +247,7 @@ class RaceCreationTest extends TestCase
     public function test_responsable_course_can_access_race_creation_page(): void
     {
         $response = $this->actingAs($this->responsableCourseUser)
-            ->get(route('races.create'));
+            ->get(route('races.create', ['raid_id' => $this->raid->raid_id]));
 
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page
@@ -263,7 +263,7 @@ class RaceCreationTest extends TestCase
     public function test_admin_can_access_race_creation_page(): void
     {
         $response = $this->actingAs($this->adminUser)
-            ->get(route('races.create'));
+            ->get(route('races.create', ['raid_id' => $this->raid->raid_id]));
 
         $response->assertStatus(200);
     }
@@ -552,7 +552,7 @@ class RaceCreationTest extends TestCase
         // Verify race has a pac_id reference
         $this->assertNotNull($race);
         $this->assertNotNull($race->pac_id);
-        
+
         // Verify ParamRunner exists via model
         $this->assertNotNull(ParamRunner::find($race->pac_id));
     }
@@ -572,7 +572,7 @@ class RaceCreationTest extends TestCase
         // Verify race has a pae_id reference
         $this->assertNotNull($race);
         $this->assertNotNull($race->pae_id);
-        
+
         // Verify ParamTeam exists via model
         $this->assertNotNull(ParamTeam::find($race->pae_id));
     }

@@ -12,6 +12,9 @@ class ProfileRedesignTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * @throws \JsonException
+     */
     public function test_profile_can_be_updated_with_new_fields()
     {
         Storage::fake('public');
@@ -34,9 +37,11 @@ class ProfileRedesignTest extends TestCase
                 'photo' => $photo,
             ]);
 
+        /*
         if (session('errors')) {
             dump(session('errors')->all());
         }
+        */
         $response->assertSessionHasNoErrors();
         $response->assertRedirect('/profile/edit');
 

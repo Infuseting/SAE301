@@ -14,6 +14,7 @@ class Team extends Model
 
     protected $table = 'teams';
     protected $primaryKey = 'equ_id';
+    public $timestamps = true;
 
     protected $fillable = [
         'equ_name',
@@ -21,6 +22,22 @@ class Team extends Model
         'user_id',
         'adh_id',
     ];
+
+    /**
+     * Get the route key for model binding.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'equ_id';
+    }
+
+    /**
+     * Get the user who created this team (the leader).
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
 
     public function member(): BelongsTo
     {
@@ -66,5 +83,5 @@ class Team extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
-    
+
 }

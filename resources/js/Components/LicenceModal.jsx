@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 
 /**
  * Modal component for adding licence or PPS code
- * 
+ *
  * @param {boolean} isOpen - Whether the modal is visible
  * @param {function} onClose - Function to call when modal is closed
  * @param {function} onSuccess - Function to call when licence/PPS is added successfully

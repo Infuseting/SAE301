@@ -2,6 +2,8 @@
 
 namespace App\Api;
 
+use OpenApi\Annotations as OA;
+
 /**
  * @OA\Info(
  *      version="1.0.0",
@@ -26,7 +28,7 @@ namespace App\Api;
  *     bearerFormat="JWT",
  *     securityScheme="apiAuth",
  * )
- * 
+ *
  * @OA\Tag(
  *     name="Admin - Club Approval",
  *     description="Admin endpoints for club approval management"
@@ -53,11 +55,7 @@ namespace App\Api;
  * )
  * @OA\Tag(
  *     name="Races",
- *     description="Public race API endpoints"
- * )
- * @OA\Tag(
- *     name="Race Management",
- *     description="Endpoints for managing races"
+ *     description="Race API endpoints"
  * )
  * @OA\Tag(
  *     name="Race Participants",
@@ -65,7 +63,7 @@ namespace App\Api;
  * )
  * @OA\Tag(
  *     name="Raids",
- *     description="Public raids API endpoints"
+ *     description="Raids API endpoints"
  * )
  * @OA\Tag(
  *     name="Teams",
@@ -76,13 +74,13 @@ namespace App\Api;
  *     description="Endpoints for validating team age composition and participant eligibility"
  * )
  * @OA\Tag(
- *     name="Team Management",
- *     description="Endpoints for team management (admin and team leaders)"
- * )
- * @OA\Tag(
  *     name="User",
  *     description="User profile and account management endpoints"
  * )
+ * @OA\Tag(
+ *      name="Users",
+ *      description="Users management endpoints"
+ *  )
  */
 
 

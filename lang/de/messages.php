@@ -143,7 +143,7 @@ return [
     'admin.logs.no_activity' => 'Vorerst keine Aktivität.',
     'admin.logs.page_info' => 'Seite :current / :last — :total Einträge',
 
-    // Welcome Page
+    // Welcome page
     'documentation_text' => 'Laravel hat eine wunderbare Dokumentation, die alle Aspekte des Frameworks abdeckt. Unabhängig davon, ob Sie neu sind oder bereits Erfahrung mit Laravel haben, empfehlen wir Ihnen, unsere Dokumentation von Anfang bis Ende zu lesen.',
     'laracasts_text' => 'Laracasts bietet Tausende von Videotutorials zur Laravel-, PHP- und JavaScript-Entwicklung. Schauen Sie sich diese an, sehen Sie selbst und verbessern Sie Ihre Entwicklungsfähigkeiten erheblich.',
     'laravel_news_text' => 'Laravel News ist ein von der Community verwaltetes Portal und Newsletter, das alle neuesten und wichtigsten Nachrichten aus dem Laravel-Ökosystem zusammenfasst, einschließlich neuer Paketversionen und Tutorials.',
@@ -225,19 +225,6 @@ return [
         'veterans4' => 'Veteranen 4 (70 Jahre und älter)',
     ],
 
-    // Footer
-    'footer_tagline' => 'Der Standard für Orientierungslauf in Frankreich.',
-    'footer_navigation' => 'Navigation',
-    'footer_links_calendar' => 'Kalender',
-    'footer_links_clubs' => 'Clubs',
-    'footer_links_results' => 'Ergebnisse',
-    'footer_legal' => 'Rechtlich',
-    'footer_links_legal_notice' => 'Rechtliche Hinweise',
-    'footer_links_privacy' => 'Datenschutz',
-    'footer_links_terms' => 'Geschäftsbedingungen',
-    'footer_contact' => 'Kontakt',
-    'footer_copyright' => 'Alle Rechte vorbehalten.',
-
     // Homepage - How it Works
     'how_it_works_title' => 'Wie funktioniert es?',
     'how_it_works_subtitle' => 'Treten Sie in wenigen Schritten der größten Orientierungslauf-Community in Frankreich bei.',
@@ -276,7 +263,7 @@ return [
     'member_since' => 'Mitglied seit :date',
     'description_bio' => 'Beschreibung / Bio',
     'edit_profile' => 'Bearbeiten',
-    
+
     // Registration and credentials
     'pps_added_successfully' => 'PPS-Code erfolgreich hinzugefügt',
     'add_licence' => 'Lizenz hinzufügen',
@@ -290,7 +277,7 @@ return [
     'no_permission_to_register' => 'Sie haben keine Berechtigung, sich für dieses Rennen anzumelden',
     'registration_successful' => 'Registrierung erfolgreich',
     'valid_until' => 'Gültig bis',
-    
+
     // Registration conflicts
     'team_not_found' => 'Team nicht gefunden',
     'team_has_no_members' => 'Das Team hat keine Mitglieder',
@@ -339,7 +326,6 @@ return [
     'team_updated_successfully' => 'Team erfolgreich aktualisiert',
     'team_deleted_successfully' => 'Team erfolgreich gelöscht',
     'member_removed_successfully' => 'Mitglied erfolgreich aus dem Team entfernt',
-    'cancel' => 'Abbrechen',
     'team_members' => 'Teammitglieder',
     'add_member' => 'Mitglied hinzufügen',
     'search_member' => 'Nach Name oder E-Mail suchen...',
@@ -464,8 +450,17 @@ return [
     'modal.license_validation.format_hint' => 'Erwartetes Format: 5-6 Ziffern oder 1-2 Buchstaben gefolgt von 5-6 Ziffern',
     'modal.license_validation.important' => 'Wichtig',
     'modal.license_validation.warning_lose_role' => 'Wenn Sie ohne gültige Lizenz fortfahren, verlieren Sie Ihre spezielle Rolle und den Zugang zu den zugehörigen Funktionen.',
+    'modal.license_validation.title' => 'Ungültige Lizenznummer',
+    'modal.license_validation.invalid_message' => 'Die eingegebene FFCO-Lizenznummer ist ungültig.',
+    'modal.license_validation.expected_format' => 'Erwartetes Format:',
+    'modal.license_validation.format_explanation' => '(5-6 Ziffern oder 1-2 Buchstaben gefolgt von 5-6 Ziffern)',
+    'modal.license_validation.warning' => 'Wenn Sie ohne Lizenznummer fortfahren, können Sie die Rolle nicht erhalten (oder verlieren sie)',
+    'modal.license_validation.adherent_role' => '"Mitglied"',
+    'modal.license_validation.features_access' => 'die Ihnen Zugang zu bestimmten Funktionen gibt.',
     'modal.license_validation.change_number' => 'Nummer ändern',
     'modal.license_validation.continue_without' => 'Ohne Lizenz fortfahren',
+    'modal.license_validation.unauthorized_action' => 'Nicht autorisierte Aktion erkannt.',
+    'modal.license_validation.reload_page' => 'Bitte laden Sie die Seite neu.',
 
     // ProfileCompletionModal
     'modal.profile_completion.title' => 'Registrierung abschließen',
@@ -554,6 +549,8 @@ return [
     'modal.select_responsable.search_placeholder' => 'Nach Benutzer suchen...',
     'modal.select_responsable.no_users_found' => 'Keine Benutzer gefunden',
     'modal.select_responsable.no_users_available' => 'Keine Benutzer verfügbar',
+    'modal.select_responsable.no_results' => 'Kein Benutzer gefunden',
+    'modal.select_responsable.no_users' => 'Keine Benutzer verfügbar',
 
     // UpdatePPSModal
     'modal.update_pps.title_manage' => 'PPS verwalten',
@@ -566,6 +563,13 @@ return [
     'modal.update_pps.pps_placeholder' => 'PPS-Nummer eingeben',
     'modal.update_pps.approve_directly' => 'Direkt genehmigen',
     'modal.update_pps.save_and_verify' => 'PPS speichern und automatisch verifizieren',
+    'modal.update_pps.manage_title' => 'PPS verwalten',
+    'modal.update_pps.add_title' => 'PPS hinzufügen',
+    'modal.update_pps.expiry_date' => 'Ablaufdatum *',
+    'modal.update_pps.approve_directly_desc' => 'PPS speichern und in einem Schritt verifizieren',
+    'modal.update_pps.approve' => 'Genehmigen',
+    'modal.update_pps.reject' => 'Ablehnen',
+    'modal.update_pps.saving' => 'Speichern...',
 
     // ConnectedAccountsForm
     'modal.connected_accounts.connected' => 'Verbunden',
@@ -583,7 +587,10 @@ return [
     'user_last_races.view_race' => 'Rennen ansehen',
 
     // InviteByEmailModal
+    'modal.invite_email.title' => 'Per E-Mail einladen',
     'modal.invite_email.invalid_email' => 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+    'modal.invite_email.create_mode_info' => 'Diese Person erhält eine E-Mail-Einladung, nachdem das Team erstellt wurde.',
+    'modal.invite_email.placeholder' => 'E-Mail eingeben...',
     'modal.invite_email.will_receive_invitation' => 'Diese Person erhält eine E-Mail-Einladung.',
     'modal.invite_email.email_placeholder' => 'E-Mail-Adresse',
     'modal.invite_email.sending' => 'Wird gesendet...',
@@ -598,14 +605,23 @@ return [
     'modal.invite_user.no_users_found' => 'Keine Benutzer gefunden',
     'modal.invite_user.all_already_members' => 'Alle Benutzer sind bereits Mitglieder',
     'modal.invite_user.invite_new' => 'Neuen Benutzer einladen',
+    'modal.invite_user.no_user_found' => 'Kein Benutzer gefunden',
+    'modal.invite_user.all_members' => 'Alle Benutzer sind bereits Mitglieder',
 
     // AdvancedFilter
     'filter.title' => 'Suchfilter',
     'filter.subtitle' => 'Passen Sie Ihre Veranstaltungsauswahl an',
+    'filter.search_filters' => 'Suchfilter',
+    'filter.customize_selection' => 'Passen Sie Ihre Veranstaltungsauswahl an',
     'filter.difficulty_levels' => 'Schwierigkeitsgrade',
     'filter.event_types' => 'Veranstaltungstypen',
     'filter.reset' => 'Zurücksetzen',
     'filter.apply' => 'Filter anwenden',
+    'filter.apply_filters' => 'Filter anwenden',
+    'filter.easy' => 'Einfach',
+    'filter.medium' => 'Mittel',
+    'filter.hard' => 'Schwer',
+    'filter.expert' => 'Experte',
     'filter.difficulty_easy' => 'Einfach',
     'filter.difficulty_medium' => 'Mittel',
     'filter.difficulty_hard' => 'Schwer',
@@ -614,6 +630,8 @@ return [
     // RegisteredMembersModal
     'modal.registered_members.title' => 'Registrierte Mitglieder',
     'modal.registered_members.race' => 'Rennen',
+    'modal.registered_members.participant' => 'Teilnehmer',
+    'modal.registered_members.participants' => 'Teilnehmer',
     'modal.registered_members.no_members' => 'Noch keine registrierten Mitglieder',
 
     // ClubForm
@@ -644,40 +662,6 @@ return [
     'profile.license_hint' => 'Format: 5-6 Ziffern oder 1-2 Buchstaben gefolgt von 5-6 Ziffern (Französischer Orientierungslauf-Verband)',
     'profile.make_public' => 'Mein Profil öffentlich machen (Für andere Benutzer sichtbar)',
 
-    // Team Invite Modals
-    'modal.invite_email.title' => 'Per E-Mail einladen',
-    'modal.invite_email.invalid_email' => 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
-    'modal.invite_email.create_mode_info' => 'Diese Person erhält eine E-Mail-Einladung, nachdem das Team erstellt wurde.',
-    'modal.invite_email.placeholder' => 'E-Mail eingeben...',
-    'modal.invite_email.sending' => 'Senden...',
-    'modal.invite_email.add' => 'Hinzufügen',
-    'modal.invite_email.send' => 'Senden',
-    'modal.invite_user.title' => 'Benutzer einladen',
-    'modal.invite_user.search_placeholder' => 'Benutzer suchen...',
-    'modal.invite_user.add' => 'Hinzufügen',
-    'modal.invite_user.invite' => 'Einladen',
-    'modal.invite_user.no_user_found' => 'Kein Benutzer gefunden',
-    'modal.invite_user.all_members' => 'Alle Benutzer sind bereits Mitglieder',
-    'modal.invite_user.invite_new' => 'Neuen Benutzer einladen',
-
-    // Filter component
-    'filter.search_filters' => 'Suchfilter',
-    'filter.customize_selection' => 'Passen Sie Ihre Veranstaltungsauswahl an',
-    'filter.difficulty_levels' => 'Schwierigkeitsgrade',
-    'filter.event_types' => 'Veranstaltungstypen',
-    'filter.reset' => 'Zurücksetzen',
-    'filter.apply_filters' => 'Filter anwenden',
-    'filter.easy' => 'Einfach',
-    'filter.medium' => 'Mittel',
-    'filter.hard' => 'Schwer',
-    'filter.expert' => 'Experte',
-
-    // Registered Members Modal
-    'modal.registered_members.title' => 'Registrierte Mitglieder',
-    'modal.registered_members.participant' => 'Teilnehmer',
-    'modal.registered_members.participants' => 'Teilnehmer',
-    'modal.registered_members.no_members' => 'Noch keine Mitglieder registriert',
-
     // Profile Completion Modal
     'modal.complete_profile.title' => 'Registrierung abschließen',
     'modal.complete_profile.description' => 'Bitte vervollständigen Sie Ihre persönlichen Daten, um fortzufahren.',
@@ -689,41 +673,6 @@ return [
     'modal.complete_profile.license_placeholder' => 'Z.B.: 123456 oder AB12345',
     'modal.complete_profile.license_format' => 'Format: 5-6 Ziffern oder 1-2 Buchstaben gefolgt von 5-6 Ziffern (Französischer Orientierungslaufverband)',
     'modal.complete_profile.submit' => 'Registrierung abschließen',
-
-    // License Validation Modal
-    'modal.license_validation.title' => 'Ungültige Lizenznummer',
-    'modal.license_validation.invalid_message' => 'Die eingegebene FFCO-Lizenznummer ist ungültig.',
-    'modal.license_validation.expected_format' => 'Erwartetes Format:',
-    'modal.license_validation.format_explanation' => '(5-6 Ziffern oder 1-2 Buchstaben gefolgt von 5-6 Ziffern)',
-    'modal.license_validation.warning' => 'Wenn Sie ohne Lizenznummer fortfahren, können Sie die Rolle nicht erhalten (oder verlieren sie)',
-    'modal.license_validation.adherent_role' => '"Mitglied"',
-    'modal.license_validation.features_access' => 'die Ihnen Zugang zu bestimmten Funktionen gibt.',
-    'modal.license_validation.change_number' => 'Nummer ändern',
-    'modal.license_validation.continue_without' => 'Ohne Lizenz fortfahren',
-    'modal.license_validation.unauthorized_action' => 'Nicht autorisierte Aktion erkannt.',
-    'modal.license_validation.reload_page' => 'Bitte laden Sie die Seite neu.',
-
-    // Select Responsable Modal
-    'modal.select_responsable.title' => 'Verantwortlichen auswählen',
-    'modal.select_responsable.search_placeholder' => 'Nach Name oder E-Mail suchen...',
-    'modal.select_responsable.no_results' => 'Kein Benutzer gefunden',
-    'modal.select_responsable.no_users' => 'Keine Benutzer verfügbar',
-
-    // Update PPS Modal
-    'modal.update_pps.manage_title' => 'PPS verwalten',
-    'modal.update_pps.add_title' => 'PPS hinzufügen',
-    'modal.update_pps.participant' => 'Teilnehmer',
-    'modal.update_pps.pending_verification' => 'Überprüfung ausstehend',
-    'modal.update_pps.verified' => 'Verifiziert',
-    'modal.update_pps.rejected' => 'Abgelehnt',
-    'modal.update_pps.pps_number' => 'PPS-Nummer *',
-    'modal.update_pps.pps_placeholder' => 'Z.B.: 1234567890',
-    'modal.update_pps.expiry_date' => 'Ablaufdatum *',
-    'modal.update_pps.approve_directly' => 'Direkt genehmigen',
-    'modal.update_pps.approve_directly_desc' => 'PPS speichern und in einem Schritt verifizieren',
-    'modal.update_pps.approve' => 'Genehmigen',
-    'modal.update_pps.reject' => 'Ablehnen',
-    'modal.update_pps.saving' => 'Speichern...',
 
     // Common
     'or' => 'oder',
@@ -1057,4 +1006,14 @@ return [
     'clubs.create.approval_description' => 'Ihr Antrag zur Vereinserstellung wird zur Genehmigung durch einen Administrator eingereicht, bevor er veröffentlicht wird.',
     'clubs.create.submit' => 'Verein erstellen',
 
+    // Team Invitations
+    'team.invitation.expired' => 'Diese Einladung ist abgelaufen oder wurde bereits verwendet.',
+    'team.invitation.joined_success' => 'Sie sind erfolgreich dem Team beigetreten!',
+    'team.invitation.joined_message' => 'Sie sind dem Team beigetreten',
+    'team.invitation.sent_success' => 'Einladung erfolgreich versendet!',
+    'team.invitation.unauthorized' => 'Sie sind nicht berechtigt, Einladungen für dieses Team zu versenden.',
+    'team.invitation.invalid_email' => 'Die angegebene E-Mail-Adresse ist nicht gültig.',
+
 ];
+
+

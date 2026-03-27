@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Race;
 use App\Models\Registration;
 use App\Models\LeaderboardTeam;
-use App\Models\Team;
 use App\Models\AgeCategory;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Http\Controllers\Api\ApiResponseTrait;
 
 /**
  * Controller for managing race results by race managers.
@@ -21,6 +23,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class RaceResultController extends Controller
 {
     use AuthorizesRequests;
+    use ApiResponseTrait;
 
     /**
      * Export registered teams to CSV for filling in results.
@@ -33,7 +36,7 @@ class RaceResultController extends Controller
     public function exportTeamsTemplate(int $raceId): HttpResponse
     {
         $race = Race::with(['categorieAges.ageCategory', 'type'])->findOrFail($raceId);
-        
+
         // Authorize the user (must be race manager)
         $this->authorize('update', $race);
 
@@ -61,15 +64,15 @@ class RaceResultController extends Controller
                 // Add category separator
                 $csv .= "\n";
                 $csv .= "# === CATÉGORIE: {$ageCategory->nom} ({$ageCategory->age_min}-{$ageCategory->age_max} ans) ===\n";
-                
+
                 foreach ($registrations as $registration) {
                     // Check if team fits in this age category
                     $teamAgeCategory = $this->determineTeamAgeCategory($registration, $ageCategories);
-                    
+
                     if ($teamAgeCategory && $teamAgeCategory->id === $ageCategory->id) {
                         $teamName = $registration->team ? $registration->team->equ_name : 'Équipe inconnue';
                         $dossard = $registration->reg_dossard ?? '';
-                        
+
                         $csv .= sprintf(
                             "%s;%s;%s;;;\n",
                             $dossard,
@@ -86,7 +89,7 @@ class RaceResultController extends Controller
                 $dossard = $registration->reg_dossard ?? '';
                 $ageCategory = $ageCategories->first();
                 $ageCategoryName = $ageCategory ? $ageCategory->nom : '';
-                
+
                 $csv .= sprintf(
                     "%s;%s;%s;;;\n",
                     $dossard,
@@ -114,12 +117,12 @@ class RaceResultController extends Controller
      *
      * @param Request $request
      * @param int $raceId
-     * @return \Illuminate\Http\RedirectResponse
+     * @return JsonResponse
      */
     public function importResults(Request $request, int $raceId)
     {
         $race = Race::with(['categorieAges.ageCategory'])->findOrFail($raceId);
-        
+
         // Authorize the user (must be race manager)
         $this->authorize('update', $race);
 
@@ -130,53 +133,53 @@ class RaceResultController extends Controller
         try {
             $file = $request->file('csv_file');
             $content = file_get_contents($file->getRealPath());
-            
+
             // Remove BOM if present
             $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
-            
+
             $lines = array_filter(explode("\n", $content));
-            
+
             // Skip header line
             array_shift($lines);
-            
+
             $imported = 0;
             $errors = [];
-            
+
             // Get age categories for this race
             $ageCategories = $race->categorieAges->map(fn($pc) => $pc->ageCategory)->filter();
-            
+
             DB::beginTransaction();
-            
+
             foreach ($lines as $lineNumber => $line) {
                 $line = trim($line);
-                
+
                 // Skip empty lines and category separator comments
                 if (empty($line) || str_starts_with($line, '#')) {
                     continue;
                 }
-                
+
                 $data = str_getcsv($line, ';');
-                
+
                 if (count($data) < 6) {
                     $errors[] = "Ligne " . ($lineNumber + 2) . ": Format invalide (moins de 6 colonnes)";
                     continue;
                 }
-                
+
                 [$dossard, $teamName, $ageCategoryName, $temps, $malus, $points] = $data;
-                
+
                 // Skip if no time data
                 if (empty(trim($temps)) && empty(trim($points))) {
                     continue;
                 }
-                
+
                 // Find registration by dossard or team name
                 $registration = $this->findRegistration($raceId, $dossard, $teamName);
-                
+
                 if (!$registration) {
                     $errors[] = "Ligne " . ($lineNumber + 2) . ": Équipe non trouvée (dossard: {$dossard}, nom: {$teamName})";
                     continue;
                 }
-                
+
                 // Find age category by name
                 $ageCategory = null;
                 if (!empty(trim($ageCategoryName))) {
@@ -184,13 +187,13 @@ class RaceResultController extends Controller
                         return strcasecmp($cat->nom, trim($ageCategoryName)) === 0;
                     });
                 }
-                
+
                 // Parse time values
                 $tempsSeconds = $this->parseTimeToSeconds($temps);
                 $malusSeconds = $this->parseTimeToSeconds($malus);
                 $tempsFinal = $tempsSeconds + $malusSeconds;
                 $pointsValue = is_numeric(trim($points)) ? (int)trim($points) : 0;
-                
+
                 // Create or update leaderboard entry
                 LeaderboardTeam::updateOrCreate(
                     [
@@ -206,12 +209,12 @@ class RaceResultController extends Controller
                         'points' => $pointsValue,
                     ]
                 );
-                
+
                 $imported++;
             }
-            
+
             DB::commit();
-            
+
             // Log activity
             activity()
                 ->causedBy($request->user())
@@ -223,7 +226,7 @@ class RaceResultController extends Controller
                     'ip' => $request->ip(),
                 ])
                 ->log('RACE_RESULTS_IMPORTED');
-            
+
             $message = "{$imported} résultat(s) importé(s) avec succès.";
             if (!empty($errors)) {
                 $message .= " " . count($errors) . " erreur(s) rencontrée(s).";
@@ -233,17 +236,12 @@ class RaceResultController extends Controller
                     'errors' => $errors,
                 ]);
             }
-            
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-            ]);
-            
+
+            return $this->successResponse($message);
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'error' => 'Erreur lors de l\'import: ' . $e->getMessage(),
-            ], 422);
+            return $this->unprocessableContentResponse($errors = 'Erreur lors de l\'import: ' . $e->getMessage());
         }
     }
 
@@ -264,28 +262,27 @@ class RaceResultController extends Controller
      * @param int $raceId
      * @param string $dossard
      * @param string $teamName
-     * @return Registration|null
      */
-    private function findRegistration(int $raceId, string $dossard, string $teamName): ?Registration
+    private function findRegistration(int $raceId, string $dossard, string $teamName)
     {
         // First try by dossard
         if (!empty(trim($dossard))) {
             $registration = Registration::where('race_id', $raceId)
                 ->where('reg_dossard', trim($dossard))
                 ->first();
-            
+
             if ($registration) {
                 return $registration;
             }
         }
-        
+
         // Then try by team name
         $registration = Registration::where('race_id', $raceId)
             ->whereHas('team', function ($query) use ($teamName) {
                 $query->where('equ_name', 'LIKE', trim($teamName));
             })
             ->first();
-        
+
         return $registration;
     }
 
@@ -300,17 +297,17 @@ class RaceResultController extends Controller
         if (empty($time)) {
             return 0;
         }
-        
+
         $time = trim($time);
-        
+
         // If already numeric (seconds)
         if (is_numeric($time)) {
             return (float)$time;
         }
-        
+
         // Parse HH:MM:SS or MM:SS format
         $parts = explode(':', $time);
-        
+
         if (count($parts) === 3) {
             // HH:MM:SS
             return ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (float)$parts[2];
@@ -318,7 +315,7 @@ class RaceResultController extends Controller
             // MM:SS
             return ((int)$parts[0] * 60) + (float)$parts[1];
         }
-        
+
         return 0;
     }
 
@@ -327,43 +324,43 @@ class RaceResultController extends Controller
      * Returns the category where all team members fit within the age range.
      *
      * @param Registration $registration
-     * @param \Illuminate\Support\Collection $ageCategories
+     * @param Collection $ageCategories
      * @return AgeCategory|null
      */
     private function determineTeamAgeCategory(Registration $registration, $ageCategories): ?AgeCategory
     {
         $participants = $registration->participants()->with('user')->where('is_present', true)->get();
-        
+
         if ($participants->isEmpty()) {
             return $ageCategories->first();
         }
-        
+
         $now = now();
         $ages = [];
-        
+
         foreach ($participants as $participant) {
             if ($participant->user && $participant->user->birth_date) {
                 $birthDate = \Carbon\Carbon::parse($participant->user->birth_date);
                 $ages[] = (int) $birthDate->diffInYears($now);
             }
         }
-        
+
         if (empty($ages)) {
             return $ageCategories->first();
         }
-        
+
         // Find the category where all members fit
         // For competitive races, the team's category is determined by the oldest member
         $maxAge = max($ages);
         $minAge = min($ages);
-        
+
         foreach ($ageCategories as $category) {
             // Check if team fits in this category (oldest member determines category)
             if ($maxAge >= $category->age_min && $maxAge <= $category->age_max) {
                 return $category;
             }
         }
-        
+
         // If no exact match, return the category for the oldest age
         return $ageCategories->filter(function ($cat) use ($maxAge) {
             return $maxAge <= $cat->age_max;
@@ -380,11 +377,11 @@ class RaceResultController extends Controller
     public function downloadResults(int $raceId): HttpResponse
     {
         $race = Race::with(['categorieAges.ageCategory', 'type'])->findOrFail($raceId);
-        
+
         // Check if race is competitive with age categories
         $isCompetitive = $race->type && strtolower($race->type->typ_name) === 'compétitif';
         $ageCategories = $race->categorieAges->map(fn($pc) => $pc->ageCategory)->filter();
-        
+
         // Get leaderboard results
         $results = LeaderboardTeam::where('race_id', $raceId)
             ->with(['team', 'ageCategory'])
@@ -401,19 +398,19 @@ class RaceResultController extends Controller
         if ($isCompetitive && $ageCategories->count() > 1) {
             foreach ($ageCategories as $ageCategory) {
                 $categoryResults = $results->filter(fn($r) => $r->age_category_id === $ageCategory->id);
-                
+
                 if ($categoryResults->isEmpty()) {
                     continue;
                 }
-                
+
                 // Add category separator
                 $csv .= "\n";
                 $csv .= "# === CATÉGORIE: {$ageCategory->nom} ({$ageCategory->age_min}-{$ageCategory->age_max} ans) ===\n";
-                
+
                 $rank = 1;
                 foreach ($categoryResults as $result) {
                     $teamName = $result->team ? $result->team->equ_name : 'Équipe inconnue';
-                    
+
                     $csv .= sprintf(
                         "%d;%s;%s;%s;%s;%s;%d\n",
                         $rank++,
@@ -432,7 +429,7 @@ class RaceResultController extends Controller
             foreach ($results as $result) {
                 $teamName = $result->team ? $result->team->equ_name : 'Équipe inconnue';
                 $ageCategoryName = $result->ageCategory?->nom ?? '';
-                
+
                 $csv .= sprintf(
                     "%d;%s;%s;%s;%s;%s;%d\n",
                     $rank++,
@@ -469,15 +466,15 @@ class RaceResultController extends Controller
         if ($seconds <= 0) {
             return '';
         }
-        
+
         $hours = floor($seconds / 3600);
         $minutes = floor(($seconds % 3600) / 60);
         $secs = $seconds % 60;
-        
+
         if ($hours > 0) {
             return sprintf('%02d:%02d:%02d', $hours, $minutes, $secs);
         }
-        
+
         return sprintf('%02d:%02d', $minutes, $secs);
     }
 }

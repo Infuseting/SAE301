@@ -17,7 +17,7 @@ use OpenApi\Annotations as OA;
 class LeaderboardController extends Controller
 {
     public function __construct(
-        private LeaderboardService $leaderboardService
+        private readonly LeaderboardService $leaderboardService
     ) {}
 
     /**
@@ -38,7 +38,7 @@ class LeaderboardController extends Controller
     /**
      * Import leaderboard results from CSV file.
      * Supports both individual and team imports.
-     * 
+     *
      * Team CSV format: CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS
      * Individual CSV format: Rang,Nom,Temps,Malus,Temps Final or user_id;temps;malus
      *
@@ -55,7 +55,7 @@ class LeaderboardController extends Controller
 
         try {
             $type = $request->input('type', 'individual');
-            
+
             if ($type === 'team') {
                 // Use importTeamCsvV2 which supports the new format: CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS
                 // Points from CSV are imported as-is without recalculation
@@ -83,17 +83,17 @@ class LeaderboardController extends Controller
 
             $typeLabel = $type === 'team' ? 'équipes' : 'individuels';
             $message = "Import terminé: {$results['success']} résultats {$typeLabel} importés avec succès.";
-            
+
             // Add info about created teams if applicable
             if ($type === 'team' && isset($results['created_teams']) && $results['created_teams'] > 0) {
                 $message .= " ({$results['created_teams']} nouvelles équipes créées)";
             }
-            
+
             // Add info about created users if applicable (for individual import)
             if ($type === 'individual' && isset($results['created']) && $results['created'] > 0) {
                 $message .= " ({$results['created']} nouveaux utilisateurs créés)";
             }
-            
+
             return redirect()->back()->with('success', $message);
 
         } catch (\Exception $e) {
@@ -112,9 +112,9 @@ class LeaderboardController extends Controller
     {
         $type = $request->input('type', 'individual');
         $race = $this->leaderboardService->getRaces()->firstWhere('race_id', $raceId);
-        
+
         $csv = $this->leaderboardService->exportToCsv($raceId, $type);
-        
+
         $filename = sprintf(
             'classement_%s_%s_%s.csv',
             $race ? str_replace(' ', '_', $race->race_name) : $raceId,
@@ -153,7 +153,7 @@ class LeaderboardController extends Controller
 
         // Use admin leaderboard methods that include private users
         $data = $this->leaderboardService->getAdminLeaderboard($raceId, $search, $type);
-        
+
         // Get race info for the header
         $race = $this->leaderboardService->getRaces()->firstWhere('race_id', $raceId);
 
@@ -176,7 +176,7 @@ class LeaderboardController extends Controller
     public function destroy(Request $request, int $resultId)
     {
         $type = $request->input('type', 'individual');
-        
+
         if ($type === 'team') {
             $deleted = $this->leaderboardService->deleteTeamResult($resultId);
         } else {

@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 
+/**
+ * way of use : php artisan run
+ */
 class RunDevServer extends Command
 {
     /**
@@ -76,7 +79,7 @@ class RunDevServer extends Command
                     $this->output->write($output);
                 }
             }
-            
+
             usleep(100000); // Wait 0.1s to prevent CPU spiking
         }
 

@@ -26,7 +26,7 @@ class TogglePresenceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create roles if they don't exist
         Role::firstOrCreate(['name' => 'admin']);
         Role::firstOrCreate(['name' => 'responsable-course']);
@@ -75,8 +75,10 @@ class TogglePresenceTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'success' => true,
-                'is_present' => true,
+                'status' => 'success',
+                'data' => [
+                    'is_present' => true,
+                ]
             ]);
 
         // Verify database
@@ -93,8 +95,10 @@ class TogglePresenceTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'success' => true,
-                'is_present' => false,
+                'status' => 'success',
+                'data' => [
+                    'is_present' => false,
+                ]
             ]);
 
         // Verify database
@@ -171,8 +175,10 @@ class TogglePresenceTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'success' => true,
-                'is_present' => true,
+                'status' => 'success',
+                'data' => [
+                    'is_present' => true,
+                ]
             ]);
     }
 

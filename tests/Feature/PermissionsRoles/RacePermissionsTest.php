@@ -21,7 +21,7 @@ use Tests\TestCase;
 
 /**
  * Test suite for Race creation permissions
- * 
+ *
  * Tests cover:
  * - Guest users cannot create races
  * - Regular users cannot create races
@@ -265,7 +265,7 @@ class RacePermissionsTest extends TestCase
     public function test_unauthenticated_user_cannot_access_race_creation_page(): void
     {
         $response = $this->get(route('races.create'));
-        
+
         $response->assertRedirect(route('login'));
     }
 
@@ -275,7 +275,7 @@ class RacePermissionsTest extends TestCase
     public function test_unauthenticated_user_cannot_create_race(): void
     {
         $response = $this->post(route('races.store'), $this->getValidRaceData());
-        
+
         $response->assertRedirect(route('login'));
     }
 
@@ -290,7 +290,7 @@ class RacePermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->guestUser)
             ->get(route('races.create'));
-        
+
         $response->assertStatus(403);
     }
 
@@ -301,7 +301,7 @@ class RacePermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->guestUser)
             ->post(route('races.store'), $this->getValidRaceData());
-        
+
         $response->assertStatus(403);
     }
 
@@ -316,7 +316,7 @@ class RacePermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->regularUser)
             ->get(route('races.create'));
-        
+
         $response->assertStatus(403);
     }
 
@@ -327,7 +327,7 @@ class RacePermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->regularUser)
             ->post(route('races.store'), $this->getValidRaceData());
-        
+
         $response->assertStatus(403);
     }
 
@@ -342,7 +342,7 @@ class RacePermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->adherentUser)
             ->get(route('races.create'));
-        
+
         $response->assertStatus(403);
     }
 
@@ -353,7 +353,7 @@ class RacePermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->adherentUser)
             ->post(route('races.store'), $this->getValidRaceData());
-        
+
         $response->assertStatus(403);
     }
 
@@ -362,7 +362,7 @@ class RacePermissionsTest extends TestCase
     // ===========================================
 
     /**
-     * Test that a responsable-club without responsable-course role cannot create races 
+     * Test that a responsable-club without responsable-course role cannot create races
      * if they are NOT the raid responsible and the raid belongs to another club
      */
     public function test_responsable_club_cannot_create_race_if_not_raid_responsible(): void
@@ -406,7 +406,7 @@ class RacePermissionsTest extends TestCase
 
         $response = $this->actingAs($this->responsableClubUser)
             ->post(route('races.store'), $raceData);
-        
+
         $response->assertStatus(403);
     }
 
@@ -422,7 +422,7 @@ class RacePermissionsTest extends TestCase
         $raceData = $this->getValidRaceData();
         $response = $this->actingAs($this->responsableClubUser)
             ->post(route('races.store'), $raceData);
-        
+
         $response->assertRedirect();
         $this->assertDatabaseHas('races', ['race_name' => $raceData['title']]);
     }
@@ -442,7 +442,7 @@ class RacePermissionsTest extends TestCase
         $raceData = $this->getValidRaceData();
         $response = $this->actingAs($this->gestionnaireRaidUser)
             ->post(route('races.store'), $raceData);
-        
+
         $response->assertRedirect();
         $this->assertDatabaseHas('races', ['race_name' => $raceData['title']]);
     }
@@ -455,7 +455,7 @@ class RacePermissionsTest extends TestCase
         // raid adh_id is currently $responsableClubMember->adh_id, not $gestionnaireRaidUser->adh_id
         $response = $this->actingAs($this->gestionnaireRaidUser)
             ->post(route('races.store'), $this->getValidRaceData());
-        
+
         $response->assertStatus(403);
     }
 
@@ -469,8 +469,8 @@ class RacePermissionsTest extends TestCase
     public function test_responsable_course_can_access_race_creation_page(): void
     {
         $response = $this->actingAs($this->responsableCourseUser)
-            ->get(route('races.create'));
-        
+            ->get(route('races.create', ['raid_id' => $this->raid->raid_id]));
+
         $response->assertStatus(200);
     }
 
@@ -480,10 +480,10 @@ class RacePermissionsTest extends TestCase
     public function test_responsable_course_can_create_race(): void
     {
         $raceData = $this->getValidRaceData();
-        
+
         $response = $this->actingAs($this->responsableCourseUser)
             ->post(route('races.store'), $raceData);
-        
+
         $response->assertRedirect();
         $this->assertDatabaseHas('races', ['race_name' => $raceData['title']]);
     }
@@ -502,7 +502,7 @@ class RacePermissionsTest extends TestCase
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -522,7 +522,7 @@ class RacePermissionsTest extends TestCase
 
         $response = $this->actingAs($this->responsableCourseUser)
             ->get(route('races.edit', $race->race_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -536,7 +536,7 @@ class RacePermissionsTest extends TestCase
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -556,7 +556,7 @@ class RacePermissionsTest extends TestCase
 
         $response = $this->actingAs($this->responsableCourseUser)
             ->get(route('races.edit', $race->race_id));
-        
+
         $response->assertStatus(403);
     }
 
@@ -570,8 +570,8 @@ class RacePermissionsTest extends TestCase
     public function test_admin_can_access_race_creation_page(): void
     {
         $response = $this->actingAs($this->adminUser)
-            ->get(route('races.create'));
-        
+            ->get(route('races.create', ['raid_id' => $this->raid->raid_id]));
+
         $response->assertStatus(200);
     }
 
@@ -582,10 +582,10 @@ class RacePermissionsTest extends TestCase
     {
         $raceData = $this->getValidRaceData();
         $raceData['responsableId'] = $this->adminUser->id;
-        
+
         $response = $this->actingAs($this->adminUser)
             ->post(route('races.store'), $raceData);
-        
+
         $response->assertRedirect();
         $this->assertDatabaseHas('races', ['race_name' => $raceData['title']]);
     }
@@ -600,7 +600,7 @@ class RacePermissionsTest extends TestCase
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -620,7 +620,7 @@ class RacePermissionsTest extends TestCase
 
         $response = $this->actingAs($this->adminUser)
             ->get(route('races.edit', $race->race_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -634,7 +634,7 @@ class RacePermissionsTest extends TestCase
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -654,7 +654,7 @@ class RacePermissionsTest extends TestCase
 
         $response = $this->actingAs($this->adminUser)
             ->delete(route('races.destroy', $race->race_id));
-        
+
         $response->assertRedirect();
         $this->assertDatabaseMissing('races', ['race_id' => $race->race_id]);
     }

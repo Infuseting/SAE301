@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { QrCode, Camera, CheckCircle, XCircle, Users, TrendingUp, AlertCircle, Trophy, Loader } from 'lucide-react';
+import { QrCode, Camera, CheckCircle, XCircle, Users, AlertCircle, Trophy, Loader } from 'lucide-react';
 
 /**
  * QR Code Scanner Component for Raid Check-in
@@ -13,7 +13,6 @@ export default function Scanner({ raid, stats }) {
     const [scanResult, setScanResult] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
-    const scannerRef = useRef(null);
     const html5QrCodeRef = useRef(null);
 
     useEffect(() => {
@@ -29,7 +28,7 @@ export default function Scanner({ raid, stats }) {
         try {
             setError(null);
             setScanResult(null);
-            
+
             const html5QrCode = new Html5Qrcode("qr-reader");
             html5QrCodeRef.current = html5QrCode;
 
@@ -71,7 +70,7 @@ export default function Scanner({ raid, stats }) {
         try {
             // Parse QR code data
             const qrData = JSON.parse(decodedText);
-            
+
             if (qrData.type !== 'team_registration') {
                 setError('QR Code invalide. Ce n\'est pas un code d\'inscription d\'équipe.');
                 setLoading(false);
@@ -116,7 +115,7 @@ export default function Scanner({ raid, stats }) {
         }
     };
 
-    const onScanError = (errorMessage) => {
+    const onScanError = () => {
         // Ignore scan errors (they happen continuously while scanning)
     };
 
@@ -253,8 +252,8 @@ export default function Scanner({ raid, stats }) {
 
                                 {scanResult && (
                                     <div className={`rounded-xl p-6 border-2 ${
-                                        scanResult.alreadyPresent 
-                                            ? 'bg-amber-50 border-amber-200' 
+                                        scanResult.alreadyPresent
+                                            ? 'bg-amber-50 border-amber-200'
                                             : 'bg-emerald-50 border-emerald-200'
                                     }`}>
                                         <div className="flex items-start gap-4">
