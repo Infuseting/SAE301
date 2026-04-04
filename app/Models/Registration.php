@@ -10,7 +10,7 @@ use App\Observers\RegistrationObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
 /**
- 
+
  * Represents a team registration for a race.
  * Automatically generates QR codes when validated.
  */
@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 class Registration extends Model
 {
     use HasFactory;
+
 
     /**
      * The table associated with the model.
@@ -88,7 +89,7 @@ class Registration extends Model
     /**
      * Get the secured URL to the QR code image
      * This route requires authentication and team membership verification
-     * 
+     *
      * @return string|null Secured route URL to download QR code
      */
     public function getQrCodeUrlAttribute(): ?string
@@ -107,7 +108,7 @@ class Registration extends Model
     /**
      * Get the legacy public asset URL for backward compatibility
      * Only use this if you absolutely need direct access (deprecated)
-     * 
+     *
      * @return string|null Public asset URL
      * @deprecated Use getQrCodeUrlAttribute() instead for security
      */

@@ -18,10 +18,10 @@ class ProfileCompletionTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->get('/dashboard')
+            ->get('/')
             ->assertInertia(
                 fn(Assert $page) => $page
-                    ->component('Welcome') // Dashboard renders Welcome currently in web.php
+                    ->component('Welcome')
                     ->has(
                         'auth.user',
                         fn(Assert $json) => $json
@@ -40,7 +40,7 @@ class ProfileCompletionTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->get('/dashboard')
+            ->get('/')
             ->assertInertia(
                 fn(Assert $page) => $page
                     ->has(

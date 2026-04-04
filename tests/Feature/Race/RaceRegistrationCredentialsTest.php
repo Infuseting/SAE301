@@ -102,8 +102,11 @@ class RaceRegistrationCredentialsTest extends TestCase
 
         $response->assertStatus(400);
         $response->assertJson([
-            'success' => false,
-            'needs_credentials' => true,
+            'status' => 'error',
+            'data' => [],
+            'errors' => [
+                'needs_credentials' => true
+            ]
         ]);
     }
 
@@ -118,7 +121,7 @@ class RaceRegistrationCredentialsTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'success' => true,
+            'status' => 'success',
         ]);
     }
 
@@ -133,7 +136,7 @@ class RaceRegistrationCredentialsTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'success' => true,
+            'status' => 'success',
         ]);
     }
 
@@ -159,8 +162,11 @@ class RaceRegistrationCredentialsTest extends TestCase
 
         $response->assertStatus(400);
         $response->assertJson([
-            'success' => false,
-            'needs_credentials' => true,
+            'status' => 'error',
+            'data' => [],
+            'errors' => [
+                'needs_credentials' => true
+            ]
         ]);
     }
 
@@ -185,8 +191,11 @@ class RaceRegistrationCredentialsTest extends TestCase
 
         $response->assertStatus(400);
         $response->assertJson([
-            'success' => false,
-            'needs_credentials' => true,
+            'status' => 'error',
+            'data' => [],
+            'errors' => [
+                'needs_credentials' => true
+            ]
         ]);
     }
 
@@ -212,8 +221,11 @@ class RaceRegistrationCredentialsTest extends TestCase
 
         $response->assertStatus(400);
         $response->assertJson([
-            'success' => false,
-            'needs_credentials' => true,
+            'status' => 'error',
+            'data' => [],
+            'errors' => [
+                'needs_credentials' => true
+            ]
         ]);
     }
 }

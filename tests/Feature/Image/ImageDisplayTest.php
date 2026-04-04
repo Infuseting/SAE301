@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Image;
 
 use App\Models\User;
 use App\Models\Club;
@@ -16,7 +16,7 @@ use Tests\TestCase;
 
 /**
  * Test suite for Image Display functionality
- * 
+ *
  * Tests cover:
  * - Images are returned with correct /storage/ prefix in controller responses
  * - WelcomeController returns raid images with /storage/ prefix
@@ -183,10 +183,10 @@ class ImageDisplayTest extends TestCase
 
         $response = $this->get(route('home'));
         $response->assertStatus(200);
-        
+
         $props = $this->getInertiaProps($response);
         $raidData = collect($props['upcomingRaids'])->firstWhere('id', $raid->raid_id);
-        
+
         $this->assertNotNull($raidData);
         $this->assertImageHasStoragePrefix($raidData['image'], 'raids');
     }
@@ -206,10 +206,10 @@ class ImageDisplayTest extends TestCase
 
         $response = $this->get(route('home'));
         $response->assertStatus(200);
-        
+
         $props = $this->getInertiaProps($response);
         $raidData = collect($props['upcomingRaids'])->firstWhere('id', $raid->raid_id);
-        
+
         $this->assertNotNull($raidData);
         $this->assertTrue(
             is_null($raidData['image']) || str_starts_with($raidData['image'], 'http')
@@ -227,10 +227,10 @@ class ImageDisplayTest extends TestCase
 
         $response = $this->actingAs($this->regularUser)->get(route('myraid.index'));
         $response->assertStatus(200);
-        
+
         $props = $this->getInertiaProps($response);
         $raidData = collect($props['raids'])->firstWhere('id', $raid->raid_id);
-        
+
         $this->assertNotNull($raidData);
         $this->assertImageHasStoragePrefix($raidData['image'], 'raids');
     }
@@ -249,10 +249,10 @@ class ImageDisplayTest extends TestCase
 
         $response = $this->actingAs($this->regularUser)->get(route('myrace.index'));
         $response->assertStatus(200);
-        
+
         $props = $this->getInertiaProps($response);
         $raceData = collect($props['races'])->firstWhere('id', $race->race_id);
-        
+
         $this->assertNotNull($raceData);
         $this->assertImageHasStoragePrefix($raceData['image'], 'races');
     }
@@ -274,10 +274,10 @@ class ImageDisplayTest extends TestCase
 
         $response = $this->actingAs($this->regularUser)->get(route('myrace.index'));
         $response->assertStatus(200);
-        
+
         $props = $this->getInertiaProps($response);
         $raceData = collect($props['races'])->firstWhere('id', $race->race_id);
-        
+
         $this->assertNotNull($raceData);
         $this->assertNull($raceData['image']);
     }
@@ -293,10 +293,10 @@ class ImageDisplayTest extends TestCase
         $response = $this->actingAs($this->regularUser)
             ->get(route('profile.show', $this->regularUser));
         $response->assertStatus(200);
-        
+
         $props = $this->getInertiaProps($response);
         $teamData = collect($props['teams'])->firstWhere('id', $team->equ_id);
-        
+
         $this->assertNotNull($teamData);
         $this->assertImageHasStoragePrefix($teamData['image'], 'teams');
     }
@@ -316,10 +316,10 @@ class ImageDisplayTest extends TestCase
         $response = $this->actingAs($this->regularUser)
             ->get(route('profile.show', $this->regularUser));
         $response->assertStatus(200);
-        
+
         $props = $this->getInertiaProps($response);
         $teamData = collect($props['teams'])->firstWhere('id', $team->equ_id);
-        
+
         $this->assertNotNull($teamData);
         $this->assertNull($teamData['image']);
     }
@@ -335,7 +335,7 @@ class ImageDisplayTest extends TestCase
             ->get(route('teams.show', $team->equ_id));
 
         $response->assertStatus(200);
-        
+
         $props = $response->viewData('page')['props'];
         $teamData = $props['team'];
         $this->assertNotNull($teamData);
@@ -359,7 +359,7 @@ class ImageDisplayTest extends TestCase
         $response = $this->actingAs($this->regularUser)
             ->get(route('teams.show', $team->equ_id));
         $response->assertStatus(200);
-        
+
         $props = $this->getInertiaProps($response);
         $this->assertNull($props['team']['image']);
     }
@@ -395,7 +395,7 @@ class ImageDisplayTest extends TestCase
         $response = $this->get(route('home'));
         $props = $this->getInertiaProps($response);
         $raidData = collect($props['upcomingRaids'])->firstWhere('id', $raid->raid_id);
-        
+
         // Check no double slashes in path
         $this->assertStringNotContainsString('//', str_replace('http://', '', $raidData['image']));
         $this->assertStringNotContainsString('//', str_replace('https://', '', $raidData['image']));
@@ -410,10 +410,10 @@ class ImageDisplayTest extends TestCase
 
         // Verify file exists
         Storage::disk('public')->assertExists($raid->raid_image);
-        
+
         // Verify path is correct
         $this->assertStringStartsWith('raids/', $raid->raid_image);
-        
+
         // Get from controller
         $response = $this->get(route('raids.show', $raid->raid_id));
         $response->assertStatus(200);

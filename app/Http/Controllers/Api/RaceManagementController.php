@@ -16,9 +16,9 @@ class RaceManagementController extends Controller
     use AuthorizesRequests, ApiResponseTrait;
     /**
      * @OA\Get(
-     *      path="/api/me/managed-races",
+     *      path="/api/user/managed-races",
      *      operationId="getManagedRaces",
-     *      tags={"Race Management"},
+     *      tags={"User"},
      *      summary="Get races managed by the authenticated user",
      *      description="Returns a list of races where the user is an organizer, raid manager, or admin",
      *      @OA\Response(
@@ -66,7 +66,7 @@ class RaceManagementController extends Controller
      * @OA\Get(
      *      path="/api/races/{race}/participants",
      *      operationId="getRaceParticipants",
-     *      tags={"Race Management"},
+     *      tags={"Races"},
      *      summary="Get participants for a specific race",
      *      description="Returns a detailed list of participants and their registration status for a race managed by the user",
      *      @OA\Parameter(
@@ -144,7 +144,7 @@ class RaceManagementController extends Controller
      * @OA\Patch(
      *      path="/api/registrations/{registration}/validate-docs",
      *      operationId="validateRegistrationDocs",
-     *      tags={"Race Management"},
+     *      tags={"Race Participants"},
      *      summary="Validate or flag documents for a registration",
      *      description="Allows a manager to manually validate registration documents or flag them as invalid",
      *      @OA\Parameter(

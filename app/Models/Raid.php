@@ -26,6 +26,19 @@ class Raid extends Model
     use HasFactory;
 
     /**
+     * @var bool|mixed
+     */
+    public mixed $is_open;
+    /**
+     * @var bool|mixed
+     */
+    public mixed $is_upcoming;
+    /**
+     * @var bool|mixed
+     */
+    public mixed $is_finished;
+
+    /**
      * The table associated with the model.
      *
      * @var string
@@ -115,7 +128,7 @@ class Raid extends Model
     {
         $period = $this->registrationPeriod;
         if (!$period) return false;
-        
+
         $now = now();
         return $now >= $period->ins_start_date && $now <= $period->ins_end_date;
     }
@@ -127,7 +140,7 @@ class Raid extends Model
     {
         $period = $this->registrationPeriod;
         if (!$period) return true;
-        
+
         return now() < $period->ins_start_date;
     }
 
@@ -138,5 +151,5 @@ class Raid extends Model
     {
         return now() > $this->raid_date_end;
     }
-    
+
 }

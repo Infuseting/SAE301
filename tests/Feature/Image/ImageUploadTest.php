@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Image;
 
 use App\Models\User;
 use App\Models\Club;
@@ -14,7 +14,7 @@ use Tests\TestCase;
 
 /**
  * Test suite for Image Upload functionality
- * 
+ *
  * Tests cover:
  * - Image upload during raid creation
  * - Image upload during raid update
@@ -382,7 +382,7 @@ class ImageUploadTest extends TestCase
             ]));
 
         $raid = Raid::latest()->first();
-        
+
         // Path should be relative (raids/filename.jpg)
         $this->assertStringStartsWith('raids/', $raid->raid_image);
         $this->assertStringEndsWith('.jpg', $raid->raid_image);
@@ -401,7 +401,7 @@ class ImageUploadTest extends TestCase
             ]));
 
         $raid = Raid::latest()->first();
-        
+
         // Verify the path can be used with /storage/ prefix
         $publicPath = '/storage/' . $raid->raid_image;
         $this->assertStringContainsString('/storage/raids/', $publicPath);

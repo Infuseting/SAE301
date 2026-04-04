@@ -7,34 +7,9 @@ use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 use App\Models\User;
 
-class UserController extends Controller
+class UsersController extends Controller
 {
     use ApiResponseTrait;
-    /**
-     * Get the authenticated user.
-     *
-     * @OA\Get(
-     *      path="/api/user",
-     *      operationId="getApiUser",
-     *      tags={"User"},
-     *      summary="Get authenticated user",
-     *      description="Returns the currently authenticated user",
-     *      @OA\Response(
-     *          response=200,
-     *          description="Successful operation",
-     *          @OA\JsonContent(ref="#/components/schemas/User")
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated"
-     *      ),
-     *      security={{"apiAuth": {}}}
-     * )
-     */
-    public function __invoke(Request $request)
-    {
-        return $this->successResponse($request->user(), 'User retrieved successfully');
-    }
 
     /**
      * Search users for team creation.
@@ -42,7 +17,7 @@ class UserController extends Controller
      * @OA\Get(
      *      path="/api/users/search",
      *      operationId="searchUsers",
-     *      tags={"User"},
+     *      tags={"Users"},
      *      summary="Search users",
      *      description="Returns users matching the search query for team creation",
      *      @OA\Parameter(
@@ -115,7 +90,7 @@ class UserController extends Controller
      * @OA\Get(
      *      path="/api/users/adherents",
      *      operationId="getAdherents",
-     *      tags={"User"},
+     *      tags={"Users"},
      *      summary="Get all adherents",
      *      description="Returns all users with adherent role",
      *      @OA\Response(

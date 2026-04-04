@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 /**
  * Test Admin permissions
- * 
+ *
  * Admin should be able to:
  * - Access ALL pages and resources
  * - Manage all clubs, raids, races (create, edit, delete)
@@ -41,55 +41,55 @@ class AdminPermissionsTest extends TestCase
         $this->admin->assignRole('admin');
     }
 
-    public function admin_can_access_admin_dashboard(): void
+    public function test_admin_can_access_admin_dashboard(): void
     {
         $response = $this->actingAs($this->admin)->get(route('admin.dashboard'));
         $response->assertStatus(200);
     }
 
-    public function admin_can_access_admin_users_page(): void
+    public function test_admin_can_access_admin_users_page(): void
     {
         $response = $this->actingAs($this->admin)->get(route('admin.users.index'));
         $response->assertStatus(200);
     }
 
-    public function admin_can_access_admin_clubs_page(): void
+    public function test_admin_can_access_admin_clubs_page(): void
     {
         $response = $this->actingAs($this->admin)->get(route(name: 'admin.clubs.index'));
         $response->assertStatus(200);
     }
 
-    public function admin_can_access_admin_raids_page(): void
+    public function test_admin_can_access_admin_raids_page(): void
     {
         $response = $this->actingAs($this->admin)->get(route('admin.raids.index'));
         $response->assertStatus(200);
     }
 
-    public function admin_can_access_admin_races_page(): void
+    public function test_admin_can_access_admin_races_page(): void
     {
         $response = $this->actingAs($this->admin)->get(route('admin.races.index'));
         $response->assertStatus(200);
     }
 
-    public function admin_can_access_logs_page(): void
+    public function test_admin_can_access_logs_page(): void
     {
         $response = $this->actingAs($this->admin)->get(route('admin.logs.index'));
         $response->assertStatus(200);
     }
 
-    public function admin_can_access_leaderboard_management(): void
+    public function test_admin_can_access_leaderboard_management(): void
     {
         $response = $this->actingAs($this->admin)->get(route('admin.leaderboard.index'));
         $response->assertStatus(200);
     }
 
-    public function admin_can_view_pending_clubs(): void
+    public function test_admin_can_view_pending_clubs(): void
     {
         $response = $this->actingAs($this->admin)->get(route('admin.clubs.pending'));
         $response->assertStatus(200);
     }
 
-    public function admin_can_approve_club(): void
+    public function test_admin_can_approve_club(): void
     {
         $club = Club::factory()->create(['is_approved' => false]);
 
@@ -102,7 +102,7 @@ class AdminPermissionsTest extends TestCase
         ]);
     }
 
-    public function admin_can_reject_club(): void
+    public function test_admin_can_reject_club(): void
     {
         $club = Club::factory()->create(['is_approved' => false]);
 
@@ -118,7 +118,7 @@ class AdminPermissionsTest extends TestCase
         ]);
     }
 
-    public function admin_can_create_club(): void
+    public function test_admin_can_create_club(): void
     {
         $clubData = [
             'club_name' => 'Admin Test Club',
@@ -137,7 +137,7 @@ class AdminPermissionsTest extends TestCase
         ]);
     }
 
-    public function admin_can_edit_any_club(): void
+    public function test_admin_can_edit_any_club(): void
     {
         $otherUser = User::factory()->create();
         $club = Club::factory()->create();
@@ -146,7 +146,7 @@ class AdminPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function admin_can_update_any_club(): void
+    public function test_admin_can_update_any_club(): void
     {
         $otherUser = User::factory()->create();
         $club = Club::factory()->create();
@@ -168,7 +168,7 @@ class AdminPermissionsTest extends TestCase
         ]);
     }
 
-    public function admin_can_delete_any_club(): void
+    public function test_admin_can_delete_any_club(): void
     {
         $otherUser = User::factory()->create();
         $club = Club::factory()->create();
@@ -179,11 +179,11 @@ class AdminPermissionsTest extends TestCase
         $this->assertDatabaseMissing('clubs', ['club_id' => $club->club_id]);
     }
 
-    public function admin_can_create_raid(): void
+    public function test_admin_can_create_raid(): void
     {
         $club = Club::factory()->create();
         $member = \App\Models\Member::factory()->create();
-        
+
         // Create a user and link member to club
         $user = \App\Models\User::factory()->create(['adh_id' => $member->adh_id]);
         \DB::table('club_user')->insert([
@@ -217,7 +217,7 @@ class AdminPermissionsTest extends TestCase
         ]);
     }
 
-    public function admin_can_edit_any_raid(): void
+    public function test_admin_can_edit_any_raid(): void
     {
         $otherUser = User::factory()->create();
         $raid = Raid::factory()->create();
@@ -226,7 +226,7 @@ class AdminPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function admin_can_update_any_raid(): void
+    public function test_admin_can_update_any_raid(): void
     {
         $member = Member::factory()->create();
         $club = Club::factory()->create();
@@ -270,7 +270,7 @@ class AdminPermissionsTest extends TestCase
         ]);
     }
 
-    public function admin_can_delete_any_raid(): void
+    public function test_admin_can_delete_any_raid(): void
     {
         $otherUser = User::factory()->create();
         $raid = Raid::factory()->create();
@@ -281,7 +281,7 @@ class AdminPermissionsTest extends TestCase
         $this->assertDatabaseMissing('raids', ['raid_id' => $raid->raid_id]);
     }
 
-    public function admin_can_create_race(): void
+    public function test_admin_can_create_race(): void
     {
         $raid = Raid::factory()->create();
         $type = \App\Models\ParamType::where('typ_name', 'loisir')->first()
@@ -316,7 +316,7 @@ class AdminPermissionsTest extends TestCase
         ]);
     }
 
-    public function admin_can_edit_any_race(): void
+    public function test_admin_can_edit_any_race(): void
     {
         $otherUser = User::factory()->create();
         $race = Race::factory()->create();
@@ -326,7 +326,7 @@ class AdminPermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function admin_can_update_any_race(): void
+    public function test_admin_can_update_any_race(): void
     {
         $raid = Raid::factory()->create();
         $type = \App\Models\ParamType::where('typ_name', 'loisir')->first()
@@ -365,7 +365,7 @@ class AdminPermissionsTest extends TestCase
         ]);
     }
 
-    public function admin_can_delete_any_race(): void
+    public function test_admin_can_delete_any_race(): void
     {
         $otherUser = User::factory()->create();
         $race = Race::factory()->create();
@@ -376,16 +376,16 @@ class AdminPermissionsTest extends TestCase
         $this->assertDatabaseMissing('races', ['race_id' => $race->race_id]);
     }
 
-    public function admin_can_view_all_users(): void
+    public function test_admin_can_view_all_users(): void
     {
         User::factory()->count(5)->create();
 
         $response = $this->actingAs($this->admin)->get(route('admin.users.index'));
-        
+
         $response->assertStatus(200);
     }
 
-    public function admin_can_update_user(): void
+    public function test_admin_can_update_user(): void
     {
         $user = User::factory()->create();
 
@@ -403,7 +403,7 @@ class AdminPermissionsTest extends TestCase
         ]);
     }
 
-    public function admin_can_toggle_user_status(): void
+    public function test_admin_can_toggle_user_status(): void
     {
         $user = User::factory()->create(['active' => true]);
 
@@ -416,7 +416,7 @@ class AdminPermissionsTest extends TestCase
         ]);
     }
 
-    public function admin_can_delete_user(): void
+    public function test_admin_can_delete_user(): void
     {
         $user = User::factory()->create();
 
@@ -426,13 +426,13 @@ class AdminPermissionsTest extends TestCase
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
 
-    public function admin_can_get_roles_list(): void
+    public function test_admin_can_get_roles_list(): void
     {
         $response = $this->actingAs($this->admin)->get(route('admin.roles.index'));
         $response->assertStatus(200);
     }
 
-    public function admin_can_assign_role_to_user(): void
+    public function test_admin_can_assign_role_to_user(): void
     {
         $user = User::factory()->create();
 
@@ -445,7 +445,7 @@ class AdminPermissionsTest extends TestCase
         $this->assertTrue($user->fresh()->hasRole('responsable-club'));
     }
 
-    public function admin_can_remove_role_from_user(): void
+    public function test_admin_can_remove_role_from_user(): void
     {
         $user = User::factory()->create();
         $user->assignRole('responsable-club');
@@ -459,7 +459,7 @@ class AdminPermissionsTest extends TestCase
         $this->assertFalse($user->fresh()->hasRole('responsable-club'));
     }
 
-    public function admin_can_register_to_races_without_licence(): void
+    public function test_admin_can_register_to_races_without_licence(): void
     {
         // Admin should be able to do everything, even without licence
         // The register endpoint returns JSON responses, not redirects
@@ -473,10 +473,10 @@ class AdminPermissionsTest extends TestCase
             ]);
 
         $response->assertOk();
-        $response->assertJson(['success' => true]);
+        $response->assertJson(['status' => 'success']);
     }
 
-    public function admin_without_licence_can_still_create_resources(): void
+    public function test_admin_without_licence_can_still_create_resources(): void
     {
         // Admin should bypass licence requirements
         $clubData = [
@@ -490,7 +490,7 @@ class AdminPermissionsTest extends TestCase
 
         $response = $this->actingAs($this->admin)->post(route('clubs.store'), $clubData);
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('clubs', ['club_name' => 'No Licence Club']);
     }
 }

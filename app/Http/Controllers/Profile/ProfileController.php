@@ -5,22 +5,25 @@ namespace App\Http\Controllers\Profile;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Profile\ProfileCompletionRequest;
 use App\Http\Requests\Profile\ProfileUpdateRequest;
-use App\Services\ProfileService;
+use App\Models\Member;
 use App\Services\LicenceService;
+use App\Services\ProfileService;
+use Exception;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
-use Inertia\Response;
 use OpenApi\Annotations as OA;
-use App\Models\Member;
+use App\Http\Controllers\Api\ApiResponseTrait;
 
 class ProfileController extends Controller
 {
-    protected $profileService;
-    protected $licenceService;
+    use ApiResponseTrait;
+
+    protected ProfileService $profileService;
+    protected LicenceService $licenceService;
 
     public function __construct(ProfileService $profileService, LicenceService $licenceService)
     {
@@ -29,14 +32,14 @@ class ProfileController extends Controller
     }
 
     /**
-     * Display the user's profile form.
+     * Return the user's profile information.
      *
      * @OA\Get(
-     *      path="/api/profile",
-     *      operationId="getProfile",
-     *      tags={"Profile"},
+     *      path="/api/user",
+     *      operationId="getUser",
+     *      tags={"User"},
      *      summary="Get user profile",
-     *      description="Returns user profile data or renders profile edit view",
+     *      description="Returns user profile data",
      *      @OA\Response(
      *          response=200,
      *          description="Successful operation",
@@ -48,6 +51,17 @@ class ProfileController extends Controller
      *      )
      * )
      */
+    public function index(Request $request): JsonResponse
+    {
+        $user = $request->user()->load('roles');
+        $roles = $user->roles->pluck('name');
+
+        $user->unsetRelation('roles');
+        $user->setAttribute('roles', $roles);
+
+        return $this->successResponse($user, 'User retrieved successfully');
+    }
+
     public function edit(Request $request)
     {
         $user = $request->user();
@@ -64,9 +78,9 @@ class ProfileController extends Controller
      * Update the user's profile information.
      *
      * @OA\Patch(
-     *      path="/api/profile",
-     *      operationId="updateProfile",
-     *      tags={"Profile"},
+     *      path="/api/user",
+     *      operationId="updateUser",
+     *      tags={"User"},
      *      summary="Update user profile",
      *      description="Updates user profile data",
      *      @OA\RequestBody(
@@ -86,12 +100,14 @@ class ProfileController extends Controller
      *      ),
      *      @OA\Response(
      *          response=200,
-     *          description="Profile updated",
+     *          description="User updated",
      *          @OA\JsonContent(ref="#/components/schemas/User")
-     *      )
+     *      ),
+     *      security={{"apiAuth": {}}}
      * )
+     * @throws Exception
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
+    public function update(ProfileUpdateRequest $request): RedirectResponse|JsonResponse
     {
         try {
             $validated = $request->validated();
@@ -155,16 +171,19 @@ class ProfileController extends Controller
             }
 
             if ($request->wantsJson() && !$request->header('X-Inertia')) {
-                return response()->json(['data' => $request->user()], 200);
+                return $this->successResponse(
+                    $request->user()->load('roles'),
+                    'Profile updated successfully'
+                );
             }
 
             return Redirect::route('profile.edit');
-        } catch (\Exception $e) {
-      
+        } catch (Exception $e) {
+
             if ($request->wantsJson() || $request->header('X-Inertia')) {
                 return back()->withErrors(['error' => 'Une erreur est survenue lors de la mise à jour du profil.']);
             }
-            
+
             throw $e;
         }
     }
@@ -173,9 +192,9 @@ class ProfileController extends Controller
      * Complete the user's required profile information.
      *
      * @OA\Post(
-     *      path="/api/profile/complete",
-     *      operationId="completeProfile",
-     *      tags={"Profile"},
+     *      path="/api/user/profile/complete",
+     *      operationId="completeUserProfile",
+     *      tags={"User"},
      *      summary="Complete user profile",
      *      description="Completes the user profile with required information (DOB, Address, Phone, License/Medical)",
      *      @OA\RequestBody(
@@ -191,7 +210,7 @@ class ProfileController extends Controller
      *      ),
      *      @OA\Response(
      *          response=200,
-     *          description="Profile completed successfully",
+     *          description="User Profile completed successfully",
      *          @OA\JsonContent(ref="#/components/schemas/User")
      *      ),
      *      @OA\Response(
@@ -200,7 +219,7 @@ class ProfileController extends Controller
      *      )
      * )
      */
-    public function complete(ProfileCompletionRequest $request)
+    public function complete(ProfileCompletionRequest $request): RedirectResponse
     {
         $user = $request->user();
         $data = $request->validated();
@@ -239,16 +258,16 @@ class ProfileController extends Controller
             $this->licenceService->checkAndAssignAdherentRole($user);
         }
 
-        return Redirect::route('dashboard')->with('status', 'profile-completed');
+        return Redirect::route('home')->with('status', 'profile-completed');
     }
 
     /**
      * Delete the user's account.
      *
      * @OA\Delete(
-     *      path="/api/profile",
-     *      operationId="deleteProfile",
-     *      tags={"Profile"},
+     *      path="/api/user",
+     *      operationId="deleteUser",
+     *      tags={"User"},
      *      summary="Delete user account",
      *      description="Deletes the authenticated user account",
      *      @OA\RequestBody(
@@ -261,7 +280,8 @@ class ProfileController extends Controller
      *      @OA\Response(
      *          response=204,
      *          description="Account deleted"
-     *      )
+     *      ),
+     *      security={{"apiAuth": {}}}
      * )
      */
     public function destroy(Request $request)
@@ -286,7 +306,9 @@ class ProfileController extends Controller
         $this->profileService->deleteAccount($user);
 
         if ($request->wantsJson() && !$request->header('X-Inertia')) {
-            return response()->json(['message' => __('messages.account_deleted')], 204);
+            return $this->successResponse([
+                'user' => $user,
+            ], __('messages.account_deleted'), 204);
         }
 
         return Redirect::to('/');

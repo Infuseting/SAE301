@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { createPortal } from 'react-dom';
@@ -15,10 +15,10 @@ export default function List({ raids, filters, ageCategories = [] }) {
     const messages = usePage().props.translations?.messages || {};
     const { auth } = usePage().props;
     const isClubLeader = auth?.user?.is_club_leader || false;
-    
+
     // Extract all raids data for client-side filtering
     const allRaids = Array.isArray(raids) ? raids : raids?.data || [];
-    
+
     // Search state - initialized from URL params
     const [searchQuery, setSearchQuery] = useState(filters?.q || '');
     const [startDate, setStartDate] = useState(filters?.date ? new Date(filters.date) : null);
@@ -26,7 +26,7 @@ export default function List({ raids, filters, ageCategories = [] }) {
     const [ageCategory, setAgeCategory] = useState(filters?.age_category || '');
     const [location, setLocation] = useState(filters?.location || '');
     const [locationType, setLocationType] = useState(filters?.location_type || 'city');
-    
+
     /**
      * Filter raids based on search query (client-side dynamic search)
      */
@@ -34,7 +34,7 @@ export default function List({ raids, filters, ageCategories = [] }) {
         if (!searchQuery.trim()) {
             return allRaids;
         }
-        
+
         const query = searchQuery.toLowerCase();
         return allRaids.filter(raid => {
             return (
@@ -124,7 +124,7 @@ export default function List({ raids, filters, ageCategories = [] }) {
                                     </svg>
                                     <div className="w-full flex gap-2.5 items-end">
                                         <div className="flex-1">
-                                            <select 
+                                            <select
                                                 value={locationType}
                                                 onChange={(e) => setLocationType(e.target.value)}
                                                 className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 font-medium cursor-pointer text-sm"
@@ -191,7 +191,7 @@ export default function List({ raids, filters, ageCategories = [] }) {
                                 <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                                     {messages['raids_list.type'] || 'Type'}
                                 </label>
-                                <select 
+                                <select
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
                                     className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 font-medium cursor-pointer text-sm">
@@ -206,7 +206,7 @@ export default function List({ raids, filters, ageCategories = [] }) {
                                 <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                                     {messages['raids_list.category'] || 'Catégorie'}
                                 </label>
-                                <select 
+                                <select
                                     value={ageCategory}
                                     onChange={(e) => setAgeCategory(e.target.value)}
                                     className="w-full bg-transparent border-none p-0 text-gray-900 focus:ring-0 font-medium cursor-pointer text-sm">
@@ -235,7 +235,7 @@ export default function List({ raids, filters, ageCategories = [] }) {
                                     }
                                     if (category !== "all") params.append("category", category);
                                     if (ageCategory) params.append("age_category", ageCategory);
-                                    
+
                                     router.visit(route("raids.index") + (params.toString() ? `?${params.toString()}` : ""));
                                 }}
                                 className="bg-gray-800 hover:bg-gray-700 text-white rounded-md px-6 py-3 font-semibold transition flex items-center justify-center gap-2 md:w-auto w-full text-sm"
@@ -257,7 +257,7 @@ export default function List({ raids, filters, ageCategories = [] }) {
                                 {searchQuery ? (messages['raids_list.no_results'] || 'Aucun résultat trouvé') : (messages['raids_list.no_raids'] || 'Aucun raid disponible')}
                             </h3>
                             <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                                {searchQuery 
+                                {searchQuery
                                     ? (messages['raids_list.modify_search'] || 'Essayez de modifier votre recherche ou effacez les filtres pour voir tous les raids.')
                                     : (messages['raids_list.no_raids_message'] || 'Il n\'y a actuellement aucun raid disponible. Revenez bientôt pour découvrir de nouvelles aventures !')}
                             </p>

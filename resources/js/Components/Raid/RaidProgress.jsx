@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Timer, CheckCircle2, Clock, MapPin } from 'lucide-react';
+import { Timer, CheckCircle2, Clock, MapPin } from 'lucide-react';
 
 const RaidProgress = ({ raid }) => {
     const steps = [

@@ -20,7 +20,7 @@ use Tests\TestCase;
 
 /**
  * Test suite for Admin role full access permissions
- * 
+ *
  * Tests cover:
  * - Admin can create any club, raid, or race
  * - Admin can edit any club, raid, or race
@@ -114,7 +114,7 @@ class AdminPermissionsTest extends TestCase
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -172,7 +172,7 @@ class AdminPermissionsTest extends TestCase
 
         $adminRole = Role::findByName('admin');
         $adminRole->givePermissionTo(Permission::all());
-        
+
         // Create required ParamType entries
         ParamType::firstOrCreate(['typ_id' => 1], ['typ_name' => 'Course']);
     }
@@ -188,7 +188,7 @@ class AdminPermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->adminUser)
             ->get(route('clubs.show', $this->clubId));
-        
+
         $response->assertStatus(200);
     }
 
@@ -199,7 +199,7 @@ class AdminPermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->adminUser)
             ->get(route('clubs.create'));
-        
+
         $response->assertStatus(200);
     }
 
@@ -217,7 +217,7 @@ class AdminPermissionsTest extends TestCase
                 'ffso_id' => 'FFCO999',
                 'description' => 'Admin Club Description',
             ]);
-        
+
         $response->assertRedirect();
         $this->assertDatabaseHas('clubs', ['club_name' => 'Admin Created Club']);
     }
@@ -229,7 +229,7 @@ class AdminPermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->adminUser)
             ->get(route('clubs.edit', $this->clubId));
-        
+
         $response->assertStatus(200);
     }
 
@@ -247,7 +247,7 @@ class AdminPermissionsTest extends TestCase
                 'ffso_id' => 'FFCO001',
                 'description' => 'Admin Updated Description',
             ]);
-        
+
         $response->assertRedirect();
         $this->assertDatabaseHas('clubs', ['club_name' => 'Admin Updated Club']);
     }
@@ -273,7 +273,7 @@ class AdminPermissionsTest extends TestCase
 
         $response = $this->actingAs($this->adminUser)
             ->delete(route('clubs.destroy', $clubToDeleteId));
-        
+
         $response->assertRedirect();
     }
 
@@ -288,7 +288,7 @@ class AdminPermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->adminUser)
             ->get(route('raids.show', $this->raid->raid_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -309,7 +309,7 @@ class AdminPermissionsTest extends TestCase
 
         $response = $this->actingAs($this->adminUser)
             ->get(route('raids.create'));
-        
+
         $response->assertStatus(200);
     }
 
@@ -343,7 +343,7 @@ class AdminPermissionsTest extends TestCase
                 'raid_postal_code' => '12345',
                 'raid_number' => 99,
             ]);
-        
+
         $response->assertRedirect();
         $this->assertDatabaseHas('raids', ['raid_name' => 'Admin Created Raid']);
     }
@@ -355,7 +355,7 @@ class AdminPermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->adminUser)
             ->get(route('raids.edit', $this->raid->raid_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -376,7 +376,7 @@ class AdminPermissionsTest extends TestCase
                 'raid_city' => 'Updated City',
                 'raid_postal_code' => '99999',
             ]);
-        
+
         $response->assertRedirect();
     }
 
@@ -408,7 +408,7 @@ class AdminPermissionsTest extends TestCase
 
         $response = $this->actingAs($this->adminUser)
             ->delete(route('raids.destroy', $raidToDelete->raid_id));
-        
+
         $response->assertRedirect();
         $this->assertDatabaseMissing('raids', ['raid_id' => $raidToDelete->raid_id]);
     }
@@ -424,7 +424,7 @@ class AdminPermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->adminUser)
             ->get(route('races.show', $this->race->race_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -434,8 +434,8 @@ class AdminPermissionsTest extends TestCase
     public function test_admin_can_access_race_creation_page(): void
     {
         $response = $this->actingAs($this->adminUser)
-            ->get(route('races.create'));
-        
+            ->get(route('races.create', ['raid_id' => $this->raid->raid_id]));
+
         $response->assertStatus(200);
     }
 
@@ -469,7 +469,7 @@ class AdminPermissionsTest extends TestCase
                 'responsableId' => $this->adminUser->id,
                 'raid_id' => $this->raid->raid_id,
             ]);
-        
+
         $response->assertRedirect();
         $this->assertDatabaseHas('races', ['race_name' => 'Admin Created Race']);
     }
@@ -481,7 +481,7 @@ class AdminPermissionsTest extends TestCase
     {
         $response = $this->actingAs($this->adminUser)
             ->get(route('races.edit', $this->race->race_id));
-        
+
         $response->assertStatus(200);
     }
 
@@ -495,7 +495,7 @@ class AdminPermissionsTest extends TestCase
             'pac_nb_min' => 2,
             'pac_nb_max' => 10,
         ]);
-        
+
         $paramTeam = ParamTeam::create([
             'pae_nb_min' => 1,
             'pae_nb_max' => 20,
@@ -515,7 +515,7 @@ class AdminPermissionsTest extends TestCase
 
         $response = $this->actingAs($this->adminUser)
             ->delete(route('races.destroy', $raceToDelete->race_id));
-        
+
         $response->assertRedirect();
         $this->assertDatabaseMissing('races', ['race_id' => $raceToDelete->race_id]);
     }
@@ -562,7 +562,7 @@ class AdminPermissionsTest extends TestCase
     public function test_admin_has_all_permissions(): void
     {
         $allPermissions = Permission::all()->pluck('name')->toArray();
-        
+
         foreach ($allPermissions as $permission) {
             $this->assertTrue(
                 $this->adminUser->hasPermissionTo($permission),
@@ -580,7 +580,7 @@ class AdminPermissionsTest extends TestCase
         // These roles now have access-admin permission for their specific admin pages
         // So this assertion is updated to reflect the intended behavior
         $this->assertTrue($this->regularOwner->hasPermissionTo('access-admin'));
-        
+
         // However, they should NOT have manage-all permissions (admin-only)
         $this->assertFalse($this->regularOwner->hasPermissionTo('manage-all-clubs'));
         $this->assertFalse($this->regularOwner->hasPermissionTo('manage-all-raids'));

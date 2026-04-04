@@ -8,7 +8,6 @@ import { Transition } from '@headlessui/react';
 
 export default function SetPasswordForm({ className = '' }) {
     const passwordInput = useRef();
-    const currentPasswordInput = useRef();
 
     const { data, setData, errors, put, reset, processing, recentlySuccessful } = useForm({
         password: '',

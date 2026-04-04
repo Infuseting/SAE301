@@ -62,7 +62,7 @@ class RaceManagementApiTest extends TestCase
         // Race not owned
         Race::factory()->create(['adh_id' => $member->adh_id + 1, 'race_name' => 'Other Race']);
 
-        $response = $this->getJson('/api/me/managed-races');
+        $response = $this->getJson('/api/user/managed-races');
 
         $response->assertStatus(200);
         $data = $response->json('data');
@@ -77,7 +77,7 @@ class RaceManagementApiTest extends TestCase
     {
         $member = Member::factory()->create();
         $user = User::factory()->create(['adh_id' => $member->adh_id]);
-        $user->givePermissionTo('edit-own-race');
+        $user->assignRole('responsable-course');
         Sanctum::actingAs($user);
 
         $race = Race::factory()->create(['adh_id' => $member->adh_id]);
@@ -150,7 +150,7 @@ class RaceManagementApiTest extends TestCase
             'reg_validated' => false,
         ]);
 
-        $response = $this->patchJson("/api/registrations/{$registration->reg_id}/validate-docs", [
+        $response = $this->patchJson("/api/races/registrations/{$registration->reg_id}/validate-docs", [
             'status' => 'confirmed',
             'admin_notes' => 'All good'
         ]);

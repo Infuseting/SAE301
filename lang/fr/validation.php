@@ -199,6 +199,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Messages de validation personnalisés pour les équipes
+    |--------------------------------------------------------------------------
+    */
+
+    'team' => [
+        'name.required' => 'Le nom de l\'équipe est requis.',
+        'name.string' => 'Le nom de l\'équipe doit être une chaîne de caractères.',
+        'name.max' => 'Le nom de l\'équipe ne peut pas dépasser :max caractères.',
+        'image.image' => 'L\'image doit être un fichier image valide.',
+        'image.max' => 'L\'image ne peut pas dépasser :max kilo-octets.',
+        'teammates.array' => 'Les coéquipiers doivent être un tableau.',
+        'teammates.*.id.integer' => 'Chaque coéquipier doit avoir un ID valide.',
+        'teammates.*.id.exists' => 'Au moins un coéquipier n\'existe pas.',
+        'emailInvites.array' => 'Les invitations par email doivent être un tableau.',
+        'emailInvites.*.email' => 'Au moins une adresse email est invalide.',
+        'join_team.boolean' => 'La valeur de participation doit être booléenne.',
+        'participants' => 'L\'équipe doit avoir au moins un participant. Veuillez cocher "Je participe" ou ajouter des coéquipiers.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Attributs de validation personnalisés
     |--------------------------------------------------------------------------
     |

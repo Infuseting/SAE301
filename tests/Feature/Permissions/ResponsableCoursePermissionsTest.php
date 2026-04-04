@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 /**
  * Test Responsable Course permissions
- * 
+ *
  * Responsable Course should be able to:
  * - All Adherent permissions (requires valid licence)
  * - Create races
@@ -40,7 +40,7 @@ class ResponsableCoursePermissionsTest extends TestCase
             'adh_end_validity' => now()->addYear(),
             'adh_date_added' => now(),
         ]);
-        
+
         $this->responsableCourse = User::factory()->create([
             'adh_id' => $member->adh_id,
         ]);
@@ -52,13 +52,13 @@ class ResponsableCoursePermissionsTest extends TestCase
         $this->raid = Raid::factory()->create();
     }
 
-    public function responsable_course_can_view_races_create_page(): void
+    public function test_responsable_course_can_view_races_create_page(): void
     {
-        $response = $this->actingAs($this->responsableCourse)->get(route('races.create'));
+        $response = $this->actingAs($this->responsableCourse)->get(route('races.create', ['raid_id' => $this->raid->raid_id]));
         $response->assertStatus(200);
     }
 
-    public function responsable_course_can_create_race(): void
+    public function test_responsable_course_can_create_race(): void
     {
         $type = \App\Models\ParamType::where('typ_name', 'loisir')->first()
             ?? \App\Models\ParamType::factory()->create(['typ_name' => 'loisir']);
@@ -93,7 +93,7 @@ class ResponsableCoursePermissionsTest extends TestCase
         ]);
     }
 
-    public function responsable_course_can_edit_own_race(): void
+    public function test_responsable_course_can_edit_own_race(): void
     {
         $race = Race::factory()->create([
             'raid_id' => $this->raid->raid_id,
@@ -104,7 +104,7 @@ class ResponsableCoursePermissionsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function responsable_course_can_update_own_race(): void
+    public function test_responsable_course_can_update_own_race(): void
     {
         $type = \App\Models\ParamType::where('typ_name', 'loisir')->first()
             ?? \App\Models\ParamType::factory()->create(['typ_name' => 'loisir']);
@@ -143,7 +143,7 @@ class ResponsableCoursePermissionsTest extends TestCase
         ]);
     }
 
-    public function responsable_course_can_delete_own_race(): void
+    public function test_responsable_course_can_delete_own_race(): void
     {
         $race = Race::factory()->create([
             'raid_id' => $this->raid->raid_id,
@@ -156,7 +156,7 @@ class ResponsableCoursePermissionsTest extends TestCase
         $this->assertDatabaseMissing('races', ['race_id' => $race->race_id]);
     }
 
-    public function responsable_course_cannot_edit_other_users_race(): void
+    public function test_responsable_course_cannot_edit_other_users_race(): void
     {
         $otherUser = User::factory()->create();
         $race = Race::factory()->create([
@@ -167,7 +167,7 @@ class ResponsableCoursePermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function responsable_course_cannot_update_other_users_race(): void
+    public function test_responsable_course_cannot_update_other_users_race(): void
     {
         $otherUser = User::factory()->create();
         $type = \App\Models\ParamType::where('typ_name', 'loisir')->first()
@@ -202,7 +202,7 @@ class ResponsableCoursePermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function responsable_course_cannot_delete_other_users_race(): void
+    public function test_responsable_course_cannot_delete_other_users_race(): void
     {
         $otherUser = User::factory()->create();
         $race = Race::factory()->create([
@@ -213,13 +213,13 @@ class ResponsableCoursePermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function responsable_course_can_view_my_races(): void
+    public function test_responsable_course_can_view_my_races(): void
     {
         $response = $this->actingAs($this->responsableCourse)->get(route('myrace.index'));
         $response->assertStatus(200);
     }
 
-    public function responsable_course_can_register_to_races(): void
+    public function test_responsable_course_can_register_to_races(): void
     {
         // The register endpoint returns JSON responses
         $race = Race::factory()->create();
@@ -232,17 +232,17 @@ class ResponsableCoursePermissionsTest extends TestCase
             ]);
 
         $response->assertOk();
-        $response->assertJson(['success' => true]);
+        $response->assertJson(['status' => 'success']);
     }
 
-    public function responsable_course_can_access_club_creation_page(): void
+    public function test_responsable_course_can_access_club_creation_page(): void
     {
         // Responsable-course with valid licence also gets adherent role via AssignDefaultRole
         $response = $this->actingAs($this->responsableCourse)->get(route('clubs.create'));
         $response->assertStatus(200);
     }
 
-    public function responsable_course_can_store_club(): void
+    public function test_responsable_course_can_store_club(): void
     {
         // Responsable-course with valid licence also gets adherent role
         $clubData = [
@@ -259,16 +259,16 @@ class ResponsableCoursePermissionsTest extends TestCase
         $this->assertDatabaseHas('clubs', ['club_name' => 'Test Club']);
     }
 
-    public function responsable_course_cannot_create_raid(): void
+    public function test_responsable_course_cannot_create_raid(): void
     {
         $response = $this->actingAs($this->responsableCourse)->get(route('raids.create'));
         $response->assertStatus(403);
     }
 
-    public function responsable_course_cannot_store_raid(): void
+    public function test_responsable_course_cannot_store_raid(): void
     {
         $club = Club::factory()->create();
-        
+
         $raidData = [
             'name' => 'Test Raid',
             'description' => 'Test Description',
@@ -281,27 +281,27 @@ class ResponsableCoursePermissionsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function responsable_course_can_access_admin_dashboard(): void
+    public function test_responsable_course_can_access_admin_dashboard(): void
     {
         // Responsable-course has access-admin permission
         $response = $this->actingAs($this->responsableCourse)->get(route('admin.dashboard'));
         $response->assertStatus(200);
     }
 
-    public function responsable_course_cannot_access_admin_users(): void
+    public function test_responsable_course_cannot_access_admin_users(): void
     {
         $response = $this->actingAs($this->responsableCourse)->get(route('admin.users.index'));
         $response->assertStatus(403);
     }
 
-    public function responsable_course_cannot_approve_clubs(): void
+    public function test_responsable_course_cannot_approve_clubs(): void
     {
         $club = Club::factory()->pending()->create();
         $response = $this->actingAs($this->responsableCourse)->post(route('admin.clubs.approve', $club));
         $response->assertStatus(403);
     }
 
-    public function responsable_course_without_licence_cannot_create_race(): void
+    public function test_responsable_course_without_licence_cannot_create_race(): void
     {
         // Remove licence
         $this->responsableCourse->update(['adh_id' => null]);
@@ -320,7 +320,7 @@ class ResponsableCoursePermissionsTest extends TestCase
         $response->assertRedirect();
     }
 
-    public function responsable_course_can_access_admin_races_page(): void
+    public function test_responsable_course_can_access_admin_races_page(): void
     {
         // Responsable course should have access to /admin/races to manage their races
         $response = $this->actingAs($this->responsableCourse)->get(route('admin.races.index'));

@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use OpenApi\Annotations as OA;
-use App\Models\Member;
-use App\Models\MedicalDoc;
 
 /**
  * @OA\Schema(
@@ -39,10 +39,13 @@ class User extends Authenticatable
     use HasApiTokens;
     use HasRoles;
 
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory;
     use Notifiable;
     use TwoFactorAuthenticatable;
+
+    public mixed $licence_expiry_date;
+    public mixed $pps_expiry_date;
 
     /**
      * The attributes that are mass assignable.
@@ -89,15 +92,15 @@ class User extends Authenticatable
         return $this->belongsToMany(Team::class, 'has_participate', 'id_users', 'equ_id');
     }
 
-    
+
 
     /**
      * Get the user's full name.
      */
-    protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function name(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
-            get: fn() => "{$this->first_name} {$this->last_name}",
+        return Attribute::make(
+            get: fn() => "$this->first_name $this->last_name",
         );
     }
 
@@ -145,40 +148,40 @@ class User extends Authenticatable
     /**
      * Get the URL to the user's profile photo.
      *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
+     * @return Attribute
      */
-    public function profilePhotoUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    public function profilePhotoUrl(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::get(function () {
+        return Attribute::get(function () {
             return $this->profile_photo_path
-                ? \Illuminate\Support\Facades\Storage::url($this->profile_photo_path)
+                ? Storage::url($this->profile_photo_path)
                 : null;
         });
     }
 
     /**
-     * Get the licence end validity date from the user's member record.
+     * Get the license end validity date from the user's member record.
      *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute
+     * @return Attribute
      */
-    public function licenceEndValidity(): \Illuminate\Database\Eloquent\Casts\Attribute
+    public function licenceEndValidity(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: fn() => $this->member?->endValidity(),
         );
     }
 
     /**
      * Check if the user has completed their profile.
-     * 
+     *
      * Verifies that birth_date, address, and phone are present,
      * AND either license_number OR medical_certificate_code is provided.
      *
-     * @return \Illuminate\Database\Eloquent\Casts\Attribute<bool, never>
+     * @return Attribute<bool, never>
      */
-    protected function hasCompletedProfile(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function hasCompletedProfile(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: function () {
                 return !empty($this->birth_date) &&
                     !empty($this->address) &&
@@ -200,7 +203,7 @@ class User extends Authenticatable
         return $this->member ? $this->member->adh_license : null;
     }
 
-    public function endValidity()
+    public function endValidity(): ?string
     {
         return $this->member ? $this->member->adh_end_validity ? $this->member->adh_end_validity->format('d/m/Y') : null : null;
     }
@@ -236,10 +239,10 @@ class User extends Authenticatable
     /**
      * Check if the user is a club leader.
      * Uses the club_users pivot table to check if user has a manager role
-     * 
+     *
      * Check if the user is a club leader/manager.
      * A user is considered a club leader if they created any club (created_by column).
-     * 
+     *
      * @return bool
      */
     public function isClubLeader(): bool

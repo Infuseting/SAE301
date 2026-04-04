@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Raid;
 use App\Models\Raid;
 use App\Models\AgeCategory;
 use App\Data\FranceDepartments;
-use App\Models\Club;
+use App\Models\RegistrationPeriod;
 use App\Models\User;
-use App\Models\Member;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Raid\StoreRaidRequest;
 use App\Http\Requests\Raid\UpdateRaidRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -27,7 +30,7 @@ class RaidController extends Controller
     /**
      * Display a listing of the resource.
      * Returns all raids for client-side filtering and search.
-     * 
+     *
      * @OA\Get(
      *     path="/api/raids",
      *     tags={"Raids"},
@@ -58,7 +61,7 @@ class RaidController extends Controller
 
         // Filter by date if provided
         if ($request->has('date') && !empty($request->input('date'))) {
-            $filterDate = \Carbon\Carbon::createFromFormat('Y-m-d', $request->input('date'))->startOfDay();
+            $filterDate = Carbon::createFromFormat('Y-m-d', $request->input('date'))->startOfDay();
             $query->where(function ($q) use ($filterDate) {
                 $q->whereBetween('raid_date_start', [
                     $filterDate,
@@ -108,10 +111,10 @@ class RaidController extends Controller
             } elseif ($locationType === 'department') {
                 // Search by department name - get all postal code prefixes for this department
                 $departments = FranceDepartments::getDepartments();
-                $postalCodes = array_keys(array_filter($departments, fn($dept) => 
+                $postalCodes = array_keys(array_filter($departments, static fn($dept) =>
                     strtolower($dept['name']) === strtolower($location)
                 ));
-                
+
                 if (!empty($postalCodes)) {
                     $query->where(function ($q) use ($postalCodes) {
                         foreach ($postalCodes as $code) {
@@ -122,10 +125,10 @@ class RaidController extends Controller
             } elseif ($locationType === 'region') {
                 // Search by region - get all postal codes for this region
                 $departments = FranceDepartments::getDepartments();
-                $postalCodes = array_keys(array_filter($departments, fn($dept) => 
+                $postalCodes = array_keys(array_filter($departments, static fn($dept) =>
                     strtolower($dept['region']) === strtolower($location)
                 ));
-                
+
                 if (!empty($postalCodes)) {
                     $query->where(function ($q) use ($postalCodes) {
                         foreach ($postalCodes as $code) {
@@ -136,7 +139,7 @@ class RaidController extends Controller
             }
         }
 
-        $raids = $query->orderBy('raid_date_start', 'asc')->get();
+        $raids = $query->orderBy('raid_date_start')->get();
 
         // Get all age categories for the filter
         $ageCategories = AgeCategory::all();
@@ -167,17 +170,17 @@ class RaidController extends Controller
     public function create(): Response
     {
         // Get the club created by the current user
-        $userClub = \DB::table('clubs')
+        $userClub = DB::table('clubs')
             ->where('created_by', auth()->id())
             ->first(['club_id', 'club_name']);
 
-        
+
 
         // Get members (adherents) of this club from club_user table
         $clubMembers = collect();
         if ($userClub) {
             // Get all approved members of the club who have an adh_id (are adherents)
-            $clubMembers = \DB::table('club_user')
+            $clubMembers = DB::table('club_user')
                 ->join('users', 'club_user.user_id', '=', 'users.id')
                 ->where('club_user.club_id', $userClub->club_id)
                 ->where('club_user.status', 'approved')
@@ -199,7 +202,7 @@ class RaidController extends Controller
             $currentUserId = auth()->id();
             $currentUser = auth()->user();
             $currentUserInList = $clubMembers->contains('id', $currentUserId);
-            
+
             if (!$currentUserInList && $currentUser->adh_id) {
                 $clubMembers->prepend([
                     'id' => $currentUser->id,
@@ -209,7 +212,7 @@ class RaidController extends Controller
                 ]);
             }
 
-          
+
         }
 
         return Inertia::render('Raid/Create', [
@@ -221,7 +224,7 @@ class RaidController extends Controller
     /**
      * Store a newly created resource in storage.
      * Only responsable-club can create raids.
-     * 
+     *
      * @OA\Post(
      *     path="/api/raids",
      *     tags={"Raids"},
@@ -288,15 +291,15 @@ class RaidController extends Controller
         if (empty($validated['raid_street'])) {
             $validated['raid_street'] = 'Non spécifiée';
         }
-        
+
         // Handle image upload
         if ($request->hasFile('raid_image')) {
             $imagePath = $request->file('raid_image')->store('raids', 'public');
             $validated['raid_image'] = $imagePath;
         }
-        
+
         // Create registration period first
-        $registrationPeriod = \App\Models\RegistrationPeriod::create([
+        $registrationPeriod = RegistrationPeriod::create([
             'ins_start_date' => $validated['ins_start_date'],
             'ins_end_date' => $validated['ins_end_date'],
         ]);
@@ -362,7 +365,7 @@ class RaidController extends Controller
         // Assign gestionnaire-raid role (even if user has other roles like admin or responsable-club)
         if (!$targetUser->hasRole('gestionnaire-raid')) {
             $targetUser->assignRole('gestionnaire-raid');
-            
+
             activity()
                 ->performedOn($raid)
                 ->causedBy(auth()->user())
@@ -373,7 +376,7 @@ class RaidController extends Controller
 
     /**
      * Display the specified resource.
-     * 
+     *
      * @OA\Get(
      *     path="/api/raids/{id}",
      *     tags={"Raids"},
@@ -415,7 +418,7 @@ class RaidController extends Controller
             // Check if user is already registered to this race
             $isRegistered = false;
             if ($user) {
-                $isRegistered = \DB::table('registration')
+                $isRegistered = DB::table('registration')
                     ->join('has_participate', 'registration.equ_id', '=', 'has_participate.equ_id')
                     ->where('registration.race_id', $race->race_id)
                     ->where('has_participate.id_users', $user->id)
@@ -459,9 +462,9 @@ class RaidController extends Controller
         if ($isRaidManager) {
             // Get all race IDs for this raid
             $raceIds = $raid->races->pluck('race_id');
-            
+
             // Get unique users registered through the registration table and has_participate
-            $registeredMembers = \DB::table('registration')
+            $registeredMembers = DB::table('registration')
                 ->join('has_participate', 'registration.equ_id', '=', 'has_participate.equ_id')
                 ->join('users', 'has_participate.id_users', '=', 'users.id')
                 ->whereIn('registration.race_id', $raceIds)
@@ -514,7 +517,7 @@ class RaidController extends Controller
         $raid->load('registrationPeriod');
 
         // Get the club of this raid
-        $userClub = \DB::table('clubs')
+        $userClub = DB::table('clubs')
             ->where('club_id', $raid->clu_id)
             ->first(['club_id', 'club_name']);
 
@@ -522,7 +525,7 @@ class RaidController extends Controller
         $clubMembers = collect();
         if ($raid->clu_id) {
             // Get all approved members of the club
-            $clubMembers = \DB::table('club_user')
+            $clubMembers = DB::table('club_user')
                 ->join('users', 'club_user.user_id', '=', 'users.id')
                 ->where('club_user.club_id', $raid->clu_id)
                 ->where('club_user.status', 'approved')
@@ -542,7 +545,7 @@ class RaidController extends Controller
             // If current user is not in the list but has access to edit, add them
             $currentUserId = auth()->id();
             $currentUserInList = $clubMembers->contains('id', $currentUserId);
-            
+
             if (!$currentUserInList) {
                 $currentUser = auth()->user();
                 $clubMembers->prepend([
@@ -563,7 +566,7 @@ class RaidController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * 
+     *
      * @OA\Put(
      *     path="/api/raids/{id}",
      *     tags={"Raids"},
@@ -603,16 +606,16 @@ class RaidController extends Controller
     {
         // Check authorization
         $this->authorize('update', $raid);
-        
+
         $validated = $request->validated();
-        
+
         // Handle image upload if provided
         if ($request->hasFile('raid_image')) {
             // Delete old image if exists
             if ($raid->raid_image) {
                 Storage::disk('public')->delete($raid->raid_image);
             }
-            
+
             // Store new image
             $path = $request->file('raid_image')->store('raids', 'public');
             $validated['raid_image'] = $path;
@@ -620,7 +623,7 @@ class RaidController extends Controller
             // If no image in request, keep existing
             unset($validated['raid_image']);
         }
-        
+
         // Update registration period if it exists
         if ($raid->ins_id && $raid->registrationPeriod) {
             $raid->registrationPeriod->update([
@@ -658,7 +661,7 @@ class RaidController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * 
+     *
      * @OA\Delete(
      *     path="/api/raids/{id}",
      *     tags={"Raids"},
@@ -715,10 +718,10 @@ class RaidController extends Controller
     public function scannerPage(Raid $raid): Response
     {
         $user = auth()->user();
-        
+
         // Check if user can manage this raid
         $isRaidManager = $user && (
-            $user->hasRole('admin') || 
+            $user->hasRole('admin') ||
             ($raid->club && $raid->club->created_by === $user->id)
         );
 
@@ -738,8 +741,8 @@ class RaidController extends Controller
                     'reg_id' => $registration->reg_id,
                     'equ_id' => $registration->equ_id,
                     'team_name' => $registration->team->equ_name ?? 'Unknown',
-                    'leader_name' => $registration->team->leader 
-                        ? $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name 
+                    'leader_name' => $registration->team->leader
+                        ? $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name
                         : 'Unknown',
                     'race_name' => $registration->race->race_name ?? 'Unknown',
                     'dossard' => $registration->reg_dossard,
@@ -789,10 +792,7 @@ class RaidController extends Controller
         $isRaidManager = $user && $raid->club && $raid->club->created_by === $user->id;
 
         if (!$isRaidManager) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. Only raid managers can check-in teams.'
-            ], 403);
+            return $this->unprocessableContentResponse('Unauthorized. Only raid managers can check-in teams.');
         }
 
         $validated = $request->validate([
@@ -807,56 +807,46 @@ class RaidController extends Controller
             ->first();
 
         if (!$registration) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Registration not found.'
-            ], 404);
+            return $this->notFoundResponse('Registration not found.');
         }
 
         // Check if registration belongs to this raid
         if ($registration->race->raid_id !== $raid->raid_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This registration does not belong to this raid.'
-            ], 400);
+            return $this->errorResponse('This registration does not belong to this raid.');
         }
 
         // Check if already present
         if ($registration->is_present) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Team already checked in.',
+            return $this->successResponse([
                 'already_present' => true,
                 'registration' => [
                     'reg_id' => $registration->reg_id,
                     'reg_dossard' => $registration->reg_dossard,
                     'team_name' => $registration->team->equ_name,
                     'race_name' => $registration->race->race_name,
-                    'leader_name' => $registration->team->leader 
-                        ? $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name 
+                    'leader_name' => $registration->team->leader
+                        ? $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name
                         : 'Unknown',
                     'is_present' => true,
-                ],
-            ]);
+                ]
+            ], 'Team already checked in.');
         }
 
         // Mark as present
         $registration->update(['is_present' => true]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Team successfully checked in!',
+        return $this->successResponse([
             'registration' => [
                 'reg_id' => $registration->reg_id,
                 'reg_dossard' => $registration->reg_dossard,
                 'team_name' => $registration->team->equ_name,
                 'race_name' => $registration->race->race_name,
-                'leader_name' => $registration->team->leader 
-                    ? $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name 
+                'leader_name' => $registration->team->leader
+                    ? $registration->team->leader->first_name . ' ' . $registration->team->leader->last_name
                     : 'Unknown',
                 'is_present' => true,
-            ],
-        ]);
+            ]
+        ], 'Team successfully checked in!');
     }
 
     /**
@@ -879,10 +869,10 @@ class RaidController extends Controller
     public function generateStartList(Raid $raid)
     {
         $user = auth()->user();
-        
+
         // Check if user can manage this raid
         $isRaidManager = $user && (
-            $user->hasRole('admin') || 
+            $user->hasRole('admin') ||
             ($raid->club && $raid->club->created_by === $user->id)
         );
 
@@ -911,14 +901,14 @@ class RaidController extends Controller
         });
 
         // Generate PDF
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.start-list', [
+        $pdf = Pdf::loadView('pdf.start-list', [
             'raid' => $raid,
             'racesByCategory' => $racesByCategory,
             'totalTeams' => $totalTeams,
             'generatedAt' => now()->format('d/m/Y H:i'),
         ]);
 
-        $filename = 'start-list-' . \Illuminate\Support\Str::slug($raid->raid_name) . '.pdf';
+        $filename = 'start-list-' . Str::slug($raid->raid_name) . '.pdf';
 
         return $pdf->download($filename);
     }

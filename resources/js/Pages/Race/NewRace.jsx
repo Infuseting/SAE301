@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, router, Link, usePage } from '@inertiajs/react';
 import UserSelect from '@/Components/UserSelect';
@@ -55,10 +55,10 @@ const extractTime = (datetime) => {
 export default function NewRace({ auth, users = [], types = [], ageCategories = [], raid_id = null, raid = null, race = null }) {
     // Get translations
     const messages = usePage().props.translations?.messages || {};
-    
+
     // Determine if we're in edit mode
     const isEditMode = race !== null;
-    
+
     // Find the user ID from adh_id for edit mode
     const getResponsableUserId = () => {
         if (!race || !race.adh_id) return '';
@@ -98,11 +98,11 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
     // Date validation state
     const [dateErrors, setDateErrors] = useState({});
-    
+
     // Toggle age category selection
     const toggleAgeCategory = (categoryId) => {
         const parsedId = parseInt(categoryId);
-        setData('selectedAgeCategories', 
+        setData('selectedAgeCategories',
             data.selectedAgeCategories.includes(parsedId)
                 ? data.selectedAgeCategories.filter(id => id !== parsedId)
                 : [...data.selectedAgeCategories, parsedId]
@@ -218,8 +218,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
         validateDates(name, value);
     };
 
-    const isCompetitive = types.find(t => t.id === parseInt(data.type))?.name.toLowerCase() === 'compétitif' ||
-        types.find(t => t.id === parseInt(data.type))?.name.toLowerCase() === 'competitif';
+    const isCompetitive = types.find(t => t.id === parseInt(data.type))?.name?.toLowerCase() === 'compétitif' ||
+        types.find(t => t.id === parseInt(data.type))?.name?.toLowerCase() === 'competitif';
 
     // Check if an age category is available for competitive races
     const isAgeCategoryAvailable = (category) => {
@@ -230,9 +230,9 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
     // Remove unavailable categories when switching to competitive
     const handleTypeChange = (typeId) => {
         setData('type', parseInt(typeId));
-        const newIsCompetitive = types.find(t => t.id === parseInt(typeId))?.name.toLowerCase() === 'compétitif' ||
-            types.find(t => t.id === parseInt(typeId))?.name.toLowerCase() === 'competitif';
-        
+        const newIsCompetitive = types.find(t => t.id === parseInt(typeId))?.name?.toLowerCase() === 'compétitif' ||
+            types.find(t => t.id === parseInt(typeId))?.name?.toLowerCase() === 'competitif';
+
         if (newIsCompetitive) {
             // Filter out categories with age_min < 18
             const filteredCategories = data.selectedAgeCategories.filter(catId => {
@@ -252,7 +252,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         // Validation for competitive races: Check if at least one age category is selected
         if (isCompetitive && data.selectedAgeCategories.length === 0) {
             alert(messages['race.form.select_age_category'] || 'Veuillez sélectionner au moins une catégorie d\'âge pour cette course compétitive.');
@@ -264,21 +264,21 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
             const a = parseInt(data.leisureAgeMin);
             const b = parseInt(data.leisureAgeIntermediate);
             const c = parseInt(data.leisureAgeSupervisor);
-            
+
             if (isNaN(a) || isNaN(b) || isNaN(c)) {
                 alert(messages['race.form.fill_age_values'] || 'Veuillez renseigner les trois valeurs d\'âge (A, B, C) pour cette course loisir.');
                 return;
             }
-            
+
             if (a > b || b > c) {
                 alert(messages['race.form.age_values_rule'] || 'Les valeurs d\'âge doivent respecter la règle : A ≤ B ≤ C');
                 return;
             }
         }
-        
+
         // Prepare submission data
         const submissionData = { ...data };
-        
+
         // Clear priceMinor if competitive race
         if (isCompetitive) {
             submissionData.priceMinor = '';
@@ -290,15 +290,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
             // Clear age categories for leisure races
             submissionData.selectedAgeCategories = [];
         }
-        
-        // Debug: Log all form data
-        console.log('Form data before submission:', submissionData);
-        console.log('Processing state:', processing);
-        console.log('Selected age categories:', submissionData.selectedAgeCategories);
-        console.log('Is competitive:', isCompetitive);
-        console.log('Image file:', submissionData.image);
-        console.log('Image is File?:', submissionData.image instanceof File);
-        
+
         if (isEditMode) {
             // Use router.post with _method: PUT for file uploads to work correctly
             router.post(route('races.update', race.race_id), {
@@ -312,7 +304,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
             Object.keys(submissionData).forEach(key => {
                 setData(key, submissionData[key]);
             });
-            
+
             // Send form data with forceFormData to handle file upload
             post(route('races.store'), {
                 forceFormData: true,
@@ -321,10 +313,10 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
     };
 
     // Page title and button text based on mode
-    const pageTitle = isEditMode 
-        ? (messages['race.form.edit_title'] || 'Modifier la Course') 
+    const pageTitle = isEditMode
+        ? (messages['race.form.edit_title'] || 'Modifier la Course')
         : (messages['race.form.create_title'] || 'Créer une Nouvelle Course');
-    const submitButtonText = isEditMode 
+    const submitButtonText = isEditMode
         ? (processing ? (messages['race.form.updating'] || 'Modification en cours...') : (messages['race.form.update_button'] || 'Modifier la course'))
         : (processing ? (messages['race.form.creating'] || 'Création en cours...') : (messages['race.form.create_button'] || 'Créer la course'));
 
@@ -344,16 +336,16 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                     <div className="flex items-center justify-between">
                         {/* Back Button */}
                         {isEditMode ? (
-                            <Link 
-                                href={route('races.show', race.race_id)} 
+                            <Link
+                                href={route('races.show', race.race_id)}
                                 className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-white transition-colors uppercase tracking-widest"
                             >
                                 <ChevronRight className="w-4 h-4 rotate-180" />
                                 {messages['race.form.back_to_race'] || 'Retour à la course'}
                             </Link>
                         ) : raid && raid.raid_id ? (
-                            <Link 
-                                href={route('raids.show', raid.raid_id)} 
+                            <Link
+                                href={route('raids.show', raid.raid_id)}
                                 className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-white transition-colors uppercase tracking-widest"
                             >
                                 <ChevronRight className="w-4 h-4 rotate-180" />
@@ -362,11 +354,11 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                         ) : (
                             <div />
                         )}
-                        
+
                         <h1 className="text-2xl font-bold text-white text-center flex-1">
                             {pageTitle}
                         </h1>
-                        
+
                         <div className="w-20" />
                     </div>
                 </div>
@@ -738,8 +730,8 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                     min="0"
                                                     disabled={isCompetitive}
                                                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm ${
-                                                        isCompetitive 
-                                                            ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' 
+                                                        isCompetitive
+                                                            ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
                                                             : 'border-gray-300'
                                                     }`}
                                                 />
@@ -871,7 +863,7 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                         </div>
 
                                         {/* Validation A <= B <= C */}
-                                        {(parseInt(data.leisureAgeMin) > parseInt(data.leisureAgeIntermediate) || 
+                                        {(parseInt(data.leisureAgeMin) > parseInt(data.leisureAgeIntermediate) ||
                                           parseInt(data.leisureAgeIntermediate) > parseInt(data.leisureAgeSupervisor)) && (
                                             <p className="mt-3 text-sm text-red-600 flex items-center gap-2">
                                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -907,13 +899,13 @@ export default function NewRace({ auth, users = [], types = [], ageCategories = 
                                                 ageCategories.map((category) => {
                                                     const isAvailable = isAgeCategoryAvailable(category);
                                                     const isSelected = data.selectedAgeCategories.includes(parseInt(category.id));
-                                                    
+
                                                     return (
-                                                        <label 
-                                                            key={category.id} 
+                                                        <label
+                                                            key={category.id}
                                                             className={`flex items-center p-3 border rounded-lg transition-colors text-sm ${
-                                                                isAvailable 
-                                                                    ? 'border-gray-200 hover:bg-blue-50 cursor-pointer' 
+                                                                isAvailable
+                                                                    ? 'border-gray-200 hover:bg-blue-50 cursor-pointer'
                                                                     : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
                                                             }`}
                                                         >

@@ -85,7 +85,7 @@ class LeaderboardService
         if ($type === 'team') {
             $tableName = 'leaderboard_teams';
             $hasPointsColumn = \Schema::hasColumn($tableName, 'points');
-            
+
             // Get all team results for this race, sorted by time
             $results = LeaderboardTeam::where('race_id', $raceId)
                 ->orderBy('average_temps_final', 'asc')
@@ -102,7 +102,7 @@ class LeaderboardService
                         'rank' => $rank,
                         'points' => $points,
                     ];
-                    
+
                     if ($hasPointsColumn) {
                         $result->points = $points;
                         $result->save();
@@ -114,7 +114,7 @@ class LeaderboardService
         } else {
             $tableName = 'leaderboard_users';
             $hasPointsColumn = \Schema::hasColumn($tableName, 'points');
-            
+
             // Get all individual results for this race, sorted by time
             $results = LeaderboardUser::where('race_id', $raceId)
                 ->orderBy('temps_final', 'asc')
@@ -131,7 +131,7 @@ class LeaderboardService
                         'rank' => $rank,
                         'points' => $points,
                     ];
-                    
+
                     if ($hasPointsColumn) {
                         $result->points = $points;
                         $result->save();
@@ -255,7 +255,7 @@ class LeaderboardService
         try {
             $lineNumber = 1;
             $processedUserIds = []; // Track all user IDs processed in this import
-            
+
             while (($row = fgetcsv($handle, 0, $separator)) !== false) {
                 $lineNumber++;
                 $results['total']++;
@@ -438,7 +438,6 @@ class LeaderboardService
             ->orderBy('race_date_start', 'desc')
             ->get()
             ->map(function ($race) {
-                $race->age_category_names = $race->age_category_names;
                 return $race;
             });
     }
@@ -591,7 +590,7 @@ class LeaderboardService
                 ->where('has_participate.id', $item->user_id)
                 ->select('teams.equ_name')
                 ->first();
-            
+
             if ($teamResult) {
                 $teamName = $teamResult->equ_name;
             }
@@ -771,14 +770,14 @@ class LeaderboardService
 
         $rank = ($results->currentPage() - 1) * $perPage + 1;
         $totalInRace = $raceId ? LeaderboardUser::where('race_id', $raceId)->count() : $results->total();
-        
+
         $data = $results->getCollection()->map(function ($item) use (&$rank, $totalInRace) {
             // Calculate points dynamically if null in database
             $points = $item->points;
             if ($points === null) {
                 $points = $this->calculateSimplePointsForRank($rank, $totalInRace);
             }
-            
+
             return [
                 'rank' => $rank++,
                 'id' => $item->id,
@@ -845,14 +844,14 @@ class LeaderboardService
 
         $rank = ($results->currentPage() - 1) * $perPage + 1;
         $totalInRace = $raceId ? LeaderboardTeam::where('race_id', $raceId)->count() : $results->total();
-        
+
         $data = $results->getCollection()->map(function ($item) use (&$rank, $totalInRace) {
             // Calculate points dynamically if null in database
             $calculatedPoints = $item->points;
             if ($calculatedPoints === null) {
                 $calculatedPoints = $this->calculateSimplePointsForRank($rank, $totalInRace);
             }
-            
+
             // Get team members list - try both relations (users via id_users, participants via id)
             $members = [];
             if ($item->team) {
@@ -951,14 +950,14 @@ class LeaderboardService
 
         $rank = ($results->currentPage() - 1) * $perPage + 1;
         $totalInRace = $raceId ? LeaderboardUser::where('race_id', $raceId)->count() : $results->total();
-        
+
         $data = $results->getCollection()->map(function ($item) use (&$rank, $totalInRace) {
             // Calculate points dynamically if null in database
             $points = $item->points;
             if ($points === null) {
                 $points = $this->calculateSimplePointsForRank($rank, $totalInRace);
             }
-            
+
             return [
                 'rank' => $rank++,
                 'id' => $item->id,
@@ -1028,14 +1027,14 @@ class LeaderboardService
         $rank = ($results->currentPage() - 1) * $perPage + 1;
         $totalInRace = $raceId ? LeaderboardTeam::where('race_id', $raceId)->count() : $results->total();
         $categoryRanks = [];
-        
+
         $data = $results->getCollection()->map(function ($item) use (&$rank, &$categoryRanks, $totalInRace) {
             // Calculate points dynamically if null in database
             $calculatedPoints = $item->points;
             if ($calculatedPoints === null) {
                 $calculatedPoints = $this->calculateSimplePointsForRank($rank, $totalInRace);
             }
-            
+
             // Track rank within age category
             $ageCategoryId = $item->age_category_id ?? 'default';
             if (!isset($categoryRanks[$ageCategoryId])) {
@@ -1043,7 +1042,7 @@ class LeaderboardService
             }
             $categoryRanks[$ageCategoryId]++;
             $categoryRank = $categoryRanks[$ageCategoryId];
-            
+
             // Get team members list from users relation
             $members = [];
             if ($item->team && $item->team->users && $item->team->users->isNotEmpty()) {
@@ -1849,10 +1848,10 @@ class LeaderboardService
                 $team = Team::find($teamId);
                 if ($team) {
                     $memberId = $team->adh_id;
-                    
+
                     // Delete the leaderboard_teams entry for this race first
                     LeaderboardTeam::where('equ_id', $teamId)->where('race_id', $raceId)->delete();
-                    
+
                     // Delete the team
                     $team->delete();
                     Log::info("Deleted solo team {$teamId} as it's no longer used");
@@ -1876,7 +1875,7 @@ class LeaderboardService
     /**
      * Import team results from CSV with new format.
      * Format: CLT;PUCE;EQUIPE;CATÉGORIE;TEMPS;PTS
-     * 
+     *
      * Supports:
      * - Negative times (handled as valid times with absolute value)
      * - Different categories (Masculin, Féminin, Mixte)
@@ -1924,10 +1923,10 @@ class LeaderboardService
             $col = preg_replace('/^\xEF\xBB\xBF/', '', $col);
             // Use mb_strtolower for proper UTF-8 lowercase conversion
             $col = mb_strtolower($col, 'UTF-8');
-            
+
             // Normalize accented characters for more reliable matching
             $col = preg_replace('/[éèêë]/u', 'e', $col);
-            
+
             // Map column names
             $mapping = [
                 'clt' => 'clt',
@@ -1940,7 +1939,7 @@ class LeaderboardService
             ];
             return $mapping[$col] ?? $col;
         }, $header);
-        
+
         // Log normalized headers for debugging
         Log::debug('CSV Import - Normalized headers', ['headers' => $header]);
 
@@ -2122,7 +2121,7 @@ class LeaderboardService
 
     /**
      * Calculate points for a given rank.
-     * 
+     *
      * Rules:
      * - 100 points for 1st place
      * - -10 points per position
@@ -2165,7 +2164,7 @@ class LeaderboardService
 
     /**
      * Get difficulty coefficient for a race.
-     * 
+     *
      * Coefficients:
      * - facile (easy): 1.0
      * - moyenne (medium): 1.2

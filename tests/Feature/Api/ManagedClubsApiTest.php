@@ -22,7 +22,7 @@ class ManagedClubsApiTest extends TestCase
 
     public function test_unauthenticated_user_cannot_access_managed_clubs()
     {
-        $response = $this->getJson('/api/me/managed-clubs');
+        $response = $this->getJson('/api/user/managed-clubs');
 
         $response->assertStatus(401);
     }
@@ -33,7 +33,7 @@ class ManagedClubsApiTest extends TestCase
         $myClub = Club::factory()->create(['created_by' => $user->id, 'club_name' => 'My Owned Club']);
         Club::factory()->create(['club_name' => 'Other Club']);
 
-        $response = $this->actingAs($user, 'sanctum')->getJson('/api/me/managed-clubs');
+        $response = $this->actingAs($user, 'sanctum')->getJson('/api/user/managed-clubs');
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data')
@@ -54,7 +54,7 @@ class ManagedClubsApiTest extends TestCase
 
         Club::factory()->create(['club_name' => 'Just a Member Club']);
 
-        $response = $this->actingAs($user, 'sanctum')->getJson('/api/me/managed-clubs');
+        $response = $this->actingAs($user, 'sanctum')->getJson('/api/user/managed-clubs');
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data')
@@ -68,7 +68,7 @@ class ManagedClubsApiTest extends TestCase
 
         Club::factory()->count(3)->create();
 
-        $response = $this->actingAs($admin, 'sanctum')->getJson('/api/me/managed-clubs');
+        $response = $this->actingAs($admin, 'sanctum')->getJson('/api/user/managed-clubs');
 
         $response->assertStatus(200)
             ->assertJsonCount(3, 'data');

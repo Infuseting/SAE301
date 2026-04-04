@@ -33,7 +33,7 @@ class TeamFormValidationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => '',
             'teammates' => [],
             'join_team' => true,
@@ -51,7 +51,7 @@ class TeamFormValidationTest extends TestCase
         $user = User::factory()->create();
         $longName = str_repeat('A', 100); // Exceeds max:32
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => $longName,
             'teammates' => [],
             'join_team' => true,
@@ -67,7 +67,7 @@ class TeamFormValidationTest extends TestCase
     public function test_team_creation_rejects_xss_in_name(): void
     {
         $user = User::factory()->create();
-        
+
         $xssPayloads = [
             '<script>alert("XSS")</script>',
             '<img src=x onerror="alert(\'XSS\')">',
@@ -77,7 +77,7 @@ class TeamFormValidationTest extends TestCase
         ];
 
         foreach ($xssPayloads as $payload) {
-            $response = $this->actingAs($user)->post('/createTeam', [
+            $response = $this->actingAs($user)->post('/teams/create', [
                 'name' => $payload,
                 'teammates' => [],
                 'join_team' => true,
@@ -97,7 +97,7 @@ class TeamFormValidationTest extends TestCase
     public function test_team_creation_rejects_sql_injection_in_name(): void
     {
         $user = User::factory()->create();
-        
+
         $sqlPayloads = [
             "'; DROP TABLE teams; --",
             "1' OR '1'='1",
@@ -107,7 +107,7 @@ class TeamFormValidationTest extends TestCase
         ];
 
         foreach ($sqlPayloads as $payload) {
-            $response = $this->actingAs($user)->post('/createTeam', [
+            $response = $this->actingAs($user)->post('/teams/create', [
                 'name' => $payload,
                 'teammates' => [],
                 'join_team' => true,
@@ -127,7 +127,7 @@ class TeamFormValidationTest extends TestCase
     public function test_team_creation_handles_special_characters_in_name(): void
     {
         $user = User::factory()->create();
-        
+
         $specialNames = [
             'Team & Friends',
             "Team's Glory",
@@ -140,7 +140,7 @@ class TeamFormValidationTest extends TestCase
         ];
 
         foreach ($specialNames as $name) {
-            $response = $this->actingAs($user)->post('/createTeam', [
+            $response = $this->actingAs($user)->post('/teams/create', [
                 'name' => $name,
                 'teammates' => [],
                 'join_team' => true,
@@ -164,9 +164,9 @@ class TeamFormValidationTest extends TestCase
     public function test_team_creation_rejects_invalid_image_formats(): void
     {
         $user = User::factory()->create();
-        
+
         // Test with text file instead of image
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Valid Team',
             'image' => 'not_an_image.txt',
             'teammates' => [],
@@ -190,7 +190,7 @@ class TeamFormValidationTest extends TestCase
         // Create fake large file (over 2MB)
         $largeContent = str_repeat('A', 2049 * 1024); // 2049 KB
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Valid Team',
             'image' => $largeContent,
             'teammates' => [],
@@ -215,7 +215,7 @@ class TeamFormValidationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Valid Team',
             'teammates' => [
                 ['id' => 99999], // Non-existent user
@@ -235,7 +235,7 @@ class TeamFormValidationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Valid Team',
             'teammates' => [
                 ['id' => 'notanumber'],
@@ -259,7 +259,7 @@ class TeamFormValidationTest extends TestCase
         $user = User::factory()->create();
         $teammate = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Valid Team',
             'teammates' => [
                 ['id' => $teammate->id],
@@ -282,7 +282,7 @@ class TeamFormValidationTest extends TestCase
     public function test_team_creation_rejects_invalid_email_addresses(): void
     {
         $user = User::factory()->create();
-        
+
         $invalidEmails = [
             'notanemail',
             'user@',
@@ -295,7 +295,7 @@ class TeamFormValidationTest extends TestCase
         ];
 
         foreach ($invalidEmails as $email) {
-            $response = $this->actingAs($user)->post('/createTeam', [
+            $response = $this->actingAs($user)->post('/teams/create', [
                 'name' => 'Valid Team',
                 'emailInvites' => [$email],
                 'join_team' => true,
@@ -317,7 +317,7 @@ class TeamFormValidationTest extends TestCase
         $user = User::factory()->create();
         $longEmail = 'user' . str_repeat('a', 255) . '@example.com'; // Exceeds typical email limits
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Valid Team',
             'emailInvites' => [$longEmail],
             'join_team' => true,
@@ -336,7 +336,7 @@ class TeamFormValidationTest extends TestCase
     public function test_team_creation_rejects_sql_injection_in_email(): void
     {
         $user = User::factory()->create();
-        
+
         $sqlPayloads = [
             "user@example.com'; DROP TABLE--",
             "test@test.com' OR '1'='1",
@@ -344,7 +344,7 @@ class TeamFormValidationTest extends TestCase
         ];
 
         foreach ($sqlPayloads as $payload) {
-            $response = $this->actingAs($user)->post('/createTeam', [
+            $response = $this->actingAs($user)->post('/teams/create', [
                 'name' => 'Valid Team',
                 'emailInvites' => [$payload],
                 'join_team' => true,
@@ -364,7 +364,7 @@ class TeamFormValidationTest extends TestCase
     public function test_team_creation_rejects_xss_in_email(): void
     {
         $user = User::factory()->create();
-        
+
         $xssPayloads = [
             'user<script>alert(1)</script>@example.com',
             'user@example.com<img src=x onerror=alert(1)>',
@@ -372,7 +372,7 @@ class TeamFormValidationTest extends TestCase
         ];
 
         foreach ($xssPayloads as $payload) {
-            $response = $this->actingAs($user)->post('/createTeam', [
+            $response = $this->actingAs($user)->post('/teams/create', [
                 'name' => 'Valid Team',
                 'emailInvites' => [$payload],
                 'join_team' => true,
@@ -397,7 +397,7 @@ class TeamFormValidationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Valid Team',
             'teammates' => [],
             'join_team' => false,
@@ -413,7 +413,7 @@ class TeamFormValidationTest extends TestCase
      */
     public function test_team_creation_requires_authentication(): void
     {
-        $response = $this->post('/createTeam', [
+        $response = $this->post('/teams/create', [
             'name' => 'Valid Team',
             'teammates' => [],
             'join_team' => true,
@@ -432,7 +432,7 @@ class TeamFormValidationTest extends TestCase
         $user = User::factory()->create();
         $teammate = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Valid Team Name',
             'teammates' => [['id' => $teammate->id]],
             'join_team' => true,
@@ -451,7 +451,7 @@ class TeamFormValidationTest extends TestCase
         $teammate1 = User::factory()->create();
         $teammate2 = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Test Team',
             'teammates' => [
                 ['id' => $teammate1->id],
@@ -471,7 +471,7 @@ class TeamFormValidationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => "Team\x00Name",
             'teammates' => [],
             'join_team' => true,
@@ -488,7 +488,7 @@ class TeamFormValidationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Valid Team',
             'teammates' => [],
             'join_team' => 1, // Numeric instead of boolean
@@ -504,14 +504,14 @@ class TeamFormValidationTest extends TestCase
     public function test_team_creation_handles_very_large_teammate_list(): void
     {
         $user = User::factory()->create();
-        
+
         // Create 100+ teammate IDs (most realistic max would be much lower)
         $teammates = [];
         for ($i = 1; $i <= 100; $i++) {
             $teammates[] = ['id' => (int) $i];
         }
 
-        $response = $this->actingAs($user)->post('/createTeam', [
+        $response = $this->actingAs($user)->post('/teams/create', [
             'name' => 'Big Team',
             'teammates' => $teammates,
             'join_team' => true,

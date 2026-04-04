@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Leaderboard;
 
+use App\Models\AgeCategory;
 use App\Models\LeaderboardUser;
 use App\Models\LeaderboardTeam;
 use App\Models\User;
@@ -236,7 +237,7 @@ class LeaderboardModelTest extends TestCase
     {
         $team = Team::factory()->create();
         $race = Race::factory()->create();
-        $ageCategory = \App\Models\AgeCategory::create([
+        $ageCategory = AgeCategory::create([
             'nom' => 'Test Category',
             'age_min' => 18,
             'age_max' => 30,

@@ -56,7 +56,7 @@ class AdminUserTest extends TestCase
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
-        
+
         $otherUser = User::factory()->create(['first_name' => 'Target', 'last_name' => 'User']);
 
         $response = $this->actingAs($admin)->get('/admin/users');
@@ -83,7 +83,7 @@ class AdminUserTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        
+
         $this->assertEquals('NewName', $targetUser->fresh()->first_name);
     }
 
@@ -101,10 +101,6 @@ class AdminUserTest extends TestCase
             'role' => 'admin',
         ]);
 
-        if ($response->status() !== 302) {
-            dump($response->status());
-            dump($admin->getAllPermissions()->pluck('name'));
-        }
         $response->assertRedirect();
         $this->assertTrue($targetUser->fresh()->hasRole('admin'));
     }

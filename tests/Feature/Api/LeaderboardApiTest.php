@@ -435,7 +435,7 @@ class LeaderboardApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonPath('total', 1);
-        
+
         // Verify correct race is filtered
         $data = $response->json('data');
         $this->assertCount(1, $data);
@@ -474,7 +474,7 @@ class LeaderboardApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonPath('total', 1);
-        
+
         // Verify correct race is filtered
         $data = $response->json('data');
         $this->assertCount(1, $data);
